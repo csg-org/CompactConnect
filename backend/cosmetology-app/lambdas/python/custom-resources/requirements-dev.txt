@@ -30,7 +30,7 @@ jmespath==1.1.0
 markupsafe==3.0.3
     # via werkzeug
 moto[dynamodb,s3]==5.2.2
-    # via -r requirements-dev.in
+    # via -r custom-resources/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
