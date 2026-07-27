@@ -4,9 +4,11 @@ import es from '@locales/es.json';
 import { defaultLanguage } from '@/app.config';
 
 const i18n = createI18n({
+    legacy: false,
+    globalInjection: true,
     locale: defaultLanguage,
     fallbackLocale: defaultLanguage,
-    warnHtmlInMessage: 'off',
+    warnHtmlMessage: false,
     messages: {
         en,
         es,

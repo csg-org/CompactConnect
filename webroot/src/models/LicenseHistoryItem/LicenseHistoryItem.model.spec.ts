@@ -29,7 +29,7 @@ describe('LicenseHistoryItem model', () => {
                 }
             }
         };
-        i18n.global.locale = 'en';
+        i18n.global.locale.value = 'en';
     });
     it('should create a LicenseHistoryItem with expected defaults', () => {
         const licenseHistoryItem = new LicenseHistoryItem();

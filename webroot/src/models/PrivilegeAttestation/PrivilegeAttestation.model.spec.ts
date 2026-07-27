@@ -28,7 +28,7 @@ describe('PrivilegeAttestation model', () => {
                 }
             }
         };
-        i18n.global.locale = 'en';
+        i18n.global.locale.value = 'en';
     });
     it('should create a PrivilegeAttestation with expected defaults', () => {
         const privilegeAttestation = new PrivilegeAttestation();

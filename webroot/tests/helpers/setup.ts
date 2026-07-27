@@ -135,8 +135,8 @@ beforeEach(() => {
     const { tm: $tm, t: $t } = i18n.global;
 
     // Force English locale for every test
-    (i18n.global as any).locale = 'en';
-    (i18n.global as any).fallbackLocale = 'en';
+    i18n.global.locale.value = 'en';
+    i18n.global.fallbackLocale.value = 'en';
 
     // Force global setup since main.ts works differently for tests
     (window as any).Vue = {
@@ -192,10 +192,7 @@ const mountShallow = async (component, mountConfig: any = {}) => {
             ],
             mocks: {
                 $envConfig: mockEnvConfig,
-                // $auth: TODO,
                 $api: mockApi,
-                $t: sinon.spy(() => ''),
-                $i18n: { locale: 'en' },
                 $features: statsigClientMock,
                 $analytics: statsigClientMock,
             },
@@ -245,10 +242,7 @@ const mountFull = async (component, mountConfig: any = {}) => {
             ],
             mocks: {
                 $envConfig: mockEnvConfig,
-                // $auth: TODO,
                 $api: mockApi,
-                $t: sinon.spy(() => ''),
-                $i18n: { locale: 'en' },
                 $features: statsigClientMock,
                 $analytics: statsigClientMock,
             },

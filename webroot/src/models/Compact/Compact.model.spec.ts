@@ -24,7 +24,7 @@ describe('Compact model', () => {
                 }
             }
         };
-        i18n.global.locale = 'en';
+        i18n.global.locale.value = 'en';
     });
     it('should create a Compact with default values', () => {
         const compact = new Compact();
