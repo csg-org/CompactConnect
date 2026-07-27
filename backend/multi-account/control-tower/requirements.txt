@@ -20,7 +20,7 @@ aws-cdk-lib==2.258.0
     #   cdk-nag
 cattrs==25.3.0
     # via jsii
-cdk-nag==2.38.2
+cdk-nag==3.0.0
     # via -r requirements.in
 constructs==10.6.0
     # via
@@ -54,7 +54,6 @@ typeguard==2.13.3
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
-    #   cdk-nag
     #   constructs
     #   jsii
 typing-extensions==4.15.0
