@@ -25,13 +25,13 @@ cattrs==26.1.0
     # via jsii
 cdk-nag==2.38.2
     # via -r requirements.in
-constructs==10.6.0
+constructs==10.7.0
     # via
     #   -r requirements.in
     #   aws-cdk-aws-lambda-python-alpha
     #   aws-cdk-lib
     #   cdk-nag
-jsii==1.137.0
+jsii==1.139.0
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6
@@ -63,7 +63,6 @@ typeguard==2.13.3
     #   aws-cdk-aws-lambda-python-alpha
     #   aws-cdk-lib
     #   cdk-nag
-    #   constructs
     #   jsii
 typing-extensions==4.15.0
     # via
