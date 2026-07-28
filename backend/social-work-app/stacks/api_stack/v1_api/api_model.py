@@ -784,7 +784,17 @@ class ApiModel:
             description='The categories of clinical privilege action',
             items=JsonSchema(
                 type=JsonSchemaType.STRING,
-                enum=['fraud', 'consumer harm', 'other'],
+                enum=[
+                    'Non-Compliance With Requirements',
+                    'Conflict of Interest',
+                    'Substandard Care or Patient Neglect/Abuse',
+                    'Criminal Conviction or Adjudication',
+                    'Confidentiality, Consent or Disclosure Violations',
+                    'Fraud, Deception, or Misrepresentation',
+                    'Improper Supervision or Allowing Unlicensed Practice',
+                    'Improper Prescribing, Dispensing, Administering Medication/Drug Violation',
+                    'Other',
+                ],
             ),
         )
 

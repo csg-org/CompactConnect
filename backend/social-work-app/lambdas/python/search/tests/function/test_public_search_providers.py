@@ -199,7 +199,7 @@ class TestPublicSearchProviders(TstFunction):
             'adverseActionId': 'aa-license-unlifted',
             'dateOfUpdate': '2024-01-02T00:00:00+00:00',
             'encumbranceType': 'suspension',
-            'clinicalPrivilegeActionCategories': ['fraud'],
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
             'submittingUser': {'userId': 'staff-1'},
         }
 
@@ -791,7 +791,7 @@ class TestPublicSearchProviders(TstFunction):
             'adverseActionId': 'aa-unlifted',
             'dateOfUpdate': '2024-01-02T00:00:00+00:00',
             'encumbranceType': 'suspension',
-            'clinicalPrivilegeActionCategories': ['fraud'],
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
             'submittingUser': {'userId': 'staff-1'},
         }
         mock_hit = self._create_mock_hit(
@@ -869,7 +869,7 @@ class TestPublicSearchProviders(TstFunction):
             'adverseActionId': 'aa-priv-unlifted',
             'dateOfUpdate': '2024-01-02T00:00:00+00:00',
             'encumbranceType': 'suspension',
-            'clinicalPrivilegeActionCategories': ['fraud'],
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
             'submittingUser': {'userId': 'staff-1'},
         }
         nested = self._minimal_opensearch_license(
@@ -966,7 +966,7 @@ class TestPublicSearchProviders(TstFunction):
             'dateOfUpdate': '2024-06-01T00:00:00+00:00',
             'effectiveLiftDate': '2024-06-01',
             'encumbranceType': 'suspension',
-            'clinicalPrivilegeActionCategories': ['fraud'],
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
             'submittingUser': {'userId': 'staff-1'},
         }
         mock_hit = self._create_mock_hit(

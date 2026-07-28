@@ -404,9 +404,15 @@ def license_sk_suffix(jurisdiction: str, license_type_abbr: str, license_scope: 
 class ClinicalPrivilegeActionCategory(CCEnum):
     """Enum for adverse action clinical privilege action categories."""
 
-    FRAUD = 'fraud'
-    CONSUMER_HARM = 'consumer harm'
-    OTHER = 'other'
+    NON_COMPLIANCE = 'Non-Compliance With Requirements'
+    CONFLICT_OF_INTEREST = 'Conflict of Interest'
+    SUBSTANDARD_CARE = 'Substandard Care or Patient Neglect/Abuse'
+    CRIMINAL_CONVICTION = 'Criminal Conviction or Adjudication'
+    CONFIDENTIALITY_VIOLATION = 'Confidentiality, Consent or Disclosure Violations'
+    FRAUD = 'Fraud, Deception, or Misrepresentation'
+    IMPROPER_SUPERVISION = 'Improper Supervision or Allowing Unlicensed Practice'
+    IMPROPER_PRESCRIBING = 'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
+    OTHER = 'Other'
 
 
 class ChangeHashMixin:
