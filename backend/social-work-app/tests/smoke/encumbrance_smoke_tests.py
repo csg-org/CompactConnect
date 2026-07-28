@@ -798,6 +798,9 @@ if __name__ == '__main__':
 
     provider_id = config.test_provider_id
 
+    # Delete leftover adverse actions before loading provider records.
+    clean_adverse_actions()
+
     # Get jurisdiction information from privilege
     # Query database directly for privilege records
     provider_user_records = get_provider_user_records(ENCUMBRANCE_SMOKE_COMPACT, provider_id)
