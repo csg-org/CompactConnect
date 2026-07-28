@@ -10,7 +10,10 @@ from marshmallow.fields import Boolean, Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
-from cc_common.data_model.schema.adverse_action.api import AdverseActionGeneralResponseSchema
+from cc_common.data_model.schema.adverse_action.api import (
+    AdverseActionGeneralResponseSchema,
+    AdverseActionPublicResponseSchema,
+)
 from cc_common.data_model.schema.base_record import ForgivingSchema, StrictSchema
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
@@ -270,3 +273,4 @@ class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+    adverseActions = List(Nested(AdverseActionPublicResponseSchema, required=False, allow_none=False))

@@ -29,6 +29,7 @@ EXPECTED_PROVIDER_RESPONSE = {
             'compactEligibility': 'eligible',
             'dateOfExpiration': '2025-04-04',
             'licenseNumber': 'B0608337260',
+            'adverseActions': [],
         }
     ],
     'privileges': [
@@ -40,6 +41,7 @@ EXPECTED_PROVIDER_RESPONSE = {
             'licenseJurisdiction': 'oh',
             'licenseType': 'licensed clinical social worker',
             'dateOfExpiration': '2025-04-04',
+            'adverseActions': [],
             'administratorSetStatus': 'active',
             'status': 'active',
         }
@@ -73,6 +75,52 @@ class TestPublicGetProvider(TstFunction):
         provider_data = json.loads(resp['body'])
 
         self.assertEqual(EXPECTED_PROVIDER_RESPONSE, provider_data)
+
+    def test_public_get_provider_response_includes_adverse_actions_without_categories(self):
+        self._load_provider_data()
+        # a privilege adverse action, using the default jurisdiction/license type that match the default privilege
+        privilege_adverse_action = self.test_data_generator.put_default_adverse_action_record_in_provider_table()
+        # a license adverse action, matching the default multi-state license
+        license_adverse_action = self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'jurisdiction': 'oh',
+                'licenseScope': 'multi-state',
+                'adverseActionId': '11111111-1111-1111-1111-111111111111',
+            }
+        )
+
+        from handlers.public_lookup import public_get_provider
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # public endpoint does not have authorizer
+        del event['requestContext']['authorizer']
+        event['pathParameters'] = {'compact': 'socw', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['queryStringParameters'] = None
+
+        resp = public_get_provider(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        provider_data = json.loads(resp['body'])
+
+        privilege_public_adverse_actions = provider_data['privileges'][0]['adverseActions']
+        license_public_adverse_actions = provider_data['licenses'][0]['adverseActions']
+
+        self.assertEqual(1, len(privilege_public_adverse_actions))
+        self.assertEqual(1, len(license_public_adverse_actions))
+
+        for adverse_action, expected_adverse_action_id in (
+            (privilege_public_adverse_actions[0], str(privilege_adverse_action.adverseActionId)),
+            (license_public_adverse_actions[0], str(license_adverse_action.adverseActionId)),
+        ):
+            self.assertEqual(expected_adverse_action_id, adverse_action['adverseActionId'])
+            # NPDB categories and other staff-only fields must not be exposed publicly
+            self.assertNotIn('clinicalPrivilegeActionCategories', adverse_action)
+            self.assertNotIn('encumbranceType', adverse_action)
+            self.assertNotIn('submittingUser', adverse_action)
+            self.assertNotIn('liftingUser', adverse_action)
 
     def test_public_get_provider_response_only_returns_most_recent_licenses(self):
         self._load_provider_data()
@@ -164,6 +212,7 @@ class TestPublicGetProvider(TstFunction):
                 'compactEligibility': 'eligible',
                 'dateOfExpiration': '2025-04-04',
                 'licenseNumber': 'B0608337260',
+                'adverseActions': [],
             }
         ]
         self.assertEqual(expected_licenses, provider_data['licenses'])
