@@ -145,6 +145,34 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             loaded_adverse_action.to_dict(),
         )
 
+    def test_privilege_encumbrance_handler_stores_multiple_clinical_privilege_action_categories(self):
+        from cc_common.data_model.schema.adverse_action import AdverseActionData
+        from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory
+        from handlers.encumbrance import encumbrance_handler
+
+        categories = [
+            ClinicalPrivilegeActionCategory.FRAUD.value,
+            ClinicalPrivilegeActionCategory.SUBSTANDARD_CARE.value,
+        ]
+        event, context = self._when_testing_privilege_encumbrance(
+            body_overrides={'clinicalPrivilegeActionCategories': categories}
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        pk = f'{context["compact"]}#PROVIDER#{context["providerId"]}'
+        sk_prefix = (
+            f'{context["compact"]}#PROVIDER#privilege/{context["jurisdiction"]}/lcsw/single-state#ADVERSE_ACTION'
+        )
+        adverse_action_encumbrances = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
+        )
+        self.assertEqual(1, len(adverse_action_encumbrances['Items']))
+        loaded_adverse_action = AdverseActionData.from_database_record(adverse_action_encumbrances['Items'][0])
+        self.assertEqual(categories, loaded_adverse_action.clinicalPrivilegeActionCategories)
+
     def test_privilege_encumbrance_handler_sets_provider_record_to_encumbered_in_provider_data_table(self):
         from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
         from cc_common.data_model.schema.provider import ProviderData
