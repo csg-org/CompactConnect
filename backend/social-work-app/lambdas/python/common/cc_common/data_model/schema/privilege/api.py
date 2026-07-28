@@ -4,6 +4,7 @@ from marshmallow.validate import Length
 
 from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionGeneralResponseSchema,
+    AdverseActionPublicResponseSchema,
 )
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import (
@@ -80,5 +81,6 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
+    adverseActions = List(Nested(AdverseActionPublicResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)

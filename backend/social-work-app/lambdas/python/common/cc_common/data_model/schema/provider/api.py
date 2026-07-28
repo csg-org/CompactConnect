@@ -194,8 +194,9 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
 
-    # Unlike the JCC public provider search, which only returns privilege data for a provider,Social Workreturns both
-    # licenses and privileges and does not return any adverse action data.
+    # Unlike the JCC public provider search, which only returns privilege data for a provider, Social Work returns
+    # both licenses and privileges. Adverse actions are also returned (nested under licenses/privileges), but with
+    # NPDB category and other staff-only fields stripped via AdverseActionPublicResponseSchema.
     licenses = List(Nested(LicensePublicResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
 
