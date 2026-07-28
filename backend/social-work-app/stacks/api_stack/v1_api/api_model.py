@@ -854,9 +854,21 @@ class ApiModel:
             type=JsonSchemaType.STRING,
             description='The type of encumbrance',
             enum=[
+                'fine',
+                'reprimand',
+                'required supervision',
+                'completion of continuing education',
+                'public reprimand',
+                'probation',
+                'injunctive action',
                 'suspension',
                 'revocation',
+                'denial',
                 'surrender of license',
+                'modification of previous action-extension',
+                'modification of previous action-reduction',
+                'other monitoring',
+                'other adjudicated action not listed',
             ],
         )
 
