@@ -782,6 +782,7 @@ class ApiModel:
         return JsonSchema(
             type=JsonSchemaType.ARRAY,
             description='The categories of clinical privilege action',
+            min_items=1,
             items=JsonSchema(
                 type=JsonSchemaType.STRING,
                 enum=[
