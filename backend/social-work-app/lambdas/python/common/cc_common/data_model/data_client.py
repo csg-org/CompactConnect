@@ -85,7 +85,7 @@ class DataClient:
             raise CCInternalException(f'Expected 1 SSN index record, got {len(resp)}')
         return resp[0]['ssn']
 
-    @logger_inject_kwargs(logger, 'compact', 'jurisdiction', 'family_name', 'given_name')
+    @logger_inject_kwargs(logger, 'compact', 'jurisdiction')
     def find_matching_license_record(
         self,
         *,
@@ -109,6 +109,8 @@ class DataClient:
         :return: The matching license record if found, None otherwise
         """
         logger.info('Querying license records', compact=compact, state=jurisdiction)
+        # family_name/given_name are PII, so they are only logged at DEBUG level
+        logger.debug('Querying license records details', family_name=family_name, given_name=given_name)
 
         resp = self.config.provider_table.query(
             IndexName=self.config.license_gsi_name,
@@ -206,7 +208,7 @@ class DataClient:
         return ProviderUserRecords(resp['Items'])
 
     @paginated_query(set_query_limit_to_match_page_size=False)
-    @logger_inject_kwargs(logger, 'compact', 'provider_name', 'jurisdiction')
+    @logger_inject_kwargs(logger, 'compact', 'jurisdiction')
     def get_providers_sorted_by_family_name(
         self,
         *,
@@ -217,6 +219,8 @@ class DataClient:
         scan_forward: bool = True,
     ):
         logger.info('Getting providers by family name')
+        # provider_name is PII, so it is only logged at DEBUG level
+        logger.debug('Getting providers by family name details', provider_name=provider_name)
 
         # Create a name value to use in key condition if name fields are provided
         name_value = None

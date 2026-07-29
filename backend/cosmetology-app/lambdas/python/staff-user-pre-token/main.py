@@ -14,7 +14,9 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'tr
 @logger.inject_lambda_context()
 def customize_scopes(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Customize the scopes in the access token before AWS generates and issues it"""
-    logger.info('Received event', event=event)
+    # The full event includes PII from Cognito user attributes (email, given/family name), so it is only
+    # logged at DEBUG level.
+    logger.debug('Received event', event=event)
 
     try:
         sub = event['request']['userAttributes']['sub']
@@ -25,6 +27,8 @@ def customize_scopes(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         # Explicitly set this, to avoid future bugs
         event['response']['claimsAndScopeOverrideDetails'] = None
         return event
+
+    logger.info('Customizing scopes for user', sub=sub)
 
     try:
         user_data = UserData(sub)

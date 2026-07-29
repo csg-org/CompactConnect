@@ -209,9 +209,12 @@ def process_bulk_upload_file(
                     'Invalid license in line %s uploaded: %s',
                     i + 1,
                     str(e),
-                    valid_data=report_license_data,
+                    compact=compact,
+                    jurisdiction=jurisdiction,
                     exc_info=e,
                 )
+                # valid_data may contain licensee PII (name, license number, npi), so it is only logged at DEBUG
+                logger.debug('Invalid license record details', record_number=i + 1, valid_data=report_license_data)
                 event_writer.put_event(
                     Entry={
                         'Source': f'org.compactconnect.bulk-ingest.{object_key}',

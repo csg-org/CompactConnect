@@ -80,7 +80,9 @@ class Stack(CdkStack):
     @cached_property
     def common_env_vars(self):
         return {
-            'DEBUG': 'true',
+            # DEBUG-level logging can include sensitive request/response data, so it must
+            # not be enabled by default. It remains available to aid technical support teams.
+            'DEBUG': 'false',
             'ALLOWED_ORIGINS': json.dumps(self.allowed_origins),
             'COMPACTS': json.dumps(self.node.get_context('compacts')),
             'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),

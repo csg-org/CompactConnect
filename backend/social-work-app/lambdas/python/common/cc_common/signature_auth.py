@@ -185,7 +185,9 @@ def _validate_nonce_format(nonce: str) -> None:
     import re
 
     if not re.match(r'^[a-zA-Z0-9-]+$', nonce):
-        logger.warning('Invalid nonce format - contains invalid characters', nonce=nonce)
+        logger.warning('Invalid nonce format - contains invalid characters')
+        # the nonce is part of the request signing scheme, so it is only logged at DEBUG level
+        logger.debug('Invalid nonce format details', nonce=nonce)
         raise CCUnauthorizedCustomResponseException('Nonce can only contain alphanumeric characters and hyphens')
 
 
@@ -216,11 +218,12 @@ def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key
 
     # Validate all required headers are present
     if not all([algorithm, timestamp_str, nonce, signature_b64, key_id]):
+        # nonce is part of the request signing scheme, so it is not logged here; presence is sufficient for triage
         logger.warning(
             'Missing required signature headers',
             algorithm=algorithm,
             timestamp=timestamp_str,
-            nonce=nonce,
+            nonce_present=bool(nonce),
             signature_present=bool(signature_b64),
             key_id=key_id,
             compact=compact,
@@ -379,8 +382,9 @@ def _validate_and_store_nonce(compact: str, jurisdiction: str, nonce: str) -> No
                 'Nonce reuse detected',
                 compact=compact,
                 jurisdiction=jurisdiction,
-                nonce=nonce,
             )
+            # the nonce is part of the request signing scheme, so it is only logged at DEBUG level
+            logger.debug('Nonce reuse detected details', nonce=nonce)
             raise CCUnauthorizedCustomResponseException('Nonce has already been used') from e
         logger.error('Failed to validate nonce', error=str(e), compact=compact, jurisdiction=jurisdiction)
         raise CCUnauthorizedException('Failed to validate nonce') from e

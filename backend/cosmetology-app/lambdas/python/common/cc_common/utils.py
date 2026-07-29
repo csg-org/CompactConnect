@@ -113,15 +113,18 @@ def api_handler(fn: Callable):
 
         content_type = event['headers'].get('Content-Type')
 
-        # Propagate these keys to all log messages in this with block
+        # Propagate these keys to all log messages in this with block.
+        # The caller's Cognito username (their email address) is intentionally excluded here, since the
+        # 'sub' claim already provides a non-PII identifier that is sufficient for tracing requests to a user.
+        # Similarly, only query parameter *names* (not values) are logged, since query parameter values could
+        # contain PII or other sensitive data depending on the endpoint.
         with logger.append_context_keys(
             method=event['httpMethod'],
             origin=origin,
             path=event['requestContext']['resourcePath'],
             content_type=content_type,
             identity={'user': event['requestContext'].get('authorizer', {}).get('claims', {}).get('sub')},
-            query_params=event['queryStringParameters'],
-            username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
+            query_param_keys=sorted((event.get('queryStringParameters') or {}).keys()),
         ):
             logger.info('Incoming request')
 

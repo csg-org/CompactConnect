@@ -92,17 +92,18 @@ def _resend_invitation_and_complete(email: str) -> dict:
     return {'message': 'request processed'}
 
 
-def _cleanup_old_registration(old_email: str, cognito_user: dict) -> None:
+def _cleanup_old_registration(old_email: str, cognito_user: dict, provider_id: str) -> None:
     """Delete old Cognito user to allow new registration.
 
     :param old_email: Email of the old registration to clean up
     :param cognito_user: Cognito user data for logging
+    :param provider_id: The provider ID associated with the old registration, for non-PII log traceability
     """
     try:
         logger.info(
             'User never completed registration flow for previous email and has provided new email for registration, '
             'deleting old Cognito user associated with previous email.',
-            previous_email=old_email,
+            provider_id=provider_id,
             user_create_date=cognito_user['UserCreateDate'].isoformat(),
             user_last_modified_date=cognito_user['UserLastModifiedDate'].isoformat(),
             user_status=cognito_user['UserStatus'],
@@ -110,7 +111,7 @@ def _cleanup_old_registration(old_email: str, cognito_user: dict) -> None:
         config.cognito_client.admin_delete_user(UserPoolId=config.provider_user_pool_id, Username=old_email)
     except ClientError as delete_e:
         logger.error(
-            'Failed to delete old Cognito user during re-registration', error=str(delete_e), old_email=old_email
+            'Failed to delete old Cognito user during re-registration', error=str(delete_e), provider_id=provider_id
         )
         # Continue with registration anyway
 
@@ -155,10 +156,12 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             'Rate limit exceeded for ip address',
             compact=body['compact'],
             jurisdiction=body['jurisdiction'],
-            given_name=body['givenName'],
-            family_name=body['familyName'],
             license_type=body['licenseType'],
             ip_address=source_ip,
+        )
+        # given/family name are PII, so they are only logged at DEBUG level
+        logger.debug(
+            'Rate-limited registration attempt details', given_name=body['givenName'], family_name=body['familyName']
         )
         metrics.add_metric(name='registration-rate-limit-throttles', unit=MetricUnit.Count, value=1)
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
@@ -166,15 +169,18 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     # Verify reCAPTCHA token
     if not verify_recaptcha(body['token']):
+        # NOTE: the reCAPTCHA token itself is never logged, since it is sensitive authentication data.
         logger.info(
             'Invalid reCAPTCHA token',
-            token=body['token'],
             compact=body['compact'],
             jurisdiction=body['jurisdiction'],
-            given_name=body['givenName'],
-            family_name=body['familyName'],
             license_type=body['licenseType'],
             ip_address=source_ip,
+        )
+        logger.debug(
+            'Invalid reCAPTCHA registration attempt details',
+            given_name=body['givenName'],
+            family_name=body['familyName'],
         )
         metrics.add_metric(name=RECAPTCHA_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
@@ -269,9 +275,13 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             'No matching license record found for request',
             compact=body['compact'],
             jurisdiction=body['jurisdiction'],
+            license_type=body['licenseType'],
+        )
+        # given/family name are PII, so they are only logged at DEBUG level
+        logger.debug(
+            'No matching license record found for request details',
             given_name=body['givenName'],
             family_name=body['familyName'],
-            license_type=body['licenseType'],
         )
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
@@ -297,7 +307,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                         return _resend_invitation_and_complete(body['email'])
 
                     # Different email: cleanup account and then proceed with registration for provided email
-                    _cleanup_old_registration(registered_email, cognito_user)
+                    _cleanup_old_registration(registered_email, cognito_user, matching_record.providerId)
                 else:
                     logger.warning(
                         'User attempted to register for account with existing registered email.',
