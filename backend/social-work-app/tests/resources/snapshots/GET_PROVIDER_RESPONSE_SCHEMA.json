@@ -2140,6 +2140,10 @@
     "dateOfUpdate": {
       "format": "date-time",
       "type": "string"
+    },
+    "publicCompactIdentifier": {
+      "pattern": "^[Ss][Ww][Cc]-[0-9]{4}-[1-9][0-9]*$",
+      "type": "string"
     }
   },
   "required": [

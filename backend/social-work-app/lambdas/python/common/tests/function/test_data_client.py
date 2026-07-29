@@ -877,6 +877,38 @@ class TestDataClient(TstFunction):
 
         self.assertEqual(expected_investigation_close, investigation_record)
 
+    def test_claim_cuid_number_returns_sequential_values(self):
+        """claim_cuid_number atomically increments a dedicated counter, returning 1 then 2."""
+        from cc_common.data_model.data_client import DataClient
+
+        client = DataClient(self.config)
+
+        self.assertEqual(1, client.claim_cuid_number('socw'))
+        self.assertEqual(2, client.claim_cuid_number('socw'))
+
+    def test_claim_cuid_number_writes_counter_item_at_expected_key(self):
+        """The CUID counter is stored at pk/sk = {compact}#CUID_COUNT with attribute cuidCount."""
+        from cc_common.data_model.data_client import DataClient
+
+        client = DataClient(self.config)
+
+        client.claim_cuid_number('socw')
+
+        counter_item = self.config.provider_table.get_item(Key={'pk': 'socw#CUID_COUNT', 'sk': 'socw#CUID_COUNT'})[
+            'Item'
+        ]
+        self.assertEqual(1, counter_item['cuidCount'])
+
+    def test_claim_cuid_number_is_independent_per_compact(self):
+        """The CUID counter is scoped per-compact, independent of other compacts' counters."""
+        from cc_common.data_model.data_client import DataClient
+
+        client = DataClient(self.config)
+
+        self.assertEqual(1, client.claim_cuid_number('socw'))
+        self.assertEqual(1, client.claim_cuid_number('aslp'))
+        self.assertEqual(2, client.claim_cuid_number('socw'))
+
     def test_close_license_investigation_with_encumbrance(self):
         """Test closing license investigation with encumbrance creation"""
         from cc_common.data_model.data_client import DataClient

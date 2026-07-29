@@ -113,12 +113,45 @@ class ProviderRecordUtility:
         return latest_licenses[0]
 
     @staticmethod
-    def populate_provider_record(current_provider_record: ProviderData | None, license_record: dict) -> ProviderData:
+    def has_paired_single_and_multi_state_license(license_records: Iterable[dict]) -> bool:
+        """
+        Determine whether the given license records contain a matching pair of a single-state and a
+        multi-state license: same jurisdiction and same licenseType, one of each scope.
+
+        Eligibility and active status are deliberately not considered here, matching the pairing semantics
+        already used by ``find_most_recently_issued_or_renewed_license``.
+
+        :param license_records: An iterable of license records (dicts)
+        :return: True if a matching single-state/multi-state pair exists, otherwise False
+        """
+        single_state_keys = {
+            (record['jurisdiction'], record['licenseType'])
+            for record in license_records
+            if record['licenseScope'] == LicenseScopeEnum.SINGLE_STATE.value
+        }
+        multi_state_keys = {
+            (record['jurisdiction'], record['licenseType'])
+            for record in license_records
+            if record['licenseScope'] == LicenseScopeEnum.MULTI_STATE.value
+        }
+        return not single_state_keys.isdisjoint(multi_state_keys)
+
+    @staticmethod
+    def populate_provider_record(
+        current_provider_record: ProviderData | None,
+        license_record: dict,
+        *,
+        public_compact_identifier: str | None = None,
+    ) -> ProviderData:
         """
         Create a provider record from a license record.
 
         :param current_provider_record: The current provider record to update if it currently exists.
         :param license_record: The license record to use as a basis for the provider record
+        :param public_compact_identifier: A newly-minted CUID to set on the record, if one was just assigned.
+            Note: an existing publicCompactIdentifier on current_provider_record already survives via
+            **current_provider_record.to_dict() below; this parameter must never be used to overwrite an
+            existing value, since the CUID is write-once.
         :return: A provider record ready to be persisted
         """
         if current_provider_record is None:
@@ -128,6 +161,7 @@ class ProviderRecordUtility:
                     'compact': license_record['compact'],
                     'licenseJurisdiction': license_record['jurisdiction'],
                     **license_record,
+                    **({'publicCompactIdentifier': public_compact_identifier} if public_compact_identifier else {}),
                 }
             )
         # else populate the current fields of the provider record first before updating with
@@ -140,6 +174,7 @@ class ProviderRecordUtility:
                 'licenseJurisdiction': license_record['jurisdiction'],
                 # now override the key values on the current provider record with the new license record
                 **license_record,
+                **({'publicCompactIdentifier': public_compact_identifier} if public_compact_identifier else {}),
             }
         )
 

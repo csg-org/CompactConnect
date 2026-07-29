@@ -85,6 +85,10 @@ class ProviderData(CCDataClass):
     def licenseStatus(self) -> str | None:
         return self._data.get('licenseStatus')
 
+    @property
+    def publicCompactIdentifier(self) -> str | None:
+        return self._data.get('publicCompactIdentifier')
+
 
 class ProviderUpdateData(CCDataClass):
     """
