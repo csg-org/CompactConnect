@@ -135,6 +135,7 @@
               ],
               "type": "string"
             },
+            "minItems": 1,
             "type": "array"
           },
           "liftingUser": {
@@ -801,6 +802,7 @@
                     ],
                     "type": "string"
                   },
+                  "minItems": 1,
                   "type": "array"
                 },
                 "liftingUser": {
@@ -1667,6 +1669,7 @@
                     ],
                     "type": "string"
                   },
+                  "minItems": 1,
                   "type": "array"
                 },
                 "liftingUser": {
