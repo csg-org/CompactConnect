@@ -59,6 +59,7 @@ class PageContainer extends Vue {
 
     get shouldPadTop(): boolean {
         const nonPadTopRouteNames: Array<string> = [
+            'Logout',
             'LicensingDetail',
             'LicenseeDetailPublic',
             'LicenseeVerification',
@@ -70,6 +71,7 @@ class PageContainer extends Vue {
 
     get includeMainNav(): boolean {
         const nonMainNavRouteNames: Array<string> = [
+            'Logout', // This is a non-interactive page with background operations and an automatic redirect
             'DashboardPublic', // This is a custom splash page with custom button navigation
             'LicenseeVerification', // This is a printer-friendly page
             'MfaResetConfirmLicensee', // This is a standalone automation page accessed from emailed link

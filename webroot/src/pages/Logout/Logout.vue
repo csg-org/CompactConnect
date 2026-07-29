@@ -6,7 +6,10 @@
 -->
 
 <template>
-    <div class="logout-container"></div>
+    <div class="logout-container">
+        <div class="message">{{ $t('common.loggingOut') }}</div>
+        <LoadingSpinner :noBgColor="true" />
+    </div>
 </template>
 
 <script lang="ts" src="./Logout.ts"></script>

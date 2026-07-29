@@ -13,12 +13,16 @@ import {
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
-    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
+    revokeCognitoRefreshToken
 } from '@utils/auth';
+import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 
 @Component({
     name: 'Logout',
-    components: {}
+    components: {
+        LoadingSpinner,
+    },
 })
 export default class Logout extends Vue {
     //
@@ -120,7 +124,16 @@ export default class Logout extends Vue {
         this.unsetAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps
         this.stashWorkingUri();
         this.$store.dispatch('user/clearRefreshTokenTimeout');
+        await this.revokeTokens(authType);
         await this.$store.dispatch('user/logoutRequest', authType);
+    }
+
+    async revokeTokens(authType: AuthTypes): Promise<void> {
+        try {
+            await revokeCognitoRefreshToken(this.appMode, authType);
+        } catch (err) {
+            // Continue — do not block cookie logout / local cleanup if revoke fails
+        }
     }
 
     async unsetAnalyticsUser(): Promise<void> {

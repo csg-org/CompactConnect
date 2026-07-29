@@ -10,6 +10,7 @@ import sessionStorage from '@store/session.storage';
 import localStorage from '@store/local.storage';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
+import axios from 'axios';
 
 // ====================
 // =   Auth storage   =
@@ -217,6 +218,29 @@ export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hosted
     return loginUri;
 };
 
+// ===========================
+// =    Token Revocation     =
+// ===========================
+// https://docs.aws.amazon.com/cognito/latest/developerguide/revocation-endpoint.html
+export const revokeCognitoRefreshToken = async (appMode: AppModes, authType: AuthTypes): Promise<void> => {
+    const { clientId, authDomain } = getCognitoConfig(appMode, authType);
+    const refreshToken = authStorage.getItem(tokens[authType]?.REFRESH_TOKEN);
+
+    if (clientId && authDomain && refreshToken) {
+        const params = new URLSearchParams();
+
+        params.append('token', refreshToken);
+        params.append('client_id', clientId);
+
+        await axios.post(`${authDomain}/oauth2/revoke`, params, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Accept: 'application/json',
+            },
+        });
+    }
+};
+
 // ====================
 // =    Auto logout   =
 // ====================
@@ -248,6 +272,7 @@ export default {
     licenseeLoginScopes,
     getCognitoConfig,
     getHostedLoginUri,
+    revokeCognitoRefreshToken,
     createAuthCsrfState,
     consumeAuthCsrfState,
     createPkceChallenge,

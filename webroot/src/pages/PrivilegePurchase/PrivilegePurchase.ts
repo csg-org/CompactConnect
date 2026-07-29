@@ -149,6 +149,8 @@ export default class PrivilegePurchase extends Vue {
     // Watchers
     //
     @Watch('routeName') handlePurchaseFlowNavigation() {
-        this.handlePurchaseFlowState();
+        if (this.licensee?.canPurchasePrivileges() && this.currentCompactType) {
+            this.handlePurchaseFlowState();
+        }
     }
 }

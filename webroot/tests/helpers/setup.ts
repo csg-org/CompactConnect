@@ -156,6 +156,30 @@ beforeEach(() => {
     failTestOn(['Vue warn', 'unhandledRejection']);
 });
 
+// Track wrappers mounted via helpers so they can be torn down between tests, preventing leftover components from reacting to shared-store changes (e.g. compact router-links).
+const mountedWrappers: Array<{ unmount: () => void }> = [];
+const trackWrapper = <T extends { unmount: () => void }>(wrapper: T): T => {
+    mountedWrappers.push(wrapper);
+
+    return wrapper;
+};
+
+const unmountAllWrappers = () => {
+    while (mountedWrappers.length) {
+        const wrapper = mountedWrappers.pop();
+
+        try {
+            wrapper?.unmount();
+        } catch (err) {
+            // Ignore already-unmounted wrappers
+        }
+    }
+};
+
+afterEach(() => {
+    unmountAllWrappers();
+});
+
 // Trap when Mocha stumbles on promises
 (process as any).on('unhandledRejection', (err) => {
     if (err) {
@@ -213,7 +237,7 @@ const mountShallow = async (component, mountConfig: any = {}) => {
 
     // await router.isReady();
 
-    return shallowMount(component, config);
+    return trackWrapper(shallowMount(component, config));
 };
 
 /**
@@ -263,7 +287,7 @@ const mountFull = async (component, mountConfig: any = {}) => {
 
     // await router.isReady();
 
-    return mount(component, config);
+    return trackWrapper(mount(component, config));
 };
 
 export {
