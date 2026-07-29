@@ -1026,6 +1026,114 @@ class TestProviderRecordUtility(TstLambdas):
         self.assertEqual(best_license['dateOfIssuance'], '2024-03-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
 
+    def test_has_paired_single_and_multi_state_license_true_when_matching_pair_exists(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        licenses = [
+            {**self.base_license, 'licenseScope': 'single-state'},
+            {**self.base_license, 'licenseScope': 'multi-state', 'licenseNumber': '67890'},
+        ]
+        self.assertTrue(ProviderRecordUtility.has_paired_single_and_multi_state_license(licenses))
+
+    def test_has_paired_single_and_multi_state_license_false_for_multi_state_only(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        licenses = [{**self.base_license, 'licenseScope': 'multi-state'}]
+        self.assertFalse(ProviderRecordUtility.has_paired_single_and_multi_state_license(licenses))
+
+    def test_has_paired_single_and_multi_state_license_false_for_single_state_only(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        licenses = [{**self.base_license, 'licenseScope': 'single-state'}]
+        self.assertFalse(ProviderRecordUtility.has_paired_single_and_multi_state_license(licenses))
+
+    def test_has_paired_single_and_multi_state_license_false_for_different_jurisdictions(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        licenses = [
+            {**self.base_license, 'licenseScope': 'single-state', 'jurisdiction': 'oh'},
+            {**self.base_license, 'licenseScope': 'multi-state', 'jurisdiction': 'ky', 'licenseNumber': '67890'},
+        ]
+        self.assertFalse(ProviderRecordUtility.has_paired_single_and_multi_state_license(licenses))
+
+    def test_has_paired_single_and_multi_state_license_false_for_different_license_types(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        licenses = [
+            {**self.base_license, 'licenseScope': 'single-state', 'licenseType': 'physician'},
+            {
+                **self.base_license,
+                'licenseScope': 'multi-state',
+                'licenseType': 'psychologist',
+                'licenseNumber': '67890',
+            },
+        ]
+        self.assertFalse(ProviderRecordUtility.has_paired_single_and_multi_state_license(licenses))
+
+    def test_has_paired_single_and_multi_state_license_ignores_eligibility_and_status(self):
+        """Eligibility and active status are not considered when detecting a pairing."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+
+        licenses = [
+            {
+                **self.base_license,
+                'licenseScope': 'single-state',
+                'licenseStatus': ActiveInactiveStatus.INACTIVE,
+                'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
+            },
+            {
+                **self.base_license,
+                'licenseScope': 'multi-state',
+                'licenseNumber': '67890',
+                'licenseStatus': ActiveInactiveStatus.INACTIVE,
+                'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
+            },
+        ]
+        self.assertTrue(ProviderRecordUtility.has_paired_single_and_multi_state_license(licenses))
+
+    def test_has_paired_single_and_multi_state_license_false_for_empty_list(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        self.assertFalse(ProviderRecordUtility.has_paired_single_and_multi_state_license([]))
+
+    def test_populate_provider_record_preserves_existing_cuid_across_home_jurisdiction_change(self):
+        """An existing publicCompactIdentifier must survive a home-jurisdiction-changing update."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from common_test.test_data_generator import TestDataGenerator
+
+        current_provider = TestDataGenerator.generate_default_provider(
+            {'publicCompactIdentifier': 'SWC-4548-1', 'licenseJurisdiction': 'oh'}
+        )
+        new_license = TestDataGenerator.generate_default_license({'jurisdiction': 'ky'}).to_dict()
+
+        updated_provider = ProviderRecordUtility.populate_provider_record(current_provider, new_license)
+
+        self.assertEqual('SWC-4548-1', updated_provider.publicCompactIdentifier)
+        self.assertEqual('ky', updated_provider.licenseJurisdiction)
+
+    def test_populate_provider_record_sets_new_cuid_when_provided(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from common_test.test_data_generator import TestDataGenerator
+
+        new_license = TestDataGenerator.generate_default_license().to_dict()
+
+        updated_provider = ProviderRecordUtility.populate_provider_record(
+            None, new_license, public_compact_identifier='SWC-4548-1'
+        )
+
+        self.assertEqual('SWC-4548-1', updated_provider.publicCompactIdentifier)
+
+    def test_populate_provider_record_does_not_set_cuid_when_not_provided(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from common_test.test_data_generator import TestDataGenerator
+
+        new_license = TestDataGenerator.generate_default_license().to_dict()
+
+        updated_provider = ProviderRecordUtility.populate_provider_record(None, new_license)
+
+        self.assertIsNone(updated_provider.publicCompactIdentifier)
+
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
 class TestProviderUserRecordsBestLicense(TstLambdas):
@@ -2078,3 +2186,20 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         }
         self.assertTrue(multi_state_flags[(lcsw, 'oh')])
         self.assertTrue(multi_state_flags[(lmsw, 'al')])
+
+    def test_opensearch_documents_include_public_compact_identifier_on_every_document(self):
+        """publicCompactIdentifier must be present on every per-license OpenSearch document for the provider."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        license_type = 'licensed clinical social worker'
+        records = self._make_provider_records(
+            provider_overrides={'publicCompactIdentifier': 'SWC-4548-1'},
+            license_overrides_list=_license_pair_overrides('oh', license_type),
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
+
+        self.assertEqual(2, len(docs))
+        for doc in docs:
+            self.assertEqual('SWC-4548-1', doc['publicCompactIdentifier'])

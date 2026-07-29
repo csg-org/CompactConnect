@@ -1,17 +1,20 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+import re
+
 from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, Range, Regexp
 
 from cc_common.data_model.schema.adverse_action.api import AdverseActionGeneralResponseSchema
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.common import CCRequestSchema
+from cc_common.data_model.schema.common import CUID_PATTERN, CCRequestSchema
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
     Jurisdiction,
     LicenseScopeField,
+    PublicCompactIdentifierField,
 )
 from cc_common.data_model.schema.license.api import (
     LicenseGeneralResponseSchema,
@@ -95,6 +98,9 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     providerDateOfUpdate = Raw(required=False, allow_none=False)
     birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
+    # Compact Unique Identifier (CUID); only present once a paired single-state/multi-state license exists.
+    publicCompactIdentifier = PublicCompactIdentifierField(required=False, allow_none=False)
+
     # these records are present when getting provider information from the GET endpoint
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicenseReadPrivateResponseSchema(), required=False, allow_none=False))
@@ -143,6 +149,9 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Raw(required=False, allow_none=False)
     birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
+
+    # Compact Unique Identifier (CUID); only present once a paired single-state/multi-state license exists.
+    publicCompactIdentifier = PublicCompactIdentifierField(required=False, allow_none=False)
 
     # these records are present when getting provider information from the GET endpoint
     # so we check for them here and sanitize them if they are present
@@ -194,6 +203,9 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
 
+    # Compact Unique Identifier (CUID); only present once a paired single-state/multi-state license exists.
+    publicCompactIdentifier = PublicCompactIdentifierField(required=False, allow_none=False)
+
     # Unlike the JCC public provider search, which only returns privilege data for a provider, Social Work returns
     # both licenses and privileges. Adverse actions are also returned (nested under licenses/privileges), but with
     # NPDB category and other staff-only fields stripped via AdverseActionPublicResponseSchema.
@@ -215,6 +227,8 @@ class PublicLicenseSearchResponseSchema(ForgivingSchema):
     licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     licenseEligibility = CompactEligibility(required=True, allow_none=False)
+    # Compact Unique Identifier (CUID); only present once a paired single-state/multi-state license exists.
+    publicCompactIdentifier = PublicCompactIdentifierField(required=False, allow_none=False)
 
 
 class QueryProvidersRequestSchema(CCRequestSchema):
@@ -276,6 +290,18 @@ class PublicQueryProvidersRequestSchema(CCRequestSchema):
         givenName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
         familyName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
         licenseNumber = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        # Anchored, case-insensitive CUID match. This is the primary input guard: it rejects wildcards,
+        # partial values, and counter-only lookups before anything is forwarded to OpenSearch. The length cap
+        # bounds the cost of regex matching against a maliciously long input; a real CUID is never anywhere
+        # close to this long, since the counter would have to reach an implausible number of digits.
+        cuid = String(
+            required=False,
+            allow_none=False,
+            validate=[Length(max=64), Regexp(CUID_PATTERN, flags=re.IGNORECASE)],
+        )
+        # Validated for shape here; validated against config.license_types_for_compact(compact) in the handler,
+        # since the compact is a path parameter and not available to this schema.
+        licenseType = String(required=False, allow_none=False, validate=Length(min=1, max=100))
 
     query = Nested(PublicQuerySchema, required=True, allow_none=False)
     pagination = Nested(QueryProvidersRequestSchema.PaginationSchema, required=False, allow_none=False)

@@ -403,6 +403,11 @@ class LicenseScopeEnum(CCEnum):
     MULTI_STATE = 'multi-state'
 
 
+CUID_PREFIX = 'SWC'
+# Compact Unique Identifier: SWC-<4-digit random>-<monotonic counter>, e.g. SWC-4548-1
+CUID_PATTERN = r'^SWC-[0-9]{4}-[1-9][0-9]*$'
+
+
 def provider_pk(compact: str, provider_id) -> str:
     """Return the partition key shared by provider-scoped records in the provider data table."""
     return f'{compact}#PROVIDER#{provider_id}'

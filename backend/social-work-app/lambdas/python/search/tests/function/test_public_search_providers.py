@@ -56,6 +56,7 @@ class TestPublicSearchProviders(TstFunction):
                 'bool': {
                     'must': [
                         {'term': {'compact': compact}},
+                        {'exists': {'field': 'publicCompactIdentifier'}},
                         {
                             'nested': {
                                 'path': 'licenses',
@@ -213,6 +214,7 @@ class TestPublicSearchProviders(TstFunction):
         license_nested: dict,
         provider_adverse_actions: list | None = None,
         privileges: list | None = None,
+        public_compact_identifier: str | None = None,
     ) -> dict:
         """Top-level OpenSearch provider document sufficient for ProviderOpenSearchDocumentSchema."""
         lic_exp = license_nested['dateOfExpiration']
@@ -234,6 +236,8 @@ class TestPublicSearchProviders(TstFunction):
             'privileges': privileges if privileges is not None else [],
             'adverseActions': provider_adverse_actions or [],
         }
+        if public_compact_identifier is not None:
+            source['publicCompactIdentifier'] = public_compact_identifier
         return self._ingest_style_sanitize_opensearch_source(source)
 
     def _create_mock_hit(
@@ -249,6 +253,7 @@ class TestPublicSearchProviders(TstFunction):
         license_nested: dict | None = None,
         provider_adverse_actions: list | None = None,
         privileges: list | None = None,
+        public_compact_identifier: str | None = None,
     ) -> dict:
         """Create a mock OpenSearch hit for one document per license."""
         doc_id = f'{provider_id}#{jurisdiction}#{license_type}'
@@ -270,6 +275,7 @@ class TestPublicSearchProviders(TstFunction):
             license_nested=nested,
             provider_adverse_actions=provider_adverse_actions,
             privileges=privileges,
+            public_compact_identifier=public_compact_identifier,
         )
         hit = {
             '_index': f'compact_{compact}_providers',
@@ -592,6 +598,103 @@ class TestPublicSearchProviders(TstFunction):
             },
             body,
         )
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_cuid_search_builds_top_level_term_query(self, mock_opensearch_client):
+        """cuid in query builds a top-level exact-match term query on publicCompactIdentifier (uppercased)."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'socw',
+            body={'query': {'cuid': 'swc-1234-5678'}, 'pagination': {'pageSize': 10}},
+        )
+        public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        must = call_body['query']['bool']['must']
+        self.assertIn({'term': {'publicCompactIdentifier': 'SWC-1234-5678'}}, must)
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_license_type_search_builds_nested_term_query(self, mock_opensearch_client):
+        """licenseType in query builds a nested term query on licenses.licenseType (lowercased)."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'socw',
+            body={
+                'query': {'licenseType': 'Licensed Clinical Social Worker'},
+                'pagination': {'pageSize': 10},
+            },
+        )
+        public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    {'term': {'licenses.licenseType': 'licensed clinical social worker'}},
+                ],
+            ),
+            call_body,
+        )
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_license_type_not_valid_for_compact_returns_400(self, mock_opensearch_client):
+        """licenseType not configured for the path compact returns 400 and does not call OpenSearch."""
+        from handlers.public_search import public_search_api_handler
+
+        event = self._create_public_api_event(
+            'socw',
+            body={'query': {'licenseType': 'not-a-real-license-type'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('Invalid license type', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_malformed_cuid_returns_400(self, mock_opensearch_client):
+        """cuid that does not match the CUID pattern returns 400 without ever reaching OpenSearch."""
+        from handlers.public_search import public_search_api_handler
+
+        malformed_values = [
+            'SWC-*-1',  # wildcard
+            'SWC-1234',  # partial (missing counter)
+            '1',  # counter-only
+            'SWC-123-1',  # random segment must be exactly 4 digits
+            'SWC-1234-0',  # counter must be >= 1, cannot start with 0
+        ]
+        for malformed in malformed_values:
+            with self.subTest(cuid=malformed):
+                event = self._create_public_api_event(
+                    'socw',
+                    body={'query': {'cuid': malformed}, 'pagination': {'pageSize': 10}},
+                )
+                response = public_search_api_handler(event, self.mock_context)
+                self.assertEqual(400, response['statusCode'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_response_includes_public_compact_identifier(self, mock_opensearch_client):
+        """publicCompactIdentifier from the OpenSearch hit is copied through to the public response."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_hit = self._create_mock_hit(public_compact_identifier='SWC-1234-5678')
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'socw',
+            body={'query': {'licenseNumber': 'LN123'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual('SWC-1234-5678', body['providers'][0]['publicCompactIdentifier'])
 
     def test_provider_id_in_query_returns_400(self):
         """Public query must not accept query.providerId (blocked at schema validation)."""

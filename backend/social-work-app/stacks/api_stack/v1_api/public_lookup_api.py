@@ -81,7 +81,7 @@ class PublicLookupApi:
         public_query_provider_method = query_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
-            request_models={'application/json': self.api_model.query_providers_request_model},
+            request_models={'application/json': self.api_model.public_query_providers_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',

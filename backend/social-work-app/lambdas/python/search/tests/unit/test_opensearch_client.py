@@ -41,6 +41,15 @@ class TestOpenSearchClient(TestCase):
             body=index_mapping,
         )
 
+    def test_provider_index_mapping_includes_top_level_public_compact_identifier_keyword_field(self):
+        """publicCompactIdentifier must be indexed as a top-level exact-match keyword field so that CUID lookups
+        are exact-match only (no partial/prefix matching)."""
+        client, _mock_internal_client = self._create_client_with_mock()
+
+        mapping = client._get_provider_index_mapping(number_of_shards=1, number_of_replicas=1)  # noqa: SLF001
+
+        self.assertEqual({'type': 'keyword'}, mapping['mappings']['properties']['publicCompactIdentifier'])
+
     def test_index_exists_calls_internal_client_with_expected_arguments(self):
         """Test that index_exists calls the internal client's indices.exists method correctly."""
         client, mock_internal_client = self._create_client_with_mock()

@@ -10,6 +10,7 @@ from cc_common.data_model.schema.provider.api import (
     PublicQueryProvidersRequestSchema,
 )
 from cc_common.exceptions import CCInvalidRequestException
+from cc_common.license_util import LicenseUtility
 from cc_common.utils import api_handler
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
@@ -101,6 +102,11 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
 
     body = _parse_and_validate_public_query_body(event)
     query_obj = body.get('query', {})
+    # Resolve to the exact, compact-configured casing (rather than assuming a casing convention) up front,
+    # so both validation (400 for an unconfigured license type) and the OpenSearch term query built below use
+    # the same canonical value.
+    if query_obj.get('licenseType'):
+        query_obj['licenseType'] = LicenseUtility.get_license_type_by_name(compact, query_obj['licenseType']).name
     pagination = body.get('pagination') or {}
     page_size = pagination.get('pageSize') or config.default_page_size
 
@@ -138,6 +144,8 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
             license_fields['givenName'] = source['givenName']
             license_fields['familyName'] = source['familyName']
             license_fields['licenseEligibility'] = _determine_license_eligibility(provider_source=source)
+            if source.get('publicCompactIdentifier'):
+                license_fields['publicCompactIdentifier'] = source['publicCompactIdentifier']
 
             # home state is stored under the 'jurisdiction' field on the license record, but
             # the frontend expects this to be labeled 'licenseJurisdiction' for parity with other
@@ -273,13 +281,23 @@ def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict 
         nested_must.append({'match': {'licenses.familyName': query_obj['familyName']}})
     if query_obj.get('givenName'):
         nested_must.append({'match': {'licenses.givenName': query_obj['givenName']}})
+    if query_obj.get('licenseType'):
+        # Already resolved to the compact-configured canonical casing in _public_query_licenses, which is
+        # also what's indexed in OpenSearch (licenses.licenseType is a case-sensitive keyword field).
+        nested_must.append({'term': {'licenses.licenseType': query_obj['licenseType']}})
 
     nested_query = {'nested': {'path': 'licenses', 'query': {'bool': {'must': nested_must}}}}
 
+    # Only providers with an assigned CUID are eligible for public search results, regardless of query criteria.
     must = [
         {'term': {'compact': compact}},
-        nested_query,
+        {'exists': {'field': 'publicCompactIdentifier'}},
     ]
+    if query_obj.get('cuid'):
+        # The schema's CUID_PATTERN validation is case-insensitive, but the field is indexed as a keyword and
+        # generated uppercase, so normalize here to guarantee an exact-match term query.
+        must.append({'term': {'publicCompactIdentifier': query_obj['cuid'].upper()}})
+    must.append(nested_query)
 
     search_body = {
         'query': {'bool': {'must': must}},

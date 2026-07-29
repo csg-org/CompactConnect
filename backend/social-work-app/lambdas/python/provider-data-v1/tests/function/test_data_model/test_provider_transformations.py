@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 from unittest.mock import patch
 
@@ -8,6 +9,7 @@ from moto import mock_aws
 from .. import TstFunction
 
 MOCK_CURRENT_DATETIME_STRING = '2024-11-08T23:59:59+00:00'
+CUID_PATTERN = re.compile(r'^SWC-[0-9]{4}-[1-9][0-9]*$')
 
 
 @mock_aws
@@ -124,6 +126,13 @@ class TestTransformations(TstFunction):
         del expected_provider['providerDateOfUpdate']
         del records['provider']['providerDateOfUpdate']
 
+        # These two license posts pair a single-state and multi-state license in the same jurisdiction and
+        # licenseType, so a CUID is assigned as part of this ingest chain. Assert its format/counter separately,
+        # then drop it so the rest of the record comparison is unaffected.
+        provider_cuid = records['provider'].pop('publicCompactIdentifier')
+        self.assertRegex(provider_cuid, CUID_PATTERN)
+        self.assertEqual('1', provider_cuid.split('-')[-1])
+
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
         self.assertEqual(expected_license, records['license'])
@@ -160,6 +169,10 @@ class TestTransformations(TstFunction):
             del license_data['dateOfUpdate']
         for license_data in expected_provider['licenses']:
             del license_data['dateOfUpdate']
+
+        # The CUID assigned earlier in this test is echoed back through the API; assert it separately then drop
+        # it, since the canned fixture predates CUID assignment.
+        self.assertEqual(provider_cuid, provider_data.pop('publicCompactIdentifier'))
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.maxDiff = None
