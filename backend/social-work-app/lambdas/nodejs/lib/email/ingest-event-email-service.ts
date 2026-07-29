@@ -17,7 +17,7 @@ export class IngestEventEmailService extends BaseEmailService {
         jurisdiction: string,
         recipients: string[]
     ) {
-        this.logger.info('Sending report email', { recipients: recipients });
+        this.logger.info('Sending report email', { recipients: this.maskEmails(recipients) });
 
         // Generate the HTML report
         const htmlContent = this.generateReport(events, compactName, jurisdiction);
@@ -31,7 +31,7 @@ export class IngestEventEmailService extends BaseEmailService {
     }
 
     public async sendAllsWellEmail(compactName: string, jurisdiction: string, recipients: string[]) {
-        this.logger.info('Sending alls well email', { recipients: recipients });
+        this.logger.info('Sending alls well email', { recipients: this.maskEmails(recipients) });
 
         // Generate the HTML report
         const report = this.getNewEmailTemplate();
@@ -52,7 +52,7 @@ export class IngestEventEmailService extends BaseEmailService {
     }
 
     public async sendNoLicenseUpdatesEmail(compactName: string, jurisdiction: string, recipients: string[]) {
-        this.logger.info('Sending no license updates email', { recipients: recipients });
+        this.logger.info('Sending no license updates email', { recipients: this.maskEmails(recipients) });
 
         // Generate the HTML report
         const report = this.getNewEmailTemplate();

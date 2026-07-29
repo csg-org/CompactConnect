@@ -82,7 +82,7 @@ export class Lambda implements LambdaInterface {
         logger.info('Processing Cognito custom message event', {
             triggerSource: event.triggerSource,
             userPoolId: event.userPoolId,
-            userName: event.userName
+            userName: this.emailService.maskEmail(event.userName)
         });
 
         try {

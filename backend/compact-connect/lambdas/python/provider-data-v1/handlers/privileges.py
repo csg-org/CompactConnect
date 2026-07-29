@@ -87,7 +87,6 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
                 logger.info(
                     'Sending privilege deactivation notification to provider',
                     provider_id=provider_id,
-                    provider_email=provider_email,
                 )
                 config.email_service_client.send_provider_privilege_deactivation_email(
                     compact=compact,
@@ -138,8 +137,10 @@ def privilege_purchase_message_handler(message: dict):
     privileges = message['detail']['privileges']
     provider_email = message['detail']['providerEmail']
     transaction_date_time = message['detail']['eventTime']
+    # All privileges in a purchase belong to the same provider, so any entry's providerId identifies the provider
+    provider_id = privileges[0].get('providerId') if privileges else None
 
-    with logger.append_context_keys(provider_email=provider_email):
+    with logger.append_context_keys(provider_id=provider_id):
         logger.info('Processing privilege purchase notification')
 
         error_messages = []
@@ -147,7 +148,7 @@ def privilege_purchase_message_handler(message: dict):
         # Send notification to the jurisdiction
         try:
             transaction_date = datetime.fromisoformat(transaction_date_time)
-            logger.info('Sending privilege purchase notification to provider', provider=provider_email)
+            logger.info('Sending privilege purchase notification to provider')
             config.email_service_client.send_privilege_purchase_email(
                 transaction_date=transaction_date.date().isoformat(),
                 provider_email=provider_email,

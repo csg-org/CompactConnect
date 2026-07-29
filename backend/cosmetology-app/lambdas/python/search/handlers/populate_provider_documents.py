@@ -255,7 +255,13 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                 provider_id = provider_record.get('providerId')
 
                 if not provider_id:
-                    logger.warning('Provider record missing providerId', record=provider_record)
+                    logger.warning(
+                        'Provider record missing providerId',
+                        pk=provider_record.get('pk'),
+                        sk=provider_record.get('sk'),
+                    )
+                    # the record may contain PII (name, DOB, etc.), so it is only logged at DEBUG level
+                    logger.debug('Provider record missing providerId details', record=provider_record)
                     compact_stats['providers_failed'] += 1
                     continue
 
