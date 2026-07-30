@@ -29,7 +29,7 @@
                 v-html="$t('account.resetAccountSubtext2')"
             />
         </template>
-        <Card class="mfa-reset-licensee-card">
+        <Card class="mfa-reset-licensee-card" :allowOverflow="true">
             <Transition name="fade" :mode="elementTransitionMode">
                 <template v-if="isFinalError">
                     <div class="mfa-reset-licensee-error-container">

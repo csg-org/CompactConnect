@@ -80,6 +80,20 @@ class InputDate extends mixins(MixinInput) {
     // Lifecycle
     //
     created() {
+        this.syncFormInput();
+    }
+
+    //
+    // Computed
+    //
+    get dateRaw(): string {
+        return dateInputToServerFormat(this.localValue);
+    }
+
+    //
+    // Methods
+    //
+    syncFormInput(): void {
         this.updateFormInputValidate();
 
         // Initialize localValue with proper formatting
@@ -95,16 +109,6 @@ class InputDate extends mixins(MixinInput) {
         this.previousLength = this.localValue.length;
     }
 
-    //
-    // Computed
-    //
-    get dateRaw(): string {
-        return dateInputToServerFormat(this.localValue);
-    }
-
-    //
-    // Methods
-    //
     updateFormInputValidate(): void {
         const { formInput } = this;
 
@@ -230,6 +234,11 @@ class InputDate extends mixins(MixinInput) {
     //
     // Watchers
     //
+    @Watch('formInput') onFormInputChange(): void {
+        // Re-bind validations onto the new FormInput instance when the prop is replaced (e.g. late initFormInputs after an async created).
+        this.syncFormInput();
+    }
+
     @Watch('formInput.value') onFormInputValueChange(newValue: string): void {
         // Only update if this is actually a new value
         if (newValue !== this.lastDatePickerValue && newValue !== this.dateRaw) {
