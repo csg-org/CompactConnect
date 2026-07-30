@@ -2,11 +2,11 @@
 import re
 
 from marshmallow import ValidationError, validates_schema
-from marshmallow.fields import Integer, List, Nested, Raw, String
-from marshmallow.validate import Length, Range, Regexp
+from marshmallow.fields import Dict, Integer, List, Nested, Raw, String
+from marshmallow.validate import Length, OneOf, Range, Regexp
 
 from cc_common.data_model.schema.adverse_action.api import AdverseActionGeneralResponseSchema
-from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.base_record import ForgivingSchema, StrictSchema
 from cc_common.data_model.schema.common import CUID_PATTERN, CCRequestSchema
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -58,6 +58,139 @@ def _validate_no_cross_index_keys(obj, path: str = 'query') -> None:
         for i, item in enumerate(obj):
             _validate_no_cross_index_keys(item, path=f'{path}[{i}]')
     # Scalar values (str, int, bool, None) are safe - we only check keys
+
+
+# Keys permitted inside a nested clause's `inner_hits`. Deliberately excludes `_source`, so a caller
+# cannot use inner_hits to select which nested fields come back.
+_ALLOWED_INNER_HITS_KEYS = ('from', 'name', 'size')
+
+
+class BoolQuerySchema(StrictSchema):
+    """
+    A `bool` query clause.
+
+    Each occupant holds further query clauses, so they recurse back into QueryClauseSchema (via a
+    lambda, since that schema is defined below). Inheriting StrictSchema is what rejects any bool
+    key the frontend does not send.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    must = List(Nested(lambda: QueryClauseSchema()), required=False, allow_none=False)
+    must_not = List(Nested(lambda: QueryClauseSchema()), required=False, allow_none=False)
+    should = List(Nested(lambda: QueryClauseSchema()), required=False, allow_none=False)
+    filter = List(Nested(lambda: QueryClauseSchema()), required=False, allow_none=False)
+    # Left untyped, matching the previous hand-rolled validation, which allowlisted the key without
+    # constraining its value.
+    minimum_should_match = Raw(required=False, allow_none=False)
+
+
+class NestedQuerySchema(StrictSchema):
+    """
+    A `nested` query clause.
+
+    `query` recurses back into QueryClauseSchema, which is what keeps a free-form clause from being
+    smuggled in below a nested path.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    path = String(required=True, allow_none=False)
+    query = Nested(lambda: QueryClauseSchema(), required=True, allow_none=False)
+    inner_hits = Dict(
+        keys=String(
+            validate=OneOf(
+                _ALLOWED_INNER_HITS_KEYS,
+                error="'{input}' is not allowed in inner_hits. Allowed: {choices}.",
+            )
+        ),
+        values=Raw(),
+        required=False,
+        allow_none=False,
+    )
+    # Left untyped, matching the previous hand-rolled validation, which allowlisted these keys
+    # without constraining their values.
+    score_mode = Raw(required=False, allow_none=False)
+    ignore_unmapped = Raw(required=False, allow_none=False)
+
+
+class QueryClauseSchema(StrictSchema):
+    """
+    A single OpenSearch DSL query clause, restricted to the clause types the CompactConnect frontend
+    actually builds (see prepRequestSearchParams in webroot/src/network/searchApi/data.api.ts).
+
+    Because a request is *loaded* through this schema rather than merely inspected, only structure
+    described here can reach OpenSearch at all.
+
+    The field-keyed clauses take arbitrary field names, so their contents stay Raw: restricting
+    which fields may be *queried* is the job of the permission checks in the search handler, not of
+    this schema. Note that `terms` in particular stays permissive so that a terms lookup carrying an
+    `index` key is still caught by _validate_no_cross_index_keys with a cross-index error.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    match_all = Dict(required=False, allow_none=False)
+    term = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
+    terms = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
+    match = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
+    match_phrase_prefix = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
+    range = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
+    bool = Nested(BoolQuerySchema, required=False, allow_none=False)
+    nested = Nested(NestedQuerySchema, required=False, allow_none=False)
+
+
+# Sort shape the search API accepts, derived from what the CompactConnect frontend actually emits
+# (see prepRequestSearchParams in webroot/src/network/searchApi/data.api.ts), which is exactly:
+#
+#     sort: [{'<field>.keyword': {'order': 'asc' | 'desc'}}]
+#
+# This is modelled declaratively rather than walked, so anything not described here is rejected by
+# marshmallow itself.
+_ALLOWED_SORT_ORDERS = ('asc', 'desc')
+
+# Fields a caller is permitted to sort by. The frontend only ever sorts by family name, but
+# providerId and the date fields are kept available so `search_after` cursor pagination has a unique
+# tiebreaker to sort on.
+#
+# This list is deliberately restricted to non-sensitive fields. Sort values are echoed back to the
+# caller as `lastSort` (see the search handler), which is outside the response schema that strips
+# restricted fields -- so whatever is sortable is also readable. Sensitive fields (dateOfBirth,
+# emailAddress, phoneNumber, home address, ...) are therefore not sortable by anyone, regardless of
+# scopes. Note this is independent of *querying*: querying by dateOfBirth is still supported for
+# callers holding readPrivate.
+#
+# Text fields are only listed via their `.keyword` subfield, since OpenSearch rejects sorting on an
+# analyzed text field anyway.
+_ALLOWED_SORT_FIELDS = (
+    'dateOfExpiration',
+    'dateOfUpdate',
+    'familyName.keyword',
+    'givenName.keyword',
+    'providerId',
+)
+
+
+class SortOptionsSchema(StrictSchema):
+    """
+    Sort options for a single sorted field, e.g. {'order': 'asc'}.
+
+    Inheriting StrictSchema (unknown = RAISE) is what rejects every sort option the frontend does
+    not send -- including `nested`, whose `filter` would otherwise be an unvalidated query-DSL
+    position.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    order = String(
+        required=True,
+        allow_none=False,
+        validate=OneOf(_ALLOWED_SORT_ORDERS, error="Invalid sort order '{input}'. Allowed values: {choices}."),
+    )
 
 
 class ProviderReadPrivateResponseSchema(ForgivingSchema):
@@ -323,7 +456,7 @@ class SearchProvidersRequestSchema(CCRequestSchema):
     """
 
     # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
-    query = Raw(required=True, allow_none=False)
+    query = Nested(QueryClauseSchema, required=True, allow_none=False)
 
     # Pagination parameters following OpenSearch DSL
     # 'from' is a reserved word in Python, so we use 'from_' with data_key='from'
@@ -332,7 +465,19 @@ class SearchProvidersRequestSchema(CCRequestSchema):
 
     # Sort order - required when using search_after pagination
     # Example: [{"providerId": "asc"}, {"dateOfUpdate": "desc"}]
-    sort = Raw(required=False, allow_none=False)
+    sort = List(
+        Dict(
+            keys=String(
+                validate=OneOf(
+                    _ALLOWED_SORT_FIELDS,
+                    error="Sorting by '{input}' is not allowed. Sortable fields: {choices}.",
+                )
+            ),
+            values=Nested(SortOptionsSchema),
+        ),
+        required=False,
+        allow_none=False,
+    )
 
     # The search_after parameter for cursor-based pagination
     # This should be the 'sort' values from the last hit of the previous page
@@ -340,17 +485,23 @@ class SearchProvidersRequestSchema(CCRequestSchema):
     search_after = Raw(required=False, allow_none=False)
 
     @validates_schema
-    def validate_no_cross_index_queries(self, data, **kwargs):
+    def validate_search_request_dsl(self, data, **kwargs):
         """
-        Validate that the query does not contain cross-index lookup attempts.
+        Validate the caller-supplied OpenSearch DSL in the search request body.
 
-        This is a defense-in-depth security measure to prevent queries that attempt to access
-        data from other compact indices. The primary protection is the OpenSearch domain setting
-        `rest.action.multi.allow_explicit_index: false`, but this validation provides an
-        additional application-layer check.
+        Three application-layer checks are applied:
 
-        Dangerous patterns blocked:
-        - Terms lookup with external index: {"terms": {"field": {"index": "other_index", ...}}}
-        - More like this with external docs: {"more_like_this": {"like": [{"_index": "other_index"}]}}
+        1. Query clause allowlist: only the structured query types the frontend builds are accepted.
+           Free-form and scripted clauses are rejected, since they can carry a field reference
+           inside a string value and thereby slip past field-level permission checks.
+        2. Cross-index lookups: queries that attempt to reach another compact's index are blocked.
+           Note that this application-layer check is currently the only protection against
+           cross-index lookups. The OpenSearch domain setting
+           `rest.action.multi.allow_explicit_index: false` would provide a second layer, but it is
+           not configured on the domain (see stacks/search_persistent_stack/provider_search_domain.py).
+
+           Dangerous patterns blocked:
+           - Terms lookup with external index: {"terms": {"field": {"index": "other_index", ...}}}
+           - More like this with external docs: {"more_like_this": {"like": [{"_index": "other"}]}}
         """
         _validate_no_cross_index_keys(data.get('query', {}))
