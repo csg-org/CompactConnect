@@ -222,6 +222,15 @@ export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hosted
 // =    Token Revocation     =
 // ===========================
 // https://docs.aws.amazon.com/cognito/latest/developerguide/revocation-endpoint.html
+const REVOKE_TIMEOUT_MS = 30000;
+const REVOKE_MAX_ATTEMPTS = 3;
+
+const isRetryableRevokeError = (err: any): boolean => {
+    const status = err?.response?.status;
+
+    return !status || status >= 500;
+};
+
 export const revokeCognitoRefreshToken = async (appMode: AppModes, authType: AuthTypes): Promise<void> => {
     const { clientId, authDomain } = getCognitoConfig(appMode, authType);
     const refreshToken = authStorage.getItem(tokens[authType]?.REFRESH_TOKEN);
@@ -232,12 +241,25 @@ export const revokeCognitoRefreshToken = async (appMode: AppModes, authType: Aut
         params.append('token', refreshToken);
         params.append('client_id', clientId);
 
-        await axios.post(`${authDomain}/oauth2/revoke`, params, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept: 'application/json',
-            },
+        const postRevoke = (attempt = 1): Promise<any> => axios.post(
+            `${authDomain}/oauth2/revoke`,
+            params,
+            {
+                timeout: REVOKE_TIMEOUT_MS,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    Accept: 'application/json',
+                },
+            }
+        ).catch((err) => {
+            if (attempt < REVOKE_MAX_ATTEMPTS && isRetryableRevokeError(err)) {
+                return postRevoke(attempt + 1);
+            }
+
+            return Promise.reject(err);
         });
+
+        await postRevoke();
     }
 };
 

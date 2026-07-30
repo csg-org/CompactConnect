@@ -39,6 +39,10 @@ export default class Logout extends Vue {
         return this.$store.state.appMode;
     }
 
+    get appGroupMode() {
+        return this.$store.state.appGroupMode;
+    }
+
     get userStore() {
         return this.$store.state.user;
     }
@@ -121,27 +125,32 @@ export default class Logout extends Vue {
     async logoutChecklist(isRemoteLoggedInAsLicenseeOnly): Promise<void> {
         const authType = (isRemoteLoggedInAsLicenseeOnly) ? AuthTypes.LICENSEE : AuthTypes.STAFF;
 
-        this.unsetAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps
         this.stashWorkingUri();
         this.$store.dispatch('user/clearRefreshTokenTimeout');
         await this.revokeTokens(authType);
+        this.unsetAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps
         await this.$store.dispatch('user/logoutRequest', authType);
     }
 
     async revokeTokens(authType: AuthTypes): Promise<void> {
-        try {
-            await revokeCognitoRefreshToken(this.appMode, authType);
-        } catch (err) {
-            // Continue — do not block cookie logout / local cleanup if revoke fails
-        }
+        await revokeCognitoRefreshToken(this.appMode, authType).catch((err) => Promise.resolve().then(() => {
+            this.$analytics.logEvent('cognito_token_revoke_failed', 1, {
+                authType,
+                appMode: this.appMode,
+                appGroupMode: this.appGroupMode,
+                errorName: err?.name,
+                errorCode: err?.code,
+                httpStatus: err?.response?.status,
+            });
+        }).catch(() => {
+            // Continue — analytics failures must never block logout
+        }));
     }
 
     async unsetAnalyticsUser(): Promise<void> {
-        try {
-            await this.$analytics.updateUserAsync({});
-        } catch (err) {
+        await this.$analytics.updateUserAsync({}).catch(() => {
             // Continue
-        }
+        });
     }
 
     stashWorkingUri(): void {

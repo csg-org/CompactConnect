@@ -47,16 +47,21 @@ const cancelAnimationFrameStub = (id: number) => clearTimeout(id as unknown as N
 (global as any).cancelAnimationFrame = cancelAnimationFrameStub;
 
 // Polyfill matchMedia() for tests
-window.matchMedia = sinon.stub().callsFake((query) => ({
+// Use plain functions (not sinon spies) so each matchMedia call does not accumulate sandbox fakes.
+const matchMediaListener = {
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: () => false,
+};
+
+window.matchMedia = (query) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: sinon.spy(),
-    removeListener: sinon.spy(),
-    addEventListener: sinon.spy(),
-    removeEventListener: sinon.spy(),
-    dispatchEvent: sinon.spy(),
-}));
+    ...matchMediaListener,
+});
 
 // Polyfill WebCrypto SubtleCrypto for tests (jsdom does not implement crypto.subtle, used for PKCE hashing)
 try {
@@ -131,6 +136,9 @@ const failTestOn = (errorWatchList: Array<string>) => {
 //
 // Mocha setup / teardown methods
 //
+// Recreated in beforeEach after sinon.restore() so $api stubs stay valid across tests
+let mockApi = sinon.createStubInstance(DataApi);
+
 beforeEach(() => {
     const { tm: $tm, t: $t } = i18n.global;
 
@@ -154,6 +162,9 @@ beforeEach(() => {
 
     // Ensure tests fail on what would otherwise just be vue-test-utils console output
     failTestOn(['Vue warn', 'unhandledRejection']);
+
+    // Fresh stub instance each test — sinon.restore() in afterEach resets createStubInstance fakes
+    mockApi = sinon.createStubInstance(DataApi);
 });
 
 // Track wrappers mounted via helpers so they can be torn down between tests, preventing leftover components from reacting to shared-store changes (e.g. compact router-links).
@@ -178,6 +189,7 @@ const unmountAllWrappers = () => {
 
 afterEach(() => {
     unmountAllWrappers();
+    sinon.restore();
 });
 
 // Trap when Mocha stumbles on promises
@@ -186,9 +198,6 @@ afterEach(() => {
         console.error('unhandledRejection', err.stack);
     }
 });
-
-// Create stub instance of mock API
-const mockApi = sinon.createStubInstance(DataApi);
 
 /**
  * Shallow-mount a component with mocks.

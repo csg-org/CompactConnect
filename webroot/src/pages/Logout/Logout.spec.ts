@@ -10,6 +10,7 @@ import axios from 'axios';
 import { mountShallow } from '@tests/helpers/setup';
 import Logout from '@pages/Logout/Logout.vue';
 import { authStorage, tokens, AuthTypes } from '@utils/auth';
+import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 
 const chaiMatchPattern = require('chai-match-pattern');
 const chai = require('chai').use(chaiMatchPattern);
@@ -18,14 +19,25 @@ const { expect } = chai;
 
 describe('Logout page', async () => {
     let logoutStub;
+    let originalCognitoConfig;
 
     beforeEach(() => {
         // Prevent created() from running real logout (clears shared store / redirects)
         logoutStub = sinon.stub(Logout.methods, 'logout').resolves();
+
+        originalCognitoConfig = {
+            cognitoClientIdStaff: envConfig.cognitoClientIdStaff,
+            cognitoAuthDomainStaff: envConfig.cognitoAuthDomainStaff,
+        };
+        envConfig.cognitoClientIdStaff = 'test-staff-client-id';
+        envConfig.cognitoAuthDomainStaff = 'https://staff-auth.test.example.com';
     });
 
     afterEach(() => {
         logoutStub.restore();
+        envConfig.cognitoClientIdStaff = originalCognitoConfig.cognitoClientIdStaff;
+        envConfig.cognitoAuthDomainStaff = originalCognitoConfig.cognitoAuthDomainStaff;
+        authStorage.removeItem(tokens.staff.REFRESH_TOKEN);
     });
 
     it('should mount the page component', async () => {
@@ -67,23 +79,33 @@ describe('Logout page', async () => {
         revokeStub.restore();
     });
 
-    it('should successfully swallow errors inside revokeTokens', async () => {
+    it('should successfully swallow revoke errors and log to analytics', async () => {
         const wrapper = await mountShallow(Logout);
         const component = wrapper.vm;
         const axiosPostStub = sinon.stub(axios, 'post').rejects(new Error('network'));
+        const logEventStub = sinon.stub(component.$analytics, 'logEvent').returns(undefined);
         let didThrow = false;
 
         authStorage.setItem(tokens.staff.REFRESH_TOKEN, 'staff-refresh-token');
 
-        try {
-            await component.revokeTokens(AuthTypes.STAFF);
-        } catch (err) {
+        await component.revokeTokens(AuthTypes.STAFF).catch(() => {
             didThrow = true;
-        }
+        });
 
         expect(didThrow).to.equal(false);
+        expect(logEventStub.calledOnce).to.equal(true);
+        expect(logEventStub.firstCall.args[0]).to.equal('cognito_token_revoke_failed');
+        expect(logEventStub.firstCall.args[1]).to.equal(1);
+        expect(logEventStub.firstCall.args[2]).to.matchPattern({
+            authType: AuthTypes.STAFF,
+            appMode: component.appMode,
+            appGroupMode: component.appGroupMode,
+            errorName: 'Error',
+            errorCode: undefined,
+            httpStatus: undefined,
+        });
 
         axiosPostStub.restore();
-        authStorage.removeItem(tokens.staff.REFRESH_TOKEN);
+        logEventStub.restore();
     });
 });
