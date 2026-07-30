@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from datetime import timedelta
 
-from marshmallow import ValidationError, validates_schema
+from marshmallow import ValidationError, pre_load, validates_schema
 from marshmallow.fields import UUID, AwareDateTime, Date, Dict, Email, Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, OneOf, Range, Regexp
 
@@ -76,6 +76,52 @@ class ProviderSSNResponseSchema(ForgivingSchema):
     """
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
+
+
+# Maximum nesting depth accepted in a caller-supplied query. The deepest query the frontend can
+# build is 13 levels (the encumbrance-date condition: bool > should > nested > query > nested >
+# query > range > field > bound), so this leaves room for the UI to grow while staying well clear
+# of the point where recursing through the schema would exhaust the Python stack and surface as an
+# unhandled 500 instead of a 400.
+_MAX_QUERY_DEPTH = 20
+
+
+def _validate_query_depth(query) -> None:
+    """
+    Validate that a caller-supplied query is not nested beyond _MAX_QUERY_DEPTH.
+
+    Walked iteratively rather than recursively: this guard has to be able to measure a query that
+    is deeper than the interpreter's own recursion limit, which is the very thing it exists to
+    reject.
+
+    :param query: The caller-supplied query body
+    :raises ValidationError: If the query nests deeper than _MAX_QUERY_DEPTH
+    """
+    stack = [(query, 1)]
+    while stack:
+        node, depth = stack.pop()
+        if depth > _MAX_QUERY_DEPTH:
+            raise ValidationError(f'Query is too deeply nested (maximum depth: {_MAX_QUERY_DEPTH}).')
+        if isinstance(node, dict):
+            stack.extend((value, depth + 1) for value in node.values())
+        elif isinstance(node, list):
+            stack.extend((item, depth + 1) for item in node)
+
+
+def _validate_query_input(query) -> None:
+    """
+    Run the checks that must happen before a query is deserialized through the schema.
+
+    Ordering matters. The depth guard runs first because ``_validate_no_cross_index_keys`` is itself
+    recursive and would blow the stack on a pathologically deep query. Both run ahead of field
+    deserialization (from a ``pre_load`` hook) so that a cross-index attempt is always reported as
+    such, rather than being pre-empted by, or skipped because of, an unrelated field error.
+
+    :param query: The caller-supplied query body
+    :raises ValidationError: If the query is too deeply nested or attempts a cross-index lookup
+    """
+    _validate_query_depth(query)
+    _validate_no_cross_index_keys(query)
 
 
 # Keys permitted inside a nested clause's `inner_hits`. Deliberately excludes `_source`, so a caller
@@ -153,7 +199,15 @@ class QueryClauseSchema(StrictSchema):
 
     match_all = Dict(required=False, allow_none=False)
     term = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
-    terms = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
+    terms = Dict(
+        keys=String(),
+        values=List(
+            Raw(),
+            error_messages={'invalid': 'A terms query must be a plain list of values.'},
+        ),
+        required=False,
+        allow_none=False,
+    )
     match = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
     match_phrase_prefix = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
     range = Dict(keys=String(), values=Raw(), required=False, allow_none=False)
@@ -627,7 +681,9 @@ class SearchProvidersRequestSchema(CCRequestSchema):
     Schema for advanced search providers requests.
 
     This schema is used to validate incoming requests to the advanced search providers API endpoint.
-    It accepts an OpenSearch DSL query body for flexible querying of the provider index.
+    It accepts an OpenSearch DSL query body, restricted to the clause types QueryClauseSchema
+    declares -- the ones the frontend actually builds. Free-form and scripted clauses are not
+    accepted; see QueryClauseSchema for why.
 
     The request body closely mirrors OpenSearch DSL for pagination using `search_after`.
     See: https://docs.opensearch.org/latest/search-plugins/searching-data/paginate/#the-search_after-parameter
@@ -636,7 +692,7 @@ class SearchProvidersRequestSchema(CCRequestSchema):
     API -> load() -> Python
     """
 
-    # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
+    # The OpenSearch query body, restricted to the clause types QueryClauseSchema declares
     query = Nested(QueryClauseSchema, required=True, allow_none=False)
 
     # Pagination parameters following OpenSearch DSL
@@ -665,7 +721,7 @@ class SearchProvidersRequestSchema(CCRequestSchema):
     # Example: ["provider-uuid-123", "2024-01-15T10:30:00Z"]
     search_after = Raw(required=False, allow_none=False)
 
-    @validates_schema
+    @pre_load
     def validate_search_request_dsl(self, data, **kwargs):
         """
         Validate the caller-supplied OpenSearch DSL in the search request body.
@@ -685,7 +741,11 @@ class SearchProvidersRequestSchema(CCRequestSchema):
            - Terms lookup with external index: {"terms": {"field": {"index": "other_index", ...}}}
            - More like this with external docs: {"more_like_this": {"like": [{"_index": "other"}]}}
         """
-        _validate_no_cross_index_keys(data.get('query', {}))
+        # Runs ahead of field deserialization, so `data` is still exactly what the caller sent and
+        # is not guaranteed to be an object. Anything else is left for the field layer to reject.
+        if isinstance(data, dict):
+            _validate_query_input(data.get('query', {}))
+        return data
 
 
 class ExportPrivilegesRequestSchema(CCRequestSchema):
@@ -693,20 +753,26 @@ class ExportPrivilegesRequestSchema(CCRequestSchema):
     Schema for Exporting list of privileges into CSV file.
 
     This schema is used to validate incoming requests to the advanced search providers API endpoint.
-    It accepts an OpenSearch DSL query body for flexible querying of the provider index.
+    It accepts an OpenSearch DSL query body, restricted to the clause types QueryClauseSchema
+    declares -- the ones the frontend actually builds. Free-form and scripted clauses are not
+    accepted; see QueryClauseSchema for why.
 
     Serialization direction:
     API -> load() -> Python
     """
 
-    # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
+    # The OpenSearch query body, restricted to the clause types QueryClauseSchema declares
     query = Nested(QueryClauseSchema, required=True, allow_none=False)
 
-    @validates_schema
+    @pre_load
     def validate_query_dsl(self, data, **kwargs):
         """
-        Validate that the query does not contain cross-index lookup attempts.
+        Apply the pre-deserialization query checks (nesting depth, cross-index lookups).
 
-        This is a defense-in-depth security measure. See SearchProvidersRequestSchema for details.
+        See SearchProvidersRequestSchema for details.
         """
-        _validate_no_cross_index_keys(data.get('query', {}))
+        # Runs ahead of field deserialization, so `data` is still exactly what the caller sent and
+        # is not guaranteed to be an object. Anything else is left for the field layer to reject.
+        if isinstance(data, dict):
+            _validate_query_input(data.get('query', {}))
+        return data

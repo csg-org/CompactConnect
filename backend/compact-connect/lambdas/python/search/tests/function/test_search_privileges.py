@@ -865,3 +865,38 @@ class TestExportPrivileges(TstFunction):
         self.assertEqual(404, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual('The search parameters did not match any privileges.', body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_export_with_excessively_nested_query_returns_400(self, mock_opensearch_client):
+        """The export endpoint uses its own request schema, so it must apply the same depth guard."""
+        from handlers.search import search_api_handler
+
+        query = {'match_all': {}}
+        for _ in range(300):
+            query = {'bool': {'must': [query]}}
+
+        event = self._create_api_event('aslp', body={'query': query})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('too deeply nested', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_export_with_terms_lookup_object_returns_400(self, mock_opensearch_client):
+        """The export endpoint must reject the terms-lookup object form, same as provider search."""
+        from handlers.search import search_api_handler
+
+        event = self._create_api_event(
+            'aslp',
+            body={'query': {'terms': {'providerId': {'id': 'some-other-provider', 'path': 'providerId'}}}},
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('terms', body['message'])
+        mock_opensearch_client.search.assert_not_called()

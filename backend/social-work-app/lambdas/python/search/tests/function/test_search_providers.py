@@ -1133,3 +1133,136 @@ class TestSearchProviders(TstFunction):
 
                 self.assertEqual(200, response['statusCode'])
                 mock_opensearch_client.search.assert_called_once()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_excessively_nested_query_returns_400(self, mock_opensearch_client):
+        """
+        A pathologically nested query is refused with a 400 rather than blowing the Python stack.
+
+        The declarative schema recurses through nested/bool clauses, so an arbitrarily deep query
+        would otherwise raise RecursionError and surface as an unhandled 500.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        query = {'match_all': {}}
+        for _ in range(300):
+            query = {'bool': {'must': [query]}}
+
+        event = self._create_api_event('socw', body={'query': query})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('too deeply nested', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_terms_lookup_object_returns_400(self, mock_opensearch_client):
+        """
+        A terms clause must be a plain list of values; the terms-lookup object form is refused.
+
+        This is enforced structurally by the schema, independently of the cross-index key check:
+        the lookup below names no index at all, so it reads from the current index and carries no
+        'index'/'_index' key for that check to find.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'socw',
+            body={'query': {'terms': {'providerId': {'id': 'some-other-provider', 'path': 'providerId'}}}},
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('terms', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_non_object_request_body_returns_400(self, mock_opensearch_client):
+        """
+        A request body that is not a JSON object is refused with a 400, not an unhandled error.
+
+        The checks that run ahead of field deserialization see the caller's raw input, which is not
+        guaranteed to be an object, so they must not assume they can index into it.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        for raw_body in ('[]', '"a string"', 'null', '42'):
+            with self.subTest(body=raw_body):
+                event = self._create_api_event('socw', body={'query': {'match_all': {}}})
+                event['body'] = raw_body
+
+                response = search_api_handler(event, self.mock_context)
+
+                self.assertEqual(400, response['statusCode'])
+
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_accepts_the_deepest_query_the_frontend_can_build(self, mock_opensearch_client):
+        """
+        The deepest query the frontend can emit must stay within the nesting cap.
+
+        This is the encumbrance-date condition from prepRequestSearchParams, which pairs two nested
+        levels with a range bound and is the frontend's worst case. It pins _MAX_QUERY_DEPTH against
+        a real query, so the cap cannot be tuned down far enough to break the UI unnoticed.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        def encumbrance_condition(top_path: str) -> dict:
+            nested_path = f'{top_path}.adverseActions'
+            return {
+                'nested': {
+                    'path': top_path,
+                    'query': {
+                        'nested': {
+                            'path': nested_path,
+                            'query': {
+                                'range': {
+                                    f'{nested_path}.effectiveStartDate': {
+                                        'gte': '2024-01-01',
+                                        'lte': '2024-12-31',
+                                    }
+                                }
+                            },
+                        }
+                    },
+                }
+            }
+
+        event = self._create_api_event(
+            'socw',
+            body={
+                'query': {
+                    'bool': {
+                        'must': [
+                            {
+                                'bool': {
+                                    'should': [
+                                        encumbrance_condition('licenses'),
+                                        encumbrance_condition('privileges'),
+                                    ],
+                                    'minimum_should_match': 1,
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()
