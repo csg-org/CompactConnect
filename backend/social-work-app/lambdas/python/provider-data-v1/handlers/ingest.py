@@ -394,9 +394,12 @@ def _resolve_public_compact_identifier(
     of minting, and so a counter is only ever claimed once both preconditions hold.
     """
     if current_provider_record is not None and current_provider_record.publicCompactIdentifier:
+        logger.info('Provider already has a CUID; skipping CUID assignment')
         return None
     if not ProviderRecordUtility.has_paired_single_and_multi_state_license(known_licenses):
+        logger.info('Provider does not have a paired single-state/multi-state license; skipping CUID assignment')
         return None
+    logger.info('Provider qualifies for CUID; generating new CUID')
     return _generate_cuid(compact)
 
 

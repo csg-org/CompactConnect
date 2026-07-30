@@ -528,6 +528,8 @@ Once a home MSL is confirmed eligible for a given license type, remote-state Mul
 
 Privileges are generated from a multi-state home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license is ineligible or its associated single-state license is ineligible, no privileges are generated for that license type (there is no fallback to an older multi-state license from another jurisdiction). This means that privileges are only returned from the API for a practitioner when the most recently issued or renewed multi-state license is eligible and paired with an eligible single-state license.
 
+Note that pairing is checked independently of the displayed eligibility: a multi-state license with **no** matching single-state license on file is still shown with its own calculated `compactEligibility`/`licenseEligibility` (reflecting only the jurisdiction-reported status, expiration, and encumbrance of that license), but it will never generate privileges, since privilege generation requires the pairing to exist in the first place. A displayed "eligible" license therefore does not by itself imply the practitioner has multistate authorization anywhere.
+
 The following flow describes how the home state license is assigned.
 
 ([Social Work Practitioner License Assignment Flow](./practitioner-home-state-assignment.pdf))
@@ -880,8 +882,10 @@ accepts two more structured fields under `query`:
 - `cuid`: an exact, case-insensitive match against the full CUID string (validated against the CUID format at the
   schema layer before it ever reaches OpenSearch — partial, wildcard, and counter-only values are rejected with a
   400). Maps to a top-level `term` query on `publicCompactIdentifier` (normalized to uppercase).
-- `licenseType`: matches license type/profession designation, validated against the license types configured for
-  the path compact. Maps to a nested `term` query on `licenses.licenseType` (normalized to lowercase).
+- `licenseType`: matches license type/profession designation, validated against the license types
+  configured for the path compact and resolved to that compact's canonically-configured casing (see
+  `LicenseUtility.get_license_type_by_name`). Maps to a nested `term` query on `licenses.licenseType`, which is
+  indexed as a case-sensitive keyword using that same canonical casing.
 
 ### Document Indexing
 
