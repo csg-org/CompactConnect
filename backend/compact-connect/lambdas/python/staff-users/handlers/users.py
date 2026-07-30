@@ -3,7 +3,12 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger, metrics
-from cc_common.exceptions import CCAccessDeniedException, CCInternalException, CCNotFoundException
+from cc_common.exceptions import (
+    CCAccessDeniedException,
+    CCInternalException,
+    CCInvalidRequestException,
+    CCNotFoundException,
+)
 from cc_common.utils import (
     api_handler,
     authorize_compact,
@@ -130,8 +135,15 @@ def post_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argum
     # this will raise an exception if the caller was disabled
     _verify_caller_is_active(event)
 
-    # Verify that the client has permission to create a user with the requested permissions
-    for compact, compact_permissions in body['permissions'].items():
+    # Verify that the client has permission to create a user with the requested permissions, and that every
+    # compact key in the request body matches the path compact. A new user can only ever be created within the
+    # compact named in the URL; without this check, a caller with admin rights in multiple compacts could have
+    # the created user silently assigned to whichever compact happened to be the last key in the body.
+    for body_compact, compact_permissions in body['permissions'].items():
+        if body_compact != compact:
+            raise CCInvalidRequestException(
+                f"Requested permissions for compact '{body_compact}' do not match the path compact '{compact}'."
+            )
         # This method will raise an exception if they request an inappropriate permission for the new user
         collect_and_authorize_changes(path_compact=compact, scopes=scopes, compact_changes=compact_permissions)
 

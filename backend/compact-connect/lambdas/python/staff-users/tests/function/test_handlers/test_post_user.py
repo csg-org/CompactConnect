@@ -137,6 +137,46 @@ class TestPostUser(TstFunction):
 
         self.assertEqual(403, resp['statusCode'])
 
+    def test_post_user_rejects_permissions_for_compact_other_than_path_compact(self):
+        """
+        A caller with admin rights in multiple compacts must not be able to create a user under a compact
+        other than the one named in the URL path, regardless of what other compacts appear in the request
+        body's 'permissions' object.
+        """
+        from handlers.users import post_user
+
+        self._load_compact_active_member_jurisdictions(compact='aslp')
+        self._load_compact_active_member_jurisdictions(compact='octp')
+        caller_id = self._when_testing_with_valid_caller()
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        with open('tests/resources/api/user-post.json') as f:
+            api_user = json.load(f)
+
+        # api_user already requests aslp permissions; add a second, fully-authorized compact's permissions.
+        api_user['permissions']['octp'] = {
+            'actions': {'readPrivate': True},
+            'jurisdictions': {'oh': {'actions': {'write': True}}},
+        }
+        event['body'] = json.dumps(api_user)
+
+        # The caller is a legitimate admin in both compacts
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
+        event['requestContext']['authorizer']['claims']['scope'] = (
+            'openid email aslp/admin oh/aslp.admin octp/admin oh/octp.admin'
+        )
+        event['pathParameters'] = {'compact': 'aslp'}
+
+        resp = post_user(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+        self.assertEqual(
+            {'message': "Requested permissions for compact 'octp' do not match the path compact 'aslp'."}, body
+        )
+
     def test_post_user_returns_400_if_invalid_jurisdiction_permission_set(self):
         from handlers.users import post_user
 
