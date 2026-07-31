@@ -70,6 +70,15 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
 
         # Extract compact and providerId from the DynamoDB image
         deserialized_image = TypeDeserializer().deserialize(value={'M': image})
+
+        # Check if this is a CUID counter record (used to track the next CUID number). It shares the
+        # provider table but is not a provider record, so it carries no compact or providerId and is
+        # skipped here rather than falling through to the missing-fields error below.
+        pk = deserialized_image.get('pk', '')
+        if pk and 'CUID_COUNT' in pk:
+            logger.info('Skipping CUID count record', message_id=message_id, pk=pk)
+            continue
+
         compact = deserialized_image.get('compact')
         provider_id = deserialized_image.get('providerId')
         record_type = deserialized_image.get('type')
