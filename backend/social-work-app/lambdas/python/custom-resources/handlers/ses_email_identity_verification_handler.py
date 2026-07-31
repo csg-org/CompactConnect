@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import json
 import time
 
 import boto3
@@ -26,10 +25,12 @@ def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argume
     :param context: The Lambda context
     :return: Physical resource ID on success
     """
-    # The full event includes a pre-signed 'ResponseURL' (with an access key id and signature) used to signal
-    # CloudFormation, so it is only logged at DEBUG level.
-    logger.info('Entering SES email identity verification handler', request_type=event.get('RequestType'))
-    logger.debug('SES email identity verification handler event', event=json.dumps(event))
+    # The event is never logged in full: it includes a pre-signed 'ResponseURL' (with an access key id and
+    # signature) used to signal CloudFormation.
+    logger.info(
+        'Entering SES email identity verification handler',
+        request_type=event.get('RequestType')
+    )
     properties = event['ResourceProperties']
     request_type = event['RequestType']
     match request_type:

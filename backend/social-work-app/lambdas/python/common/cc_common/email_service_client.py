@@ -102,8 +102,8 @@ class EmailServiceClient:
             return response
         except Exception as e:
             error_message = f'Error invoking email notification service lambda: {str(e)}'
-            # payload may contain PII (specificEmails, templateVariables with provider names), so it is only
-            # logged at DEBUG level; the non-PII fields below are sufficient for triage at ERROR level
+            # payload is never logged: it can contain PII and credentials (specificEmails, provider names,
+            # verificationCode, recoveryToken); the non-PII fields below are sufficient for triage
             self._logger.error(
                 error_message,
                 template=payload.get('template'),
@@ -112,7 +112,6 @@ class EmailServiceClient:
                 recipient_type=payload.get('recipientType'),
                 exception=str(e),
             )
-            self._logger.debug('Email notification service invocation payload', payload=payload)
             raise CCInternalException(error_message) from e
 
     def send_license_encumbrance_state_notification_email(
