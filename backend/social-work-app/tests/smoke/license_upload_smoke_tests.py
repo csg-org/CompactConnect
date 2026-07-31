@@ -1,5 +1,6 @@
 # ruff: noqa: T201  we use print statements for smoke testing
 #!/usr/bin/env python3
+import re
 import time
 from datetime import UTC, datetime
 
@@ -10,6 +11,7 @@ from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_details_endpoint,
+    call_public_query_providers,
     create_test_app_client,
     create_test_staff_user,
     delete_test_app_client,
@@ -57,6 +59,48 @@ class PractitionerTestState:
 
     provider_id: str | None = None
     start_time: datetime | None = None
+    # Compact Unique Identifier, assigned once the practitioner holds a paired single-state and
+    # multi-state license. Captured during the home state change test and consumed by the CUID
+    # public search test.
+    public_compact_identifier: str | None = None
+
+
+def _assert_cuid_not_assigned(provider_details: dict, *, after: str) -> None:
+    """
+    Assert no CUID has been issued yet.
+
+    A CUID is only issued once the practitioner holds a paired single-state and multi-state license
+    for the same jurisdiction and license type, so it must be absent before that pairing exists.
+    """
+    public_compact_identifier = provider_details.get('publicCompactIdentifier')
+    if public_compact_identifier is not None:
+        raise SmokeTestFailureException(
+            f'Expected no publicCompactIdentifier on the provider record after {after}, '
+            f'found {public_compact_identifier!r}'
+        )
+
+    logger.info(f'Verified publicCompactIdentifier is not assigned after {after}')
+
+
+def _assert_cuid_assigned(provider_details: dict) -> str:
+    """Assert a well-formed CUID has been issued, and return it."""
+    from cc_common.data_model.schema.common import CUID_PATTERN
+
+    public_compact_identifier = provider_details.get('publicCompactIdentifier')
+    if not public_compact_identifier:
+        raise SmokeTestFailureException(
+            'Expected publicCompactIdentifier to be assigned once the paired multi-state license was '
+            'uploaded, but the field is missing from the provider record.'
+        )
+
+    if not re.match(CUID_PATTERN, public_compact_identifier):
+        raise SmokeTestFailureException(
+            f'publicCompactIdentifier {public_compact_identifier!r} does not match the expected '
+            f'CUID format {CUID_PATTERN}'
+        )
+
+    logger.info(f'Verified publicCompactIdentifier {public_compact_identifier} was assigned')
+    return public_compact_identifier
 
 
 def _cleanup_test_generated_records(provider_id: str, license_ingest_record_response: dict):
@@ -201,8 +245,13 @@ def _wait_for_oh_license_scope(
     *,
     max_wait_seconds: int = 720,
     poll_interval_seconds: int = 60,
-):
-    """Wait until OH license with the given scope is visible before uploading the paired scope."""
+) -> dict:
+    """
+    Wait until the OH license with the given scope is visible before uploading the paired scope.
+
+    Returns the provider details fetched on the successful attempt, so callers can assert against
+    the provider record at that point without issuing a second request.
+    """
     max_attempts = max_wait_seconds // poll_interval_seconds
     for attempt in range(1, max_attempts + 1):
         staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
@@ -218,7 +267,7 @@ def _wait_for_oh_license_scope(
         ]
         if matching_licenses:
             logger.info(f'Found OH {HOME_STATE_CHANGE_LICENSE_TYPE} {license_scope} license for provider {provider_id}')
-            return
+            return provider_details
 
         if attempt < max_attempts:
             logger.info(
@@ -347,12 +396,16 @@ def test_home_state_change_notification(
         ),
     )
 
-    _wait_for_oh_license_scope(
+    oh_single_state_provider_details = _wait_for_oh_license_scope(
         provider_id=provider_id,
         license_scope='single-state',
         max_wait_seconds=750,
         poll_interval_seconds=60,
     )
+
+    # The practitioner now holds two single-state licenses and no multi-state license, so there is
+    # still no pairing and no CUID should have been issued.
+    _assert_cuid_not_assigned(oh_single_state_provider_details, after='the OH single-state license upload')
 
     if _query_home_state_change_events_for_provider(provider_id):
         raise SmokeTestFailureException(
@@ -415,6 +468,10 @@ def test_home_state_change_notification(
             'Expected licenseJurisdiction to change to '
             f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {updated_provider_details.get("licenseJurisdiction")}'
         )
+
+    # The OH multi-state license completes the pairing with the OH single-state license, so a CUID
+    # is issued at this point. Captured for the public search test that follows.
+    practitioner_state.public_compact_identifier = _assert_cuid_assigned(updated_provider_details)
 
     logger.info(
         'MANUAL VERIFICATION REQUIRED: check inbox for '
@@ -515,6 +572,73 @@ def test_provider_privileges_exclude_unrecognized_license_type_jurisdictions(pro
     )
 
 
+def _wait_for_cuid_search_results(
+    public_compact_identifier: str,
+    *,
+    max_wait_seconds: int = 300,
+    poll_interval_seconds: int = 30,
+) -> list[dict]:
+    """
+    Poll the public search endpoint until the practitioner's CUID is searchable.
+
+    The CUID reaches OpenSearch through the provider table stream, so it is not queryable the
+    instant the provider record is written.
+    """
+    max_attempts = max_wait_seconds // poll_interval_seconds
+    for attempt in range(1, max_attempts + 1):
+        matching_rows = call_public_query_providers(COMPACT, cuid_filter=public_compact_identifier)
+        if matching_rows:
+            return matching_rows
+
+        if attempt < max_attempts:
+            logger.info(
+                f'CUID {public_compact_identifier} not searchable yet. '
+                f'Attempt {attempt}/{max_attempts}. Retrying in {poll_interval_seconds} seconds.'
+            )
+            time.sleep(poll_interval_seconds)
+
+    raise SmokeTestFailureException(
+        f'Timed out waiting for CUID {public_compact_identifier} to become searchable via public search.'
+    )
+
+
+def test_provider_is_searchable_by_cuid(practitioner_state: PractitionerTestState) -> None:
+    """Verify the public search endpoint returns exactly this practitioner when queried by their CUID."""
+    provider_id = practitioner_state.provider_id
+    public_compact_identifier = practitioner_state.public_compact_identifier
+    if not provider_id or not public_compact_identifier:
+        raise SmokeTestFailureException(
+            'Provider id and publicCompactIdentifier must both be set by the home state change test '
+            'before the practitioner can be searched by CUID.'
+        )
+
+    matching_rows = _wait_for_cuid_search_results(public_compact_identifier)
+
+    if len(matching_rows) != 1:
+        raise SmokeTestFailureException(
+            f'Expected exactly one practitioner for CUID {public_compact_identifier}, found {len(matching_rows)} '
+            f'with provider ids {[row.get("providerId") for row in matching_rows]}'
+        )
+
+    matching_row = matching_rows[0]
+    if matching_row.get('providerId') != provider_id:
+        raise SmokeTestFailureException(
+            f'Expected CUID {public_compact_identifier} to resolve to provider {provider_id}, '
+            f'found {matching_row.get("providerId")}'
+        )
+
+    if matching_row.get('publicCompactIdentifier') != public_compact_identifier:
+        raise SmokeTestFailureException(
+            f'Expected the returned row to carry publicCompactIdentifier {public_compact_identifier}, '
+            f'found {matching_row.get("publicCompactIdentifier")!r}'
+        )
+
+    logger.info(
+        f'Successfully verified CUID {public_compact_identifier} returns only provider {provider_id} '
+        'from the public search endpoint'
+    )
+
+
 def _query_home_state_change_events_for_provider(provider_id: str):
     data_events_table = get_data_events_dynamodb_table()
     event_pk = f'COMPACT#{COMPACT}#JURISDICTION#{HOME_STATE_CHANGE_NEW_JURISDICTION}'
@@ -575,6 +699,7 @@ if __name__ == '__main__':
             practitioner_state=practitioner_state,
         )
         test_provider_privileges_exclude_unrecognized_license_type_jurisdictions(practitioner_state.provider_id)
+        test_provider_is_searchable_by_cuid(practitioner_state)
         logger.info('License upload smoke tests passed')
     except SmokeTestFailureException as e:
         logger.error(f'License record upload smoke test failed: {str(e)}')

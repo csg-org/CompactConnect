@@ -247,17 +247,20 @@ _PUBLIC_QUERY_INTERNAL_MAX_PAGES = 500
 def call_public_query_providers(
     compact: str,
     *,
-    provider_id_filter: str,
+    provider_id_filter: str | None = None,
     first_name_filter: str | None = None,
     last_name_filter: str | None = None,
     license_number_filter: str | None = None,
+    cuid_filter: str | None = None,
     page_size: int = 100,
     timeout: int = 30,
 ) -> list[dict]:
     """
     POST /v1/public/compacts/{compact}/providers/query (no auth).
 
-    Builds query body from provided filters
+    Builds the query body from the provided filters. ``provider_id_filter`` is applied client side
+    to the returned rows; pass None to get every row the endpoint returned, which is what a caller
+    needs in order to assert on the total number of matches.
     """
     url = f'{config.api_base_url}/v1/public/compacts/{compact}/providers/query'
     headers = {'Content-Type': 'application/json'}
@@ -268,6 +271,8 @@ def call_public_query_providers(
         query_parameters['familyName'] = last_name_filter
     if license_number_filter:
         query_parameters['licenseNumber'] = license_number_filter
+    if cuid_filter:
+        query_parameters['cuid'] = cuid_filter
 
     pagination_state: dict = {'pageSize': page_size}
     matching_license_rows: list[dict] = []
@@ -280,7 +285,7 @@ def call_public_query_providers(
         page_response_body = response.json()
 
         for provider_license_row in page_response_body.get('providers') or []:
-            if provider_id_filter and provider_license_row.get('providerId') == provider_id_filter:
+            if provider_id_filter is None or provider_license_row.get('providerId') == provider_id_filter:
                 matching_license_rows.append(provider_license_row)
 
         last_pagination_key = (page_response_body.get('pagination') or {}).get('lastKey')
