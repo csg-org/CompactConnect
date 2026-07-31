@@ -703,3 +703,67 @@ class TestProviderUpdateIngest(TstFunction):
 
         # No batch failures - this is expected behavior for a race condition
         self.assertEqual({'batchItemFailures': []}, result)
+
+    def _create_cuid_count_stream_record(self) -> dict:
+        """Create a DynamoDB stream record for the CUID count record which tracks numbers to issue."""
+
+        return {
+            'eventID': '6827962b93fa0431321996a5cb9d245c',
+            'eventName': 'MODIFY',
+            'eventVersion': '1.1',
+            'eventSource': 'aws:dynamodb',
+            'awsRegion': 'us-east-1',
+            'dynamodb': {
+                'ApproximateCreationDateTime': 1767934990,
+                'Keys': {'sk': {'S': 'socw#CUID_COUNT'}, 'pk': {'S': 'socw#CUID_COUNT'}},
+                'NewImage': {
+                    'cuidCount': {'N': '322'},
+                    'sk': {'S': 'socw#CUID_COUNT'},
+                    'pk': {'S': 'socw#CUID_COUNT'},
+                },
+                'OldImage': {
+                    'cuidCount': {'N': '321'},
+                    'sk': {'S': 'socw#CUID_COUNT'},
+                    'pk': {'S': 'socw#CUID_COUNT'},
+                },
+                'SequenceNumber': '1275112700001832307719225248',
+                'SizeBytes': 166,
+                'StreamViewType': 'NEW_AND_OLD_IMAGES',
+            },
+            'eventSourceARN': 'some-source-arn',
+        }
+
+    @patch('handlers.provider_update_ingest.logger')
+    @patch('handlers.provider_update_ingest.opensearch_client')
+    def test_cuid_count_record_skipped_without_error_log(self, mock_opensearch_client, mock_logger):
+        """
+        The CUID counter lives in the provider table but is not a provider record.
+
+        Its stream events must be skipped quietly. Logging them at ERROR would fire the
+        ProviderUpdateIngestErrorLogAlarm every time a CUID is issued to a practitioner.
+        """
+        from handlers.provider_update_ingest import provider_update_ingest_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = {
+            'Records': [
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(self._create_cuid_count_stream_record()),
+                }
+            ]
+        }
+
+        mock_context = MagicMock()
+        result = provider_update_ingest_handler(event, mock_context)
+
+        # Nothing to index or delete for a counter record
+        mock_opensearch_client.bulk_index.assert_not_called()
+        mock_opensearch_client.delete_provider_documents.assert_not_called()
+
+        # Skipped, not failed, so the message is not retried
+        self.assertEqual({'batchItemFailures': []}, result)
+
+        # Skipped quietly: an ERROR here would page on every CUID issuance
+        mock_logger.error.assert_not_called()
