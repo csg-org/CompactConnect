@@ -82,6 +82,8 @@ class Stack(CdkStack):
         return {
             # DEBUG-level logging can include sensitive request/response data, so it must
             # not be enabled by default. It remains available to aid technical support teams.
+            # Environment variables may be updated for individual lambdas as needed through
+            # AWS by support staff with administrator access.
             'DEBUG': 'false',
             'ALLOWED_ORIGINS': json.dumps(self.allowed_origins),
             'COMPACTS': json.dumps(self.node.get_context('compacts')),

@@ -260,6 +260,8 @@ class TransactionClient:
                         line_items=line_items, item_id_prefix=item_id_prefix, privilege_id=privilege_id
                     )
                 else:
+                    # raw records can contain PII (e.g. a deactivating staff user's name), so the full items are
+                    # only logged at DEBUG level; the fields below are sufficient for triage at ERROR level
                     logger.error(
                         'No matching jurisdiction privilege record found for transaction. '
                         'Cannot determine privilege id for this transaction',
@@ -267,6 +269,9 @@ class TransactionClient:
                         transactionId=transaction.transactionId,
                         jurisdiction=jurisdiction,
                         provider_id=transaction.licenseeId,
+                    )
+                    logger.debug(
+                        'Matching privilege records for transaction',
                         matching_privilege_records=response.get('Items', []),
                     )
                     # we set the privilege id to UNKNOWN, so that it will be visible in the report
