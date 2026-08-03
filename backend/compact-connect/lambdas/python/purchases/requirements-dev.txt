@@ -8,15 +8,15 @@ argon2-cffi==25.1.0
     # via -r requirements-dev.in
 argon2-cffi-bindings==25.1.0
     # via argon2-cffi
-aws-lambda-powertools==3.31.0
+aws-lambda-powertools==3.31.1
     # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
-boto3==1.43.46
+boto3==1.43.56
     # via
     #   -r requirements-dev.in
     #   moto
-botocore==1.43.46
+botocore==1.43.62
     # via
     #   boto3
     #   moto
@@ -37,7 +37,7 @@ charset-normalizer==3.4.7
     # via requests
 click==8.4.1
     # via pip-tools
-coverage[toml]==7.15.1
+coverage[toml]==7.15.2
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -51,7 +51,7 @@ defusedxml==0.7.1
     # via py-serializable
 docker==7.1.0
     # via moto
-faker==40.28.1
+faker==40.36.0
     # via -r requirements-dev.in
 filelock==3.29.4
     # via cachecontrol
@@ -93,7 +93,7 @@ pip-audit==2.10.1
     # via -r requirements-dev.in
 pip-requirements-parser==32.0.1
     # via pip-audit
-pip-tools==7.5.3
+pip-tools==7.6.0
     # via -r requirements-dev.in
 platformdirs==4.10.0
     # via pip-audit
@@ -141,7 +141,7 @@ responses==0.26.1
     # via moto
 rich==15.0.0
     # via pip-audit
-ruff==0.15.21
+ruff==0.16.0
     # via -r requirements-dev.in
 s3transfer==0.19.0
     # via boto3
