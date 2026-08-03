@@ -1411,6 +1411,17 @@ class ApiModel:
                                 max_length=100,
                                 description='Filter for licenses with a specific license number',
                             ),
+                            'cuid': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Filter for the provider with a specific Compact Unique Identifier',
+                                max_length=64,
+                                pattern=_CUID_API_MODEL_PATTERN,
+                            ),
+                            'licenseType': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Filter for licenses of a specific license type',
+                                enum=self.stack.license_type_names,
+                            ),
                         },
                     ),
                     'sorting': self._sorting_schema,
