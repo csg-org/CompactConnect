@@ -25,7 +25,7 @@ Optional parameters:
   indexing (uses numberOfShards / numberOfReplicas). Run during low traffic; do not
   combine with resumption (startingCompact / startingLastKey) for the same run.
 - numberOfShards: Primary shard count for recreated indexes (default: 1).
-- numberOfReplicas: Replica shard count for recreated indexes (default: 0).
+- numberOfReplicas: Replica shard count for recreated indexes (default: 2).
 
 Race Condition Consideration:
 A potential race condition can occur when running this function while provider
@@ -84,7 +84,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
         - startingLastKey: The DynamoDB pagination key to resume from
         - resetIndexes: If true, delete and recreate all compact indexes first
         - numberOfShards: Shards for recreated indexes (default 1)
-        - numberOfReplicas: Replicas for recreated indexes (default 0)
+        - numberOfReplicas: Replicas for recreated indexes (default 2)
     :param context: Lambda context
     :return: Summary of indexing operation, including pagination info if incomplete
     """
@@ -93,7 +93,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
     reset_indexes = bool(event.get('resetIndexes', False))
     number_of_shards = int(event.get('numberOfShards', 1))
-    number_of_replicas = int(event.get('numberOfReplicas', 0))
+    number_of_replicas = int(event.get('numberOfReplicas', 2))
 
     if reset_indexes:
         # this reset functionality is only intended for development environments
@@ -255,7 +255,13 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                 provider_id = provider_record.get('providerId')
 
                 if not provider_id:
-                    logger.warning('Provider record missing providerId', record=provider_record)
+                    logger.warning(
+                        'Provider record missing providerId',
+                        pk=provider_record.get('pk'),
+                        sk=provider_record.get('sk'),
+                    )
+                    # the record may contain PII (name, DOB, etc.), so it is only logged at DEBUG level
+                    logger.debug('Provider record missing providerId details', record=provider_record)
                     compact_stats['providers_failed'] += 1
                     continue
 

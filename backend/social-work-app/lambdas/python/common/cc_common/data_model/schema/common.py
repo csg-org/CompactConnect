@@ -381,9 +381,21 @@ class EncumbranceType(CCEnum):
     Enum for the allowed types of encumbrances
     """
 
+    FINE = 'fine'
+    REPRIMAND = 'reprimand'
+    REQUIRED_SUPERVISION = 'required supervision'
+    COMPLETION_OF_CONTINUING_EDUCATION = 'completion of continuing education'
+    PUBLIC_REPRIMAND = 'public reprimand'
+    PROBATION = 'probation'
+    INJUNCTIVE_ACTION = 'injunctive action'
     SUSPENSION = 'suspension'
     REVOCATION = 'revocation'
+    DENIAL = 'denial'
     SURRENDER_OF_LICENSE = 'surrender of license'
+    MODIFICATION_OF_PREVIOUS_ACTION_EXTENSION = 'modification of previous action-extension'
+    MODIFICATION_OF_PREVIOUS_ACTION_REDUCTION = 'modification of previous action-reduction'
+    OTHER_MONITORING = 'other monitoring'
+    OTHER_ADJUDICATED_ACTION_NOT_LISTED = 'other adjudicated action not listed'
 
 
 class LicenseScopeEnum(CCEnum):
@@ -404,9 +416,15 @@ def license_sk_suffix(jurisdiction: str, license_type_abbr: str, license_scope: 
 class ClinicalPrivilegeActionCategory(CCEnum):
     """Enum for adverse action clinical privilege action categories."""
 
-    FRAUD = 'fraud'
-    CONSUMER_HARM = 'consumer harm'
-    OTHER = 'other'
+    NON_COMPLIANCE = 'Non-Compliance With Requirements'
+    CONFLICT_OF_INTEREST = 'Conflict of Interest'
+    SUBSTANDARD_CARE = 'Substandard Care or Patient Neglect/Abuse'
+    CRIMINAL_CONVICTION = 'Criminal Conviction or Adjudication'
+    CONFIDENTIALITY_VIOLATION = 'Confidentiality, Consent or Disclosure Violations'
+    FRAUD = 'Fraud, Deception, or Misrepresentation'
+    IMPROPER_SUPERVISION = 'Improper Supervision or Allowing Unlicensed Practice'
+    IMPROPER_PRESCRIBING = 'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
+    OTHER = 'Other'
 
 
 class ChangeHashMixin:

@@ -136,13 +136,13 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         search_stack = self.app.sandbox_backend_stage.search_persistent_stack
         search_template = Template.from_stack(search_stack)
 
-        # Verify sandbox uses t3.small.search with single node
+        # Verify sandbox uses t3.small.search with 3 data nodes
         search_template.has_resource_properties(
             'AWS::OpenSearchService::Domain',
             {
                 'ClusterConfig': {
                     'InstanceType': 't3.small.search',
-                    'InstanceCount': 1,
+                    'InstanceCount': 3,
                     'DedicatedMasterEnabled': False,
                     'MultiAZWithStandbyEnabled': False,
                 },
@@ -258,16 +258,10 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
 
     def test_sandbox_uses_expected_private_subnet(self):
         """
-        Test that the OpenSearch Domain in sandbox uses expected private Subnet.
+        Test that the OpenSearch Domain in sandbox uses expected private Subnets.
 
-        For non-prod single-node deployments, OpenSearch must use exactly one subnet.
-        We explicitly select privateSubnet1 (CIDR 10.0.0.0/20) to ensure deterministic
-        placement across deployments, since the related lambda functions will also be
-        deployed within that same subnet, and we want to ensure that can communicate with
-        one another.
-
-        This test verifies that OpenSearch references the specific subnet we expect,
-        not just any arbitrary subnet from the VPC.
+        For non-prod three-node deployments, OpenSearch uses all 3 private isolated
+        subnets across 3 AZs for zone awareness and proper shard distribution.
         """
         search_stack = self.app.sandbox_backend_stage.search_persistent_stack
         search_template = Template.from_stack(search_stack)
@@ -278,23 +272,20 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         vpc_options = opensearch_properties['VPCOptions']
         subnet_ids = vpc_options['SubnetIds']
 
-        # For sandbox (non-prod), should use exactly one subnet
-        self.assertEqual(len(subnet_ids), 1, 'Sandbox OpenSearch should use exactly one subnet')
+        # For sandbox (non-prod), should use three subnets
+        self.assertEqual(len(subnet_ids), 3, 'Sandbox OpenSearch should use three subnets')
 
-        # Get the subnet reference from OpenSearch
-        opensearch_subnet_ref = subnet_ids[0]
-        # Extract the export name that OpenSearch is importing
-        import_value = opensearch_subnet_ref['Fn::ImportValue']
-
-        # Verify OpenSearch is importing the correct subnet (privateSubnet1)
-        # The import_value should reference the export name of privateSubnet1
-        # The export name contains the construct name, which includes 'privateSubnet1'
-        self.assertIn(
-            'privateSubnet1',
-            str(import_value),
-            f'OpenSearch should import privateSubnet1, but is importing: {import_value}. '
-            'This is critical for deterministic subnet placement in non-prod environments.',
-        )
+        # Get the subnet references for each AZ
+        for index, subnet_id in enumerate(subnet_ids):
+            # Extract the export name that OpenSearch is importing
+            import_value = subnet_id['Fn::ImportValue']
+            # Verify OpenSearch is importing the correct subnet
+            self.assertIn(
+                f'privateSubnet{index + 1}',
+                str(import_value),
+                f'OpenSearch should import {subnet_id}, but is importing: {import_value}. '
+                'This is critical for deterministic subnet placement in non-prod environments.',
+            )
 
 
 class TestProdSearchPersistentStack(TstAppABC, TestCase):

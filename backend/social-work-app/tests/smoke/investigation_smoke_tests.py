@@ -478,7 +478,7 @@ def test_close_privilege_investigation_with_encumbrance(auth_headers):
         'encumbrance': {
             'encumbranceEffectiveDate': '2024-01-15',
             'encumbranceType': 'revocation',
-            'clinicalPrivilegeActionCategories': ['consumer harm'],
+            'clinicalPrivilegeActionCategories': ['Substandard Care or Patient Neglect/Abuse'],
         },
     }
 

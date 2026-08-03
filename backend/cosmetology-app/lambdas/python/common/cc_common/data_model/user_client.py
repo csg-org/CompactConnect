@@ -302,7 +302,9 @@ class UserClient:
         :param dict permissions: The permissions for the user
         :return:
         """
-        logger.info('Creating staff user', attributes=attributes)
+        logger.info('Creating staff user', compact=compact)
+        # attributes contains PII (email, given/family name), so it is only logged at DEBUG level
+        logger.debug('Creating staff user with attributes', attributes=attributes)
         attributes = self.user_attributes_schema.load(attributes)
         permissions = self.compact_permissions_schema.load(permissions)
 
@@ -329,7 +331,7 @@ class UserClient:
 
                 # If the user was previously disabled, re-enable them
                 if not resp.get('Enabled', True):
-                    logger.info('Re-enabling previously disabled user', user_id=user_id, email=attributes['email'])
+                    logger.info('Re-enabling previously disabled user', user_id=user_id)
                     self.config.cognito_client.admin_enable_user(
                         UserPoolId=self.config.user_pool_id, Username=attributes['email']
                     )

@@ -782,9 +782,20 @@ class ApiModel:
         return JsonSchema(
             type=JsonSchemaType.ARRAY,
             description='The categories of clinical privilege action',
+            min_items=1,
             items=JsonSchema(
                 type=JsonSchemaType.STRING,
-                enum=['fraud', 'consumer harm', 'other'],
+                enum=[
+                    'Non-Compliance With Requirements',
+                    'Conflict of Interest',
+                    'Substandard Care or Patient Neglect/Abuse',
+                    'Criminal Conviction or Adjudication',
+                    'Confidentiality, Consent or Disclosure Violations',
+                    'Fraud, Deception, or Misrepresentation',
+                    'Improper Supervision or Allowing Unlicensed Practice',
+                    'Improper Prescribing, Dispensing, Administering Medication/Drug Violation',
+                    'Other',
+                ],
             ),
         )
 
@@ -844,9 +855,21 @@ class ApiModel:
             type=JsonSchemaType.STRING,
             description='The type of encumbrance',
             enum=[
+                'fine',
+                'reprimand',
+                'required supervision',
+                'completion of continuing education',
+                'public reprimand',
+                'probation',
+                'injunctive action',
                 'suspension',
                 'revocation',
+                'denial',
                 'surrender of license',
+                'modification of previous action-extension',
+                'modification of previous action-reduction',
+                'other monitoring',
+                'other adjudicated action not listed',
             ],
         )
 
@@ -1395,6 +1418,59 @@ class ApiModel:
         )
 
     @property
+    def _public_adverse_action_schema(self):
+        """Sanitized adverse action items for public responses; mirrors AdverseActionPublicResponseSchema.
+
+        Unlike the staff-facing `_adverse_action_schema`, this omits `encumbranceType`,
+        `clinicalPrivilegeActionCategories`, and `liftingUser`/`submittingUser` so that no NPDB category or
+        staff-only information is exposed to the public.
+        """
+        return JsonSchema(
+            type=JsonSchemaType.ARRAY,
+            items=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'type',
+                    'compact',
+                    'providerId',
+                    'jurisdiction',
+                    'licenseTypeAbbreviation',
+                    'licenseType',
+                    'licenseScope',
+                    'actionAgainst',
+                    'effectiveStartDate',
+                    'creationDate',
+                    'adverseActionId',
+                    'dateOfUpdate',
+                ],
+                properties={
+                    'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
+                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
+                    'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.UUID4_FORMAT),
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        enum=self.stack.node.get_context('jurisdictions'),
+                    ),
+                    'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
+                    'licenseType': JsonSchema(type=JsonSchemaType.STRING),
+                    'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
+                    'actionAgainst': JsonSchema(type=JsonSchemaType.STRING),
+                    'effectiveStartDate': JsonSchema(
+                        type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                    ),
+                    'creationDate': JsonSchema(
+                        type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                    ),
+                    'adverseActionId': JsonSchema(type=JsonSchemaType.STRING),
+                    'effectiveLiftDate': JsonSchema(
+                        type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                    ),
+                    'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+                },
+            ),
+        )
+
+    @property
     def _public_license_public_response_schema(self):
         """License items in public GET provider responses; mirrors LicensePublicResponseSchema."""
         stack: AppStack = AppStack.of(self.api)
@@ -1426,6 +1502,7 @@ class ApiModel:
                     type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
                 ),
                 'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'adverseActions': self._public_adverse_action_schema,
             },
         )
 
@@ -1462,6 +1539,7 @@ class ApiModel:
                 'dateOfExpiration': JsonSchema(
                     type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
                 ),
+                'adverseActions': self._public_adverse_action_schema,
                 'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             },

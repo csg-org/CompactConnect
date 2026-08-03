@@ -67,7 +67,7 @@ export abstract class BaseEmailService {
         return `${environmentVariableService.getUiBasePathUrl()}/img/email`;
     }
 
-    protected maskEmail(email: string): string {
+    public maskEmail(email: string): string {
         const at = email.indexOf('@');
 
         if (at <= 0) {
@@ -77,7 +77,7 @@ export abstract class BaseEmailService {
         return `${email[0]}***${email.slice(at)}`;
     }
 
-    protected maskEmails(emails: string[]): string[] {
+    public maskEmails(emails: string[]): string[] {
         return emails.map((email) => this.maskEmail(email));
     }
 

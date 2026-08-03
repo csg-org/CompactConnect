@@ -101,13 +101,22 @@ class EmailServiceClient:
 
             if response.get('FunctionError'):
                 error_message = f'Failed to send email notification: {response.get("FunctionError")}'
-                self._logger.error(error_message)
+                self._logger.error(error_message, template=payload.get('template'))
                 raise CCInternalException(error_message)
 
             return response
         except Exception as e:
             error_message = f'Error invoking email notification service lambda: {str(e)}'
-            self._logger.error(error_message, payload=payload, exception=str(e))
+            # payload is never logged: it can contain PII and credentials (specificEmails, provider names,
+            # verificationCode, recoveryToken); the non-PII fields below are sufficient for triage
+            self._logger.error(
+                error_message,
+                template=payload.get('template'),
+                compact=payload.get('compact'),
+                jurisdiction=payload.get('jurisdiction'),
+                recipient_type=payload.get('recipientType'),
+                exception=str(e),
+            )
             raise CCInternalException(error_message) from e
 
     def send_provider_privilege_deactivation_email(

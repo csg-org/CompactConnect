@@ -111,7 +111,7 @@ class TestAdverseActionDataClass(TstLambdas):
                 'actionAgainst': 'privilege',
                 'adverseActionId': '98765432-9876-9876-9876-987654321098',
                 'encumbranceType': 'suspension',
-                'clinicalPrivilegeActionCategories': ['fraud'],
+                'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
                 'compact': 'socw',
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'effectiveStartDate': '2024-02-15',
@@ -136,6 +136,37 @@ class TestAdverseActionPostRequestSchema(TstLambdas):
 
         with open('tests/resources/api/adverse-action-post.json') as f:
             AdverseActionPostRequestSchema().load(json.load(f))
+
+    def test_validate_post_with_multiple_categories(self):
+        """Test that multiple clinical privilege action categories are accepted"""
+        from cc_common.data_model.schema.adverse_action.api import AdverseActionPostRequestSchema
+
+        with open('tests/resources/api/adverse-action-post.json') as f:
+            adverse_action_data = json.load(f)
+        adverse_action_data['clinicalPrivilegeActionCategories'] = [
+            'Fraud, Deception, or Misrepresentation',
+            'Substandard Care or Patient Neglect/Abuse',
+        ]
+
+        result = AdverseActionPostRequestSchema().load(adverse_action_data)
+        self.assertEqual(
+            [
+                'Fraud, Deception, or Misrepresentation',
+                'Substandard Care or Patient Neglect/Abuse',
+            ],
+            result['clinicalPrivilegeActionCategories'],
+        )
+
+    def test_invalid_post_with_empty_categories(self):
+        """Test validation error when clinical privilege action categories list is empty"""
+        from cc_common.data_model.schema.adverse_action.api import AdverseActionPostRequestSchema
+
+        with open('tests/resources/api/adverse-action-post.json') as f:
+            adverse_action_data = json.load(f)
+        adverse_action_data['clinicalPrivilegeActionCategories'] = []
+
+        with self.assertRaises(ValidationError):
+            AdverseActionPostRequestSchema().load(adverse_action_data)
 
     def test_invalid_post(self):
         """Test validation error when required field is missing"""

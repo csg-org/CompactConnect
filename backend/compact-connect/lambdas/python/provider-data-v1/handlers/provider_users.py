@@ -389,7 +389,6 @@ def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: A
                     'Email address became unavailable during verification process',
                     compact=compact,
                     provider_id=provider_id,
-                    new_email=new_email,
                 )
                 # Clear the verification data since the email is no longer available
                 config.data_client.clear_provider_email_verification_data(

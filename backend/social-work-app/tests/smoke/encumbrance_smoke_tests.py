@@ -464,7 +464,10 @@ def test_license_encumbrance_workflow():
             'licenseScope': helper.license_scope,
             'encumbranceEffectiveDate': '2024-11-11',
             'encumbranceType': 'surrender of license',
-            'clinicalPrivilegeActionCategories': ['fraud'],
+            'clinicalPrivilegeActionCategories': [
+                'Fraud, Deception, or Misrepresentation',
+                'Substandard Care or Patient Neglect/Abuse',
+            ],
         }
 
         # First encumbrance
@@ -522,7 +525,10 @@ def test_license_encumbrance_workflow():
             'licenseScope': helper.license_scope,
             'encumbranceEffectiveDate': '2025-01-01',
             'encumbranceType': 'suspension',
-            'clinicalPrivilegeActionCategories': ['consumer harm'],
+            'clinicalPrivilegeActionCategories': [
+                'Substandard Care or Patient Neglect/Abuse',
+                'Conflict of Interest',
+            ],
         }
         helper.encumber_license(second_encumbrance_body)
         logger.info('Second license encumbrance created successfully')
@@ -546,7 +552,10 @@ def test_license_encumbrance_workflow():
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-05-09',
             'encumbranceType': 'suspension',
-            'clinicalPrivilegeActionCategories': ['other'],
+            'clinicalPrivilegeActionCategories': [
+                'Other',
+                'Non-Compliance With Requirements',
+            ],
         }
 
         helper.encumber_privilege(privilege_encumbrance_body)
@@ -657,7 +666,10 @@ def test_privilege_encumbrance_workflow():
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-12-12',
             'encumbranceType': 'revocation',
-            'clinicalPrivilegeActionCategories': ['fraud'],
+            'clinicalPrivilegeActionCategories': [
+                'Fraud, Deception, or Misrepresentation',
+                'Criminal Conviction or Adjudication',
+            ],
         }
 
         # First encumbrance
@@ -684,7 +696,10 @@ def test_privilege_encumbrance_workflow():
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-02-02',
             'encumbranceType': 'suspension',
-            'clinicalPrivilegeActionCategories': ['consumer harm'],
+            'clinicalPrivilegeActionCategories': [
+                'Substandard Care or Patient Neglect/Abuse',
+                'Improper Supervision or Allowing Unlicensed Practice',
+            ],
         }
         helper.encumber_privilege(second_encumbrance_body)
         logger.info('Second privilege encumbrance created successfully')
@@ -782,6 +797,9 @@ if __name__ == '__main__':
     load_smoke_test_env()
 
     provider_id = config.test_provider_id
+
+    # Delete leftover adverse actions before loading provider records.
+    clean_adverse_actions()
 
     # Get jurisdiction information from privilege
     # Query database directly for privilege records

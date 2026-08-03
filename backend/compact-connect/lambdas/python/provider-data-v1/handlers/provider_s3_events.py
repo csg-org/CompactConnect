@@ -9,13 +9,14 @@ def process_provider_s3_events(event: dict, context: LambdaContext):  # noqa: AR
     :param event: Standard S3 ObjectCreated event
     :param LambdaContext context:
     """
-    logger.info('Received event', event=event)
+    # The S3 object key can embed the original user-supplied filename (e.g. a military document upload), so the
+    # full event/key is only logged at DEBUG level.
+    logger.debug('Received event', event=event)
     try:
         for record in event['Records']:
             bucket_name = record['s3']['bucket']['name']
             key = record['s3']['object']['key']
-            size = record['s3']['object']['size']
-            logger.info('Object', s3_url=f's3://{bucket_name}/{key}', size=size)
+            logger.debug('Object key', s3_url=f's3://{bucket_name}/{key}')
 
             # "ObjectCreated:Copy" events fire when the SSN-correction migration copies a practitioner's
             # documents from the old provider id's keyspace to the new one (see
@@ -35,7 +36,8 @@ def process_provider_s3_events(event: dict, context: LambdaContext):  # noqa: AR
             # we split the key to get the various parts needed to query for the record
             key_parts = key.split('/')
             if len(key_parts) < 5:
-                logger.error('Invalid key format', key=key)
+                logger.error('Invalid key format')
+                logger.debug('Invalid key', key=key)
                 return
 
             compact = key_parts[1]

@@ -26,7 +26,8 @@ jobs:
 
       - name: Upgrade pip
         # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
-        run: pip install --upgrade 'pip>=26.1'
+        # Held below 26.2, which drops pip._internal.utils.compat.stdlib_pkgs and breaks pip-sync.
+        run: pip install --upgrade 'pip>=26.1,<26.2'
 
       - name: Install dev dependencies
         run: "pip install -r backend/cosmetology-app/requirements-dev.txt"
@@ -87,7 +88,8 @@ jobs:
 
       - name: Upgrade pip
         # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
-        run: pip install --upgrade 'pip>=26.1'
+        # Held below 26.2, which drops pip._internal.utils.compat.stdlib_pkgs and breaks pip-sync.
+        run: pip install --upgrade 'pip>=26.1,<26.2'
 
       # Setup Node
       - name: Setup Node

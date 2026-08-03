@@ -133,10 +133,10 @@ class StaffUsers(UserPool, ResourceScopeMixin):
             handler='customize_scopes',
             alarm_topic=stack.alarm_topic,
             environment={
-                'DEBUG': 'true',
                 'USERS_TABLE_NAME': self.user_table.table_name,
                 'COMPACTS': json.dumps(compacts),
                 'JURISDICTIONS': json.dumps(jurisdictions),
+                # spread last so environment-appropriate values (e.g. DEBUG) are not clobbered by the above
                 **stack.common_env_vars,
             },
         )

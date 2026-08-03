@@ -105,7 +105,12 @@ class CognitoBackupExporter:
                         self._export_single_user(user, export_timestamp)
                         users_exported += 1
                     except (ClientError, ValueError) as e:
-                        logger.error('Failed to export user', username=user.get('Username', 'unknown'), error=str(e))
+                        # Username is the user's email address, so we log the non-PII 'sub' identifier instead
+                        logger.error(
+                            'Failed to export user',
+                            user_id=self._get_user_sub(user.get('Attributes', [])),
+                            error=str(e),
+                        )
                         raise
 
                 # Check for more pages
@@ -168,7 +173,12 @@ class CognitoBackupExporter:
             logger.debug('Exported user to S3', username=username, object_key=object_key)
 
         except ClientError as e:
-            logger.error('Failed to upload user to S3', username=username, error=str(e))
+            # Username is the user's email address, so we log the non-PII 'sub' identifier instead
+            logger.error(
+                'Failed to upload user to S3',
+                user_id=self._get_user_sub(user_data.get('Attributes', [])),
+                error=str(e),
+            )
             raise
 
     def _extract_user_attributes(self, attributes: list[dict[str, str]]) -> dict[str, str]:
@@ -179,6 +189,15 @@ class CognitoBackupExporter:
         :return: Dictionary of attribute names to values
         """
         return {attr['Name']: attr['Value'] for attr in attributes}
+
+    def _get_user_sub(self, attributes: list[dict[str, str]]) -> str:
+        """
+        Extract the non-PII Cognito 'sub' identifier from a list of user attributes, for use in logging.
+
+        :param attributes: List of Cognito user attributes
+        :return: The user's 'sub' value, or 'unknown' if not present
+        """
+        return next((attr['Value'] for attr in attributes if attr['Name'] == 'sub'), 'unknown')
 
 
 def backup_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:  # noqa: ARG001 unused-argument
