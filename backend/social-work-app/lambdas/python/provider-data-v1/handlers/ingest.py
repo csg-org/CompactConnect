@@ -42,6 +42,7 @@ PROVIDER_UPDATE_TRACKED_FIELDS = {
     'suffix',
     'dateOfExpiration',
     'dateOfBirth',
+    'publicCompactIdentifier',
 }
 
 MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE = (
@@ -315,6 +316,18 @@ def ingest_license_message(message: dict):
                         provider_id=provider_id,
                         public_compact_identifier=new_public_compact_identifier,
                     )
+                )
+
+                # The Update still changes the provider record, so it needs the same providerUpdate
+                # history record the Put path writes. current_provider_record is never None here: a
+                # provider with no existing record always takes the Put branch above.
+                _process_provider_update(
+                    existing_provider=current_provider_record.to_dict(),
+                    new_provider={
+                        **current_provider_record.to_dict(),
+                        'publicCompactIdentifier': new_public_compact_identifier,
+                    },
+                    dynamo_transactions=dynamo_transactions,
                 )
 
             # Write the records together as a transaction that succeeds or fails as one, to ensure consistency

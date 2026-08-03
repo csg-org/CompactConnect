@@ -179,6 +179,9 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     dateOfUpdate = AwareDateTime(required=True, allow_none=False)
+    # Optional, since a provider has no CUID until they hold a paired single-state and multi-state
+    # license. Tracked here so the upload that assigns one leaves an audit trail.
+    publicCompactIdentifier = PublicCompactIdentifierField(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('providerUpdate')

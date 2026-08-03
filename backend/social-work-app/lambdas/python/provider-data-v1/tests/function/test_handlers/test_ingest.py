@@ -2200,3 +2200,75 @@ class TestCuidGeneration(TstFunction):
         provider_put = self._get_provider_put(retry_transaction_items)
         self.assertIsNone(provider_put.get('ConditionExpression'))
         self.assertEqual(competing_cuid, self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier'])
+
+    def _get_provider_update_records(self, provider_id: str) -> list:
+        from cc_common.data_model.update_tier_enum import UpdateTierEnum
+
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact='socw',
+            provider_id=provider_id,
+            include_update_tier=UpdateTierEnum.TIER_TWO,
+        )
+        return provider_records.get_all_provider_update_records()
+
+    def test_provider_update_record_written_when_cuid_assigned_without_provider_put(self):
+        """
+        The conditional-Update path must leave the same audit trail as the Put path.
+
+        When the paired license loses the provider-record Put decision, the CUID is assigned by a
+        standalone Update. That still changes the provider record, so it needs a providerUpdate
+        history record capturing the assignment.
+        """
+        from cc_common.data_model.schema.common import UpdateCategory
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        # Multi-state first, so the later paired single-state license loses the Put decision.
+        self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+
+        assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        provider_updates = self._get_provider_update_records(DEFAULT_PROVIDER_ID)
+        cuid_updates = [
+            update for update in provider_updates if 'publicCompactIdentifier' in update.updatedValues
+        ]
+        self.assertEqual(1, len(cuid_updates), provider_updates)
+
+        cuid_update = cuid_updates[0]
+        self.assertEqual(UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER.value, cuid_update.updateType)
+        self.assertEqual(assigned_cuid, cuid_update.updatedValues['publicCompactIdentifier'])
+        # The practitioner had no CUID before this upload
+        self.assertNotIn('publicCompactIdentifier', cuid_update.previous)
+
+    def test_provider_update_record_captures_cuid_when_assigned_via_provider_put(self):
+        """The Put path assigns the CUID inline, and must record it in the same history record."""
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        # Single-state first, so the paired multi-state license wins the Put decision.
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+        self._ingest({'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2')
+
+        assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        cuid_updates = [
+            update
+            for update in self._get_provider_update_records(DEFAULT_PROVIDER_ID)
+            if 'publicCompactIdentifier' in update.updatedValues
+        ]
+        self.assertEqual(1, len(cuid_updates))
+        self.assertEqual(assigned_cuid, cuid_updates[0].updatedValues['publicCompactIdentifier'])
+
+    def test_no_provider_update_record_for_cuid_on_subsequent_uploads(self):
+        """A CUID is assigned once, so later uploads must not record it as changing again."""
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='3')
+
+        cuid_updates = [
+            update
+            for update in self._get_provider_update_records(DEFAULT_PROVIDER_ID)
+            if 'publicCompactIdentifier' in update.updatedValues
+        ]
+        self.assertEqual(1, len(cuid_updates), 'CUID assignment must be recorded exactly once')
