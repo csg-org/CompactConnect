@@ -1,5 +1,6 @@
 import json
 import re
+from collections.abc import Callable
 from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 
@@ -2047,3 +2048,155 @@ class TestCuidGeneration(TstFunction):
         mock_claim.assert_called_once_with('socw')
         provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
         self.assertRegex(provider_record['publicCompactIdentifier'], CUID_PATTERN)
+
+    _PROVIDER_SORT_KEY = 'socw#PROVIDER'
+
+    def _ingest_capturing_transaction_items(
+        self,
+        detail_overrides: dict,
+        message_id: str = '1',
+        *,
+        expect_failure: bool = False,
+        before_write: Callable[[], None] | None = None,
+    ) -> list[dict]:
+        """
+        Ingest a license message and return the TransactItems submitted to DynamoDB.
+
+        The real client is still called, so the table ends in the same state the handler intended.
+
+        :param expect_failure: When True, assert the message was reported as a batch item failure
+            (i.e. SQS will retry it) rather than asserting it succeeded.
+        :param before_write: Invoked after the handler has read provider state but immediately before
+            its transaction is submitted, so a test can simulate a competing write winning that race.
+        """
+        import handlers.ingest as ingest_handler
+        from handlers.ingest import ingest_license_message
+
+        captured_transaction_items: list[dict] = []
+        real_transact_write_items = ingest_handler.config.dynamodb_client.transact_write_items
+
+        def _capture_and_delegate(**kwargs):
+            captured_transaction_items.extend(kwargs['TransactItems'])
+            if before_write is not None:
+                before_write()
+            return real_transact_write_items(**kwargs)
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        message['detail'].update(detail_overrides)
+        event = {'Records': [{'messageId': message_id, 'body': json.dumps(message)}]}
+
+        with patch.object(
+            ingest_handler.config.dynamodb_client, 'transact_write_items', side_effect=_capture_and_delegate
+        ):
+            resp = ingest_license_message(event, self.mock_context)
+
+        expected_failures = [{'itemIdentifier': message_id}] if expect_failure else []
+        self.assertEqual({'batchItemFailures': expected_failures}, resp)
+
+        return captured_transaction_items
+
+    def _get_provider_put(self, transaction_items: list[dict]) -> dict:
+        """Return the Put operation targeting the top-level provider record."""
+        provider_puts = [
+            item['Put']
+            for item in transaction_items
+            if 'Put' in item and item['Put']['Item'].get('sk', {}).get('S') == self._PROVIDER_SORT_KEY
+        ]
+        self.assertEqual(1, len(provider_puts), 'Expected exactly one top-level provider Put in the transaction')
+        return provider_puts[0]
+
+    def test_provider_put_includes_cuid_condition_when_assigning_cuid(self):
+        """
+        The Put that assigns a CUID must be conditional on the field being absent.
+
+        Without it, a provider Put could overwrite a CUID that a competing transaction assigned first.
+        """
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+
+        # The paired multi-state license wins the provider-record Put decision, so the CUID is
+        # assigned via that Put rather than the conditional-Update path.
+        transaction_items = self._ingest_capturing_transaction_items(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2'
+        )
+
+        provider_put = self._get_provider_put(transaction_items)
+        self.assertIn('publicCompactIdentifier', provider_put['Item'])
+        self.assertEqual('attribute_not_exists(publicCompactIdentifier)', provider_put.get('ConditionExpression'))
+
+    def test_provider_put_has_no_cuid_condition_when_not_assigning_cuid(self):
+        """A first upload creates the provider record without a CUID, so it must not be conditional."""
+        transaction_items = self._ingest_capturing_transaction_items({'licenseScope': 'single-state'})
+
+        provider_put = self._get_provider_put(transaction_items)
+        self.assertNotIn('publicCompactIdentifier', provider_put['Item'])
+        self.assertIsNone(provider_put.get('ConditionExpression'))
+
+    def test_provider_put_has_no_cuid_condition_for_provider_that_already_has_cuid(self):
+        """
+        Once a CUID exists, later provider updates must not carry the condition.
+
+        Otherwise every subsequent upload for that practitioner would fail the condition and retry
+        forever.
+        """
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+        self._ingest({'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2')
+        assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        # A later upload that still updates the provider record, now that a CUID is already present.
+        transaction_items = self._ingest_capturing_transaction_items(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS', 'dateOfRenewal': '2025-02-02'},
+            message_id='3',
+        )
+
+        provider_put = self._get_provider_put(transaction_items)
+        self.assertEqual(assigned_cuid, provider_put['Item']['publicCompactIdentifier']['S'])
+        self.assertIsNone(provider_put.get('ConditionExpression'))
+
+    def test_cuid_preserved_when_competing_transaction_assigns_first_and_message_is_retried(self):
+        """
+        A losing provider Put must not clobber the CUID the winning transaction assigned.
+
+        Simulates the real race: the competing CUID lands *after* this handler's consistent read but
+        *before* its transaction write, so the handler still believes it must assign one. Its
+        conditional Put is cancelled, SQS retries the message, and the retry re-reads, observes the
+        existing CUID, and leaves it untouched.
+        """
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+
+        competing_cuid = 'SWC-1234-99'
+        provider_key = {'pk': f'socw#PROVIDER#{DEFAULT_PROVIDER_ID}', 'sk': self._PROVIDER_SORT_KEY}
+
+        def assign_competing_cuid():
+            self._provider_table.update_item(
+                Key=provider_key,
+                UpdateExpression='SET publicCompactIdentifier = :cuid',
+                ExpressionAttributeValues={':cuid': competing_cuid},
+            )
+
+        # The handler read a provider record with no CUID, so it mints one and makes its Put
+        # conditional. The competing assignment lands first, cancelling this transaction.
+        losing_transaction_items = self._ingest_capturing_transaction_items(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'},
+            message_id='2',
+            expect_failure=True,
+            before_write=assign_competing_cuid,
+        )
+        self.assertEqual(
+            'attribute_not_exists(publicCompactIdentifier)',
+            self._get_provider_put(losing_transaction_items).get('ConditionExpression'),
+        )
+        self.assertEqual(competing_cuid, self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier'])
+
+        # SQS redelivers the same message; the retry sees the existing CUID and assigns nothing new.
+        retry_transaction_items = self._ingest_capturing_transaction_items(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2'
+        )
+
+        provider_put = self._get_provider_put(retry_transaction_items)
+        self.assertIsNone(provider_put.get('ConditionExpression'))
+        self.assertEqual(competing_cuid, self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier'])

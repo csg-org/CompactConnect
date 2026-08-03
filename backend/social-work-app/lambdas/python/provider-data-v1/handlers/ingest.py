@@ -279,14 +279,21 @@ def ingest_license_message(message: dict):
                     public_compact_identifier=new_public_compact_identifier,
                 )
 
-                dynamo_transactions.append(
-                    {
-                        'Put': {
-                            'TableName': config.provider_table_name,
-                            'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
-                        }
-                    }
-                )
+                provider_put = {
+                    'TableName': config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                }
+                if new_public_compact_identifier is not None:
+                    # Guard the CUID assignment against a competing transaction -- either another
+                    # provider Put, or the conditional Update path below -- assigning one between our
+                    # consistent read above and this write. DynamoDB cancels the losing transaction;
+                    # SQS redelivers it, and the retry's consistent read finds the existing CUID, so
+                    # _resolve_public_compact_identifier returns None and the retry writes without this
+                    # condition. The condition is only applied when we are actually assigning, so a
+                    # practitioner who already has a CUID is never blocked from ordinary updates.
+                    provider_put['ConditionExpression'] = 'attribute_not_exists(publicCompactIdentifier)'
+
+                dynamo_transactions.append({'Put': provider_put})
 
                 # If this is an update to an existing provider record (not a first-upload create), capture the
                 # delta as a providerUpdate history record so an upload-driven change (e.g. home jurisdiction)
