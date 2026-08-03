@@ -2229,9 +2229,7 @@ class TestCuidGeneration(TstFunction):
         assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
 
         provider_updates = self._get_provider_update_records(DEFAULT_PROVIDER_ID)
-        cuid_updates = [
-            update for update in provider_updates if 'publicCompactIdentifier' in update.updatedValues
-        ]
+        cuid_updates = [update for update in provider_updates if 'publicCompactIdentifier' in update.updatedValues]
         self.assertEqual(1, len(cuid_updates), provider_updates)
 
         cuid_update = cuid_updates[0]
@@ -2272,3 +2270,32 @@ class TestCuidGeneration(TstFunction):
             if 'publicCompactIdentifier' in update.updatedValues
         ]
         self.assertEqual(1, len(cuid_updates), 'CUID assignment must be recorded exactly once')
+
+    def test_provider_update_previous_snapshot_includes_existing_cuid(self):
+        """
+        Once a CUID exists, later update records must carry it in their `previous` snapshot.
+
+        Disaster-recovery rollback rebuilds the provider record from this snapshot alone (see
+        _build_and_execute_revert_transactions in rollback_license_upload.py), so a CUID missing here
+        would be silently dropped when an upload is reverted.
+        """
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+        self._ingest({'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2')
+        assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        # A later upload changing a tracked provider field, so an update record is written for a
+        # practitioner who already holds a CUID.
+        self._ingest(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS', 'familyName': 'Changed'},
+            message_id='3',
+        )
+
+        name_change_updates = [
+            update
+            for update in self._get_provider_update_records(DEFAULT_PROVIDER_ID)
+            if 'familyName' in update.updatedValues
+        ]
+        self.assertEqual(1, len(name_change_updates), 'Expected one update record for the name change')
+        self.assertEqual(assigned_cuid, name_change_updates[0].previous['publicCompactIdentifier'])
