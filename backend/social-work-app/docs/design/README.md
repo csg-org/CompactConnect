@@ -343,16 +343,20 @@ uses a [version 4 UUID](https://en.wikipedia.org/wiki/Universally_unique_identif
 
 #### Compact Unique Identifier (CUID)
 
-The CUID is the Compact's persistent, public-facing, human-shorthand identifier for individuals who hold
-multistate authorization (i.e. at least one generated privilege — see [Multi-State License Model / Privilege
-Generation](#multi-state-license-model--privilege-generation)). Unlike the RID, the CUID is designed to be
-short and easy for a member of the public to read, share, and search by. Per Commission rule, the CUID is:
+The CUID is the Compact's persistent, public-facing, human-shorthand identifier for practitioners who hold a
+paired multi-state and single-state license. Unlike the RID, the CUID is designed to be short and easy for a
+member of the public to read, share, and search by. Per Commission rule, the CUID is:
 - **Issued only once a practitioner has a paired multi-state and single-state license** — i.e. generated the first
   time a practitioner has *both* a single-state and a multi-state license uploaded for the **same license type and
   the same jurisdiction** (the same pairing concept used for privilege generation, see [License Composite
   Identifier](#license-composite-identifier)), rather than at first multi-state license upload alone. A multi-state
   license uploaded without its paired single-state license (or vice versa) does **not** trigger CUID generation
   (contrast with the RID, which is assigned on first license ingestion regardless of scope or pairing).
+  The pairing itself is the only condition: it is evaluated independently of each license's displayed eligibility
+  and active status, so holding a CUID does **not** imply the practitioner has any generated privileges. Privilege
+  generation imposes further eligibility conditions on top of the pairing (see [Privilege Runtime Generation for
+  Multi-State Licenses](#privilege-runtime-generation-for-multi-state-licenses)), so a practitioner whose paired
+  licenses are ineligible or expired still holds their CUID while having no privileges.
 - **Public-facing**, unlike the RID, required by Commission rule to be shown in public lookup, and searchable by the public.
 - **Person-based, not license-based**, similar to the RID, persistent for mobility: the CUID remains the same even if the practitioner's home state later changes under Compact rules (see [Home State Changes](#home-state-changes)).
 - **Permanently linked to the practitioner's RID** (`providerId`), so historical and future records remain consistent regardless of any home-state changes.
