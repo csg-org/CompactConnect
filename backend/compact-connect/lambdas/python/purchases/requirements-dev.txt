@@ -5,16 +5,16 @@
 #    pip-compile --no-emit-index-url --no-strip-extras requirements-dev.in
 #
 argon2-cffi==25.1.0
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 argon2-cffi-bindings==25.1.0
     # via argon2-cffi
 aws-lambda-powertools==3.31.1
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 boolean-py==5.0
     # via license-expression
-boto3==1.43.63
+boto3==1.43.58
     # via
-    #   -r requirements-dev.in
+    #   -r purchases/requirements-dev.in
     #   moto
 botocore==1.43.63
     # via
@@ -39,11 +39,11 @@ click==8.4.2
     # via pip-tools
 coverage[toml]==7.15.3
     # via
-    #   -r requirements-dev.in
+    #   -r purchases/requirements-dev.in
     #   pytest-cov
 cryptography==50.0.0
     # via
-    #   -r requirements-dev.in
+    #   -r purchases/requirements-dev.in
     #   moto
 cyclonedx-python-lib==11.11.0
     # via pip-audit
@@ -52,7 +52,7 @@ defusedxml==0.7.1
 docker==7.2.0
     # via moto
 faker==40.36.0
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 filelock==3.32.2
     # via cachecontrol
 idna==3.18
@@ -71,11 +71,11 @@ markdown-it-py==4.2.0
 markupsafe==3.0.3
     # via werkzeug
 marshmallow==4.3.0
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 mdurl==0.1.2
     # via markdown-it-py
 moto[dynamodb,s3]==5.2.2
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 msgpack==1.2.1
     # via cachecontrol
 packageurl-python==0.17.6
@@ -90,11 +90,11 @@ packaging==26.3
 pip-api==0.0.34
     # via pip-audit
 pip-audit==2.10.1
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.6.0
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 platformdirs==4.11.0
     # via pip-audit
 pluggy==1.6.0
@@ -119,10 +119,10 @@ pyproject-hooks==1.2.0
     #   pip-tools
 pytest==9.1.1
     # via
-    #   -r requirements-dev.in
+    #   -r purchases/requirements-dev.in
     #   pytest-cov
 pytest-cov==7.1.0
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 python-dateutil==2.9.0.post0
     # via botocore
 pyyaml==6.0.3
@@ -131,7 +131,7 @@ pyyaml==6.0.3
     #   responses
 requests==2.34.2
     # via
-    #   -r requirements-dev.in
+    #   -r purchases/requirements-dev.in
     #   cachecontrol
     #   docker
     #   moto
@@ -142,7 +142,7 @@ responses==0.26.2
 rich==15.0.0
     # via pip-audit
 ruff==0.16.1
-    # via -r requirements-dev.in
+    # via -r purchases/requirements-dev.in
 s3transfer==0.19.2
     # via boto3
 six==1.17.0
@@ -157,7 +157,7 @@ typing-extensions==4.16.0
     # via aws-lambda-powertools
 urllib3==2.7.0
     # via
-    #   -r requirements-dev.in
+    #   -r purchases/requirements-dev.in
     #   botocore
     #   docker
     #   requests
