@@ -735,7 +735,8 @@ class SearchProvidersRequestSchema(CCRequestSchema):
            Note that this application-layer check is currently the only protection against
            cross-index lookups. The OpenSearch domain setting
            `rest.action.multi.allow_explicit_index: false` would provide a second layer, but it is
-           not configured on the domain (see stacks/search_persistent_stack/provider_search_domain.py).
+           not configured on the domain due to issues it causes with blue/green deployments
+           (see stacks/search_persistent_stack/provider_search_domain.py).
 
            Dangerous patterns blocked:
            - Terms lookup with external index: {"terms": {"field": {"index": "other_index", ...}}}
