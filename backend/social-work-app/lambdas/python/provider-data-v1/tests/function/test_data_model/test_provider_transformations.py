@@ -97,7 +97,8 @@ class TestTransformations(TstFunction):
             compact='socw', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
-        # One record for each of: provider and license (no privileges in Social Work model)
+        # One record for each of: provider, single-state license, multi-state license
+        # (no privileges in Social Work model)
         license_records = [r for r in provider_user_records.provider_records if r['type'] == 'license']
         self.assertEqual(2, len(license_records))
         records = {item['type']: item for item in provider_user_records.provider_records if item['type'] != 'license'}
@@ -127,11 +128,13 @@ class TestTransformations(TstFunction):
         del records['provider']['providerDateOfUpdate']
 
         # These two license posts pair a single-state and multi-state license in the same jurisdiction and
-        # licenseType, so a CUID is assigned as part of this ingest chain. Assert its format/counter separately,
-        # then drop it so the rest of the record comparison is unaffected.
-        provider_cuid = records['provider'].pop('publicCompactIdentifier')
+        # licenseType, so a CUID is assigned as part of this ingest chain. Assert its format/counter separately.
+        provider_cuid = records['provider'].get('publicCompactIdentifier')
         self.assertRegex(provider_cuid, CUID_PATTERN)
         self.assertEqual('1', provider_cuid.split('-')[-1])
+        # the CUID includes a randomly generated number, so we set the expected_provider's
+        # value to match
+        expected_provider['publicCompactIdentifier'] = provider_cuid
 
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
@@ -171,8 +174,11 @@ class TestTransformations(TstFunction):
             del license_data['dateOfUpdate']
 
         # The CUID assigned earlier in this test is echoed back through the API; assert it separately then drop
-        # it, since the canned fixture predates CUID assignment.
-        self.assertEqual(provider_cuid, provider_data.pop('publicCompactIdentifier'))
+        # it (from both sides) so the rest of the record comparison is unaffected.
+        self.assertEqual(provider_cuid, provider_data.get('publicCompactIdentifier'))
+        # the CUID includes a randomly generated number, so we set the expected_provider's
+        # value to match
+        expected_provider['publicCompactIdentifier'] = provider_cuid
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.maxDiff = None

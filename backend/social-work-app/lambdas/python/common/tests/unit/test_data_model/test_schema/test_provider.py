@@ -233,6 +233,7 @@ class TestProviderRecordSchema(TstLambdas):
 
         with open('tests/resources/dynamo/provider.json') as f:
             provider_record = json.load(f)
+        del provider_record['publicCompactIdentifier']
 
         schema = ProviderRecordSchema()
         loaded_record = schema.load(provider_record.copy())

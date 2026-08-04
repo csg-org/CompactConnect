@@ -25,6 +25,9 @@ class TestIngest(TstFunction):
             for license_record in expected_provider['licenses']
             if license_record.get('licenseScope') == 'single-state'
         ]
+        # These tests only ever ingest a single single-state license, so no paired single-state/multi-state
+        # license exists and a CUID is never assigned.
+        del expected_provider['publicCompactIdentifier']
 
         return expected_provider
 
@@ -196,11 +199,10 @@ class TestIngest(TstFunction):
         del expected_provider['licenses']
         licenses = provider_data.pop('licenses')
 
-        # The loaded fixture already has a paired OH single-state/multi-state license, so this ingest
-        # newly qualifies the provider for a CUID (assigned via the conditional-update path, since the
-        # inactive KY license does not win the provider-record Put decision). Assert its format, then drop
-        # it since the canned fixture predates CUID assignment.
-        self.assertRegex(provider_data.pop('publicCompactIdentifier'), CUID_PATTERN)
+        # The loaded fixture already has a paired OH single-state/multi-state license, so the provider already
+        # has a CUID assigned before this ingest occurs. The inactive KY license upload does not win the
+        # provider-record Put decision, so the CUID is left unchanged.
+        self.assertEqual(expected_provider['publicCompactIdentifier'], provider_data['publicCompactIdentifier'])
 
         # The original provider data is preferred over the posted license data in our test case
         self.assertEqual(expected_provider, provider_data)
