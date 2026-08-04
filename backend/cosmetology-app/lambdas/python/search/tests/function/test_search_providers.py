@@ -213,7 +213,7 @@ class TestSearchProviders(TstFunction):
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
-        sort_config = [{'providerId': 'asc'}, {'dateOfUpdate': 'desc'}]
+        sort_config = [{'providerId': {'order': 'asc'}}, {'dateOfUpdate': {'order': 'desc'}}]
         search_after_values = ['provider-uuid-123']
         event = self._create_api_event(
             'cosm',
@@ -338,7 +338,7 @@ class TestSearchProviders(TstFunction):
             'cosm',
             body={
                 'query': {'match_all': {}},
-                'sort': [{'providerId': 'asc'}, {'dateOfUpdate': 'asc'}],
+                'sort': [{'providerId': {'order': 'asc'}}, {'dateOfUpdate': {'order': 'asc'}}],
             },
         )
 
@@ -406,22 +406,23 @@ class TestSearchProviders(TstFunction):
         self.assertIn("'index'", body['message'])
 
     def test_query_with_underscore_index_key_returns_400(self):
-        """Test that queries containing '_index' key are rejected with 400 error."""
+        """
+        Test that queries containing an '_index' key are rejected with a 400 error.
+
+        This exercises the cross-index check itself, by placing '_index' inside an allowlisted
+        clause so it has to be caught on its own merits rather than by the allowlist.
+        """
         from handlers.search import search_api_handler
 
-        # Test with '_index' key (more_like_this attack pattern)
         event = self._create_api_event(
             'cosm',
             body={
                 'query': {
-                    'more_like_this': {
-                        'fields': ['familyName', 'givenName'],
-                        'like': [
-                            {
-                                '_index': 'compact_cosm_providers',
-                                '_id': 'target-provider-uuid',
-                            }
-                        ],
+                    'terms': {
+                        'providerId': {
+                            '_index': 'compact_cosm_providers',
+                            '_id': 'target-provider-uuid',
+                        }
                     }
                 }
             },
@@ -484,7 +485,7 @@ class TestSearchProviders(TstFunction):
             'cosm',
             body={
                 'query': {'match_all': {}},
-                'sort': [{'familyName': 'asc'}],  # Sorting on text field causes this error
+                'sort': [{'familyName.keyword': {'order': 'asc'}}],
             },
         )
 
@@ -493,6 +494,195 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual(error_reason, body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_query_string_clause_returns_400(self, mock_opensearch_client):
+        """
+        A free-form query_string clause must be rejected outright.
+
+        query_string smuggles the field reference inside a string value, which defeats any
+        field-name-based permission gate (e.g. the dateOfBirth/readPrivate check) and would
+        otherwise let a readGeneral-only caller use hit-vs-no-hit as an oracle for a provider's
+        date of birth.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {
+                    'bool': {
+                        'must': [
+                            {'term': {'providerId': ''}},
+                            {'query_string': {'query': 'licenses.dateOfBirth:[1985-01-01 TO 1985-06-30]'}},
+                        ]
+                    }
+                }
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('query_string', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_disallowed_free_form_clauses_returns_400(self, mock_opensearch_client):
+        """Every free-form/scripted clause type outside the allowlist must be rejected with a 400."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        disallowed_queries = {
+            'simple_query_string': {'simple_query_string': {'query': 'licenses.dateOfBirth:1985*'}},
+            'wildcard': {'wildcard': {'licenses.dateOfBirth': {'value': '1985*'}}},
+            'regexp': {'regexp': {'licenses.dateOfBirth': '198[0-9].*'}},
+            'script': {'script': {'script': {'source': "doc['licenses.dateOfBirth'].size() > 0"}}},
+            'exists': {'exists': {'field': 'dateOfBirth'}},
+            'multi_match': {'multi_match': {'query': '1985', 'fields': ['givenName', 'dateOfBirth']}},
+            'more_like_this': {'more_like_this': {'like': [{'_index': 'compact_socw_providers'}]}},
+        }
+
+        for clause_name, query in disallowed_queries.items():
+            with self.subTest(clause=clause_name):
+                event = self._create_api_event('cosm', body={'query': query})
+
+                response = search_api_handler(event, self.mock_context)
+
+                self.assertEqual(400, response['statusCode'])
+                body = json.loads(response['body'])
+                self.assertIn(clause_name, body['message'])
+
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_disallowed_clause_nested_deep_in_query_returns_400(self, mock_opensearch_client):
+        """A disallowed clause buried inside nested/bool structures must still be rejected."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {
+                    'bool': {
+                        'must': [
+                            {'match': {'givenName': 'John'}},
+                            {
+                                'nested': {
+                                    'path': 'licenses',
+                                    'query': {
+                                        'bool': {
+                                            'should': [
+                                                {'term': {'licenses.jurisdiction': 'oh'}},
+                                                {'query_string': {'query': 'licenses.dateOfBirth:1985*'}},
+                                            ]
+                                        }
+                                    },
+                                }
+                            },
+                        ]
+                    }
+                }
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('query_string', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_accepts_the_full_query_shape_built_by_the_frontend(self, mock_opensearch_client):
+        """
+        Regression guard: the complete clause vocabulary the frontend builds must remain accepted.
+
+        Mirrors prepRequestSearchParams in webroot/src/network/searchApi/data.api.ts, combining every
+        clause type it can emit into a single request.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {
+                    'bool': {
+                        'must': [
+                            {'match_phrase_prefix': {'givenName': 'Jo'}},
+                            {'match_phrase_prefix': {'familyName': 'Do'}},
+                            {'term': {'licenseJurisdiction': 'oh'}},
+                            {'match': {'licenseNumber': 'A-123'}},
+                            {
+                                'nested': {
+                                    'path': 'privileges',
+                                    'inner_hits': {'size': 100},
+                                    'query': {
+                                        'bool': {
+                                            'must': [{'term': {'privileges.jurisdiction': 'ky'}}],
+                                            'should': [
+                                                {'range': {'privileges.dateOfIssuance': {'gte': '2024-01-01'}}},
+                                                {'range': {'privileges.dateOfRenewal': {'lte': '2024-12-31'}}},
+                                            ],
+                                            'minimum_should_match': 1,
+                                        }
+                                    },
+                                }
+                            },
+                            {
+                                'bool': {
+                                    'must_not': [
+                                        {
+                                            'nested': {
+                                                'path': 'licenses',
+                                                'query': {
+                                                    'nested': {
+                                                        'path': 'licenses.investigations',
+                                                        'query': {
+                                                            'term': {'licenses.investigations.type': 'investigation'}
+                                                        },
+                                                    }
+                                                },
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                        ]
+                    }
+                },
+                'size': 25,
+                'from': 25,
+                'sort': [{'familyName.keyword': {'order': 'asc'}}],
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_match_all_query_is_accepted(self, mock_opensearch_client):
+        """The frontend's no-search-terms default (match_all) must remain accepted."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event('cosm', body={'query': {'match_all': {}}})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()
 
     @patch('handlers.search.opensearch_client')
     def test_search_with_date_of_birth_query_allowed_for_compact_level_read_private_scope(self, mock_opensearch_client):
@@ -596,12 +786,17 @@ class TestSearchProviders(TstFunction):
 
     @patch('handlers.search.opensearch_client')
     def test_search_with_exists_field_date_of_birth_rejected_without_read_private_scope(self, mock_opensearch_client):
-        """Test that query with dateOfBirth as field value (e.g. exists) is rejected without readPrivate scope."""
+        """
+        A readGeneral-only caller must not be able to probe dateOfBirth via an "exists" clause.
+
+        "exists" names its field by value ({"exists": {"field": "dateOfBirth"}}) rather than by key.
+        That vector is now closed structurally: "exists" is not an allowlisted query type, so the
+        request is rejected before the field-name-based readPrivate check is ever consulted.
+        """
         from handlers.search import search_api_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
-        # OpenSearch "exists" query references field by value: {"exists": {"field": "dateOfBirth"}}
         event = self._create_api_event(
             'cosm',
             body={
@@ -613,13 +808,17 @@ class TestSearchProviders(TstFunction):
 
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertIn('dateOfBirth', body['message'])
-        self.assertIn('readPrivate', body['message'])
+        self.assertIn('exists', body['message'])
         mock_opensearch_client.search.assert_not_called()
 
     @patch('handlers.search.opensearch_client')
     def test_search_with_date_of_birth_string_in_list_rejected_without_read_private_scope(self, mock_opensearch_client):
-        """dateOfBirth as a list element (e.g. multi_match fields) must not bypass readPrivate checks."""
+        """
+        A readGeneral-only caller must not be able to probe dateOfBirth via multi_match fields.
+
+        dateOfBirth appears only as a list element here, never as a key. Like "exists", multi_match
+        is not an allowlisted query type, so the request is rejected outright.
+        """
         from handlers.search import search_api_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
@@ -640,13 +839,19 @@ class TestSearchProviders(TstFunction):
 
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertIn('dateOfBirth', body['message'])
-        self.assertIn('readPrivate', body['message'])
+        self.assertIn('multi_match', body['message'])
         mock_opensearch_client.search.assert_not_called()
 
     @patch('handlers.search.opensearch_client')
     def test_search_with_sort_by_date_of_birth_rejected_without_read_private_scope(self, mock_opensearch_client):
-        """Test that sort clause referencing dateOfBirth is rejected when caller lacks readPrivate scope."""
+        """
+        A sort clause referencing dateOfBirth is rejected for a readGeneral-only caller.
+
+        dateOfBirth is not in the sortable-field allowlist, so this is now refused on the field
+        rather than on the caller's scopes. See
+        test_search_with_sort_by_date_of_birth_rejected_even_with_read_private_scope for the
+        readPrivate case, which is refused for the same reason.
+        """
         from handlers.search import search_api_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
@@ -656,7 +861,7 @@ class TestSearchProviders(TstFunction):
             'cosm',
             body={
                 'query': {'match_all': {}},
-                'sort': [{'providerId': 'asc'}, {'licenses.dateOfBirth': 'desc'}],
+                'sort': [{'providerId': {'order': 'asc'}}, {'licenses.dateOfBirth': {'order': 'desc'}}],
             },
         )
 
@@ -665,12 +870,18 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertIn('dateOfBirth', body['message'])
-        self.assertIn('readPrivate', body['message'])
         mock_opensearch_client.search.assert_not_called()
 
     @patch('handlers.search.opensearch_client')
-    def test_search_with_sort_by_date_of_birth_allowed_with_read_private_scope(self, mock_opensearch_client):
-        """Test that sort by dateOfBirth succeeds when caller has readPrivate scope."""
+    def test_search_with_script_sort_returns_400(self, mock_opensearch_client):
+        """
+        A scripted sort must be rejected outright.
+
+        A _script sort computes an arbitrary value per document, and the handler echoes sort values
+        straight back to the caller as `lastSort` -- outside the response schema that otherwise
+        strips restricted fields. That makes a scripted sort a direct read primitive for any indexed
+        field, not merely an oracle, so it must never reach OpenSearch.
+        """
         from handlers.search import search_api_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
@@ -679,9 +890,373 @@ class TestSearchProviders(TstFunction):
             'cosm',
             body={
                 'query': {'match_all': {}},
-                'sort': [{'licenses.dateOfBirth': 'desc'}, {'providerId': 'asc'}],
+                'sort': [
+                    {
+                        '_script': {
+                            'type': 'string',
+                            'script': {'source': "doc['licenses.dateOfBirth'].value"},
+                            'order': 'asc',
+                        }
+                    }
+                ],
             },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('_script', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_nested_filter_in_sort_returns_400(self, mock_opensearch_client):
+        """
+        A sort entry's `nested.filter` is a full query-DSL position, so it must not be accepted.
+
+        Without this, a free-form clause could be smuggled through sort even though the query itself
+        is allowlisted, re-opening the dateOfBirth oracle through a different door.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {'match_all': {}},
+                'sort': [
+                    {
+                        'dateOfExpiration': {
+                            'order': 'asc',
+                            'nested': {
+                                'path': 'licenses',
+                                'filter': {
+                                    'query_string': {'query': 'licenses.dateOfBirth:[1985-01-01 TO 1985-06-30]'}
+                                },
+                            },
+                        }
+                    }
+                ],
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('nested', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_disallowed_sort_options_returns_400(self, mock_opensearch_client):
+        """Only the `order` sort option the frontend emits is accepted; every other option is rejected."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        disallowed_sorts = {
+            'nested': [{'dateOfExpiration': {'order': 'asc', 'nested': {'path': 'licenses'}}}],
+            'missing': [{'familyName.keyword': {'order': 'asc', 'missing': '_last'}}],
+            'unmapped_type': [{'familyName.keyword': {'order': 'asc', 'unmapped_type': 'keyword'}}],
+            'mode': [{'dateOfExpiration': {'order': 'asc', 'mode': 'max'}}],
+            'format': [{'dateOfExpiration': {'order': 'asc', 'format': 'strict_date_optional_time'}}],
+        }
+
+        for option_name, sort in disallowed_sorts.items():
+            with self.subTest(option=option_name):
+                event = self._create_api_event('cosm', body={'query': {'match_all': {}}, 'sort': sort})
+
+                response = search_api_handler(event, self.mock_context)
+
+                self.assertEqual(400, response['statusCode'])
+                body = json.loads(response['body'])
+                self.assertIn(option_name, body['message'])
+
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_invalid_sort_order_value_returns_400(self, mock_opensearch_client):
+        """The sort order must be one of the two values the frontend's SortDirection enum can emit."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={'query': {'match_all': {}}, 'sort': [{'familyName.keyword': {'order': 'sideways'}}]},
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('sideways', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_accepts_the_sort_shape_built_by_the_frontend(self, mock_opensearch_client):
+        """
+        Regression guard: the sort shape the frontend builds must remain accepted.
+
+        Mirrors prepRequestSearchParams in webroot/src/network/searchApi/data.api.ts, which emits
+        [{'<sortBy>.keyword': {'order': 'asc' | 'desc'}}].
+        """
+        from handlers.search import search_api_handler
+
+        for order in ('asc', 'desc'):
+            with self.subTest(order=order):
+                mock_opensearch_client.reset_mock()
+                self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+                event = self._create_api_event(
+                    'cosm',
+                    body={'query': {'match_all': {}}, 'sort': [{'familyName.keyword': {'order': order}}]},
+                )
+
+                response = search_api_handler(event, self.mock_context)
+
+                self.assertEqual(200, response['statusCode'])
+                mock_opensearch_client.search.assert_called_once()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_accepts_multi_field_sort_for_search_after_pagination(self, mock_opensearch_client):
+        """Multiple sort entries must remain accepted, since search_after pagination needs a tiebreaker."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {'match_all': {}},
+                'sort': [{'familyName.keyword': {'order': 'asc'}}, {'providerId': {'order': 'asc'}}],
+                'search_after': ['Doe', '00000000-0000-0000-0000-000000000001'],
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_non_allowlisted_sort_field_returns_400(self, mock_opensearch_client):
+        """
+        Sorting is restricted to an allowlist of non-sensitive fields.
+
+        Sort values are echoed back to the caller as `lastSort`, outside the response schema that
+        strips restricted fields. Restricting which fields can be sorted on is what keeps that echo
+        from becoming a read primitive for sensitive data.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        sensitive_sort_fields = [
+            'licenses.dateOfBirth',
+            'licenses.emailAddress',
+            'licenses.phoneNumber',
+            'licenses.homeAddressStreet1',
+            'licenses.homeAddressPostalCode',
+            'ssnLastFour',
+        ]
+
+        for field_name in sensitive_sort_fields:
+            with self.subTest(field=field_name):
+                event = self._create_api_event(
+                    'cosm',
+                    body={'query': {'match_all': {}}, 'sort': [{field_name: {'order': 'asc'}}]},
+                )
+
+                response = search_api_handler(event, self.mock_context)
+
+                self.assertEqual(400, response['statusCode'])
+                body = json.loads(response['body'])
+                self.assertIn(field_name, body['message'])
+
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_sort_by_date_of_birth_rejected_even_with_read_private_scope(self, mock_opensearch_client):
+        """
+        dateOfBirth is not a sortable field, even for a caller holding readPrivate.
+
+        Sorting is a separate capability from reading: the sort field allowlist applies to everyone,
+        so the `lastSort` echo cannot surface a date of birth regardless of the caller's scopes.
+        Querying by dateOfBirth with readPrivate remains supported.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={'query': {'match_all': {}}, 'sort': [{'licenses.dateOfBirth': {'order': 'desc'}}]},
             scopes_override='openid email cosm/readGeneral cosm/readPrivate',
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_accepts_every_allowlisted_sort_field(self, mock_opensearch_client):
+        """Regression guard: each allowlisted sort field must remain usable."""
+        from handlers.search import search_api_handler
+
+        allowed_sort_fields = [
+            'familyName.keyword',
+            'givenName.keyword',
+            'providerId',
+            'dateOfUpdate',
+            'dateOfExpiration',
+        ]
+
+        for field_name in allowed_sort_fields:
+            with self.subTest(field=field_name):
+                mock_opensearch_client.reset_mock()
+                self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+                event = self._create_api_event(
+                    'cosm',
+                    body={'query': {'match_all': {}}, 'sort': [{field_name: {'order': 'asc'}}]},
+                )
+
+                response = search_api_handler(event, self.mock_context)
+
+                self.assertEqual(200, response['statusCode'])
+                mock_opensearch_client.search.assert_called_once()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_excessively_nested_query_returns_400(self, mock_opensearch_client):
+        """
+        A pathologically nested query is refused with a 400 rather than blowing the Python stack.
+
+        The declarative schema recurses through nested/bool clauses, so an arbitrarily deep query
+        would otherwise raise RecursionError and surface as an unhandled 500.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        query = {'match_all': {}}
+        for _ in range(300):
+            query = {'bool': {'must': [query]}}
+
+        event = self._create_api_event('cosm', body={'query': query})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('too deeply nested', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_terms_lookup_object_returns_400(self, mock_opensearch_client):
+        """
+        A terms clause must be a plain list of values; the terms-lookup object form is refused.
+
+        This is enforced structurally by the schema, independently of the cross-index key check:
+        the lookup below names no index at all, so it reads from the current index and carries no
+        'index'/'_index' key for that check to find.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={'query': {'terms': {'providerId': {'id': 'some-other-provider', 'path': 'providerId'}}}},
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('terms', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_non_object_request_body_returns_400(self, mock_opensearch_client):
+        """
+        A request body that is not a JSON object is refused with a 400, not an unhandled error.
+
+        The checks that run ahead of field deserialization see the caller's raw input, which is not
+        guaranteed to be an object, so they must not assume they can index into it.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        for raw_body in ('[]', '"a string"', 'null', '42'):
+            with self.subTest(body=raw_body):
+                event = self._create_api_event('cosm', body={'query': {'match_all': {}}})
+                event['body'] = raw_body
+
+                response = search_api_handler(event, self.mock_context)
+
+                self.assertEqual(400, response['statusCode'])
+
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_accepts_the_deepest_query_the_frontend_can_build(self, mock_opensearch_client):
+        """
+        The deepest query the frontend can emit must stay within the nesting cap.
+
+        This is the encumbrance-date condition from prepRequestSearchParams, which pairs two nested
+        levels with a range bound and is the frontend's worst case. It pins _MAX_QUERY_DEPTH against
+        a real query, so the cap cannot be tuned down far enough to break the UI unnoticed.
+        """
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        def encumbrance_condition(top_path: str) -> dict:
+            nested_path = f'{top_path}.adverseActions'
+            return {
+                'nested': {
+                    'path': top_path,
+                    'query': {
+                        'nested': {
+                            'path': nested_path,
+                            'query': {
+                                'range': {
+                                    f'{nested_path}.effectiveStartDate': {
+                                        'gte': '2024-01-01',
+                                        'lte': '2024-12-31',
+                                    }
+                                }
+                            },
+                        }
+                    },
+                }
+            }
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {
+                    'bool': {
+                        'must': [
+                            {
+                                'bool': {
+                                    'should': [
+                                        encumbrance_condition('licenses'),
+                                        encumbrance_condition('privileges'),
+                                    ],
+                                    'minimum_should_match': 1,
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
         )
 
         response = search_api_handler(event, self.mock_context)

@@ -282,7 +282,7 @@ License-related sort keys use a shared suffix of the form
      expiration date, jurisdiction-reported status, and encumbrance state)
    - Optional encumbrance status (`encumberedStatus`)
    - License expiration date (`dateOfExpiration`)
-   - Optional public Compact Unique Identifier (`publicCompactIdentifier`) — **planned, not yet implemented**; see
+   - Optional public Compact Unique Identifier (`publicCompactIdentifier`); see
      [Commission Unique Identifiers: RID and CUID](#commission-unique-identifiers-rid-and-cuid) below
 
    Contact information and home address live on individual **license** records, not on the provider record.
@@ -341,34 +341,41 @@ uses a [version 4 UUID](https://en.wikipedia.org/wiki/Universally_unique_identif
   portal.
 - **Visible to staff users**: although hidden from the public portal, the RID is visible to staff users through the staff user search.
 
-#### Compact Unique Identifier (CUID) — Planned
+#### Compact Unique Identifier (CUID)
 
-The CUID is the Compact's persistent, public-facing, human-shorthand identifier for individuals who hold
-multistate authorization (i.e. at least one generated privilege — see [Multi-State License Model / Privilege
-Generation](#multi-state-license-model--privilege-generation)). Unlike the RID, the CUID is designed to be
-short and easy for a member of the public to read, share, and search by. Per Commission rule, the CUID will be:
+The CUID is the Compact's persistent, public-facing, human-shorthand identifier for practitioners who hold a
+paired multi-state and single-state license. Unlike the RID, the CUID is designed to be short and easy for a
+member of the public to read, share, and search by. Per Commission rule, the CUID is:
 - **Issued only once a practitioner has a paired multi-state and single-state license** — i.e. generated the first
   time a practitioner has *both* a single-state and a multi-state license uploaded for the **same license type and
   the same jurisdiction** (the same pairing concept used for privilege generation, see [License Composite
   Identifier](#license-composite-identifier)), rather than at first multi-state license upload alone. A multi-state
   license uploaded without its paired single-state license (or vice versa) does **not** trigger CUID generation
   (contrast with the RID, which is assigned on first license ingestion regardless of scope or pairing).
+  The pairing itself is the only condition: it is evaluated independently of each license's displayed eligibility
+  and active status, so holding a CUID does **not** imply the practitioner has any generated privileges. Privilege
+  generation imposes further eligibility conditions on top of the pairing (see [Privilege Runtime Generation for
+  Multi-State Licenses](#privilege-runtime-generation-for-multi-state-licenses)), so a practitioner whose paired
+  licenses are ineligible or expired still holds their CUID while having no privileges.
 - **Public-facing**, unlike the RID, required by Commission rule to be shown in public lookup, and searchable by the public.
-- **Person-based, not license-based**, similar to the RID, persistent for mobility: the CUID will remain the same even if the practitioner's home state later changes under Compact rules (see [Home State Changes](#home-state-changes)).
+- **Person-based, not license-based**, similar to the RID, persistent for mobility: the CUID remains the same even if the practitioner's home state later changes under Compact rules (see [Home State Changes](#home-state-changes)).
 - **Permanently linked to the practitioner's RID** (`providerId`), so historical and future records remain consistent regardless of any home-state changes.
 
-**Format:** The CUID will use the format `SWC-<random>-<counter>`, where `<random>` is a four-digit random segment
+**Format:** The CUID uses the format `SWC-<random>-<counter>`, where `<random>` is a four-digit random segment
 (`0000`–`9999`) and `<counter>` is a monotonically-increasing integer (e.g. `SWC-4548-1`, `SWC-5126-2`,
 `SWC-8219-3`, ...). The `<counter>` segment is what guarantees uniqueness; the `<random>` segment is an additional
-guard described under [Random segment](#random-segment) below. The counter will be tracked in a dedicated DynamoDB
-item keyed by `pk`/`sk` of `{compact}#CUID_COUNT`, and claimed atomically via a new `claim_cuid_number` method on
+guard described under [Random segment](#random-segment) below. The counter is tracked in a dedicated DynamoDB
+item keyed by `pk`/`sk` of `{compact}#CUID_COUNT`, and claimed atomically via the `claim_cuid_number` method on
 the data client, following the same atomic-increment pattern used by `claim_privilege_number` for JCC privilege ID
 generation (see
 [`claim_privilege_number`](../../../compact-connect/lambdas/python/common/cc_common/data_model/data_client.py)).
 Each call to `claim_cuid_number` issues an `ADD`-based `UpdateItem` against the counter item, which DynamoDB
 guarantees to be atomic even under concurrent invocations, ensuring no two practitioners are ever issued the same
 counter value. Because the counter is only ever incremented and never read-then-written non-atomically, uniqueness
-is guaranteed regardless of concurrent ingest activity across jurisdictions.
+is guaranteed regardless of concurrent ingest activity across jurisdictions. The `_generate_cuid` helper in
+[ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py) is the only place in the codebase that
+constructs a CUID: it claims the counter and generates the random segment internally, so a caller can never pass
+in (and potentially reuse or mismatch) a counter value.
 
 ##### Random segment
 
@@ -378,8 +385,9 @@ claimed counter value. Its purpose is to make it harder for a member of the publ
 mistyped. Because the counter alone is a short, dense, monotonically-increasing sequence, most nearby integers
 correspond to real CUIDs, so a simple typo can silently resolve to the wrong practitioner. Interposing four random
 digits means a transposition or single-character error must *also* match the random segment to collide with a real
-record, which is far less likely. This protection depends on CUID lookups always matching the **full** CUID string.
-partial or counter-only matches will not be supported.
+record, which is far less likely. This protection depends on CUID lookups always matching the **full** CUID string;
+partial, wildcard, or counter-only matches are rejected by request validation before ever reaching OpenSearch
+(see [Public Provider Search](#public-provider-search) below).
 
 The random segment is generated using Python's standard-library
 [`secrets`](https://docs.python.org/3/library/secrets.html) module — specifically `secrets.randbelow(10000)`,
@@ -396,15 +404,20 @@ reclaim or reuse it. Consequently, CUIDs are guaranteed to be **unique** but not
 **gap-free**. Consumers of the CUID (including the public) should not assume that a CUID whose counter segment is
 `<n>` implies exactly `n` practitioners have been issued a CUID, only that each issued CUID is distinct.
 
-Once implemented, the CUID will be stored as the optional `publicCompactIdentifier` field on the top-level
-[Provider Record](#record-types-in-detail). Generation is planned as part of the license ingest flow in
+The CUID is stored as the optional `publicCompactIdentifier` field on the top-level
+[Provider Record](#record-types-in-detail). Generation happens as part of the license ingest flow in
 [ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py): whenever **either** a single-state or a
-multi-state license is uploaded for a practitioner, the ingest handler will check whether the practitioner now
+multi-state license is uploaded for a practitioner, the ingest handler checks whether the practitioner now
 has at least one paired single-state/multi-state license (matching jurisdiction and license type) across their
-full set of stored licenses. If a pairing exists and `publicCompactIdentifier` is not yet set, a new CUID will be generated at that point
-(via `claim_cuid_number`) and written to the provider record. Because the check is against the existing value on the
-provider record, the CUID is generated exactly once and is never regenerated on subsequent license uploads, including after a [home state change](#home-state-changes). Because it will live on the top-level provider record rather than on an individual
-license, the CUID will also be added as a top-level field in the [OpenSearch index mapping](#index-mapping), making
+full set of stored licenses (`ProviderRecordUtility.has_paired_single_and_multi_state_license`). If a pairing exists and `publicCompactIdentifier` is not yet set, a new CUID is generated at that point
+(via `_generate_cuid`, which calls `claim_cuid_number`) and written to the provider record. When the same license
+upload also triggers the top-level provider record `Put` (see [Ingest Flow](#ingest-flow)), the CUID is included
+directly in that write; otherwise — for example, when the *losing* license of a newly-completed pairing does not
+win the provider-record update decision — the CUID is assigned via a separate conditional `Update` guarded by
+`attribute_not_exists(publicCompactIdentifier)`, which also bumps `dateOfUpdate`/`providerDateOfUpdate` so the
+DynamoDB stream fires and OpenSearch is reindexed with the new CUID. Because the check is against the existing value on the
+provider record, the CUID is generated exactly once and is never regenerated on subsequent license uploads, including after a [home state change](#home-state-changes). Because it lives on the top-level provider record rather than on an individual
+license, the CUID is also a top-level field in the [OpenSearch index mapping](#index-mapping), making
 practitioners searchable by CUID (see [Advanced Data Search](#advanced-data-search)).
 
 The intent is to only use the CUID specifically for display and search in the public search UI. It should never be used for partitioning DynamoDB records or for internal identification of records when performing operations in the system. The RID `providerId` field should be primarily used for all internal operations.
@@ -518,6 +531,8 @@ Once a home MSL is confirmed eligible for a given license type, remote-state Mul
 ### Privilege Runtime Generation for Multi-State Licenses
 
 Privileges are generated from a multi-state home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license is ineligible or its associated single-state license is ineligible, no privileges are generated for that license type (there is no fallback to an older multi-state license from another jurisdiction). This means that privileges are only returned from the API for a practitioner when the most recently issued or renewed multi-state license is eligible and paired with an eligible single-state license.
+
+Note that pairing is checked independently of the displayed eligibility: a multi-state license with **no** matching single-state license on file is still shown with its own calculated `compactEligibility`/`licenseEligibility` (reflecting only the jurisdiction-reported status, expiration, and encumbrance of that license), but it will never generate privileges, since privilege generation requires the pairing to exist in the first place. A displayed "eligible" license therefore does not by itself imply the practitioner has multistate authorization anywhere.
 
 The following flow describes how the home state license is assigned.
 
@@ -833,8 +848,8 @@ Each indexed document corresponds to **one license** and uses the same overall s
 The index uses a custom ASCII-folding analyzer for name fields, which allows searching for names with international
 characters using their ASCII equivalents (e.g., searching "Jose" matches "José").
 
-**Planned:** once the Compact Unique Identifier (CUID) is implemented (see
-[Commission Unique Identifiers: RID and CUID](#commission-unique-identifiers-rid-and-cuid)), the index mapping will be updated to add `publicCompactIdentifier` as a top-level, searchable field. This will allow staff users and the public to search for a practitioner by their CUID. It will also be used to filter public search results — see [Public Provider Search](#public-provider-search) below.
+The index mapping also includes `publicCompactIdentifier` (see [Commission Unique Identifiers: RID and
+CUID](#commission-unique-identifiers-rid-and-cuid)) as a top-level, `keyword`-typed, searchable field. This allows staff users and the public to search for a practitioner by their CUID. It is also used to filter public search results — see [Public Provider Search](#public-provider-search) below.
 
 ### Search API Endpoints
 
@@ -859,12 +874,22 @@ search for practitioners by multi-state license number, jurisdiction, family nam
 The public query filters documents down to a practitioner's home multi-state license per license type
 (`licenses.licenseScope: multi-state` and `licenses.mostRecentLicenseForType: true`). It does not display any of their single-state licenses.
 
-**Planned:** once the CUID is implemented (see [Commission Unique Identifiers: RID and
-CUID](#commission-unique-identifiers-rid-and-cuid)), the public query will add an additional filter requiring the
-top-level `publicCompactIdentifier` field to be populated (i.e. non-null/non-empty) on the document. Since the CUID
-is only generated once a practitioner has a paired single-state/multi-state license on file (see [Compact Unique
-Identifier (CUID)](#compact-unique-identifier-cuid--planned)), this filter has the effect of excluding practitioners
-who do not have the needed license pairing for privileges from public search results entirely. This ensures the public can only find and reference practitioners using a CUID that has actually been issued to them.
+The public query always adds an additional filter requiring the top-level `publicCompactIdentifier` field to be
+populated (i.e. an `exists` clause) on the document. Since the CUID is only generated once a practitioner has a
+paired single-state/multi-state license on file (see [Compact Unique Identifier
+(CUID)](#compact-unique-identifier-cuid)), this filter has the effect of excluding practitioners who do not have
+the needed license pairing for privileges from public search results entirely. This ensures the public can only
+find and reference practitioners using a CUID that has actually been issued to them.
+
+In addition to `licenseNumber`, `jurisdiction`, `familyName`, and `givenName`, the public query request body
+accepts two more structured fields under `query`:
+- `cuid`: an exact, case-insensitive match against the full CUID string (validated against the CUID format at the
+  schema layer before it ever reaches OpenSearch — partial, wildcard, and counter-only values are rejected with a
+  400). Maps to a top-level `term` query on `publicCompactIdentifier` (normalized to uppercase).
+- `licenseType`: matches license type/profession designation, validated against the license types
+  configured for the path compact and resolved to that compact's canonically-configured casing (see
+  `LicenseUtility.get_license_type_by_name`). Maps to a nested `term` query on `licenses.licenseType`, which is
+  indexed as a case-sensitive keyword using that same canonical casing.
 
 ### Document Indexing
 

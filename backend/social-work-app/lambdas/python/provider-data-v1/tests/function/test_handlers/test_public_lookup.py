@@ -15,6 +15,7 @@ EXPECTED_PROVIDER_RESPONSE = {
     'licenseJurisdiction': 'oh',
     'licenseStatus': 'active',
     'compactEligibility': 'eligible',
+    'publicCompactIdentifier': 'SWC-1234-1',
     'givenName': 'Björk',
     'middleName': 'Gunnar',
     'familyName': 'Guðmundsdóttir',

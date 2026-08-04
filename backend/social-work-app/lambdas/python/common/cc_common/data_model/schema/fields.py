@@ -3,6 +3,7 @@ from marshmallow.validate import OneOf, Range, Regexp, Validator
 
 from cc_common.config import config
 from cc_common.data_model.schema.common import (
+    CUID_PATTERN,
     ActiveInactiveStatus,
     ClinicalPrivilegeActionCategory,
     CompactEligibilityStatus,
@@ -105,6 +106,13 @@ class LicenseDeactivatedStatusField(String):
 class LicenseScopeField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in LicenseScopeEnum]), **kwargs)
+
+
+class PublicCompactIdentifierField(String):
+    """Validates values against the Compact Unique Identifier (CUID) format: SWC-<4-digit random>-<counter>."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=Regexp(CUID_PATTERN), **kwargs)
 
 
 class ITUTE164PhoneNumber(String):

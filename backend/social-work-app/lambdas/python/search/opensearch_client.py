@@ -341,6 +341,7 @@ class OpenSearchClient:
                     'type': {'type': 'keyword'},
                     'dateOfUpdate': {'type': 'date'},
                     'compact': {'type': 'keyword'},
+                    'publicCompactIdentifier': {'type': 'keyword'},
                     'licenseJurisdiction': {'type': 'keyword'},
                     'licenseStatus': {'type': 'keyword'},
                     'compactEligibility': {'type': 'keyword'},

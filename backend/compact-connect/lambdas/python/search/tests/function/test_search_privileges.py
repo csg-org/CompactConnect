@@ -680,22 +680,25 @@ class TestExportPrivileges(TstFunction):
         self.assertIn("'index'", body['message'])
 
     def test_export_query_with_underscore_index_key_returns_400(self):
-        """Test that export queries containing '_index' key are rejected with 400 error."""
+        """
+        Test that export queries containing an '_index' key are rejected with a 400 error.
+
+        The original vector for '_index' was more_like_this, which the query clause allowlist now
+        rejects outright (covered by test_export_with_disallowed_free_form_clauses_returns_400).
+        This exercises the cross-index check itself, by placing '_index' inside an allowlisted
+        clause so it has to be caught on its own merits rather than by the allowlist.
+        """
         from handlers.search import search_api_handler
 
-        # Test with '_index' key (more_like_this attack pattern)
         event = self._create_api_event(
             'aslp',
             body={
                 'query': {
-                    'more_like_this': {
-                        'fields': ['familyName', 'givenName'],
-                        'like': [
-                            {
-                                '_index': 'compact_octp_providers',
-                                '_id': 'target-provider-uuid',
-                            }
-                        ],
+                    'terms': {
+                        'providerId': {
+                            '_index': 'compact_octp_providers',
+                            '_id': 'target-provider-uuid',
+                        }
                     }
                 }
             },
@@ -707,6 +710,37 @@ class TestExportPrivileges(TstFunction):
         body = json.loads(response['body'])
         self.assertIn('Cross-index queries are not allowed', body['message'])
         self.assertIn("'_index'", body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_export_with_disallowed_free_form_clauses_returns_400(self, mock_opensearch_client):
+        """
+        The privilege export endpoint accepts the same raw DSL as provider search, so it must
+        apply the same query clause allowlist.
+        """
+        from handlers.search import search_api_handler
+
+        disallowed_queries = {
+            'query_string': {'query_string': {'query': 'licenses.ssnLastFour:1234'}},
+            'simple_query_string': {'simple_query_string': {'query': 'licenses.ssnLastFour:1234'}},
+            'wildcard': {'wildcard': {'familyName': {'value': 'Do*'}}},
+            'regexp': {'regexp': {'familyName': 'Do.*'}},
+            'script': {'script': {'script': {'source': "doc['familyName'].size() > 0"}}},
+            'exists': {'exists': {'field': 'licenses.ssnLastFour'}},
+            'multi_match': {'multi_match': {'query': 'Doe', 'fields': ['givenName', 'licenses.ssnLastFour']}},
+            'more_like_this': {'more_like_this': {'like': [{'_index': 'compact_octp_providers'}]}},
+        }
+
+        for clause_name, query in disallowed_queries.items():
+            with self.subTest(clause=clause_name):
+                event = self._create_api_event('aslp', body={'query': query})
+
+                response = search_api_handler(event, self.mock_context)
+
+                self.assertEqual(400, response['statusCode'])
+                body = json.loads(response['body'])
+                self.assertIn(clause_name, body['message'])
+
+        mock_opensearch_client.search.assert_not_called()
 
     def test_export_query_with_nested_index_key_returns_400(self):
         """Test that export queries with nested 'index' key at any level are rejected."""
@@ -831,3 +865,38 @@ class TestExportPrivileges(TstFunction):
         self.assertEqual(404, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual('The search parameters did not match any privileges.', body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_export_with_excessively_nested_query_returns_400(self, mock_opensearch_client):
+        """The export endpoint uses its own request schema, so it must apply the same depth guard."""
+        from handlers.search import search_api_handler
+
+        query = {'match_all': {}}
+        for _ in range(300):
+            query = {'bool': {'must': [query]}}
+
+        event = self._create_api_event('aslp', body={'query': query})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('too deeply nested', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_export_with_terms_lookup_object_returns_400(self, mock_opensearch_client):
+        """The export endpoint must reject the terms-lookup object form, same as provider search."""
+        from handlers.search import search_api_handler
+
+        event = self._create_api_event(
+            'aslp',
+            body={'query': {'terms': {'providerId': {'id': 'some-other-provider', 'path': 'providerId'}}}},
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('terms', body['message'])
+        mock_opensearch_client.search.assert_not_called()

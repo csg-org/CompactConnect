@@ -105,6 +105,10 @@
               "ineligible"
             ],
             "type": "string"
+          },
+          "publicCompactIdentifier": {
+            "pattern": "^[Ss][Ww][Cc]-[0-9]{4}-[1-9][0-9]*$",
+            "type": "string"
           }
         },
         "required": [
@@ -230,6 +234,21 @@
           "description": "Filter for licenses with a specific license number",
           "maxLength": 100,
           "minLength": 1,
+          "type": "string"
+        },
+        "cuid": {
+          "description": "Filter for the provider with a specific Compact Unique Identifier",
+          "maxLength": 64,
+          "pattern": "^[Ss][Ww][Cc]-[0-9]{4}-[1-9][0-9]*$",
+          "type": "string"
+        },
+        "licenseType": {
+          "description": "Filter for licenses of a specific license type",
+          "enum": [
+            "licensed clinical social worker",
+            "licensed master social worker",
+            "licensed bachelors social worker"
+          ],
           "type": "string"
         }
       },

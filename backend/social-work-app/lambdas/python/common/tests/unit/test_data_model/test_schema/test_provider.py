@@ -108,6 +108,26 @@ class TestProviderOpenSearchDocumentSchema(TstLambdas):
 
         self.assertNotIn('dateOfBirth', result['licenses'][0])
 
+    def test_general_response_schema_retains_public_compact_identifier(self):
+        """ProviderGeneralResponseSchema (a ForgivingSchema) must declare publicCompactIdentifier so it survives
+        sanitization instead of being silently dropped as an unknown field."""
+        from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
+
+        data = self._make_provider_data_with_license()
+        data['publicCompactIdentifier'] = 'SWC-4548-1'
+        result = ProviderGeneralResponseSchema().load(data)
+
+        self.assertEqual('SWC-4548-1', result['publicCompactIdentifier'])
+
+    def test_opensearch_document_schema_retains_public_compact_identifier(self):
+        from cc_common.data_model.schema.provider.api import ProviderOpenSearchDocumentSchema
+
+        data = self._make_provider_data_with_license()
+        data['publicCompactIdentifier'] = 'SWC-4548-1'
+        result = ProviderOpenSearchDocumentSchema().load(data)
+
+        self.assertEqual('SWC-4548-1', result['publicCompactIdentifier'])
+
 
 class TestQueryProvidersRequestSchema(TstLambdas):
     """QueryProvidersRequestSchema.QuerySchema licenseNumber length matches API Gateway model (max 100)."""
@@ -191,6 +211,46 @@ class TestProviderRecordSchema(TstLambdas):
 
         self.assertEqual('inactive', provider_data['licenseStatus'])
         self.assertEqual('ineligible', provider_data['compactEligibility'])
+
+    def test_serde_round_trips_public_compact_identifier(self):
+        """ProviderRecordSchema round-trips a valid publicCompactIdentifier."""
+        from cc_common.data_model.schema import ProviderRecordSchema
+
+        with open('tests/resources/dynamo/provider.json') as f:
+            provider_record = json.load(f)
+        provider_record['publicCompactIdentifier'] = 'SWC-4548-1'
+
+        schema = ProviderRecordSchema()
+        loaded_record = schema.load(provider_record.copy())
+        self.assertEqual('SWC-4548-1', loaded_record['publicCompactIdentifier'])
+
+        dumped_record = schema.dump(loaded_record)
+        self.assertEqual('SWC-4548-1', dumped_record['publicCompactIdentifier'])
+
+    def test_serde_omitting_public_compact_identifier_stays_valid(self):
+        """publicCompactIdentifier is optional; omitting it must not raise a ValidationError."""
+        from cc_common.data_model.schema import ProviderRecordSchema
+
+        with open('tests/resources/dynamo/provider.json') as f:
+            provider_record = json.load(f)
+        del provider_record['publicCompactIdentifier']
+
+        schema = ProviderRecordSchema()
+        loaded_record = schema.load(provider_record.copy())
+        self.assertNotIn('publicCompactIdentifier', loaded_record)
+
+    def test_malformed_public_compact_identifier_raises_validation_error(self):
+        from cc_common.data_model.schema import ProviderRecordSchema
+
+        with open('tests/resources/dynamo/provider.json') as f:
+            provider_record = json.load(f)
+
+        schema = ProviderRecordSchema()
+        for malformed_value in ('SWC-1', 'swc-0001-1', 'SWC-0001-1*', 'SWC-0001-0', 'SWC-00001-1'):
+            with self.subTest(malformed_value=malformed_value):
+                bad_record = {**provider_record, 'publicCompactIdentifier': malformed_value}
+                with self.assertRaises(ValidationError):
+                    schema.load(bad_record)
 
     def test_prov_date_of_update_matches_new_date_of_update(self):
         """
