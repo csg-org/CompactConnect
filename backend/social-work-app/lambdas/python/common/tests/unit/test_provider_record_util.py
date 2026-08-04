@@ -1134,6 +1134,53 @@ class TestProviderRecordUtility(TstLambdas):
 
         self.assertIsNone(updated_provider.publicCompactIdentifier)
 
+    def test_populate_provider_record_raises_when_overwriting_existing_cuid(self):
+        """
+        A CUID is write-once, so assigning a new one over an existing one must fail loudly.
+
+        Reaching this state means the caller decided to mint a CUID for a practitioner who already
+        had one -- a bug that would otherwise silently replace a published, public-facing identifier.
+        """
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from cc_common.exceptions import CCInternalException
+        from common_test.test_data_generator import TestDataGenerator
+
+        current_provider = TestDataGenerator.generate_default_provider({'publicCompactIdentifier': 'SWC-4548-1'})
+        new_license = TestDataGenerator.generate_default_license().to_dict()
+
+        with self.assertRaises(CCInternalException) as context:
+            ProviderRecordUtility.populate_provider_record(
+                current_provider, new_license, public_compact_identifier='SWC-9999-2'
+            )
+
+        self.assertIn('cannot be overwritten', str(context.exception))
+
+    def test_populate_provider_record_allows_existing_cuid_when_no_new_cuid_provided(self):
+        """The guard must only fire on an actual overwrite attempt, not on ordinary updates."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from common_test.test_data_generator import TestDataGenerator
+
+        current_provider = TestDataGenerator.generate_default_provider({'publicCompactIdentifier': 'SWC-4548-1'})
+        new_license = TestDataGenerator.generate_default_license().to_dict()
+
+        updated_provider = ProviderRecordUtility.populate_provider_record(current_provider, new_license)
+
+        self.assertEqual('SWC-4548-1', updated_provider.publicCompactIdentifier)
+
+    def test_populate_provider_record_allows_new_cuid_when_none_exists(self):
+        """Assigning a CUID to a practitioner who has none is the normal path and must still work."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from common_test.test_data_generator import TestDataGenerator
+
+        current_provider = TestDataGenerator.generate_default_provider()
+        new_license = TestDataGenerator.generate_default_license().to_dict()
+
+        updated_provider = ProviderRecordUtility.populate_provider_record(
+            current_provider, new_license, public_compact_identifier='SWC-4548-1'
+        )
+
+        self.assertEqual('SWC-4548-1', updated_provider.publicCompactIdentifier)
+
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
 class TestProviderUserRecordsBestLicense(TstLambdas):

@@ -906,7 +906,7 @@ class TestDataClient(TstFunction):
         client = DataClient(self.config)
 
         self.assertEqual(1, client.claim_cuid_number('socw'))
-        self.assertEqual(1, client.claim_cuid_number('aslp'))
+        self.assertEqual(1, client.claim_cuid_number('some-other-compact'))
         self.assertEqual(2, client.claim_cuid_number('socw'))
 
     def test_close_license_investigation_with_encumbrance(self):

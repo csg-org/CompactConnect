@@ -153,7 +153,23 @@ class ProviderRecordUtility:
             **current_provider_record.to_dict() below; this parameter must never be used to overwrite an
             existing value, since the CUID is write-once.
         :return: A provider record ready to be persisted
+        :raises CCInternalException: If a new CUID is supplied for a provider that already has one
         """
+        if (
+            current_provider_record is not None
+            and current_provider_record.publicCompactIdentifier
+            and public_compact_identifier is not None
+        ):
+            # The CUID is a permanent, public-facing identifier. Reaching this point means a caller
+            # decided to mint one for a practitioner who already had one, which would silently
+            # replace an identifier the public may already be using to look them up. Fail loudly
+            # rather than let the overwrite through.
+            raise CCInternalException(
+                'publicCompactIdentifier cannot be overwritten once set. Attempted to assign '
+                f'{public_compact_identifier} to a provider that already has '
+                f'{current_provider_record.publicCompactIdentifier}.'
+            )
+
         if current_provider_record is None:
             return ProviderData.create_new(
                 {

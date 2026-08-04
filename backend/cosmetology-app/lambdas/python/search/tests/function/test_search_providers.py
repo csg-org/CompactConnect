@@ -409,8 +409,6 @@ class TestSearchProviders(TstFunction):
         """
         Test that queries containing an '_index' key are rejected with a 400 error.
 
-        The original vector for '_index' was more_like_this, which the query clause allowlist now
-        rejects outright (covered by test_search_with_disallowed_free_form_clauses_returns_400).
         This exercises the cross-index check itself, by placing '_index' inside an allowlisted
         clause so it has to be caught on its own merits rather than by the allowlist.
         """
