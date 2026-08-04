@@ -17,15 +17,15 @@ aws-sam-translator==1.110.0
     # via cfn-lint
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.43.46
+boto3==1.43.58
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.43.46
+boto3-stubs[full]==1.43.57
     # via -r requirements-dev.in
 boto3-stubs-full==1.43.36
     # via boto3-stubs
-botocore==1.43.46
+botocore==1.43.64
     # via
     #   aws-xray-sdk
     #   boto3
@@ -48,7 +48,7 @@ cryptography==49.0.0
     #   moto
 docker==7.1.0
     # via moto
-faker==40.28.1
+faker==40.36.0
     # via -r requirements-dev.in
 graphql-core==3.2.11
     # via moto

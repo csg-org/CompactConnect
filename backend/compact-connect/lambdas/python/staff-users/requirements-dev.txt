@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/staff-users/requirements-dev.in
 #
-boto3==1.43.46
+boto3==1.43.58
     # via moto
-botocore==1.43.46
+botocore==1.43.64
     # via
     #   boto3
     #   moto
@@ -23,7 +23,7 @@ cryptography==49.0.0
     #   moto
 docker==7.1.0
     # via moto
-faker==40.28.1
+faker==40.36.0
     # via -r requirements-dev.in
 idna==3.18
     # via requests
