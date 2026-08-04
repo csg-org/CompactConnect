@@ -284,21 +284,55 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
+        const { isAppModeJcc, isAppModeCosmetology, isAppModeSocialWork } = this;
+        const includeList: Array<string> = [];
         let options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
             value: disciplineType.key,
             name: disciplineType.name,
         }));
 
-        if (this.isAppModeCosmetology || this.isAppModeSocialWork) {
-            const includeList = ['suspension', 'revocation', 'surrender of license'];
-
-            options = options.filter((option) => includeList.includes(option.value));
-        } else {
-            const excludeList = ['surrender of privilege'];
-
-            options = options.filter((option) => !excludeList.includes(option.value));
+        if (isAppModeJcc) {
+            includeList.push('fine');
+            includeList.push('reprimand');
+            includeList.push('required supervision');
+            includeList.push('completion of continuing education');
+            includeList.push('public reprimand');
+            includeList.push('probation');
+            includeList.push('injunctive action');
+            includeList.push('suspension');
+            includeList.push('revocation');
+            includeList.push('denial');
+            includeList.push('surrender of license');
+            includeList.push('modification of previous action-extension');
+            includeList.push('modification of previous action-reduction');
+            includeList.push('other monitoring');
+            includeList.push('other adjudicated action not listed');
+        } else if (isAppModeCosmetology) {
+            includeList.push('suspension');
+            includeList.push('revocation');
+            includeList.push('surrender of license');
+        } else if (isAppModeSocialWork) {
+            includeList.push('fine');
+            includeList.push('reprimand');
+            includeList.push('required supervision');
+            includeList.push('completion of continuing education');
+            includeList.push('public reprimand');
+            includeList.push('probation');
+            includeList.push('injunctive action');
+            includeList.push('suspension');
+            includeList.push('revocation');
+            includeList.push('denial');
+            includeList.push('surrender of license');
+            includeList.push('modification of previous action-extension');
+            includeList.push('modification of previous action-reduction');
+            includeList.push('other monitoring');
+            includeList.push('other adjudicated action not listed');
         }
 
+        // Filter the compact-specific options
+        options = options.filter((option) => includeList.includes(option.value) || option.value === '');
+
+        // For a single-select, include the blank option
         options.unshift({
             value: '',
             name: computed(() => this.$t('common.selectOption')),
@@ -332,10 +366,15 @@ class LicenseCard extends mixins(MixinForm) {
             includeList.push('consumer harm');
             includeList.push('other');
         } else if (isAppModeSocialWork) {
-            isMultiSelect = false;
-            includeList.push('fraud');
-            includeList.push('consumer harm');
-            includeList.push('other');
+            includeList.push('Non-compliance With Requirements');
+            includeList.push('Conflict of Interest');
+            includeList.push('Substandard Care or Patient Neglect/Abuse');
+            includeList.push('Criminal Conviction or Adjudication');
+            includeList.push('Confidentiality, Consent or Disclosure Violations');
+            includeList.push('Fraud, Deception, or Misrepresentation');
+            includeList.push('Improper Supervision or Allowing Unlicensed Practice');
+            includeList.push('Improper Prescribing, Dispensing, Administering Medication/Drug Violation');
+            includeList.push('Other');
         }
 
         // Filter the compact-specific options
@@ -350,7 +389,7 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get shouldAllowNpdbMultiSelect(): boolean {
-        return this.isAppModeJcc;
+        return this.isAppModeJcc || this.isAppModeSocialWork;
     }
 
     get endInvestigationModalTitle(): string {
