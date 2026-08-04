@@ -173,10 +173,9 @@ class TestTransformations(TstFunction):
         for license_data in expected_provider['licenses']:
             del license_data['dateOfUpdate']
 
-        # The CUID assigned earlier in this test is echoed back through the API; assert it separately then drop
-        # it (from both sides) so the rest of the record comparison is unaffected.
+        # The CUID assigned earlier in this test is echoed back through the API. Assert it separately
         self.assertEqual(provider_cuid, provider_data.get('publicCompactIdentifier'))
-        # the CUID includes a randomly generated number, so we set the expected_provider's
+        # The CUID includes a randomly generated number, so we set the expected_provider's
         # value to match
         expected_provider['publicCompactIdentifier'] = provider_cuid
 
