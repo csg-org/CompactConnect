@@ -25,6 +25,7 @@ class TstLambdas(TestCase):
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'FAM_GIV_INDEX_NAME': 'famGiv',
                 'LICENSE_GSI_NAME': 'licenseGSI',
+                'LICENSE_NUMBER_GSI_NAME': 'licenseNumberGSI',
                 'PROVIDER_USER_POOL_ID': 'us-east-1-12345',
                 'USERS_TABLE_NAME': 'staff-users-table',
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': 'email-notification-service-lambda',
