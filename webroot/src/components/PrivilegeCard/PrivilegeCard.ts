@@ -226,6 +226,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         return content;
     }
 
+    get shouldShowDiscipline(): boolean {
+        return !this.isPublicSearch || this.isAppGroupModePrivilegePurchase || this.isAppModeSocialWork;
+    }
+
     get adverseActions(): Array<AdverseAction> {
         return this.privilege?.adverseActions || [];
     }

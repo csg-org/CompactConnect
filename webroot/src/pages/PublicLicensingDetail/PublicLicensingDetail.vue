@@ -86,6 +86,50 @@
                     />
                 </div>
             </div>
+            <div v-if="isAppModeSocialWork" class="discipline-section">
+                <div class="title-row">
+                    <div class="title-info">
+                        <div class="discipline-logo-container">
+                            <AlertCircleIcon class="alert-icon" />
+                        </div>
+                        <div class="title-text">{{ $t('licensing.disciplineTitle') }}</div>
+                    </div>
+                    <CollapseCaretButton @toggleCollapse="toggleDisciplineCollapsed" />
+                </div>
+                <div v-if="disciplineDisclaimer" class="title-description">{{ disciplineDisclaimer }}</div>
+                <div v-if="!isDisciplineCollapsed" class="discipline-list-container">
+                    <div v-if="!licenseeDiscipline.length" class="no-discipline">
+                        {{ $t('licensing.noDiscipline') }}
+                    </div>
+                    <div v-else class="discipline-list">
+                        <div v-if="$matches.tablet.min" class="discipline-row header">
+                            <div class="discipline-cell state">{{ $t('common.state') }}</div>
+                            <div class="discipline-cell start-date">{{ $t('common.startDate') }}</div>
+                            <div class="discipline-cell end-date">{{ $t('common.endDate') }}</div>
+                        </div>
+                        <div v-for="(discipline, index) in licenseeDiscipline" :key="index" class="discipline-row">
+                            <div class="discipline-cell state">
+                                <span v-if="$matches.phone.only" class="cell-title">
+                                    {{ $t('common.state') }}:
+                                </span>
+                                {{ discipline.state.name() }}
+                            </div>
+                            <div class="discipline-cell start-date">
+                                <span v-if="$matches.phone.only" class="cell-title">
+                                    {{ $t('common.startDate') }}:
+                                </span>
+                                {{ discipline.startDateDisplay() }}
+                            </div>
+                            <div class="discipline-cell end-date">
+                                <span v-if="$matches.phone.only" class="cell-title">
+                                    {{ $t('common.endDate') }}:
+                                </span>
+                                {{ discipline.endDateDisplay() }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
