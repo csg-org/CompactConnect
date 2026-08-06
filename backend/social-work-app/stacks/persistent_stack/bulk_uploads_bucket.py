@@ -20,6 +20,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 import stacks.persistent_stack as ps
+from stacks.persistent_stack.provider_table import ProviderTable
 
 
 class BulkUploadsBucket(Bucket):
@@ -33,6 +34,7 @@ class BulkUploadsBucket(Bucket):
         event_bus: EventBus,
         license_preprocessing_queue: IQueue,
         license_upload_role: IRole,
+        provider_table: ProviderTable,
         **kwargs,
     ):
         super().__init__(
@@ -53,7 +55,7 @@ class BulkUploadsBucket(Bucket):
         )
         self.log_groups = []
 
-        self._add_v1_ingest_object_events(event_bus, license_preprocessing_queue, license_upload_role)
+        self._add_v1_ingest_object_events(event_bus, license_preprocessing_queue, license_upload_role, provider_table)
 
         QueryDefinition(
             self,
@@ -83,7 +85,11 @@ class BulkUploadsBucket(Bucket):
         )
 
     def _add_v1_ingest_object_events(
-        self, event_bus: EventBus, license_preprocessing_queue: IQueue, license_upload_role: IRole
+        self,
+        event_bus: EventBus,
+        license_preprocessing_queue: IQueue,
+        license_upload_role: IRole,
+        provider_table: ProviderTable,
     ):
         """Read any objects that get uploaded and trigger ingest events"""
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
@@ -101,6 +107,11 @@ class BulkUploadsBucket(Bucket):
             environment={
                 'EVENT_BUS_NAME': event_bus.event_bus_name,
                 'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
+                # Used to resolve a practitioner from a license number when a row omits the SSN. The
+                # role's scoped Query grant on this index is set up in the persistent stack, where both
+                # upload lambdas' shared role and the provider table are both in scope.
+                'PROVIDER_TABLE_NAME': provider_table.table_name,
+                'LICENSE_NUMBER_GSI_NAME': provider_table.license_number_gsi_name,
                 **stack.common_env_vars,
             },
         )

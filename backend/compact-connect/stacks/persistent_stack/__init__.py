@@ -212,6 +212,17 @@ class PersistentStack(AppStack):
             environment_context=self.environment_context,
         )
 
+        # The provider table is created before the bulk uploads bucket, because the bucket's CSV parse
+        # lambda needs the table's license number index to resolve uploads that omit the SSN.
+        self.provider_table = ProviderTable(
+            self,
+            'ProviderTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
+        )
+
         self.bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'BulkUploadsBucket',
@@ -225,6 +236,7 @@ class PersistentStack(AppStack):
             event_bus=self._data_event_bus,
             license_preprocessing_queue=self.ssn_table.preprocessor_queue.queue,
             license_upload_role=self.ssn_table.license_upload_role,
+            provider_table=self.provider_table,
         )
 
         self.transaction_reports_bucket = TransactionReportsBucket(
@@ -242,14 +254,23 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
         )
 
-        self.provider_table = ProviderTable(
-            self,
-            'ProviderTable',
-            encryption_key=self.shared_encryption_key,
-            removal_policy=removal_policy,
-            backup_infrastructure_stack=backup_infrastructure_stack,
-            environment_context=self.environment_context,
+        # Both license upload lambdas (the POST licenses API handler and the bulk upload CSV parser)
+        # share the license upload role, and both need to resolve a practitioner from a license number
+        # when a state uploads without an SSN. They are granted Query on the license number index alone,
+        # rather than read access to the table, so this SSN-handling role cannot read full license
+        # records. The index projects only the provider id and ssnLastFour those handlers need.
+        self.ssn_table.license_upload_role.add_to_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                actions=['dynamodb:Query'],
+                resources=[f'{self.provider_table.table_arn}/index/{self.provider_table.license_number_gsi_name}'],
+            )
         )
+        # the provider table is encrypted with the shared key, so reading from its index needs decrypt
+        self.shared_encryption_key.grant_decrypt(self.ssn_table.license_upload_role)
+        # Both upload lambdas publish license.ingest events directly for uploads that omit the SSN,
+        # bypassing the preprocessing queue that exists only to translate full SSNs into a provider id.
+        self._data_event_bus.grant_put_events_to(self.ssn_table.license_upload_role)
 
         # The api query role needs access to the provider table to associate a provider with
         # its jurisdictions, so it can make authorization decisions for the requester.

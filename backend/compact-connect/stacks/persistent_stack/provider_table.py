@@ -51,6 +51,7 @@ class ProviderTable(Table):
         self.license_gsi_name = 'licenseGSI'
         self.compact_transaction_gsi_name = 'compactTransactionIdGSI'
         self.license_upload_date_gsi_name = 'licenseUploadDateGSI'
+        self.license_number_gsi_name = 'licenseNumberGSI'
 
         self.add_global_secondary_index(
             index_name=self.provider_fam_giv_mid_index_name,
@@ -95,6 +96,22 @@ class ProviderTable(Table):
             projection_type=ProjectionType.INCLUDE,
             non_key_attributes=[
                 'providerId',
+            ],
+        )
+        # This GSI maps a state's own license number back to the practitioner it belongs to, so that a
+        # state which has already uploaded a license record with an SSN can identify the same
+        # practitioner by license number alone on subsequent uploads. Only the two attributes the
+        # license upload handlers need to enrich a record before ingest are projected, keeping the
+        # rest of the (sensitive) license record out of reach of the license upload role.
+        # The index is sparse: only license records carry both a licenseGSIPK and a licenseNumber.
+        self.add_global_secondary_index(
+            index_name=self.license_number_gsi_name,
+            partition_key=Attribute(name='licenseGSIPK', type=AttributeType.STRING),
+            sort_key=Attribute(name='licenseNumber', type=AttributeType.STRING),
+            projection_type=ProjectionType.INCLUDE,
+            non_key_attributes=[
+                'providerId',
+                'ssnLastFour',
             ],
         )
         # Set up backup plan

@@ -7,6 +7,7 @@ from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodRespo
 from aws_cdk.aws_iam import IRole
 from common_constructs.compact_connect_api import CompactConnectApi
 from common_constructs.python_function import PythonFunction
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
@@ -89,6 +90,14 @@ class PostLicenses:
         persistent_stack: ps.PersistentStack,
     ) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
+        # This handler publishes license.ingest events directly for uploads that omit the SSN, since
+        # those records have no SSN to strip and so skip the SSN preprocessing queue. The bus is loaded from
+        # SSM rather than referenced across stacks, per the note on the event bus in the persistent stack.
+        # Note that the matching PutEvents grant is made in the persistent stack, on the shared license
+        # upload role: granting it here would write a policy into the persistent stack (which owns the
+        # role) while this stack already depends on that one, creating a dependency cycle.
+        data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
+
         handler = PythonFunction(
             self.api,
             'V1PostLicensesHandler',
@@ -101,6 +110,12 @@ class PostLicenses:
                 'LICENSE_PREPROCESSING_QUEUE_URL': persistent_stack.ssn_table.preprocessor_queue.queue.queue_url,
                 'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
+                'EVENT_BUS_NAME': data_event_bus.event_bus_name,
+                # Used to resolve a practitioner from a license number when an upload omits the SSN. The
+                # role's scoped Query grant on this index is set up in the persistent stack, where both
+                # upload lambdas' shared role and the provider table are both in scope.
+                'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'LICENSE_NUMBER_GSI_NAME': persistent_stack.provider_table.license_number_gsi_name,
                 **stack.common_env_vars,
             },
             alarm_topic=self.api.alarm_topic,
