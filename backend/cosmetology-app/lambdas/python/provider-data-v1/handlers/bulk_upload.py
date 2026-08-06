@@ -12,7 +12,10 @@ from cc_common.data_model.schema.license.api import (
     LicenseReportResponseSchema,
 )
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCInternalException
+from cc_common.exceptions import CCAmbiguousLicenseNumberException, CCInternalException, CCInvalidRequestException
+
+# initialize flag outside of handler so the flag is cached for the lifecycle of the lambda execution environment
+from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled  # noqa: E402
 from cc_common.utils import (
     ResponseEncoder,
     api_handler,
@@ -20,8 +23,23 @@ from cc_common.utils import (
     send_licenses_to_preprocessing_queue,
 )
 from license_csv_reader import LicenseCSVReader
+from license_upload_without_ssn import (  # noqa: E402
+    DUPLICATE_LICENSE_NUMBER_ERROR_MESSAGE,
+    FLAG_DISABLED_ERROR_MESSAGE,
+    license_number_dedupe_key,
+    put_license_ingest_events,
+    resolve_license_without_ssn,
+)
 from marshmallow import ValidationError
 from marshmallow.exceptions import SCHEMA
+
+# TODO - remove this flag once the feature is proven stable  # noqa: FIX002
+# This flag is a kill switch for a feature that is enabled by default, so we fail open: a feature flag
+# outage should not stop states from uploading. This feature deletes nothing and writes the same license
+# record the SSN path writes, so failing open is safe.
+license_upload_without_ssn_flag_enabled = is_feature_enabled(
+    FeatureFlagEnum.LICENSE_UPLOAD_WITHOUT_SSN_FLAG, fail_default=True
+)
 
 
 @api_handler
@@ -144,6 +162,11 @@ def process_bulk_upload_file(
     # which are not allowed within the same file upload
     # We track by (ssn, licenseType) tuple to allow same SSN for different license types
     ssns_in_file_upload = {}
+    # Rows with no SSN are batched and de-duplicated separately from the SSN rows above, so that the
+    # existing SSN handling is untouched. We track by license number and license type to allow the same
+    # license number for different license types.
+    current_ssnless_batch = []
+    license_numbers_in_file_upload = {}
 
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
@@ -153,6 +176,24 @@ def process_bulk_upload_file(
                     # dict() here, because it prevents `compact` and `jurisdiction` from being allowed in the
                     # raw_license
                     validated_license = schema.load(dict(compact=compact, jurisdiction=jurisdiction, **raw_license))
+                    # A row with no SSN is handled entirely by this branch, so the SSN handling that
+                    # follows only ever sees rows that carry an SSN.
+                    if not validated_license.get('ssn'):
+                        _handle_ssnless_license_row(
+                            validated_license=schema.dump(validated_license),
+                            record_number=i + 1,
+                            compact=compact,
+                            jurisdiction=jurisdiction,
+                            license_numbers_in_file_upload=license_numbers_in_file_upload,
+                            current_ssnless_batch=current_ssnless_batch,
+                        )
+                        if len(current_ssnless_batch) >= batch_size:
+                            _process_ssnless_license_batch(
+                                current_ssnless_batch, event_time, event_writer, compact, jurisdiction
+                            )
+                            total_processed += len(current_ssnless_batch)
+                            current_ssnless_batch = []
+                        continue
                     # verify that this ssn/licenseType combination has not been used previously in the same batch
                     ssn_key = (validated_license['ssn'], validated_license['licenseType'])
                     matched_ssn_index = ssns_in_file_upload.get(ssn_key)
@@ -225,6 +266,11 @@ def process_bulk_upload_file(
             _process_license_batch(current_batch, event_time, compact, jurisdiction)
             total_processed += len(current_batch)
 
+        # Process any remaining SSN-less licenses in the final batch
+        if current_ssnless_batch:
+            _process_ssnless_license_batch(current_ssnless_batch, event_time, event_writer, compact, jurisdiction)
+            total_processed += len(current_ssnless_batch)
+
     logger.info(
         'Bulk upload processing complete',
         total_processed=total_processed,
@@ -239,6 +285,81 @@ def process_bulk_upload_file(
             logger.debug('Failed event entry', entry=failure)
 
         raise CCInternalException('Failed to process object!')
+
+
+def _handle_ssnless_license_row(
+    *,
+    validated_license: dict,
+    record_number: int,
+    compact: str,
+    jurisdiction: str,
+    license_numbers_in_file_upload: dict,
+    current_ssnless_batch: list,
+):
+    """Resolve one CSV row that carries no SSN and add it to the SSN-less batch.
+
+    Every failure here is raised as a ValidationError so it lands in the caller's existing
+    ValidationError handling, which reports the row back to the state's operational staff and moves on to
+    the next line. One unresolvable row must never abort a file that can contain hundreds of thousands of
+    valid ones.
+
+    :raises ValidationError: If the feature is disabled, the row duplicates an earlier row, the license
+        number is unknown, or it does not identify exactly one practitioner
+    """
+    # TODO - remove these two lines once the LICENSE_UPLOAD_WITHOUT_SSN_FLAG scaffolding is  # noqa: FIX002
+    #  removed.
+    if not license_upload_without_ssn_flag_enabled:
+        raise ValidationError({SCHEMA: [FLAG_DISABLED_ERROR_MESSAGE]})
+
+    dedupe_key = license_number_dedupe_key(validated_license)
+    matched_record_number = license_numbers_in_file_upload.get(dedupe_key)
+    if matched_record_number:
+        raise ValidationError({SCHEMA: [DUPLICATE_LICENSE_NUMBER_ERROR_MESSAGE.format(scope='file')]})
+
+    try:
+        resolved_license = resolve_license_without_ssn(
+            compact=compact,
+            jurisdiction=jurisdiction,
+            license_record=validated_license,
+        )
+    except CCAmbiguousLicenseNumberException as e:
+        # Unexpected data rather than a caller mistake, but the state still needs to know which row we
+        # could not process, and the rest of the file must still be ingested.
+        logger.error('Ambiguous license number on SSN-less upload row', record_number=record_number)
+        raise ValidationError({SCHEMA: [str(e.message)]}) from e
+    except CCInvalidRequestException as e:
+        raise ValidationError({SCHEMA: [e.message]}) from e
+
+    license_numbers_in_file_upload[dedupe_key] = record_number
+    current_ssnless_batch.append(resolved_license)
+
+
+def _process_ssnless_license_batch(
+    licenses_batch: list[dict],
+    event_time: datetime,
+    event_writer: EventBatchWriter,
+    compact: str,
+    jurisdiction: str,
+):
+    """Publish a batch of resolved SSN-less license records straight to the ingest handler.
+
+    These records skip the SSN preprocessing queue because there is no SSN to strip out. The shared
+    event writer is reused so the caller's existing failed_entry_count check covers this path too.
+    """
+    if not licenses_batch:
+        return
+
+    logger.info(
+        'Publishing license ingest events for rows uploaded without an SSN',
+        record_count=len(licenses_batch),
+        compact=compact,
+        jurisdiction=jurisdiction,
+    )
+    put_license_ingest_events(
+        event_writer=event_writer,
+        licenses=licenses_batch,
+        event_time=event_time.isoformat(),
+    )
 
 
 def _process_license_batch(licenses_batch: list[dict], event_time: datetime, compact: str, jurisdiction: str):
