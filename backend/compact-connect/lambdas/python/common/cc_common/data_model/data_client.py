@@ -45,6 +45,7 @@ from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSc
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
+    CCAmbiguousLicenseNumberException,
     CCAwsServiceException,
     CCInternalException,
     CCInvalidRequestException,
@@ -73,6 +74,20 @@ class SsnCorrectionMigrationResult:
     migration_performed: bool
     full_migration: bool = False
     old_provider_registered_email: str | None = None
+
+
+@dataclass(frozen=True)
+class LicenseNumberLookupResult:
+    """
+    The identity of the practitioner a license number resolved to.
+
+    These are the only two attributes projected into the license number index: the provider id the
+    license upload handlers need to route the record to, and the ssnLastFour they must persist on it
+    without ever handling the full SSN.
+    """
+
+    provider_id: str
+    ssn_last_four: str
 
 
 class DataClient:
@@ -169,6 +184,67 @@ class DataClient:
             raise CCInternalException('Multiple matching license records found')
 
         return LicenseData.from_database_record(matching_records[0]) if matching_records else None
+
+    @logger_inject_kwargs(logger, 'compact', 'jurisdiction')
+    def find_provider_by_license_number(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        license_number: str,
+    ) -> LicenseNumberLookupResult | None:
+        """Identify a practitioner from a license number a state has previously uploaded.
+
+        This backs the license upload path that lets a state omit the SSN: once a license record exists
+        with both an SSN-derived provider id and a license number, the same practitioner can be
+        identified by their license number within that compact and jurisdiction.
+
+        The license number index is sparse (license records only) and its sort key is matched byte for
+        byte, so a state must supply the license number exactly as it was originally uploaded.
+
+        :param compact: The compact name
+        :param jurisdiction: The jurisdiction postal code
+        :param license_number: The license number as uploaded by the state
+        :return: The matching provider id and ssnLastFour, or None if the license number is not known
+        :raises CCAmbiguousLicenseNumberException: If the license number does not identify exactly one
+            practitioner
+        """
+        logger.info('Resolving provider by license number', license_number=license_number)
+
+        resp = self.config.provider_table.query(
+            IndexName=self.config.license_number_gsi_name,
+            KeyConditionExpression=(
+                Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{jurisdiction.lower()}')
+                & Key('licenseNumber').eq(license_number)
+            ),
+        )
+
+        matching_records = resp.get('Items', [])
+        if not matching_records:
+            logger.info('No license record found for license number')
+            return None
+
+        if resp.get('LastEvaluatedKey'):
+            # A single license number should never match more items than fit in one page. If it does,
+            # we cannot confirm that every match belongs to the same practitioner.
+            logger.error('License number matched more records than a single query page')
+            raise CCAmbiguousLicenseNumberException('License number matched an unexpected number of records')
+
+        provider_ids = {str(record['providerId']) for record in matching_records}
+        if len(provider_ids) > 1:
+            logger.error('License number matched multiple providers', match_count=len(provider_ids))
+            raise CCAmbiguousLicenseNumberException('License number matched multiple providers')
+
+        ssn_last_four_values = {record['ssnLastFour'] for record in matching_records}
+        if len(ssn_last_four_values) > 1:
+            # One practitioner's license records must agree on ssnLastFour; if they do not, we would be
+            # guessing which value to persist against the license record we are about to write.
+            logger.error('License number matched records with conflicting ssnLastFour values')
+            raise CCAmbiguousLicenseNumberException('License number matched conflicting ssnLastFour values')
+
+        provider_id = provider_ids.pop()
+        logger.info('Resolved provider by license number', provider_id=provider_id)
+        return LicenseNumberLookupResult(provider_id=provider_id, ssn_last_four=ssn_last_four_values.pop())
 
     @paginated_query(set_query_limit_to_match_page_size=True)
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
