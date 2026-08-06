@@ -308,10 +308,17 @@ def get_provider_user_records(compact: str, provider_id: str) -> ProviderUserRec
     return ProviderUserRecords(resp['Items'])
 
 
-def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, data_overrides: dict = None):
+def upload_license_record(
+    client_id: str, client_secret: str, compact: str, jurisdiction: str, data_overrides: dict = None
+):
     """Upload a license record using the API with default test data that can be overridden.
 
-    :param staff_headers: Authentication headers for staff user
+    This endpoint only exists on the State API (not the general API) and is authenticated with a state
+    IT-system client-credentials token. That token is generated per call, because it is short lived and
+    callers typically wait minutes between uploads.
+
+    :param client_id: The state IT-system app client id
+    :param client_secret: The state IT-system app client secret
     :param compact: The compact abbreviation
     :param jurisdiction: The jurisdiction abbreviation
     :param data_overrides: Dict of fields to override in the default license data
@@ -349,8 +356,8 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
     )
 
     post_response = requests.post(
-        url=f'{config.api_base_url}/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses',
-        headers=staff_headers,
+        url=f'{config.state_api_base_url}/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses',
+        headers=get_client_auth_headers(client_id, client_secret, compact, jurisdiction),
         json=post_body,
         timeout=30,
     )
