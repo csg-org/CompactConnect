@@ -241,6 +241,35 @@ For your convenience, use of this feature is included in the [Postman Collection
 - The API does not accept `null` values. For optional fields with no value, omit the field or leave it empty in CSV.
 - For CSV uploads, SSNs must be unique within a single file. Do not include multiple rows with the same `ssn` in one upload. If duplicate SSNs are sent within the same file, the first row will be processed, but all other duplicate rows will be rejected.
 - For JSON uploads, SSNs must be unique within a single request payload (array). Do not include duplicate `ssn` values in the same batch. Attempting to do so will cause the entire request to be rejected.
+- For CSV uploads, license numbers must be unique per license type within a single file, and for JSON uploads unique per license type within a single request. This applies to records uploaded without an SSN (see section below).
+
+## Omitting the SSN on Subsequent Uploads
+
+Once you have uploaded a license record for a practitioner **with** their SSN, CompactConnect stores that record with
+both the practitioner's identifier and the license number you provided. From that point on, you may upload further
+updates for that same license **without** including the `ssn` field: CompactConnect will identify the practitioner from
+the `licenseNumber`, together with the compact and jurisdiction in the upload path.
+
+This means you only need to transmit a practitioner's SSN once, on the upload that first creates their record.
+
+**How to use it**:
+- Omit the `ssn` field entirely from the JSON object, or leave the `ssn` column empty for that row in a CSV file.
+- Always include `licenseNumber`.
+
+**Important Notes**:
+- **The license number must match exactly** what you previously uploaded, including letter case and any punctuation.
+  `ABC-123` and `abc-123` are treated as different license numbers. If the value does not match a license record we
+  already hold for your jurisdiction, the upload of that record is rejected.
+- **The first upload for a practitioner must include their SSN.** If you upload without an SSN for a license number we
+  do not yet have on file, that record is rejected with a message asking you to upload it with the practitioner's SSN.
+  For JSON uploads you receive this immediately in the response; for CSV uploads it appears in your validation error
+  notification.
+- **A license number identifies one practitioner within your jurisdiction.** If a license number matches more than one
+  practitioner in your state's records, we cannot safely determine who the upload is for, so that record is rejected
+  and our support team is notified.
+- **If you upload the wrong license number**, the update is applied to whichever practitioner actually holds that
+  license number. You can correct this by uploading the correct license data for the license number that was entered
+  by mistake, and then uploading the intended record again with the correct license number.
 
 ## Common Upload Strategies: JSON vs CSV
 
