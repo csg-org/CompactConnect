@@ -109,7 +109,7 @@ Because accounts are matched on SSN, simply changing the SSN in your state's sys
 
 > **⚠️ Verify SSNs before you upload.** The SSN is the sole identifier CompactConnect uses to match a license to a practitioner's account, and every downstream consequence of an upload (account creation, privilege eligibility, public lookup, etc.) follows from it. Uploading an incorrect SSN is not a low-risk mistake to leave unaddressed, as it silently creates or attaches records to the wrong account, fragmenting the practitioner's licensure history and leaving privileges tied to whichever account was in place at the time they were purchased.
 
-**If your state has uploaded a license with an incorrect SSN, contact CSG support.
+**If your state has uploaded a license with an incorrect SSN, contact CSG support.**
 
 ### Which of these license values will be publicly visible?
 

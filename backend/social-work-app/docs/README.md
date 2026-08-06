@@ -86,8 +86,8 @@ practitioner. A multi-state license is *associated* with a single-state license 
 
 A multi-state license is only meaningful to the compact alongside the single-state license it is built on. Until both
 records are present, CompactConnect cannot treat the practitioner as compact-eligible through that multi-state license:
-the practitioner will not be issued a compact identifier, and the multi-state license will not be used to determine
-their home jurisdiction or to generate privileges in other member states.
+the practitioner will not be issued a public compact identifier, and the multi-state license will not be used to determine
+their home jurisdiction or to generate privileges to practice in other member states.
 
 #### What happens if you upload the multi-state license first
 
@@ -136,7 +136,7 @@ Because accounts are matched on SSN, simply changing the SSN in your state's sys
 
 > **⚠️ Verify SSNs before you upload.** The SSN is the sole identifier CompactConnect uses to match a license to a practitioner's account, and every downstream consequence of an upload (account creation, privilege eligibility, public lookup, etc.) follows from it. Uploading an incorrect SSN is not a low-risk mistake to leave unaddressed, as it silently creates or attaches records to the wrong account, fragmenting the practitioner's licensure history and leaving privileges tied to whichever account was in place at the time they were purchased.
 
-**If your state has uploaded a license with an incorrect SSN, contact CSG support.
+**If your state has uploaded a license with an incorrect SSN, contact CSG support.**
 
 
 
