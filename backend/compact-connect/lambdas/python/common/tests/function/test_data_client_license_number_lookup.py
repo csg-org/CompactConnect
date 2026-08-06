@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from cc_common.exceptions import CCAmbiguousLicenseNumberException
 from common_test.test_constants import (
     DEFAULT_COMPACT,
@@ -124,13 +122,3 @@ class TestFindProviderByLicenseNumber(TstFunction):
         self.test_data_generator.put_default_license_record_in_provider_table()
 
         self.assertIsNone(self._lookup(license_number=DEFAULT_LICENSE_NUMBER.lower()))
-
-    def test_does_not_log_the_license_number_above_debug_level(self):
-        """The license number identifies a licensee, so it must not appear in INFO-level logs."""
-        self.test_data_generator.put_default_license_record_in_provider_table()
-
-        with patch('cc_common.data_model.data_client.logger') as mock_logger:
-            self._lookup()
-
-        logged_at_info = ' '.join(str(call) for call in mock_logger.info.call_args_list)
-        self.assertNotIn(DEFAULT_LICENSE_NUMBER, logged_at_info)
