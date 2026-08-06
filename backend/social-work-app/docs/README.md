@@ -91,7 +91,7 @@ their home jurisdiction or to generate privileges to practice in other member st
 
 #### What happens if you upload the multi-state license first
 
-The multi-state license is **not rejected**. However, the upload is flagged as a validation
+The multi-state license is **not rejected**. However, the upload is flagged as an
 error, and that error is included in a data ingest error report emailed to your state's operations contact.
 
 This notification is sent again on every subsequent upload of that multi-state license until the associated
