@@ -15,15 +15,38 @@ class TestLicensePostSchema(TstLambdas):
         with open('tests/resources/api/license-post.json') as f:
             LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
 
-    def test_invalid_post(self):
+    def test_validate_post_without_ssn(self):
+        """
+        A state may omit the SSN when it supplies a license number, which the system uses to identify
+        the practitioner from a license record it has already stored for them.
+        """
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 
         with open('tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         license_data.pop('ssn')
 
-        with self.assertRaises(ValidationError):
+        result = LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+
+        self.assertNotIn('ssn', result)
+        self.assertEqual('A0608337260', result['licenseNumber'])
+
+    def test_invalid_post_without_ssn_or_license_number(self):
+        """Without either identifier there is no way to associate the record with a practitioner."""
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data.pop('ssn')
+        license_data.pop('licenseNumber')
+
+        with self.assertRaises(ValidationError) as context:
             LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+
+        self.assertEqual(
+            {'ssn': ['ssn is required when licenseNumber is not provided.']},
+            context.exception.messages,
+        )
 
     def test_compact_eligible_with_inactive_license_not_allowed(self):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
@@ -68,6 +91,26 @@ class TestLicensePostSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+
+    def test_previous_ssn_without_ssn_rejected(self):
+        """
+        previousSSN corrects a wrong SSN, so it is only meaningful alongside the corrected ssn. Accepting
+        it on an SSN-less upload would silently do nothing.
+        """
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data.pop('ssn')
+        license_data['previousSSN'] = '123-12-9876'
+
+        with self.assertRaises(ValidationError) as context:
+            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+
+        self.assertEqual(
+            {'previousSSN': ['previousSSN may only be provided together with ssn.']},
+            context.exception.messages,
+        )
 
 
 class TestLicenseRecordSchema(TstLambdas):
