@@ -35,6 +35,19 @@ def _license(**overrides) -> dict:
     return record
 
 
+def _resolve(license_record: dict, *, record_position: int = 0, seen_license_keys: dict | None = None) -> dict:
+    """Call the resolver with the request-path values these tests always use."""
+    from license_upload_without_ssn import resolve_license_without_ssn
+
+    return resolve_license_without_ssn(
+        compact=COMPACT,
+        jurisdiction=JURISDICTION,
+        license_record=license_record,
+        record_position=record_position,
+        seen_license_keys=seen_license_keys if seen_license_keys is not None else {},
+    )
+
+
 class TestPartitionLicensesBySsnPresence(TstLambdas):
     def test_splits_records_by_whether_they_carry_an_ssn(self):
         from license_upload_without_ssn import partition_licenses_by_ssn_presence
@@ -113,14 +126,10 @@ class TestResolveLicenseWithoutSsn(TstLambdas):
         mock_config.data_client.find_provider_by_license_number.return_value = result
 
     def test_returns_a_copy_enriched_with_provider_id_and_ssn_last_four(self, mock_config):
-        from license_upload_without_ssn import resolve_license_without_ssn
-
         self._mock_lookup_result(mock_config)
         license_record = _license()
 
-        resolved = resolve_license_without_ssn(
-            compact=COMPACT, jurisdiction=JURISDICTION, license_record=license_record
-        )
+        resolved = _resolve(license_record)
 
         self.assertEqual(PROVIDER_ID, resolved['providerId'])
         self.assertEqual(SSN_LAST_FOUR, resolved['ssnLastFour'])
@@ -133,15 +142,9 @@ class TestResolveLicenseWithoutSsn(TstLambdas):
         The compact and jurisdiction come from the request path, never from the record body, so a state
         cannot resolve a license number belonging to another jurisdiction.
         """
-        from license_upload_without_ssn import resolve_license_without_ssn
-
         self._mock_lookup_result(mock_config)
 
-        resolve_license_without_ssn(
-            compact=COMPACT,
-            jurisdiction=JURISDICTION,
-            license_record=_license(compact='octp', jurisdiction='ne'),
-        )
+        _resolve(_license(compact='octp', jurisdiction='ne'))
 
         mock_config.data_client.find_provider_by_license_number.assert_called_once_with(
             compact=COMPACT,
@@ -150,22 +153,57 @@ class TestResolveLicenseWithoutSsn(TstLambdas):
         )
 
     def test_raises_invalid_request_when_the_license_number_is_unknown(self, mock_config):
-        from license_upload_without_ssn import LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE, resolve_license_without_ssn
+        from license_upload_without_ssn import LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE
 
         mock_config.data_client.find_provider_by_license_number.return_value = None
 
         with self.assertRaises(CCInvalidRequestException) as context:
-            resolve_license_without_ssn(compact=COMPACT, jurisdiction=JURISDICTION, license_record=_license())
+            _resolve(_license())
 
         self.assertEqual(LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE, context.exception.message)
 
     def test_propagates_ambiguous_license_number(self, mock_config):
-        from license_upload_without_ssn import resolve_license_without_ssn
-
         mock_config.data_client.find_provider_by_license_number.side_effect = CCAmbiguousLicenseNumberException('boom')
 
         with self.assertRaises(CCAmbiguousLicenseNumberException):
-            resolve_license_without_ssn(compact=COMPACT, jurisdiction=JURISDICTION, license_record=_license())
+            _resolve(_license())
+
+    def test_rejects_a_license_already_seen_in_this_upload_and_names_the_earlier_record(self, mock_config):
+        self._mock_lookup_result(mock_config)
+        seen_license_keys = {}
+
+        _resolve(_license(), record_position=3, seen_license_keys=seen_license_keys)
+
+        with self.assertRaises(CCInvalidRequestException) as context:
+            _resolve(_license(), record_position=7, seen_license_keys=seen_license_keys)
+
+        # the state needs to know which earlier record it collided with in order to fix either one
+        self.assertIn('matches with record 3', context.exception.message)
+
+    def test_registers_the_license_before_resolving_it(self, mock_config):
+        """
+        A row that fails to resolve still claims its license number, so a later row carrying the same
+        number is reported as the duplicate it is rather than repeating the first row's error.
+        """
+        mock_config.data_client.find_provider_by_license_number.return_value = None
+        seen_license_keys = {}
+
+        with self.assertRaises(CCInvalidRequestException):
+            _resolve(_license(), record_position=1, seen_license_keys=seen_license_keys)
+
+        with self.assertRaises(CCInvalidRequestException) as context:
+            _resolve(_license(), record_position=2, seen_license_keys=seen_license_keys)
+
+        self.assertIn('matches with record 1', context.exception.message)
+
+    def test_allows_the_same_license_number_for_a_different_license_type(self, mock_config):
+        self._mock_lookup_result(mock_config)
+        seen_license_keys = {}
+
+        _resolve(_license(), record_position=1, seen_license_keys=seen_license_keys)
+        resolved = _resolve(_license(licenseType='audiologist'), record_position=2, seen_license_keys=seen_license_keys)
+
+        self.assertEqual(PROVIDER_ID, resolved['providerId'])
 
 
 @patch('license_upload_without_ssn.metrics')
@@ -177,14 +215,14 @@ class TestResolutionMetrics(TstLambdas):
     """
 
     def test_counts_a_resolved_license(self, mock_config, mock_metrics):
-        from license_upload_without_ssn import LICENSE_UPLOAD_WITHOUT_SSN_RESOLVED_METRIC, resolve_license_without_ssn
+        from license_upload_without_ssn import LICENSE_UPLOAD_WITHOUT_SSN_RESOLVED_METRIC
 
         result = MagicMock()
         result.provider_id = PROVIDER_ID
         result.ssn_last_four = SSN_LAST_FOUR
         mock_config.data_client.find_provider_by_license_number.return_value = result
 
-        resolve_license_without_ssn(compact=COMPACT, jurisdiction=JURISDICTION, license_record=_license())
+        _resolve(_license())
 
         self.assertEqual(
             [LICENSE_UPLOAD_WITHOUT_SSN_RESOLVED_METRIC],
@@ -192,12 +230,12 @@ class TestResolutionMetrics(TstLambdas):
         )
 
     def test_counts_an_unknown_license_number(self, mock_config, mock_metrics):
-        from license_upload_without_ssn import LICENSE_UPLOAD_WITHOUT_SSN_NOT_FOUND_METRIC, resolve_license_without_ssn
+        from license_upload_without_ssn import LICENSE_UPLOAD_WITHOUT_SSN_NOT_FOUND_METRIC
 
         mock_config.data_client.find_provider_by_license_number.return_value = None
 
         with self.assertRaises(CCInvalidRequestException):
-            resolve_license_without_ssn(compact=COMPACT, jurisdiction=JURISDICTION, license_record=_license())
+            _resolve(_license())
 
         self.assertEqual(
             [LICENSE_UPLOAD_WITHOUT_SSN_NOT_FOUND_METRIC],
@@ -205,12 +243,12 @@ class TestResolutionMetrics(TstLambdas):
         )
 
     def test_counts_an_ambiguous_license_number(self, mock_config, mock_metrics):
-        from license_upload_without_ssn import LICENSE_UPLOAD_WITHOUT_SSN_AMBIGUOUS_METRIC, resolve_license_without_ssn
+        from license_upload_without_ssn import LICENSE_UPLOAD_WITHOUT_SSN_AMBIGUOUS_METRIC
 
         mock_config.data_client.find_provider_by_license_number.side_effect = CCAmbiguousLicenseNumberException('boom')
 
         with self.assertRaises(CCAmbiguousLicenseNumberException):
-            resolve_license_without_ssn(compact=COMPACT, jurisdiction=JURISDICTION, license_record=_license())
+            _resolve(_license())
 
         self.assertEqual(
             [LICENSE_UPLOAD_WITHOUT_SSN_AMBIGUOUS_METRIC],

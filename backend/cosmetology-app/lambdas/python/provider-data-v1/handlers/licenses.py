@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -139,7 +140,7 @@ def _process_licenses_without_ssn(
     compact: str,
     jurisdiction: str,
     ssnless_licenses: list[tuple[int, dict]],
-    event_time,
+    event_time: datetime,
 ):
     """Resolve license records that carry no SSN and send them straight to the ingest handler.
 

@@ -21,7 +21,7 @@ import json
 from aws_lambda_powertools.metrics import MetricUnit
 from cc_common.config import config, logger, metrics
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCInvalidRequestException
+from cc_common.exceptions import CCAmbiguousLicenseNumberException, CCInvalidRequestException
 
 # Custom metrics tracking how states are using SSN-less uploads: how many records resolved, how many
 # were rejected because the license number was unknown, and how many hit an ambiguous license number.
@@ -39,9 +39,13 @@ LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE = (
     'after which subsequent uploads for this license may omit the SSN.'
 )
 
+# {matched_record} names the earlier record the duplicate collides with, so the state can find both rows.
+# Each upload path numbers its own records: the API uses the position in the request array, the bulk
+# upload uses the line number in the file.
 DUPLICATE_LICENSE_NUMBER_ERROR_MESSAGE = (
-    'Same license number for the same license type detected on multiple rows. Every record must have a '
-    'unique license number per license type within the same {scope}.'
+    'Same license number for the same license type detected on multiple rows. License number matches '
+    'with record {matched_record}. Every record must have a unique license number per license type '
+    'within the same request.'
 )
 
 # The source is kept identical to the one the license preprocessor publishes, so existing dashboards and
@@ -79,25 +83,50 @@ def license_number_dedupe_key(license_record: dict) -> tuple:
     return (license_record['licenseNumber'], license_record['licenseType'])
 
 
-def resolve_license_without_ssn(*, compact: str, jurisdiction: str, license_record: dict) -> dict:
+def resolve_license_without_ssn(
+    *,
+    compact: str,
+    jurisdiction: str,
+    license_record: dict,
+    record_position: int,
+    seen_license_keys: dict,
+) -> dict:
     """Identify the practitioner this license number belongs to and enrich the record accordingly.
+
+    Both upload paths share this, including the check that rejects the same license appearing twice in
+    one upload. They differ only in how they number their records and how they report the errors raised
+    here, so the caller supplies the position and decides what to do with a CCInvalidRequestException.
 
     :param compact: The compact from the request path
     :param jurisdiction: The jurisdiction from the request path
     :param license_record: A validated license record with no ssn
+    :param record_position: This record's position as the caller numbers it, used to point a later
+        duplicate back at this record
+    :param seen_license_keys: Registry of license keys already seen in this upload, updated here
     :return: A copy of the record with providerId and ssnLastFour populated
-    :raises CCInvalidRequestException: If the license number is not already known to the system
+    :raises CCInvalidRequestException: If the record duplicates an earlier one in the same upload, or the
+        license number is not already known to the system
     :raises CCAmbiguousLicenseNumberException: If the license number does not identify one practitioner
     """
+    dedupe_key = license_number_dedupe_key(license_record)
+    matched_record = seen_license_keys.get(dedupe_key)
+    if matched_record is not None:
+        raise CCInvalidRequestException(DUPLICATE_LICENSE_NUMBER_ERROR_MESSAGE.format(matched_record=matched_record))
+    # Registered before we attempt to resolve, so that a second row carrying the same license number is
+    # reported as a duplicate even when the first one could not be resolved. Otherwise a state fixing the
+    # reported error on the first row would then hit a fresh duplicate error on the second.
+    seen_license_keys[dedupe_key] = record_position
+
     try:
         lookup_result = config.data_client.find_provider_by_license_number(
             compact=compact,
             jurisdiction=jurisdiction,
             license_number=license_record['licenseNumber'],
         )
-    except Exception:
-        # The data client raises CCAmbiguousLicenseNumberException here, which callers handle
-        # differently per upload path. Count it before letting it through.
+    except CCAmbiguousLicenseNumberException:
+        # Count the ambiguity before letting it through, since the two upload paths handle it
+        # differently. Only this exception is counted: a transient DynamoDB failure is not an ambiguous
+        # license number, and counting it as one would corrupt the signal this metric exists to give.
         metrics.add_metric(name=LICENSE_UPLOAD_WITHOUT_SSN_AMBIGUOUS_METRIC, unit=MetricUnit.Count, value=1)
         raise
 
@@ -117,15 +146,14 @@ def resolve_license_without_ssn(*, compact: str, jurisdiction: str, license_reco
 
 def resolve_licenses_without_ssn(
     *, compact: str, jurisdiction: str, indexed_licenses: list[tuple[int, dict]]
-) -> tuple[list[dict], dict]:
+) -> tuple[list[dict], dict[str, dict]]:
     """Resolve a batch of SSN-less license records, collecting per-record errors rather than failing fast.
 
-    Duplicate detection mirrors the SSN rule already applied to this endpoint: the same license number
-    for the same license type may only appear once per request, because both rows would otherwise be
-    processed against the same license record.
+    Records are numbered by their position in the request array, matching the keys of the returned error
+    dict, so a duplicate error points the caller at the array entry it collides with.
 
     An ambiguous license number is not collected as a caller error -- it is unexpected data and is
-    allowed to propagate so the caller sees a server error and the condition is alarmed on.
+    allowed to propagate so the caller sees a server error.
 
     :param compact: The compact from the request path
     :param jurisdiction: The jurisdiction from the request path
@@ -138,19 +166,14 @@ def resolve_licenses_without_ssn(
     seen_license_keys: dict[tuple, int] = {}
 
     for index, license_record in indexed_licenses:
-        dedupe_key = license_number_dedupe_key(license_record)
-        first_seen_index = seen_license_keys.get(dedupe_key)
-        if first_seen_index is not None:
-            errors[str(index)] = {'licenseNumber': [DUPLICATE_LICENSE_NUMBER_ERROR_MESSAGE.format(scope='request')]}
-            continue
-        seen_license_keys[dedupe_key] = index
-
         try:
             resolved_licenses.append(
                 resolve_license_without_ssn(
                     compact=compact,
                     jurisdiction=jurisdiction,
                     license_record=license_record,
+                    record_position=index,
+                    seen_license_keys=seen_license_keys,
                 )
             )
         except CCInvalidRequestException as e:

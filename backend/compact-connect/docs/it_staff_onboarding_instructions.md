@@ -241,7 +241,7 @@ For your convenience, use of this feature is included in the [Postman Collection
 - The API does not accept `null` values. For optional fields with no value, omit the field or leave it empty in CSV.
 - For CSV uploads, SSNs must be unique within a single file. Do not include multiple rows with the same `ssn` in one upload. If duplicate SSNs are sent within the same file, the first row will be processed, but all other duplicate rows will be rejected.
 - For JSON uploads, SSNs must be unique within a single request payload (array). Do not include duplicate `ssn` values in the same batch. Attempting to do so will cause the entire request to be rejected.
-- For CSV uploads, license numbers must be unique per license type within a single file, and for JSON uploads unique per license type within a single request. This applies to records uploaded without an SSN (see section below).
+- License numbers must be unique per license type within a single upload, for both CSV files and JSON requests. This applies to records uploaded without an SSN (see section below).
 
 ## Omitting the SSN on Subsequent Uploads
 

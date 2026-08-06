@@ -704,10 +704,13 @@ class TestPostLicensesWithoutSsn(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         body = json.loads(resp['body'])
         # the error is reported against the duplicate row, not the first occurrence
+        # the error is reported against the duplicate row and names the earlier row it collides with,
+        # so the state can find both entries in the array they sent
         self.assertEqual(
             [
-                'Same license number, license type, and license scope detected on multiple rows. Every '
-                'record must have a unique license number per license type and scope within the same request.'
+                'Same license number, license type, and license scope detected on multiple rows. License '
+                'number matches with record 0. Every record must have a unique license number per license '
+                'type and scope within the same request.'
             ],
             body['errors']['1']['licenseNumber'],
         )

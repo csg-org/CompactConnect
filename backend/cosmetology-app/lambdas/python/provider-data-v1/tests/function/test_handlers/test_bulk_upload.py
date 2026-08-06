@@ -620,10 +620,29 @@ class TestBulkUploadWithoutSsn(TstFunction):
         validation_errors = self._details_of_type(entries, 'license.validation-error')
         self.assertEqual(1, len(validation_errors))
         self.assertEqual(2, validation_errors[0]['recordNumber'])
-        self.assertIn('unique license number', validation_errors[0]['errors']['_schema'][0])
+        # the error names the earlier line it collides with, so the state can find both rows
+        self.assertIn('matches with record 1', validation_errors[0]['errors']['_schema'][0])
 
         # only the first occurrence is ingested
         self.assertEqual(1, len(self._details_of_type(entries, 'license.ingest')))
+
+    def test_reports_a_duplicate_even_when_the_first_occurrence_could_not_be_resolved(self):
+        """
+        A row claims its license number whether or not it resolves, so the state is told the second row is
+        a duplicate rather than being shown the same unknown-license-number error twice.
+        """
+        _, entries = self._process_csv(
+            [
+                self._csv_row(license_number='NOT-A-REAL-NUMBER'),
+                self._csv_row(license_number='NOT-A-REAL-NUMBER'),
+            ]
+        )
+
+        validation_errors = self._details_of_type(entries, 'license.validation-error')
+        self.assertEqual(2, len(validation_errors))
+        self.assertIn('No existing license record was found', validation_errors[0]['errors']['_schema'][0])
+        self.assertIn('matches with record 1', validation_errors[1]['errors']['_schema'][0])
+        self.assertEqual([], self._details_of_type(entries, 'license.ingest'))
 
     def test_accepts_the_same_license_number_for_two_license_types(self):
         existing_license = self._seed_existing_license()
