@@ -21,6 +21,9 @@ COMPACT = 'aslp'
 JURISDICTION = 'ne'
 TEST_PROVIDER_GIVEN_NAME = 'Joe'
 TEST_PROVIDER_FAMILY_NAME = 'Dokes'
+TEST_PROVIDER_UPDATED_FAMILY_NAME = 'Dokes-Smith'
+TEST_LICENSE_NUMBER = 'A0608337260'
+TEST_LICENSE_TYPE = 'audiologist'
 
 # This script can be run locally to test the license upload/ingest flow against a sandbox environment
 # of the Compact Connect API.
@@ -73,7 +76,7 @@ def upload_licenses_record():
     post_body = [
         {
             'npi': '1111111111',
-            'licenseNumber': 'A0608337260',
+            'licenseNumber': TEST_LICENSE_NUMBER,
             'homeAddressPostalCode': '68001',
             'givenName': TEST_PROVIDER_GIVEN_NAME,
             'familyName': TEST_PROVIDER_FAMILY_NAME,
@@ -81,7 +84,7 @@ def upload_licenses_record():
             'dateOfBirth': '1991-12-10',
             'dateOfIssuance': '2024-12-10',
             'ssn': MOCK_SSN,
-            'licenseType': 'audiologist',
+            'licenseType': TEST_LICENSE_TYPE,
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': 'AZ',
             'homeAddressCity': 'Omaha',
@@ -162,11 +165,11 @@ def upload_licenses_record():
         raise SmokeTestFailureException('Failed to find license record in provider details.')
 
     license_record = next(
-        (license_record for license_record in licenses if license_record.get('licenseType') == 'audiologist'), None
+        (license_record for license_record in licenses if license_record.get('licenseType') == TEST_LICENSE_TYPE), None
     )
 
     if not license_record:
-        raise SmokeTestFailureException('Failed to find audiologist license record in provider details.')
+        raise SmokeTestFailureException(f'Failed to find {TEST_LICENSE_TYPE} license record in provider details.')
 
     logger.info(f'License record successfully found in provider details: {license_record}')
 
@@ -190,13 +193,140 @@ def upload_licenses_record():
         logger.error(
             f'Failed to find license ingest record in data events table. Response: {license_ingest_record_response}'
         )
-        _cleanup_test_generated_records(provider_id, license_ingest_record_response)
         raise SmokeTestFailureException('Failed to find license ingest records in data event table.')
 
     logger.info(
         f'License ingest data event successfully added to data events table {license_ingest_record_response["Items"]}'
     )
-    _cleanup_test_generated_records(provider_id, license_ingest_record_response)
+
+    # Cleanup is performed by the caller, so that subsequent steps can run against this same provider
+    return provider_id, license_ingest_record_response
+
+
+def upload_license_record_without_ssn(provider_id: str):
+    """
+    Verifies that a license record can be updated by a state without providing the practitioner's SSN,
+    identifying them instead by the license number the previous upload stored for them.
+
+    Step 1: Re-upload the same license, with no `ssn` field and a changed family name.
+    Step 2: Poll the provider until the license record reflects the new family name.
+    Step 3: Verify the record was updated in place rather than a new practitioner being created.
+    """
+    headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+
+    # Step 1: Upload the same license without an SSN, changing the family name so we can prove the
+    # update was applied to the existing record rather than silently ignored. The record can only be
+    # matched by its license number, since the name we are sending no longer matches what is stored.
+    post_body = [
+        {
+            'npi': '1111111111',
+            'licenseNumber': TEST_LICENSE_NUMBER,
+            'homeAddressPostalCode': '68001',
+            'givenName': TEST_PROVIDER_GIVEN_NAME,
+            'familyName': TEST_PROVIDER_UPDATED_FAMILY_NAME,
+            'homeAddressStreet1': '123 Fake Street',
+            'dateOfBirth': '1991-12-10',
+            'dateOfIssuance': '2024-12-10',
+            'licenseType': TEST_LICENSE_TYPE,
+            'dateOfExpiration': '2050-12-10',
+            'homeAddressState': 'AZ',
+            'homeAddressCity': 'Omaha',
+            'compactEligibility': 'eligible',
+            'licenseStatus': 'active',
+        }
+    ]
+
+    post_response = requests.post(
+        url=get_api_base_url() + f'/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses',
+        headers=headers,
+        json=post_body,
+        timeout=10,
+    )
+
+    if post_response.status_code != 200:
+        raise SmokeTestFailureException(
+            f'Failed to POST license record without an SSN. Response: {post_response.json()}'
+        )
+
+    logger.info('License record without SSN successfully uploaded')
+
+    # Step 2: Poll the provider until the updated family name is reflected on the license record
+    updated_license_record = None
+    for _ in range(30):
+        provider_details_response = requests.get(
+            url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/{provider_id}',
+            headers=headers,
+            timeout=10,
+        )
+
+        if provider_details_response.status_code == 200:
+            provider_details = provider_details_response.json()
+            license_record = next(
+                (
+                    record
+                    for record in provider_details.get('licenses', [])
+                    if record.get('licenseType') == TEST_LICENSE_TYPE
+                ),
+                None,
+            )
+            if license_record and license_record.get('familyName') == TEST_PROVIDER_UPDATED_FAMILY_NAME:
+                updated_license_record = license_record
+                break
+
+        logger.info('License record not yet updated from SSN-less upload. Retrying...')
+        time.sleep(30)
+
+    if not updated_license_record:
+        raise SmokeTestFailureException('License record was not updated by the upload without an SSN.')
+
+    # Step 3: Verify the existing record was updated, rather than a second practitioner being created
+    if str(updated_license_record.get('providerId')) != str(provider_id):
+        raise SmokeTestFailureException(
+            'License record uploaded without an SSN was associated with a different provider id: '
+            f'{updated_license_record.get("providerId")} instead of {provider_id}'
+        )
+
+    if updated_license_record.get('licenseNumber') != TEST_LICENSE_NUMBER:
+        raise SmokeTestFailureException('License number changed on the record uploaded without an SSN.')
+
+    # the provider's own name is derived from their best license, so it must reflect the update too
+    provider_details = provider_details_response.json()
+    if provider_details.get('familyName') != TEST_PROVIDER_UPDATED_FAMILY_NAME:
+        raise SmokeTestFailureException(
+            'Provider record family name was not updated by the license upload without an SSN: '
+            f'{provider_details.get("familyName")}'
+        )
+
+    # querying by the new name must find this same practitioner, and only them
+    query_response = requests.post(
+        url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/query',
+        headers=headers,
+        json={
+            'query': {
+                'familyName': TEST_PROVIDER_UPDATED_FAMILY_NAME,
+                'givenName': TEST_PROVIDER_GIVEN_NAME,
+            }
+        },
+        timeout=10,
+    )
+
+    if query_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to query providers. Response: {query_response.json()}')
+
+    matching_provider_ids = {
+        provider.get('providerId')
+        for provider in query_response.json().get('providers', [])
+        if provider.get('familyName') == TEST_PROVIDER_UPDATED_FAMILY_NAME
+        and provider.get('givenName') == TEST_PROVIDER_GIVEN_NAME
+    }
+
+    if matching_provider_ids != {provider_id}:
+        raise SmokeTestFailureException(
+            'Expected the SSN-less upload to update the existing practitioner only, but found provider ids: '
+            f'{matching_provider_ids}'
+        )
+
+    logger.info('License record successfully updated by an upload without an SSN')
 
 
 if __name__ == '__main__':
@@ -208,11 +338,20 @@ if __name__ == '__main__':
         jurisdiction=JURISDICTION,
         permissions={'actions': {'admin'}, 'jurisdictions': {JURISDICTION: {'write', 'admin'}}},
     )
+    provider_id = None
+    license_ingest_record_response = {}
     try:
-        upload_licenses_record()
+        provider_id, license_ingest_record_response = upload_licenses_record()
         logger.info('License record upload smoke test passed')
+
+        upload_license_record_without_ssn(provider_id)
+        logger.info('License record upload without SSN smoke test passed')
     except SmokeTestFailureException as e:
         logger.error(f'License record upload smoke test failed: {str(e)}')
     finally:
+        # Cleanup runs here, rather than at the end of the first step, so that both steps operate on the
+        # same provider and the records are still removed if either step fails.
+        if provider_id:
+            _cleanup_test_generated_records(provider_id, license_ingest_record_response)
         # Clean up the test staff user
         delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_user_sub, compact=COMPACT)
