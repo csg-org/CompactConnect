@@ -79,7 +79,10 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema, ValidatesLicenseTy
     API -> load() -> Python
     """
 
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    # Optional because a state that has already uploaded this practitioner's license record with their
+    # SSN can identify them on subsequent uploads by their license number alone, which is always
+    # required on this endpoint.
+    ssn = SocialSecurityNumber(required=False, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))

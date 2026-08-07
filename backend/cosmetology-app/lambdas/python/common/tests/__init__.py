@@ -33,6 +33,7 @@ class TstLambdas(TestCase):
                 'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
                 'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
+                'LICENSE_NUMBER_GSI_NAME': 'licenseNumberGSI',
                 'COMPACTS': '["cosm"]',
                 'JURISDICTIONS': json.dumps(
                     [

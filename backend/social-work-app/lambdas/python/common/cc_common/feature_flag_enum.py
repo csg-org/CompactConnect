@@ -10,3 +10,6 @@ class FeatureFlagEnum(StrEnum):
 
     # flag used by internal testing
     TEST_FLAG = 'test-flag'
+    # runtime flags
+    # gates the license upload path that identifies a practitioner by license number instead of SSN
+    LICENSE_UPLOAD_WITHOUT_SSN_FLAG = 'socialwork-license-upload-without-ssn-flag'

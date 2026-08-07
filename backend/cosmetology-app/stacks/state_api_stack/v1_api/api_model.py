@@ -115,7 +115,6 @@ class ApiModel:
                 items=JsonSchema(
                     type=JsonSchemaType.OBJECT,
                     required=[
-                        'ssn',
                         'licenseNumber',
                         'givenName',
                         'familyName',
@@ -135,7 +134,9 @@ class ApiModel:
                         'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                         'ssn': JsonSchema(
                             type=JsonSchemaType.STRING,
-                            description="The provider's social security number",
+                            description="The provider's social security number. May be omitted once a "
+                            'license record has already been uploaded for this practitioner with their '
+                            'ssn, in which case they are identified by licenseNumber instead.',
                             pattern=cc_api.SSN_FORMAT,
                         ),
                         **self._common_license_properties,

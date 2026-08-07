@@ -73,7 +73,10 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
     API -> load() -> Python
     """
 
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    # Optional because a state that has already uploaded this practitioner's license record with their
+    # SSN can identify them on subsequent uploads by their license number alone. See
+    # validate_ssn_or_license_number_present for the resulting either-or requirement.
+    ssn = SocialSecurityNumber(required=False, allow_none=False)
     # If provided, the system will migrate any records associated with this SSN over to the provider
     # associated with the `ssn` field, to correct a previously-uploaded incorrect SSN. This value is
     # stripped out before the license data leaves the SSN-scoped preprocessing path and is never persisted.
@@ -115,6 +118,22 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+
+    @validates_schema
+    def validate_ssn_or_license_number_present(self, data, **_kwargs):
+        """A license record must carry at least one identifier we can tie to a practitioner.
+
+        The SSN identifies them directly. A license number identifies them indirectly, by matching a
+        license record the same jurisdiction has already uploaded for them under their SSN.
+        """
+        if not data.get('ssn') and not data.get('licenseNumber'):
+            raise ValidationError({'ssn': ['ssn is required when licenseNumber is not provided.']})
+
+    @validates_schema
+    def validate_previous_ssn_requires_ssn(self, data, **_kwargs):
+        """previousSSN only has meaning as a correction of the ssn provided alongside it."""
+        if data.get('previousSSN') and not data.get('ssn'):
+            raise ValidationError({'previousSSN': ['previousSSN may only be provided together with ssn.']})
 
     @validates_schema
     def validate_compact_eligibility(self, data, **_kwargs):
