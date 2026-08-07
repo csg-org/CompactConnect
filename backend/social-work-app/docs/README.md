@@ -30,6 +30,8 @@ Export your license data to a CSV file, formatted as follows:
    - Some fields have a set list of allowed values. For those fields, make sure to enter the value exactly, including
      spacing and capitalization
    - SSNs must be unique within a single CSV upload file. Do not include multiple rows with the same `ssn` in one file. If duplicate SSNs are sent within the same file, the first row will be processed, but all other duplicate rows will be rejected.
+   - If a practitioner holds a multi-state license, you must upload their single-state license **first**. See
+     [Upload order: single-state licenses before multi-state licenses](#upload-order-single-state-licenses-before-multi-state-licenses).
 
 #### Field Descriptions
 
@@ -51,7 +53,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
 | licenseNumber* | License number | String (max 100 chars) | OT12345 |
 | licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `licensed clinical social worker`, `licensed master social worker`, `licensed bachelors social worker` | licensed clinical social worker |
-| licenseScope* | Whether the license is a single-state or multi-state license under the compact. Multi-state licenses in a provider's home jurisdiction can generate privileges to practice in other compact member states. | One of: `single-state`, `multi-state` | single-state |
+| licenseScope* | Whether the license is a single-state or multi-state license under the compact. Multi-state licenses in a provider's home jurisdiction can generate privileges to practice in other compact member states. *Note: a practitioner's single-state license must be uploaded before their multi-state license of the same license type. See [Upload order](#upload-order-single-state-licenses-before-multi-state-licenses).* | One of: `single-state`, `multi-state` | single-state |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
 | licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last upload still showed them as `active`.* | One of: `active`, `inactive` | active |
 | licenseStatusName | An optional more descriptive name of the license status. | String (max 100 chars) | SUSPENDED |
@@ -65,11 +67,35 @@ leave the field entirely empty. If some of your licenses are missing a required 
 ```csv
 dateOfIssuance,licenseNumber,dateOfBirth,licenseType,licenseScope,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
 2024-06-30,A0608337260,2024-06-30,licensed clinical social worker,single-state,Guðmundsdóttir,Birmingham,Gunnar,active,ACTIVE,eligible,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
-2024-06-30,B0608337260,2024-06-30,licensed master social worker,multi-state,Scott,Huntsville,Patricia,active,ACTIVE,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
+2024-06-30,B0608337260,2024-06-30,licensed master social worker,single-state,Scott,Huntsville,Patricia,active,ACTIVE,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
 2024-06-30,C0608337260,2024-06-30,licensed clinical social worker,single-state,毛,Hoover,泽,active,ACTIVE,eligible,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
 2024-06-30,D0608337260,2024-06-30,licensed clinical social worker,single-state,Adams,Tuscaloosa,Michael,inactive,EXPIRED,ineligible,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
 2024-06-30,E0608337260,2024-06-30,licensed clinical social worker,single-state,Carreño Quiñones,Montgomery,José,active,ACTIVE_IN_RENEWAL,eligible,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
 ```
+
+### Upload order: single-state licenses before multi-state licenses
+
+**A practitioner's single-state license must be fully ingested before you upload their multi-state license.**
+
+In CompactConnect, a single-state license and a multi-state license are two separate records, even for the same
+practitioner. A multi-state license is *associated* with a single-state license when all three of the following match:
+
+- the same practitioner (matched on `ssn`),
+- the same jurisdiction (your state), and
+- the same `licenseType` (for example, both are `licensed clinical social worker`).
+
+A multi-state license is only meaningful to the compact alongside the single-state license it is built on. Until both
+records are present, CompactConnect cannot treat the practitioner as compact-eligible through that multi-state license:
+the practitioner will not be issued a public compact identifier, and the multi-state license will not be used to determine
+their home jurisdiction or to generate privileges to practice in other member states.
+
+#### What happens if you upload the multi-state license first
+
+The multi-state license is **not rejected**. However, the upload is flagged as an
+error, and that error is included in a data ingest error report emailed to your state's operations contact.
+
+This notification is sent again on every subsequent upload of that multi-state license until the associated
+single-state license is uploaded. Uploading the missing single-state license resolves it.
 
 ### Manual Uploads
 
@@ -104,7 +130,20 @@ If data is not available for a required field, that particular license record ca
 
 ### Can we upload the same licenses multiple times? What if their information changes?
 
-Yes. CompactConnect is designed to automatically detect and track changes to license records over time. When you upload a license record, CompactConnect will determine if the record currently exists in the CompactConnect database using the provided SSN to match with any existing licensee in the system, and create the record if not found. If the license record already exists, CompactConnect will check the differences between the existing record in the system and changes uploaded by the state, and apply the changes accordingly.
+Yes. CompactConnect is designed to automatically detect and track changes to license records over time. The Social Security Number (SSN) is the unique identifier CompactConnect uses to create and match individual practitioner accounts. When you upload a license record, CompactConnect uses the provided SSN to determine whether that practitioner already has an account in the system, creating one if not found. If the practitioner's account already exists, CompactConnect will check the differences between the existing license record and the changes uploaded by the state, and apply the changes accordingly.
+
+Because accounts are matched on SSN, simply changing the SSN in your state's system and then uploading the corrected license will **not** update the practitioner's existing CompactConnect account. It will create a brand new, separate account under the new SSN and leave the original account (and any privileges tied to it) unchanged.
+
+> **⚠️ Verify SSNs before you upload.** The SSN is the sole identifier CompactConnect uses to match a license to a practitioner's account, and every downstream consequence of an upload (account creation, privilege eligibility, public lookup, etc.) follows from it. Uploading an incorrect SSN is not a low-risk mistake to leave unaddressed, as it silently creates or attaches records to the wrong account, fragmenting the practitioner's licensure history and leaving privileges tied to whichever account was in place at the time they were purchased.
+
+**If your state has uploaded a license with an incorrect SSN, contact CSG support.**
+
+
+
+### Do we need to upload a single-state license for every practitioner who has a multi-state license?
+
+Yes. A multi-state license does not replace the single-state license it is built on, and CompactConnect stores them as
+two separate records. A practitioner with a multi-state license should always have both records in the system.
 
 ### Which of these license values will be publicly visible?
 
