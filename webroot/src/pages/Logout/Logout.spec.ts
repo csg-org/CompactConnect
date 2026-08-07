@@ -94,7 +94,7 @@ describe('Logout page', async () => {
 
         expect(didThrow).to.equal(false);
         expect(logEventStub.calledOnce).to.equal(true);
-        expect(logEventStub.firstCall.args[0]).to.equal('cognito_token_revoke_failed');
+        expect(logEventStub.firstCall.args[0]).to.equal('cognito_token_revoke_failed'); // https://console.statsig.com/3KcYv8LC2YCc1vsTkVi3Fb/metrics/metrics_catalog/Cognito%20Token%20Revocation%20Failure/event_count_custom?unitType=overall
         expect(logEventStub.firstCall.args[1]).to.equal(1);
         expect(logEventStub.firstCall.args[2]).to.matchPattern({
             authType: AuthTypes.STAFF,

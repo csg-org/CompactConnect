@@ -134,6 +134,7 @@ export default class Logout extends Vue {
 
     async revokeTokens(authType: AuthTypes): Promise<void> {
         await revokeCognitoRefreshToken(this.appMode, authType).catch((err) => Promise.resolve().then(() => {
+            // https://console.statsig.com/3KcYv8LC2YCc1vsTkVi3Fb/metrics/metrics_catalog/Cognito%20Token%20Revocation%20Failure/event_count_custom?unitType=overall
             this.$analytics.logEvent('cognito_token_revoke_failed', 1, {
                 authType,
                 appMode: this.appMode,
