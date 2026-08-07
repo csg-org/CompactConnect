@@ -25,6 +25,7 @@ from cc_common.utils import (
 from license_csv_reader import LicenseCSVReader
 from license_upload_without_ssn import (  # noqa: E402
     FLAG_DISABLED_ERROR_MESSAGE,
+    build_preloaded_resolver,
     put_license_ingest_events,
     resolve_license_without_ssn,
 )
@@ -166,6 +167,9 @@ def process_bulk_upload_file(
     # license number for different license types.
     current_ssnless_batch = []
     license_numbers_in_file_upload = {}
+    # Built on the first row that needs it, so a file made entirely of SSN-bearing rows does not pay to
+    # load the index. Held for the whole file: one load, rather than a query per row.
+    resolve_license_number = None
 
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
@@ -178,13 +182,16 @@ def process_bulk_upload_file(
                     # A row with no SSN is handled entirely by this branch, so the SSN handling that
                     # follows only ever sees rows that carry an SSN.
                     if not validated_license.get('ssn'):
+                        if resolve_license_number is None:
+                            resolve_license_number = _build_ssnless_license_resolver(
+                                compact=compact, jurisdiction=jurisdiction
+                            )
                         current_ssnless_batch.append(
                             _resolve_ssnless_license_row(
                                 validated_license=schema.dump(validated_license),
                                 record_number=i + 1,
-                                compact=compact,
-                                jurisdiction=jurisdiction,
                                 license_numbers_in_file_upload=license_numbers_in_file_upload,
+                                resolve_license_number=resolve_license_number,
                             )
                         )
                         if len(current_ssnless_batch) >= batch_size:
@@ -287,13 +294,25 @@ def process_bulk_upload_file(
         raise CCInternalException('Failed to process object!')
 
 
+def _build_ssnless_license_resolver(*, compact: str, jurisdiction: str):
+    """Load the jurisdiction's license number index for this file to resolve against.
+
+    Separated from the loop purely so the flag check happens before the load: a disabled feature must not
+    read the index at all.
+    """
+    # TODO - remove this check once the LICENSE_UPLOAD_WITHOUT_SSN_FLAG scaffolding is removed  # noqa: FIX002
+    if not license_upload_without_ssn_flag_enabled:
+        raise ValidationError({SCHEMA: [FLAG_DISABLED_ERROR_MESSAGE]})
+
+    return build_preloaded_resolver(compact=compact, jurisdiction=jurisdiction)
+
+
 def _resolve_ssnless_license_row(
     *,
     validated_license: dict,
     record_number: int,
-    compact: str,
-    jurisdiction: str,
     license_numbers_in_file_upload: dict,
+    resolve_license_number,
 ) -> dict:
     """Resolve one CSV row that carries no SSN, returning the record enriched for ingest.
 
@@ -305,21 +324,15 @@ def _resolve_ssnless_license_row(
     :param license_numbers_in_file_upload: Registry of license keys already seen in this file, updated by
         the shared resolution
     :return: The license record with providerId and ssnLastFour populated
-    :raises ValidationError: If the feature is disabled, the row duplicates an earlier row, the license
-        number is unknown, or it does not identify exactly one practitioner
+    :raises ValidationError: If the row duplicates an earlier row, the license number is unknown, or it
+        does not identify exactly one practitioner
     """
-    # TODO - remove these two lines once the LICENSE_UPLOAD_WITHOUT_SSN_FLAG scaffolding is  # noqa: FIX002
-    #  removed. Only the flag check goes; the rest of this function is the feature.
-    if not license_upload_without_ssn_flag_enabled:
-        raise ValidationError({SCHEMA: [FLAG_DISABLED_ERROR_MESSAGE]})
-
     try:
         return resolve_license_without_ssn(
-            compact=compact,
-            jurisdiction=jurisdiction,
             license_record=validated_license,
             record_position=record_number,
             seen_license_keys=license_numbers_in_file_upload,
+            resolve_license_number=resolve_license_number,
         )
     except CCAmbiguousLicenseNumberException as e:
         # Unexpected data rather than a caller mistake, but the state still needs to know which row we

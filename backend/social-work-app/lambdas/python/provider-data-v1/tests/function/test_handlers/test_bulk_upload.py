@@ -762,6 +762,40 @@ class TestBulkUploadWithoutSsn(TstFunction):
         self.assertEqual(1, len(self._details_of_type(entries, 'license.ingest')))
         self.assertEqual([], self._details_of_type(entries, 'license.validation-error'))
 
+    def test_loads_the_license_number_index_once_for_the_whole_file(self):
+        """
+        The bulk path resolves rows against a single in-memory load of the jurisdiction's license number
+        index. Querying per row would mean a network round trip per row, which is what puts a large file
+        at risk of exhausting the lambda's execution time.
+        """
+        record_count = 25
+        rows = []
+        for index in range(record_count):
+            license_number = f'INDEXLOAD{index:05d}'
+            self._seed_existing_license(licenseNumber=license_number, providerId=str(uuid4()))
+            rows.append(self._csv_row(license_number=license_number))
+
+        import license_upload_without_ssn
+
+        with patch.object(license_upload_without_ssn.config, 'data_client') as mock_data_client:
+            mock_data_client.load_license_number_lookup.return_value.get.return_value = MagicMock(
+                provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570', ssn_last_four='1234'
+            )
+            _, entries = self._process_csv(rows)
+
+        self.assertEqual(1, mock_data_client.load_license_number_lookup.call_count)
+        mock_data_client.find_provider_by_license_number.assert_not_called()
+        self.assertEqual(record_count, len(self._details_of_type(entries, 'license.ingest')))
+
+    def test_does_not_load_the_license_number_index_when_no_rows_need_it(self):
+        """A file made entirely of SSN-bearing rows must not pay for the index load."""
+        import license_upload_without_ssn
+
+        with patch.object(license_upload_without_ssn.config, 'data_client') as mock_data_client:
+            self._process_csv([self._csv_row(ssn='123-45-6789')])
+
+        mock_data_client.load_license_number_lookup.assert_not_called()
+
     def test_publishes_every_record_when_the_file_exceeds_one_batch(self):
         """The SSN-less path batches independently of the SSN path, so a large file must not drop rows."""
         record_count = 105

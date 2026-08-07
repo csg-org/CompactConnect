@@ -36,15 +36,14 @@ def _license(**overrides) -> dict:
 
 
 def _resolve(license_record: dict, *, record_position: int = 0, seen_license_keys: dict | None = None) -> dict:
-    """Call the resolver with the request-path values these tests always use."""
-    from license_upload_without_ssn import resolve_license_without_ssn
+    """Resolve a record through the per-record resolver, which is what these tests exercise."""
+    from license_upload_without_ssn import build_per_record_resolver, resolve_license_without_ssn
 
     return resolve_license_without_ssn(
-        compact=COMPACT,
-        jurisdiction=JURISDICTION,
         license_record=license_record,
         record_position=record_position,
         seen_license_keys=seen_license_keys if seen_license_keys is not None else {},
+        resolve_license_number=build_per_record_resolver(compact=COMPACT, jurisdiction=JURISDICTION),
     )
 
 
@@ -372,3 +371,60 @@ class TestPublishResolvedLicensesToEventBus(TstLambdas):
         )
 
         self.assertEqual(1, failed_count)
+
+
+@patch('license_upload_without_ssn.config')
+class TestLicenseNumberResolvers(TstLambdas):
+    """
+    Both upload paths resolve a license number to a practitioner, but source it differently: the API
+    queries per record, while the bulk upload loads the whole index once. These build the two sources
+    behind one interface so the resolution logic itself stays shared.
+    """
+
+    def test_per_record_resolver_queries_the_index(self, mock_config):
+        from license_upload_without_ssn import build_per_record_resolver
+
+        resolve = build_per_record_resolver(compact=COMPACT, jurisdiction=JURISDICTION)
+        resolve('A0608337260')
+
+        mock_config.data_client.find_provider_by_license_number.assert_called_once_with(
+            compact=COMPACT,
+            jurisdiction=JURISDICTION,
+            license_number='A0608337260',
+        )
+
+    def test_preloaded_resolver_loads_the_index_once_regardless_of_lookups(self, mock_config):
+        """This is the whole point of the bulk path: one round trip for the file, not one per row."""
+        from license_upload_without_ssn import build_preloaded_resolver
+
+        resolve = build_preloaded_resolver(compact=COMPACT, jurisdiction=JURISDICTION)
+        for _ in range(50):
+            resolve('A0608337260')
+
+        mock_config.data_client.load_license_number_lookup.assert_called_once_with(
+            compact=COMPACT,
+            jurisdiction=JURISDICTION,
+        )
+        mock_config.data_client.find_provider_by_license_number.assert_not_called()
+
+    def test_preloaded_resolver_answers_from_the_loaded_map(self, mock_config):
+        from license_upload_without_ssn import build_preloaded_resolver
+
+        expected = MagicMock()
+        mock_config.data_client.load_license_number_lookup.return_value.get.return_value = expected
+
+        resolve = build_preloaded_resolver(compact=COMPACT, jurisdiction=JURISDICTION)
+
+        self.assertIs(expected, resolve('A0608337260'))
+
+    def test_preloaded_resolver_propagates_ambiguity(self, mock_config):
+        from license_upload_without_ssn import build_preloaded_resolver
+
+        mock_config.data_client.load_license_number_lookup.return_value.get.side_effect = (
+            CCAmbiguousLicenseNumberException('boom')
+        )
+
+        resolve = build_preloaded_resolver(compact=COMPACT, jurisdiction=JURISDICTION)
+
+        with self.assertRaises(CCAmbiguousLicenseNumberException):
+            resolve('A0608337260')

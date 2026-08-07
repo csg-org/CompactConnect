@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 from cc_common.exceptions import CCAmbiguousLicenseNumberException
 from common_test.test_constants import (
     DEFAULT_COMPACT,
@@ -44,8 +46,8 @@ class TestFindProviderByLicenseNumber(TstFunction):
 
     def test_returns_single_provider_when_one_provider_holds_the_number_for_two_license_types(self):
         """
-        A state may reuse one license number across license types for the same practitioner. That is
-        unambiguous as far as identity goes, so it must resolve rather than error.
+        Entries that agree on the practitioner resolve, however many of them there are: the index only
+        has to identify who the license number belongs to.
         """
         self.test_data_generator.put_default_license_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table(
@@ -122,3 +124,122 @@ class TestFindProviderByLicenseNumber(TstFunction):
         self.test_data_generator.put_default_license_record_in_provider_table()
 
         self.assertIsNone(self._lookup(license_number=DEFAULT_LICENSE_NUMBER.lower()))
+
+
+@mock_aws
+class TestLoadLicenseNumberLookup(TstFunction):
+    """
+    Tests for loading a whole jurisdiction's license number index in one pass.
+
+    The bulk upload path resolves thousands of rows against this, so it pages the index into memory once
+    rather than issuing a query per row. The map it returns must answer exactly as the per-row lookup
+    does, including raising on a license number that does not identify one practitioner.
+    """
+
+    def _load(self, compact: str = DEFAULT_COMPACT, jurisdiction: str = DEFAULT_LICENSE_JURISDICTION):
+        from cc_common.data_model.data_client import DataClient
+
+        return DataClient(self.config).load_license_number_lookup(compact=compact, jurisdiction=jurisdiction)
+
+    def test_returns_an_empty_map_when_the_jurisdiction_has_no_licenses(self):
+        lookup = self._load()
+
+        self.assertIsNone(lookup.get(DEFAULT_LICENSE_NUMBER))
+
+    def test_resolves_a_license_number_to_its_provider(self):
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        result = self._load().get(DEFAULT_LICENSE_NUMBER)
+
+        self.assertIsNotNone(result)
+        self.assertEqual(DEFAULT_PROVIDER_ID, result.provider_id)
+        self.assertEqual(DEFAULT_SSN_LAST_FOUR, result.ssn_last_four)
+
+    def test_resolves_when_one_provider_holds_the_number_for_two_license_types(self):
+        """Two license records for the same practitioner are two index entries, but one identity."""
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'licenseType': OTHER_LICENSE_TYPE}
+        )
+
+        result = self._load().get(DEFAULT_LICENSE_NUMBER)
+
+        self.assertEqual(DEFAULT_PROVIDER_ID, result.provider_id)
+
+    def test_raises_when_a_license_number_maps_to_two_providers(self):
+        """The ambiguity must survive the bulk load rather than one entry silently overwriting the other."""
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'providerId': OTHER_PROVIDER_ID, 'licenseType': OTHER_LICENSE_TYPE}
+        )
+
+        lookup = self._load()
+
+        with self.assertRaises(CCAmbiguousLicenseNumberException):
+            lookup.get(DEFAULT_LICENSE_NUMBER)
+
+    def test_raises_when_entries_disagree_on_ssn_last_four(self):
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'licenseType': OTHER_LICENSE_TYPE, 'ssnLastFour': '9999'}
+        )
+
+        lookup = self._load()
+
+        with self.assertRaises(CCAmbiguousLicenseNumberException):
+            lookup.get(DEFAULT_LICENSE_NUMBER)
+
+    def test_an_ambiguous_number_does_not_poison_the_rest_of_the_map(self):
+        """One bad license number must not stop the other rows in a file from resolving."""
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'providerId': OTHER_PROVIDER_ID, 'licenseType': OTHER_LICENSE_TYPE}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'licenseNumber': 'UNAMBIGUOUS-1', 'licenseType': OTHER_LICENSE_TYPE}
+        )
+
+        lookup = self._load()
+
+        self.assertEqual(DEFAULT_PROVIDER_ID, lookup.get('UNAMBIGUOUS-1').provider_id)
+        with self.assertRaises(CCAmbiguousLicenseNumberException):
+            lookup.get(DEFAULT_LICENSE_NUMBER)
+
+    def test_excludes_licenses_from_other_jurisdictions(self):
+        self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={'jurisdiction': 'ne'})
+
+        self.assertIsNone(self._load().get(DEFAULT_LICENSE_NUMBER))
+
+    def test_excludes_licenses_without_a_license_number(self):
+        license_record = self.test_data_generator.generate_default_license().serialize_to_database_record()
+        del license_record['licenseNumber']
+        self.test_data_generator.store_record_in_provider_table(license_record)
+
+        self.assertIsNone(self._load().get(DEFAULT_LICENSE_NUMBER))
+
+    def test_follows_pagination_until_the_whole_partition_is_loaded(self):
+        """
+        A jurisdiction's index will not fit in one 1MB query page, so every page must be collected. A
+        stubbed config is used here, because seeding a real page boundary would need thousands of records.
+        """
+        from cc_common.data_model.data_client import DataClient
+
+        stub_config = MagicMock()
+        stub_config.license_number_gsi_name = 'licenseNumberGSI'
+        stub_config.provider_table.query.side_effect = [
+            {
+                'Items': [{'licenseNumber': 'PAGE-1', 'providerId': DEFAULT_PROVIDER_ID, 'ssnLastFour': '1111'}],
+                'LastEvaluatedKey': {'licenseNumber': 'PAGE-1'},
+            },
+            {
+                'Items': [{'licenseNumber': 'PAGE-2', 'providerId': OTHER_PROVIDER_ID, 'ssnLastFour': '2222'}],
+            },
+        ]
+
+        lookup = DataClient(stub_config).load_license_number_lookup(
+            compact=DEFAULT_COMPACT, jurisdiction=DEFAULT_LICENSE_JURISDICTION
+        )
+
+        self.assertEqual(2, stub_config.provider_table.query.call_count)
+        self.assertEqual(DEFAULT_PROVIDER_ID, lookup.get('PAGE-1').provider_id)
+        self.assertEqual(OTHER_PROVIDER_ID, lookup.get('PAGE-2').provider_id)

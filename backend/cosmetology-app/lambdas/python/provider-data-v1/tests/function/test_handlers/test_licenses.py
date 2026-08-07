@@ -673,8 +673,8 @@ class TestPostLicensesWithoutSsn(TstFunction):
 
     def test_accepts_the_same_license_number_for_two_license_types(self):
         """
-        A jurisdiction may hold one license number across license types for the same practitioner, so
-        those rows are not duplicates of each other.
+        Rows sharing a license number but differing in license type write different license records, so
+        they are not duplicates of each other.
         """
         existing_license = self._seed_existing_license()
         self._seed_existing_license(licenseType='esthetician')

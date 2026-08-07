@@ -17,11 +17,18 @@ sites and is marked with TODOs for removal.
 """
 
 import json
+from collections.abc import Callable
 
 from aws_lambda_powertools.metrics import MetricUnit
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.data_client import LicenseNumberLookupResult
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCAmbiguousLicenseNumberException, CCInvalidRequestException
+
+# Resolves a license number to the practitioner holding it, returning None when the number is unknown
+# and raising CCAmbiguousLicenseNumberException when it identifies more than one. The two upload paths
+# supply different implementations, which is the only way they differ in resolving a record.
+LicenseNumberResolver = Callable[[str], LicenseNumberLookupResult | None]
 
 # Custom metrics tracking how states are using SSN-less uploads: how many records resolved, how many
 # were rejected because the license number was unknown, and how many hit an ambiguous license number.
@@ -72,34 +79,65 @@ def partition_licenses_by_ssn_presence(licenses: list[dict]) -> tuple[list[dict]
     return ssn_licenses, ssnless_licenses
 
 
+def build_per_record_resolver(*, compact: str, jurisdiction: str) -> LicenseNumberResolver:
+    """Resolve one license number at a time, straight from the index.
+
+    Suits the API path, where the request is capped at a small number of records and the handler is
+    invoked once per request: loading the whole index each time would be far more work than the lookups
+    it saves, and would concentrate that read on a single index partition.
+    """
+
+    def resolve(license_number: str) -> LicenseNumberLookupResult | None:
+        return config.data_client.find_provider_by_license_number(
+            compact=compact,
+            jurisdiction=jurisdiction,
+            license_number=license_number,
+        )
+
+    return resolve
+
+
+def build_preloaded_resolver(*, compact: str, jurisdiction: str) -> LicenseNumberResolver:
+    """Load the jurisdiction's whole license number index once, then resolve from memory.
+
+    Suits the bulk upload path, where one file can carry tens of thousands of rows. A query per row
+    would mean a network round trip per row, which is what puts a large file at risk of exhausting the
+    lambda's execution time. The index projects only a provider id and ssnLastFour per license, so a
+    whole jurisdiction is a modest amount of memory.
+    """
+    lookup = config.data_client.load_license_number_lookup(compact=compact, jurisdiction=jurisdiction)
+    # LicenseNumberLookupMap.get intentionally matches the per-record resolver's contract, hit, miss and
+    # ambiguity alike, so callers cannot tell the two sources apart.
+    return lookup.get
+
+
 def license_number_dedupe_key(license_record: dict) -> tuple:
     """Build the key used to detect the same license appearing twice in one upload.
 
-    This mirrors the existing SSN duplicate rule: a license number may appear once per license type and
-    scope, because a jurisdiction may hold the same number across license types or scopes for one
-    practitioner, but the same number, license type and scope twice in one upload is a clerical error we
-    reject rather than processing both rows against the same license record.
+    Keyed on license type and scope as well as number, because a license record is identified by its
+    jurisdiction, license type and scope: two rows sharing a number but differing in either write
+    different records and are not in conflict. Two rows that would write the same record are the
+    clerical error worth rejecting. This mirrors how the existing SSN duplicate rule is scoped.
     """
     return (license_record['licenseNumber'], license_record['licenseType'], license_record['licenseScope'])
 
 
 def resolve_license_without_ssn(
     *,
-    compact: str,
-    jurisdiction: str,
     license_record: dict,
     record_position: int,
     seen_license_keys: dict,
+    resolve_license_number: LicenseNumberResolver,
 ) -> dict:
     """Identify the practitioner this license number belongs to and enrich the record accordingly.
 
     Both upload paths share this, including the check that rejects the same license appearing twice in
-    one upload. They differ only in how they number their records and how they report the errors raised
-    here, so the caller supplies the position and decides what to do with a CCInvalidRequestException.
+    one upload. They differ only in where the resolver reads from, how they number their records, and how
+    they report the errors raised here.
 
-    :param compact: The compact from the request path
-    :param jurisdiction: The jurisdiction from the request path
     :param license_record: A validated license record with no ssn
+    :param resolve_license_number: Where to resolve license numbers, per build_per_record_resolver and
+        build_preloaded_resolver
     :param record_position: This record's position as the caller numbers it, used to point a later
         duplicate back at this record
     :param seen_license_keys: Registry of license keys already seen in this upload, updated here
@@ -118,11 +156,7 @@ def resolve_license_without_ssn(
     seen_license_keys[dedupe_key] = record_position
 
     try:
-        lookup_result = config.data_client.find_provider_by_license_number(
-            compact=compact,
-            jurisdiction=jurisdiction,
-            license_number=license_record['licenseNumber'],
-        )
+        lookup_result = resolve_license_number(license_record['licenseNumber'])
     except CCAmbiguousLicenseNumberException:
         # Count the ambiguity before letting it through, since the two upload paths handle it
         # differently. Only this exception is counted: a transient DynamoDB failure is not an ambiguous
@@ -161,6 +195,7 @@ def resolve_licenses_without_ssn(
     :return: (resolved records, errors keyed by request index)
     :raises CCAmbiguousLicenseNumberException: If any license number does not identify one practitioner
     """
+    resolve_license_number = build_per_record_resolver(compact=compact, jurisdiction=jurisdiction)
     resolved_licenses = []
     errors: dict[str, dict] = {}
     seen_license_keys: dict[tuple, int] = {}
@@ -169,11 +204,10 @@ def resolve_licenses_without_ssn(
         try:
             resolved_licenses.append(
                 resolve_license_without_ssn(
-                    compact=compact,
-                    jurisdiction=jurisdiction,
                     license_record=license_record,
                     record_position=index,
                     seen_license_keys=seen_license_keys,
+                    resolve_license_number=resolve_license_number,
                 )
             )
         except CCInvalidRequestException as e:

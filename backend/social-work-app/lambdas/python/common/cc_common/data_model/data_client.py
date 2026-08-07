@@ -54,6 +54,29 @@ class LicenseNumberLookupResult:
     ssn_last_four: str
 
 
+@dataclass(frozen=True)
+class LicenseNumberLookupMap:
+    """An in-memory snapshot of one jurisdiction's license number index.
+
+    The bulk upload path resolves thousands of rows against this, so it loads the index once instead of
+    querying per row. `get` deliberately mirrors DataClient.find_provider_by_license_number: same return
+    for a hit and a miss, same exception for a license number that identifies more than one
+    practitioner, so callers can use either source interchangeably.
+    """
+
+    _resolved: dict[str, LicenseNumberLookupResult]
+    _ambiguous: frozenset[str]
+
+    def get(self, license_number: str) -> LicenseNumberLookupResult | None:
+        """
+        :raises CCAmbiguousLicenseNumberException: If the license number does not identify one practitioner
+        """
+        if license_number in self._ambiguous:
+            logger.error('License number matched multiple providers')
+            raise CCAmbiguousLicenseNumberException('License number matched multiple providers')
+        return self._resolved.get(license_number)
+
+
 class DataClient:
     """Client interface for license data dynamodb queries"""
 
@@ -237,6 +260,65 @@ class DataClient:
         provider_id = provider_ids.pop()
         logger.info('Resolved provider by license number', provider_id=provider_id)
         return LicenseNumberLookupResult(provider_id=provider_id, ssn_last_four=ssn_last_four_values.pop())
+
+    @logger_inject_kwargs(logger, 'compact', 'jurisdiction')
+    def load_license_number_lookup(self, *, compact: str, jurisdiction: str) -> LicenseNumberLookupMap:
+        """Page this jurisdiction's entire license number index into memory.
+
+        This exists for the bulk upload path, where resolving each row with its own query would mean one
+        network round trip per row. The index projects only a provider id and ssnLastFour per license, so
+        a whole jurisdiction is a small amount of data and far fewer round trips.
+
+        :param compact: The compact name
+        :param jurisdiction: The jurisdiction postal code
+        :return: A map answering the same questions as find_provider_by_license_number
+        """
+        logger.info('Loading license number index for jurisdiction')
+
+        resolved: dict[str, LicenseNumberLookupResult] = {}
+        ambiguous: set[str] = set()
+        pagination = {}
+        page_count = 0
+
+        while True:
+            resp = self.config.provider_table.query(
+                IndexName=self.config.license_number_gsi_name,
+                KeyConditionExpression=Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{jurisdiction.lower()}'),
+                **pagination,
+            )
+            page_count += 1
+
+            for record in resp.get('Items', []):
+                license_number = record['licenseNumber']
+                entry = LicenseNumberLookupResult(
+                    provider_id=str(record['providerId']),
+                    ssn_last_four=record['ssnLastFour'],
+                )
+                existing = resolved.get(license_number)
+                # Any number of entries is fine so long as they agree. The index only has to answer
+                # which practitioner a license number belongs to, so matching entries all give the same
+                # unambiguous answer regardless of why the number appears more than once. Only entries
+                # that disagree would leave us guessing, and those are the ambiguous case. This makes no
+                # assumption about how a state assigns license numbers across license types for the same
+                # practitioner
+                if existing is not None and existing != entry:
+                    ambiguous.add(license_number)
+                    del resolved[license_number]
+                elif license_number not in ambiguous:
+                    resolved[license_number] = entry
+
+            last_evaluated_key = resp.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                break
+            pagination = {'ExclusiveStartKey': last_evaluated_key}
+
+        logger.info(
+            'Loaded license number index',
+            page_count=page_count,
+            license_number_count=len(resolved),
+            ambiguous_license_number_count=len(ambiguous),
+        )
+        return LicenseNumberLookupMap(_resolved=resolved, _ambiguous=frozenset(ambiguous))
 
     @paginated_query(set_query_limit_to_match_page_size=True)
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
