@@ -30,10 +30,9 @@ from cc_common.exceptions import CCAmbiguousLicenseNumberException, CCInvalidReq
 # supply different implementations, which is the only way they differ in resolving a record.
 LicenseNumberResolver = Callable[[str], LicenseNumberLookupResult | None]
 
-# Custom metrics tracking how states are using SSN-less uploads: how many records resolved, how many
-# were rejected because the license number was unknown, and how many hit an ambiguous license number.
-# These are for observability only; no alarms are wired to them.
-LICENSE_UPLOAD_WITHOUT_SSN_RESOLVED_METRIC = 'license-upload-without-ssn-resolved'
+# Custom metrics tracking how states are using SSN-less uploads: how many were rejected because the
+# license number was unknown, and how many hit an ambiguous license number. These are for observability only;
+# no alarms are wired to them.
 LICENSE_UPLOAD_WITHOUT_SSN_NOT_FOUND_METRIC = 'license-upload-without-ssn-not-found'
 LICENSE_UPLOAD_WITHOUT_SSN_AMBIGUOUS_METRIC = 'license-upload-without-ssn-ambiguous'
 
@@ -168,8 +167,6 @@ def resolve_license_without_ssn(
         logger.info('No provider found for license number on SSN-less upload')
         metrics.add_metric(name=LICENSE_UPLOAD_WITHOUT_SSN_NOT_FOUND_METRIC, unit=MetricUnit.Count, value=1)
         raise CCInvalidRequestException(LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE)
-
-    metrics.add_metric(name=LICENSE_UPLOAD_WITHOUT_SSN_RESOLVED_METRIC, unit=MetricUnit.Count, value=1)
 
     return {
         **license_record,

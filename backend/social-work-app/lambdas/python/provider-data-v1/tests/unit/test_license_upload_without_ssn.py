@@ -223,24 +223,9 @@ class TestResolveLicenseWithoutSsn(TstLambdas):
 @patch('license_upload_without_ssn.config')
 class TestResolutionMetrics(TstLambdas):
     """
-    These metrics are how we watch adoption and spot trouble after release. They are for observability
-    only -- no alarms are wired to them.
+    These metrics are how we watch for onboarding friction and spot trouble after release. They are for
+    observability only -- no alarms are wired to them.
     """
-
-    def test_counts_a_resolved_license(self, mock_config, mock_metrics):
-        from license_upload_without_ssn import LICENSE_UPLOAD_WITHOUT_SSN_RESOLVED_METRIC
-
-        result = MagicMock()
-        result.provider_id = PROVIDER_ID
-        result.ssn_last_four = SSN_LAST_FOUR
-        mock_config.data_client.find_provider_by_license_number.return_value = result
-
-        _resolve(_license())
-
-        self.assertEqual(
-            [LICENSE_UPLOAD_WITHOUT_SSN_RESOLVED_METRIC],
-            [call.kwargs['name'] for call in mock_metrics.add_metric.call_args_list],
-        )
 
     def test_counts_an_unknown_license_number(self, mock_config, mock_metrics):
         from license_upload_without_ssn import LICENSE_UPLOAD_WITHOUT_SSN_NOT_FOUND_METRIC
