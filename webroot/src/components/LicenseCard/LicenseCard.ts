@@ -16,7 +16,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { dateFormatPatterns } from '@/app.config';
+import { dateFormatPatterns, AppModes, getEncumberConfigLicense } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -106,6 +106,10 @@ class LicenseCard extends mixins(MixinForm) {
     //
     get userStore() {
         return this.$store.state.user;
+    }
+
+    get appMode(): AppModes {
+        return this.$store.state.appMode;
     }
 
     get isAppModeJcc(): boolean {
@@ -284,53 +288,11 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const { isAppModeJcc, isAppModeCosmetology, isAppModeSocialWork } = this;
-        const includeList: Array<string> = [];
-        let options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
+        const includeList: Array<string> = getEncumberConfigLicense(this.appMode).disciplineTypes;
+        const options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
             value: disciplineType.key,
             name: disciplineType.name,
-        }));
-
-        if (isAppModeJcc) {
-            includeList.push('fine');
-            includeList.push('reprimand');
-            includeList.push('required supervision');
-            includeList.push('completion of continuing education');
-            includeList.push('public reprimand');
-            includeList.push('probation');
-            includeList.push('injunctive action');
-            includeList.push('suspension');
-            includeList.push('revocation');
-            includeList.push('denial');
-            includeList.push('surrender of license');
-            includeList.push('modification of previous action-extension');
-            includeList.push('modification of previous action-reduction');
-            includeList.push('other monitoring');
-            includeList.push('other adjudicated action not listed');
-        } else if (isAppModeCosmetology) {
-            includeList.push('suspension');
-            includeList.push('revocation');
-            includeList.push('surrender of license');
-        } else if (isAppModeSocialWork) {
-            includeList.push('fine');
-            includeList.push('reprimand');
-            includeList.push('required supervision');
-            includeList.push('completion of continuing education');
-            includeList.push('public reprimand');
-            includeList.push('probation');
-            includeList.push('injunctive action');
-            includeList.push('suspension');
-            includeList.push('revocation');
-            includeList.push('denial');
-            includeList.push('surrender of license');
-            includeList.push('modification of previous action-extension');
-            includeList.push('modification of previous action-reduction');
-            includeList.push('other monitoring');
-            includeList.push('other adjudicated action not listed');
-        }
-
-        // Filter the compact-specific options
-        options = options.filter((option) => includeList.includes(option.value) || option.value === '');
+        })).filter((option) => includeList.includes(option.value) || option.value === '');
 
         // For a single-select, include the blank option
         options.unshift({
@@ -342,46 +304,14 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const { isAppModeJcc, isAppModeCosmetology, isAppModeSocialWork } = this;
-        const includeList: Array<string> = [];
-        let isMultiSelect = true;
-        let options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
+        const includeList: Array<string> = getEncumberConfigLicense(this.appMode).npdbTypes;
+        const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
-        }));
-
-        // Define the included keys per compact
-        if (isAppModeJcc) {
-            includeList.push('Non-compliance With Requirements');
-            includeList.push('Criminal Conviction or Adjudication');
-            includeList.push('Confidentiality, Consent or Disclosure Violations');
-            includeList.push('Misconduct or Abuse');
-            includeList.push('Fraud, Deception, or Misrepresentation');
-            includeList.push('Unsafe Practice or Substandard Care');
-            includeList.push('Improper Supervision or Allowing Unlicensed Practice');
-            includeList.push('Other');
-        } else if (isAppModeCosmetology) {
-            isMultiSelect = false;
-            includeList.push('fraud');
-            includeList.push('consumer harm');
-            includeList.push('other');
-        } else if (isAppModeSocialWork) {
-            includeList.push('Non-compliance With Requirements');
-            includeList.push('Conflict of Interest');
-            includeList.push('Substandard Care or Patient Neglect/Abuse');
-            includeList.push('Criminal Conviction or Adjudication');
-            includeList.push('Confidentiality, Consent or Disclosure Violations');
-            includeList.push('Fraud, Deception, or Misrepresentation');
-            includeList.push('Improper Supervision or Allowing Unlicensed Practice');
-            includeList.push('Improper Prescribing, Dispensing, Administering Medication/Drug Violation');
-            includeList.push('Other');
-        }
-
-        // Filter the compact-specific options
-        options = options.filter((option) => includeList.includes(option.value) || option.value === '');
+        })).filter((option) => includeList.includes(option.value) || option.value === '');
 
         // For a single-select, include the blank option
-        if (!isMultiSelect) {
+        if (!this.shouldAllowNpdbMultiSelect) {
             options.unshift({ value: '', name: computed(() => this.$t('common.selectOption')) });
         }
 
