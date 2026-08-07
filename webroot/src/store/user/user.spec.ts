@@ -584,7 +584,7 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGOUT_REQUEST]);
-        expect(dispatch.callCount).to.equal(4);
+        expect(dispatch.callCount).to.equal(3);
     });
     it('should successfully start logout success', () => {
         const commit = sinon.spy();

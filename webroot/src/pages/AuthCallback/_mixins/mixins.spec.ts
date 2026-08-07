@@ -5,10 +5,18 @@
 //  Created by InspiringApps on 6/24/2026.
 //
 
+import sinon from 'sinon';
+import axios from 'axios';
 import { mountShallow } from '@tests/helpers/setup';
 import AuthCallbackHandlerMixin from '@pages/AuthCallback/_mixins/handler.mixin';
 import { AppModes } from '@/app.config';
-import { AuthTypes, AUTH_CSRF_STATE } from '@utils/auth';
+import {
+    AuthTypes,
+    AUTH_CSRF_STATE,
+    AUTH_PKCE_CODE_VERIFIER,
+    authStorage,
+    tokens
+} from '@utils/auth';
 import sessionStorage from '@store/session.storage';
 
 const chaiMatchPattern = require('chai-match-pattern');
@@ -41,13 +49,49 @@ describe('AuthCallbackHandler mixin', async () => {
         expect(component.stateParam).to.equal('def');
     });
     it('should successfully get tokens', async () => {
+        const cognitoAuthDomain = 'https://staff-auth.test.example.com';
+        const cognitoClientId = 'test-staff-client-id';
+        const tokenResponse = {
+            access_token: 'access-token',
+            id_token: 'id-token',
+            token_type: 'Bearer',
+        };
+        const axiosPostStub = sinon.stub(axios, 'post').resolves({ data: tokenResponse });
         const wrapper = await mountShallow(AuthCallbackHandlerMixin);
         const component = wrapper.vm;
+        const routerPushStub = sinon.stub(component.$router, 'push').resolves();
+        const dispatchSpy = sinon.spy(component.$store, 'dispatch');
 
-        await component.getTokens(AppModes.JCC, AuthTypes.STAFF, 'http://localhost', 'abc');
+        // created() fails CSRF and sets isError; reset for the direct getTokens call under test
+        component.isError = false;
+        component.$route.query.code = 'auth-code-123';
+        sessionStorage.setItem(AUTH_PKCE_CODE_VERIFIER, 'pkce-verifier-123');
 
-        // If the tokens flow is successful then it ends by redirecting the user with a replaced router history state
-        expect(component.$router.options.history.state.replaced).to.equal(true);
+        await component.getTokens(AppModes.JCC, AuthTypes.STAFF, cognitoAuthDomain, cognitoClientId);
+
+        expect(axiosPostStub.calledOnce).to.equal(true);
+        expect(axiosPostStub.firstCall.args[0]).to.equal(`${cognitoAuthDomain}/oauth2/token`);
+        expect(axiosPostStub.firstCall.args[1].get('grant_type')).to.equal('authorization_code');
+        expect(axiosPostStub.firstCall.args[1].get('client_id')).to.equal(cognitoClientId);
+        expect(axiosPostStub.firstCall.args[1].get('redirect_uri')).to.equal(
+            `${component.$envConfig.domain}${component.$route.path}`
+        );
+        expect(axiosPostStub.firstCall.args[1].get('code')).to.equal('auth-code-123');
+        expect(axiosPostStub.firstCall.args[1].get('code_verifier')).to.equal('pkce-verifier-123');
+        expect(dispatchSpy.calledWith('user/updateAuthTokens', {
+            tokenResponse,
+            authType: AuthTypes.STAFF,
+        })).to.equal(true);
+        expect(dispatchSpy.calledWith('user/loginSuccess', AuthTypes.STAFF)).to.equal(true);
+        expect(routerPushStub.calledWith({ name: 'Home' })).to.equal(true);
+        expect(component.isError).to.equal(false);
+
+        axiosPostStub.restore();
+        routerPushStub.restore();
+        dispatchSpy.restore();
+        authStorage.removeItem(tokens.staff.AUTH_TOKEN);
+        authStorage.removeItem(tokens.staff.AUTH_TOKEN_TYPE);
+        authStorage.removeItem(tokens.staff.ID_TOKEN);
     });
     it('should verify a matching csrf state param', async () => {
         const wrapper = await mountShallow(AuthCallbackHandlerMixin);
