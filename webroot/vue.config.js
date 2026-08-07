@@ -293,7 +293,7 @@ module.exports = {
         }
 
         // Set build size warnings
-        config.performance.maxEntrypointSize(2048000);
+        config.performance.maxEntrypointSize(2096000);
         config.performance.maxAssetSize(2048000);
     },
     configureWebpack: {

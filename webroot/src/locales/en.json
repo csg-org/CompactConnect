@@ -957,6 +957,14 @@
                 "key": "Non-compliance With Requirements"
             },
             {
+                "name": "Conflict of Interest",
+                "key": "Conflict of Interest"
+            },
+            {
+                "name": "Substandard Care or Patient Neglect/Abuse",
+                "key": "Substandard Care or Patient Neglect/Abuse"
+            },
+            {
                 "name": "Criminal Conviction or Adjudication",
                 "key": "Criminal Conviction or Adjudication"
             },
@@ -979,6 +987,10 @@
             {
                 "name": "Improper Supervision or Allowing Unlicensed Practice",
                 "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Improper Prescribing, Dispensing, Administering Medication/Drug Violation",
+                "key": "Improper Prescribing, Dispensing, Administering Medication/Drug Violation"
             },
             {
                 "name": "Fraud",
