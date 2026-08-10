@@ -4,7 +4,6 @@ import os
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config
-from cc_common.data_model.schema.common import StaffUserStatus
 from user_data import UserData
 
 logger = Logger()
@@ -34,22 +33,22 @@ def customize_scopes(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         user_data = UserData(sub)
         logger.debug('Adding scopes', scopes=user_data.scopes)
 
-        # Get all the user's records and set their status to active
-        for record in user_data.records:
-            # Only update the status if it's not already active
-            if record['status'] != StaffUserStatus.ACTIVE.value:
-                config.users_table.update_item(
-                    Key={'pk': record['pk'], 'sk': record['sk']},
-                    UpdateExpression='SET #status = :status',
-                    ExpressionAttributeNames={'#status': 'status'},
-                    ExpressionAttributeValues={':status': StaffUserStatus.ACTIVE.value},
-                )
-
     # We want to catch almost any exception here, so we can gracefully return execution back to AWS
     except Exception as e:  # noqa: BLE001 broad-exception-caught
         logger.error('Error while getting user scopes!', exc_info=e)
         event['response']['claimsAndScopeOverrideDetails'] = None
         return event
+
+    # Mark the user active and stamp lastLoginAt on each of their records. This login timestamp update
+    # is best attempt, so a failure here is logged and swallowed rather than costing the user the
+    # scopes we just calculated.
+    try:
+        config.user_client.record_user_login(
+            user_id=sub,
+            compacts={record['compact'] for record in user_data.records},
+        )
+    except Exception as e:  # noqa: BLE001 broad-exception-caught
+        logger.error('Error while recording user login!', exc_info=e)
 
     event['response']['claimsAndScopeOverrideDetails'] = {
         'accessTokenGeneration': {
