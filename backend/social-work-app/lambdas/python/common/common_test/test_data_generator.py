@@ -10,6 +10,7 @@ from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
+from cc_common.data_model.schema.user import StaffUserData
 from cc_common.utils import ResponseEncoder
 
 from common_test.test_constants import *
@@ -152,6 +153,29 @@ class TestDataGenerator:
             default_adverse_actions.update(value_overrides)
 
         return AdverseActionData.create_new(default_adverse_actions)
+
+    @staticmethod
+    def generate_default_staff_user(value_overrides: dict | None = None) -> StaffUserData:
+        """Generate a default staff user with no permissions"""
+        from cc_common.data_model.schema.common import StaffUserStatus
+
+        default_staff_user = {
+            'userId': DEFAULT_STAFF_USER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': 'user',
+            'status': StaffUserStatus.ACTIVE.value,
+            'attributes': {
+                'email': DEFAULT_EMAIL_ADDRESS,
+                'givenName': DEFAULT_GIVEN_NAME,
+                'familyName': DEFAULT_FAMILY_NAME,
+            },
+            'permissions': {'actions': set(), 'jurisdictions': {}},
+            'lastLoginAt': datetime.fromisoformat(DEFAULT_STAFF_USER_LAST_LOGIN_TIMESTAMP),
+        }
+        if value_overrides:
+            default_staff_user.update(value_overrides)
+
+        return StaffUserData.create_new(default_staff_user)
 
     @staticmethod
     def generate_default_investigation(value_overrides: dict | None = None) -> InvestigationData:
