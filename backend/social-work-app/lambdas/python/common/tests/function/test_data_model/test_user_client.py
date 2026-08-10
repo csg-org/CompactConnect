@@ -132,6 +132,87 @@ class TestClient(TstFunction):
         )
         self.assertNotIn('Item', stub_record)
 
+    def _put_oversized_users(self, count: int, *, compact: str = 'socw') -> set[str]:
+        """Write `count` deliberately oversized user records, so a GSI query has to paginate.
+
+        DynamoDB caps a query page at 1MB, so ~100KB of padding per record forces LastEvaluatedKey
+        after a handful of items. The padding is an unknown field, dropped when the record loads.
+        """
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.schema.user.record import UserRecordSchema
+
+        schema = UserRecordSchema()
+        user_ids = set()
+        with self.config.users_table.batch_writer() as batch:
+            for i in range(count):
+                user_id = str(uuid4())
+                user_ids.add(user_id)
+                record = schema.dump(
+                    {
+                        'userId': user_id,
+                        'compact': compact,
+                        'status': StaffUserStatus.ACTIVE.value,
+                        'attributes': {
+                            'email': f'user{i}@example.com',
+                            'givenName': f'Given{i:04d}',
+                            'familyName': f'Family{i:04d}',
+                        },
+                        'permissions': {'actions': set(), 'jurisdictions': {}},
+                    }
+                )
+                record['padding'] = 'x' * 100_000
+                batch.put_item(Item=record)
+        return user_ids
+
+    def test_iterate_all_users_in_compact_yields_every_user_across_pages(self):
+        from boto3.dynamodb.conditions import Key
+        from cc_common.data_model.user_client import UserClient
+
+        expected_user_ids = self._put_oversized_users(12)
+
+        # Guard the premise of this test: one query page must not be able to hold all of these
+        # records, or we would not be exercising the pagination loop at all.
+        single_page = self.config.users_table.query(
+            IndexName=self.config.fam_giv_index_name,
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('sk').eq('COMPACT#socw'),
+        )
+        self.assertIn('LastEvaluatedKey', single_page)
+
+        users = list(UserClient(self.config).iterate_all_users_in_compact(compact='socw'))
+
+        self.assertEqual(expected_user_ids, {str(user.userId) for user in users})
+
+    def test_iterate_all_users_in_compact_yields_staff_user_data(self):
+        from cc_common.data_model.schema.user import StaffUserData
+        from cc_common.data_model.user_client import UserClient
+
+        self._load_user_data()
+
+        users = list(UserClient(self.config).iterate_all_users_in_compact(compact='socw'))
+
+        self.assertEqual(1, len(users))
+        self.assertIsInstance(users[0], StaffUserData)
+        self.assertEqual('justin@example.org', users[0].email)
+
+    def test_iterate_all_users_in_compact_excludes_other_compacts(self):
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+        # A record for the same user in another compact must not come back on a socw query
+        self.config.users_table.put_item(
+            Item=self._get_user_record(user_id) | {'sk': 'COMPACT#some-other-compact', 'compact': 'some-other-compact'}
+        )
+
+        users = list(UserClient(self.config).iterate_all_users_in_compact(compact='socw'))
+
+        self.assertEqual(['socw'], [user.compact for user in users])
+
+    def test_iterate_all_users_in_compact_yields_nothing_when_empty(self):
+        from cc_common.data_model.user_client import UserClient
+
+        self.assertEqual([], list(UserClient(self.config).iterate_all_users_in_compact(compact='socw')))
+
     def test_get_user_in_compact_not_found(self):
         """User ID not found should raise an exception"""
         from cc_common.data_model.user_client import UserClient

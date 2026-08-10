@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from enum import StrEnum
 from secrets import token_hex
 
@@ -8,6 +8,7 @@ from botocore.exceptions import ClientError
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.common import StaffUserStatus
+from cc_common.data_model.schema.user import StaffUserData
 from cc_common.data_model.schema.user.record import (
     CompactPermissionsRecordSchema,
     UserAttributesRecordSchema,
@@ -93,6 +94,32 @@ class UserClient:
             **({'FilterExpression': filter_expression} if filter_expression is not None else {}),
             **dynamo_pagination,
         )
+
+    def iterate_all_users_in_compact(self, *, compact: str) -> Generator[StaffUserData, None, None]:
+        """Yield every staff user in a compact, transparently following LastEvaluatedKey.
+
+        Distinct from get_users_sorted_by_family_name, which returns a single API-facing page. This is
+        for batch work that has to consider every user in the compact.
+
+        :param str compact: The compact to iterate over
+        """
+        logger.info('Iterating over all staff users in compact', compact=compact)
+
+        pagination = {}
+        while True:
+            response = self.config.users_table.query(
+                IndexName=self.config.fam_giv_index_name,
+                Select='ALL_ATTRIBUTES',
+                KeyConditionExpression=Key('sk').eq(f'COMPACT#{compact}'),
+                **pagination,
+            )
+            for item in response.get('Items', []):
+                yield StaffUserData.from_database_record(item)
+
+            last_key = response.get('LastEvaluatedKey')
+            if last_key is None:
+                break
+            pagination = {'ExclusiveStartKey': last_key}
 
     def record_user_login(self, *, user_id: str, compacts: Iterable[str]) -> None:
         """Mark the user active and stamp lastLoginAt on each of the user's compact records.
