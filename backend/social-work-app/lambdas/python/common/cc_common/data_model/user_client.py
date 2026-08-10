@@ -94,6 +94,36 @@ class UserClient:
             **dynamo_pagination,
         )
 
+    def record_user_login(self, *, user_id: str, compacts: Iterable[str]) -> None:
+        """Mark the user active and stamp lastLoginAt on each of the user's compact records.
+
+        Called from the pre-token-generation hook on every successful access token generation.
+
+        :param str user_id: The user that just signed in
+        :param Iterable[str] compacts: The compacts the user has records in
+        """
+        logger.info('Recording staff user login', user_id=user_id)
+
+        last_login_at = self.config.current_standard_datetime.isoformat()
+        for compact in compacts:
+            try:
+                self.config.users_table.update_item(
+                    Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
+                    UpdateExpression='SET #status = :status, lastLoginAt = :lastLoginAt',
+                    # Without this, an update against a missing record would create a stub record that has
+                    # none of the fields a user record requires
+                    ConditionExpression=Attr('pk').exists(),
+                    ExpressionAttributeNames={'#status': 'status'},
+                    ExpressionAttributeValues={
+                        ':status': StaffUserStatus.ACTIVE.value,
+                        ':lastLoginAt': last_login_at,
+                    },
+                )
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                    raise CCNotFoundException('User not found for compact') from e
+                raise
+
     def update_user_permissions(
         self,
         *,

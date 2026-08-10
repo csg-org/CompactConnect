@@ -31,6 +31,107 @@ class TestClient(TstFunction):
         )
         self.assertEqual(UUID(user_id), user['userId'])
 
+    def _get_user_record(self, user_id: str, compact: str = 'socw') -> dict:
+        return self.config.users_table.get_item(Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'})['Item']
+
+    def test_record_user_login_sets_last_login_at_and_status(self):
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+        # The fixture user has never signed in
+        self.assertEqual(StaffUserStatus.INACTIVE.value, self._get_user_record(user_id)['status'])
+
+        login_time = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+        with patch('cc_common.config._Config.current_standard_datetime', login_time):
+            UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw'])
+
+        user_record = self._get_user_record(user_id)
+        self.assertEqual(login_time.isoformat(), user_record['lastLoginAt'])
+        self.assertEqual(StaffUserStatus.ACTIVE.value, user_record['status'])
+
+    def test_record_user_login_refreshes_last_login_at_for_active_user(self):
+        """An already-active user still gets a fresh lastLoginAt on every sign-in."""
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+        client = UserClient(self.config)
+
+        first_login = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+        with patch('cc_common.config._Config.current_standard_datetime', first_login):
+            client.record_user_login(user_id=user_id, compacts=['socw'])
+
+        second_login = datetime.fromisoformat('2024-12-25T08:00:00+00:00')
+        with patch('cc_common.config._Config.current_standard_datetime', second_login):
+            client.record_user_login(user_id=user_id, compacts=['socw'])
+
+        self.assertEqual(second_login.isoformat(), self._get_user_record(user_id)['lastLoginAt'])
+
+    def test_record_user_login_leaves_other_fields_untouched(self):
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+        original_record = self._get_user_record(user_id)
+
+        with patch(
+            'cc_common.config._Config.current_standard_datetime',
+            datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+        ):
+            UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw'])
+
+        updated_record = self._get_user_record(user_id)
+        for field in ('attributes', 'permissions', 'famGiv', 'compact', 'type', 'userId'):
+            self.assertEqual(original_record[field], updated_record[field], f'{field} should not have changed')
+
+    def test_record_user_login_updates_every_compact_record(self):
+        """A user with records in several compacts gets every one of them stamped."""
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+        # Seed a second compact record for the same user. Written directly, since the record schema only
+        # permits the compacts this app is configured for.
+        self.config.users_table.put_item(
+            Item=self._get_user_record(user_id) | {'sk': 'COMPACT#some-other-compact', 'compact': 'some-other-compact'}
+        )
+
+        login_time = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+        with patch('cc_common.config._Config.current_standard_datetime', login_time):
+            UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw', 'some-other-compact'])
+
+        for compact in ('socw', 'some-other-compact'):
+            self.assertEqual(
+                login_time.isoformat(),
+                self._get_user_record(user_id, compact)['lastLoginAt'],
+                f'the {compact} record should have been stamped',
+            )
+
+    def test_record_user_login_raises_when_record_does_not_exist(self):
+        """An update against a missing record must not silently create a stub user record.
+
+        The condition is evaluated per item, so a user existing in one compact does not cover a
+        compact they have no record in. This stamps socw before it raises for the missing compact -
+        a partial update is acceptable here, since the next successful sign-in re-stamps everything.
+        """
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        # This user only has a socw record
+        user_id = self._load_user_data()
+
+        with (
+            patch(
+                'cc_common.config._Config.current_standard_datetime',
+                datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            ),
+            self.assertRaises(CCNotFoundException),
+        ):
+            UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw', 'some-other-compact'])
+
+        stub_record = self.config.users_table.get_item(
+            Key={'pk': f'USER#{user_id}', 'sk': 'COMPACT#some-other-compact'}
+        )
+        self.assertNotIn('Item', stub_record)
+
     def test_get_user_in_compact_not_found(self):
         """User ID not found should raise an exception"""
         from cc_common.data_model.user_client import UserClient
