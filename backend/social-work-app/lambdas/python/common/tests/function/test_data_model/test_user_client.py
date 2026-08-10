@@ -627,6 +627,45 @@ class TestClient(TstFunction):
         with self.assertRaises(CCInternalException):
             client.reinvite_user(email='new_user@example.org')
 
+    def test_reinvite_re_enables_a_deactivated_user(self):
+        """The recovery path for inactivity deactivation: an admin re-invites the user.
+
+        Without the re-enable, the invitation lands but the user still cannot sign in.
+        """
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._create_compact_staff_user(compacts=['socw'])
+        client = UserClient(self.config)
+        client.deactivate_user(user_id=user_id)
+        self.assertFalse(self._is_cognito_user_enabled(user_id))
+
+        user_data = self.config.cognito_client.admin_get_user(UserPoolId=self.config.user_pool_id, Username=user_id)
+        client.reinvite_user(email=self._get_email_from_user_attributes(user_data))
+
+        self.assertTrue(self._is_cognito_user_enabled(user_id))
+
+    @patch('cc_common.config._Config.cognito_client')
+    def test_reinvite_does_not_re_enable_an_enabled_user(self, mock_cognito_client):
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = str(uuid4())
+        mock_cognito_client.admin_get_user.return_value = {
+            'Username': user_id,
+            'UserAttributes': [
+                {'Name': 'email', 'Value': 'new_user@example.org'},
+                {'Name': 'email_verified', 'Value': 'True'},
+                {'Name': 'sub', 'Value': user_id},
+            ],
+            'UserCreateDate': datetime(2015, 1, 1, tzinfo=UTC),
+            'UserLastModifiedDate': datetime(2015, 1, 1, tzinfo=UTC),
+            'Enabled': True,
+            'UserStatus': 'FORCE_CHANGE_PASSWORD',
+        }
+
+        UserClient(self.config).reinvite_user(email='new_user@example.org')
+
+        mock_cognito_client.admin_enable_user.assert_not_called()
+
     def test_reinvite_user_not_found(self):
         from cc_common.data_model.user_client import UserClient
         from cc_common.exceptions import CCNotFoundException

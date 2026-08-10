@@ -1,6 +1,7 @@
 from aws_cdk.assertions import Capture, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
 from aws_cdk.aws_cloudwatch import CfnAlarm
+from aws_cdk.aws_iam import CfnPolicy
 from aws_cdk.aws_lambda import CfnFunction
 
 from tests.app.test_api import TestApi
@@ -313,3 +314,27 @@ class TestStaffUsersApi(TestApi):
                 ],
             },
         )
+
+    def test_synth_grants_reinvite_user_handler_permission_to_re_enable_cognito_users(self):
+        """A user deactivated for inactivity is disabled in Cognito, so the reinvite handler has to be able
+        to re-enable them. Without this grant the invitation is sent but the user still cannot sign in.
+        """
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+
+        role_logical_id = api_lambda_stack.get_logical_id(
+            api_lambda_stack.staff_users_lambdas.reinvite_user_handler.role.node.default_child
+        )
+        role_policies = api_lambda_stack_template.find_resources(
+            type=CfnPolicy.CFN_RESOURCE_TYPE_NAME,
+            props={'Properties': {'Roles': [{'Ref': role_logical_id}]}},
+        )
+        self.assertTrue(role_policies, 'No IAM policy found for the reinvite user handler role')
+
+        granted_actions = set()
+        for policy in role_policies.values():
+            for statement in policy['Properties']['PolicyDocument']['Statement']:
+                actions = statement['Action']
+                granted_actions.update(actions if isinstance(actions, list) else [actions])
+
+        self.assertIn('cognito-idp:AdminEnableUser', granted_actions)

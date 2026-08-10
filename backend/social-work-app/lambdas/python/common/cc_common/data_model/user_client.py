@@ -488,6 +488,15 @@ class UserClient:
                 Username=email,
             )
 
+            # A user deactivated for inactivity is disabled in Cognito. Re-enable them before resending
+            # the invite, or the invitation arrives but they still cannot sign in.
+            if not user_data.get('Enabled', True):
+                logger.info('Re-enabling disabled user before reinvite')
+                self.config.cognito_client.admin_enable_user(
+                    UserPoolId=self.config.user_pool_id,
+                    Username=email,
+                )
+
             # If they're in CONFIRMED state, we need to reset their password first
             if user_data['UserStatus'] in (UserStatus.CONFIRMED, UserStatus.RESET_REQUIRED):
                 self.config.cognito_client.admin_set_user_password(
