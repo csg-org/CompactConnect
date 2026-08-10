@@ -132,6 +132,87 @@ class TestClient(TstFunction):
         )
         self.assertNotIn('Item', stub_record)
 
+    def _is_cognito_user_enabled(self, user_id: str) -> bool:
+        return self.config.cognito_client.admin_get_user(UserPoolId=self.config.user_pool_id, Username=user_id)[
+            'Enabled'
+        ]
+
+    def test_deactivate_user_disables_the_cognito_user(self):
+        """A deactivated user must not be able to obtain a token, so Cognito is the real lock."""
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._create_compact_staff_user(compacts=['socw'])
+        self.assertTrue(self._is_cognito_user_enabled(user_id))
+
+        UserClient(self.config).deactivate_user(user_id=user_id)
+
+        self.assertFalse(self._is_cognito_user_enabled(user_id))
+
+    def test_deactivate_user_marks_every_compact_record_inactive(self):
+        """The Cognito disable is global, so leaving another compact's record active would be a lie."""
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._create_compact_staff_user(compacts=['socw'])
+        # Seed a second compact record for the same user, written directly since the record schema
+        # only permits the compacts this app is configured for.
+        self.config.users_table.put_item(
+            Item=self._get_user_record(user_id) | {'sk': 'COMPACT#some-other-compact', 'compact': 'some-other-compact'}
+        )
+        client = UserClient(self.config)
+        with patch(
+            'cc_common.config._Config.current_standard_datetime',
+            datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+        ):
+            client.record_user_login(user_id=user_id, compacts=['socw', 'some-other-compact'])
+
+        client.deactivate_user(user_id=user_id)
+
+        for compact in ('socw', 'some-other-compact'):
+            self.assertEqual(
+                StaffUserStatus.INACTIVE.value,
+                self._get_user_record(user_id, compact)['status'],
+                f'the {compact} record should have been marked inactive',
+            )
+
+    def test_deactivate_user_is_idempotent(self):
+        """The day-of sweep can retry, so deactivating an already-deactivated user must not raise."""
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._create_compact_staff_user(compacts=['socw'])
+        client = UserClient(self.config)
+
+        client.deactivate_user(user_id=user_id)
+        client.deactivate_user(user_id=user_id)
+
+        self.assertFalse(self._is_cognito_user_enabled(user_id))
+        self.assertEqual(StaffUserStatus.INACTIVE.value, self._get_user_record(user_id)['status'])
+
+    def test_deactivate_user_disables_cognito_before_marking_records_inactive(self):
+        """Order matters: a record marked inactive while the user can still sign in would be flipped
+        straight back to active by the pre-token hook. Locking Cognito first cannot go wrong that way -
+        a failure in between just leaves the next sweep to finish the job."""
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+        client = UserClient(self.config)
+        with patch(
+            'cc_common.config._Config.current_standard_datetime',
+            datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+        ):
+            client.record_user_login(user_id=user_id, compacts=['socw'])
+
+        statuses_when_disabled = []
+        with patch('cc_common.config._Config.cognito_client') as mock_cognito_client:
+            mock_cognito_client.admin_disable_user.side_effect = lambda **_kwargs: statuses_when_disabled.append(
+                self._get_user_record(user_id)['status']
+            )
+            client.deactivate_user(user_id=user_id)
+
+        self.assertEqual([StaffUserStatus.ACTIVE.value], statuses_when_disabled)
+
     def _put_oversized_users(self, count: int, *, compact: str = 'socw') -> set[str]:
         """Write `count` deliberately oversized user records, so a GSI query has to paginate.
 

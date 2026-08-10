@@ -95,6 +95,35 @@ class UserClient:
             **dynamo_pagination,
         )
 
+    def deactivate_user(self, *, user_id: str) -> None:
+        """Deactivate a staff user for inactivity.
+
+        Disables the Cognito user so they can no longer obtain a token, and marks every one of their
+        compact records inactive so the rest of the system reflects that.
+
+        :param str user_id: The user to deactivate
+        """
+        logger.info('Deactivating staff user', user_id=user_id)
+
+        # Disable in Cognito first. If this succeeds but the record updates below do not, the user is
+        # locked out while still showing active, and the next sweep finishes the job. The reverse order
+        # would leave a user marked inactive who can still sign in - and the pre-token hook would then
+        # flip them straight back to active.
+        self.config.cognito_client.admin_disable_user(UserPoolId=self.config.user_pool_id, Username=user_id)
+
+        # A user only ever has a handful of compact records, all in one partition, so a single query
+        # is enough. We update each record by its own keys rather than rebuilding them.
+        user_records = self.config.users_table.query(KeyConditionExpression=Key('pk').eq(f'USER#{user_id}')).get(
+            'Items', []
+        )
+        for record in user_records:
+            self.config.users_table.update_item(
+                Key={'pk': record['pk'], 'sk': record['sk']},
+                UpdateExpression='SET #status = :status',
+                ExpressionAttributeNames={'#status': 'status'},
+                ExpressionAttributeValues={':status': StaffUserStatus.INACTIVE.value},
+            )
+
     def iterate_all_users_in_compact(self, *, compact: str) -> Generator[StaffUserData, None, None]:
         """Yield every staff user in a compact, transparently following LastEvaluatedKey.
 
