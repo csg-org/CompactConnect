@@ -1686,7 +1686,10 @@ class TestMultiStateSingleStateValidationError(TstFunction):
 
     @patch('handlers.ingest.EventBatchWriter', autospec=True)
     def test_eligible_multi_state_with_ineligible_single_state_emits_validation_error(self, mock_event_writer):
-        from handlers.ingest import ingest_license_message
+        from handlers.ingest import (
+            MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE,
+            ingest_license_message,
+        )
 
         self._setup_provider_ssn()
 
@@ -1725,7 +1728,7 @@ class TestMultiStateSingleStateValidationError(TstFunction):
         self.assertEqual('2024-11-08T23:59:59+00:00', detail['eventTime'])
         self.assertNotIn('recordNumber', detail)
         self.assertIn('validData', detail)
-        self.assertIn('errors', detail)
+        self.assertEqual({'_schema': [MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE]}, detail['errors'])
         self.assertEqual('multi-state', detail['validData']['licenseScope'])
         self.assertEqual('eligible', detail['validData']['compactEligibility'])
 
@@ -1765,28 +1768,77 @@ class TestMultiStateSingleStateValidationError(TstFunction):
 
         mock_event_writer.return_value.__enter__.return_value.put_event.assert_not_called()
 
-    @patch('handlers.ingest.EventBatchWriter', autospec=True)
-    def test_eligible_multi_state_without_single_state_does_not_emit_validation_error(self, mock_event_writer):
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestMultiStateMissingSingleStateValidationError(TstFunction):
+    """
+    license.validation-error when a multi-state license is uploaded before its associated single-state license.
+
+    A jurisdiction is expected to upload both the single-state and the multi-state license for a practitioner.
+    When the multi-state license arrives and no single-state license of the same type exists for that
+    jurisdiction, the jurisdiction is notified so it can upload the missing single-state license. The
+    multi-state license is still persisted.
+    """
+
+    def _ingest_license(self, detail_overrides: dict | None = None, *, message_id: str = '123') -> dict:
         from handlers.ingest import ingest_license_message
 
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
+        if detail_overrides:
+            message['detail'].update(detail_overrides)
+        event = {'Records': [{'messageId': message_id, 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+        return message
 
-        message['detail'].update(
+    def _setup_provider_ssn(self) -> str:
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            ssn_record = json.load(f)
+        self._ssn_table.put_item(Item=ssn_record)
+        return ssn_record['providerId']
+
+    def _get_put_entries(self, mock_event_writer) -> list[dict]:
+        put_event = mock_event_writer.return_value.__enter__.return_value.put_event
+        return [call.kwargs['Entry'] for call in put_event.call_args_list]
+
+    def _assert_missing_single_state_error(self, entry: dict, *, jurisdiction: str, license_type: str):
+        from handlers.ingest import MULTI_STATE_MISSING_SINGLE_STATE_MESSAGE
+
+        self.assertEqual('license.validation-error', entry['DetailType'])
+        self.assertEqual('org.compactconnect.provider-data', entry['Source'])
+        self.assertEqual('license-data-events', entry['EventBusName'])
+
+        detail = json.loads(entry['Detail'])
+        self.assertEqual('socw', detail['compact'])
+        self.assertEqual(jurisdiction, detail['jurisdiction'])
+        self.assertEqual('2024-11-08T23:59:59+00:00', detail['eventTime'])
+        self.assertNotIn('recordNumber', detail)
+        self.assertEqual({'_schema': [MULTI_STATE_MISSING_SINGLE_STATE_MESSAGE]}, detail['errors'])
+        self.assertEqual('multi-state', detail['validData']['licenseScope'])
+        self.assertEqual(license_type, detail['validData']['licenseType'])
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_first_upload_of_multi_state_license_emits_validation_error(self, mock_event_writer):
+        """A multi-state license is the provider's very first upload, so no single-state license can exist."""
+        self._setup_provider_ssn()
+
+        message = self._ingest_license(
             {
                 'licenseScope': 'multi-state',
                 'licenseNumber': 'B0608337260',
-                'licenseStatus': 'active',
-                'compactEligibility': 'eligible',
-            }
+            },
+            message_id='100',
         )
 
-        event = {'Records': [{'messageId': '300', 'body': json.dumps(message)}]}
-        resp = ingest_license_message(event, self.mock_context)
-        self.assertEqual({'batchItemFailures': []}, resp)
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(1, len(entries))
+        self._assert_missing_single_state_error(
+            entries[0], jurisdiction='oh', license_type='licensed clinical social worker'
+        )
 
-        mock_event_writer.return_value.__enter__.return_value.put_event.assert_not_called()
-
+        # The license is still persisted despite the validation error
         provider_records = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{message["detail"]["providerId"]}'),
@@ -1794,6 +1846,119 @@ class TestMultiStateSingleStateValidationError(TstFunction):
         license_records = [record for record in provider_records if record['type'] == 'license']
         self.assertEqual(1, len(license_records))
         self.assertEqual('multi-state', license_records[0]['licenseScope'])
+        self.assertEqual('B0608337260', license_records[0]['licenseNumber'])
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_multi_state_upload_after_associated_single_state_does_not_emit_validation_error(self, mock_event_writer):
+        """The expected upload order: single-state first, then the multi-state license of the same type."""
+        self._setup_provider_ssn()
+
+        self._ingest_license({'licenseScope': 'single-state'}, message_id='200')
+        self._ingest_license(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+            },
+            message_id='201',
+        )
+
+        self.assertEqual([], self._get_put_entries(mock_event_writer))
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_single_state_upload_without_multi_state_does_not_emit_validation_error(self, mock_event_writer):
+        """A jurisdiction is free to upload only a single-state license; the check is multi-state driven."""
+        self._setup_provider_ssn()
+
+        self._ingest_license({'licenseScope': 'single-state'}, message_id='300')
+
+        self.assertEqual([], self._get_put_entries(mock_event_writer))
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_single_state_license_in_other_jurisdiction_does_not_satisfy_pairing(self, mock_event_writer):
+        """The associated single-state license must be in the same jurisdiction as the multi-state license."""
+        self._setup_provider_ssn()
+
+        self._ingest_license({'jurisdiction': 'oh', 'licenseScope': 'single-state'}, message_id='400')
+        self._ingest_license(
+            {
+                'jurisdiction': 'ky',
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+            },
+            message_id='401',
+        )
+
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(1, len(entries))
+        self._assert_missing_single_state_error(
+            entries[0], jurisdiction='ky', license_type='licensed clinical social worker'
+        )
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_single_state_license_of_other_license_type_does_not_satisfy_pairing(self, mock_event_writer):
+        """The associated single-state license must be of the same license type as the multi-state license."""
+        self._setup_provider_ssn()
+
+        self._ingest_license(
+            {'licenseType': 'licensed clinical social worker', 'licenseScope': 'single-state'},
+            message_id='500',
+        )
+        self._ingest_license(
+            {
+                'licenseType': 'licensed master social worker',
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+            },
+            message_id='501',
+        )
+
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(1, len(entries))
+        self._assert_missing_single_state_error(
+            entries[0], jurisdiction='oh', license_type='licensed master social worker'
+        )
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_re_upload_of_still_unpaired_multi_state_license_emits_validation_error_again(self, mock_event_writer):
+        """The jurisdiction keeps being notified until it uploads the missing single-state license."""
+        self._setup_provider_ssn()
+
+        self._ingest_license(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'B0608337260'},
+            message_id='600',
+        )
+        self._ingest_license(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'B0608337260', 'familyName': 'VonSmitherton'},
+            message_id='601',
+        )
+
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(2, len(entries))
+        for entry in entries:
+            self._assert_missing_single_state_error(
+                entry, jurisdiction='oh', license_type='licensed clinical social worker'
+            )
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_ineligible_multi_state_license_without_single_state_emits_validation_error(self, mock_event_writer):
+        """The missing-pair check does not depend on the compact eligibility of the multi-state license."""
+        self._setup_provider_ssn()
+
+        self._ingest_license(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+                'licenseStatus': 'inactive',
+                'compactEligibility': 'ineligible',
+            },
+            message_id='700',
+        )
+
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(1, len(entries))
+        self._assert_missing_single_state_error(
+            entries[0], jurisdiction='oh', license_type='licensed clinical social worker'
+        )
 
 
 @mock_aws

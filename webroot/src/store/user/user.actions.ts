@@ -42,7 +42,6 @@ export default {
     // LOGOUT
     logoutRequest: ({ commit, dispatch }, authType) => {
         dispatch('clearSessionStores');
-        dispatch('startLoading', null, { root: true });
         let tokenType = AuthTypes.STAFF;
 
         if (authType === AuthTypes.LICENSEE) {
@@ -50,14 +49,7 @@ export default {
         }
         dispatch('clearAuthToken', tokenType);
         commit(MutationTypes.LOGOUT_REQUEST);
-
-        /* istanbul ignore next */
-        if (config.isUsingMockApi) {
-            setTimeout(() => dispatch('endLoading', null, { root: true }), 1000);
-            dispatch('logoutSuccess');
-        } else {
-            dispatch('logoutSuccess');
-        }
+        dispatch('logoutSuccess');
     },
     logoutSuccess: ({ commit }) => {
         commit(MutationTypes.LOGOUT_SUCCESS);

@@ -50,6 +50,12 @@ MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE = (
     'in the same jurisdiction is ineligible.'
 )
 
+MULTI_STATE_MISSING_SINGLE_STATE_MESSAGE = (
+    'Multi-state license uploaded without an associated single-state license of the same license type '
+    'in the same jurisdiction. Both the single-state and the multi-state license must be uploaded for '
+    'this practitioner.'
+)
+
 
 @sqs_handler
 def preprocess_license_ingest(message: dict):
@@ -164,8 +170,19 @@ def ingest_license_message(message: dict):
                 existing_license_records = []
                 current_provider_record = None
 
+            # Both validation checks below look up the posted license's paired single-state license via
+            # ProviderUserRecords, which works in terms of LicenseData, so build that view once and share it.
+            posted_license_data = LicenseData.create_new(deepcopy(posted_license_record))
+
+            # These two checks are mutually exclusive: the first only fires when the associated single-state
+            # license exists, the second only when it does not.
             _check_for_multi_state_single_state_eligibility_validation_error(
-                posted_license_record=posted_license_record,
+                posted_license_data=posted_license_data,
+                provider_user_records=provider_user_records,
+                data_events=data_events,
+            )
+            _check_for_missing_single_state_license_validation_error(
+                posted_license_data=posted_license_data,
                 provider_user_records=provider_user_records,
                 data_events=data_events,
             )
@@ -341,7 +358,7 @@ def ingest_license_message(message: dict):
 
 def _check_for_multi_state_single_state_eligibility_validation_error(
     *,
-    posted_license_record: dict,
+    posted_license_data: LicenseData,
     provider_user_records: ProviderUserRecords | None,
     data_events: list,
 ):
@@ -349,20 +366,15 @@ def _check_for_multi_state_single_state_eligibility_validation_error(
     Notify the uploading jurisdiction when a multi-state license is uploaded as compact-eligible but the
     paired single-state license in the same jurisdiction is ineligible. The license is still persisted.
     """
-    if posted_license_record['licenseScope'] != LicenseScopeEnum.MULTI_STATE.value:
+    if posted_license_data.licenseScope != LicenseScopeEnum.MULTI_STATE.value:
         return
-    if posted_license_record['jurisdictionUploadedCompactEligibility'] != CompactEligibilityStatus.ELIGIBLE:
+    if posted_license_data.jurisdictionUploadedCompactEligibility != CompactEligibilityStatus.ELIGIBLE:
         return
     if provider_user_records is None:
         return
 
-    license_type_abbr = config.license_type_abbreviations[posted_license_record['compact']][
-        posted_license_record['licenseType']
-    ]
-    associated_single_state_license = provider_user_records.get_specific_license_record(
-        posted_license_record['jurisdiction'],
-        license_type_abbr,
-        LicenseScopeEnum.SINGLE_STATE.value,
+    associated_single_state_license = provider_user_records.find_matching_single_state_license_for_multi_state_license(
+        posted_license_data
     )
     if associated_single_state_license is None:
         return
@@ -372,20 +384,69 @@ def _check_for_multi_state_single_state_eligibility_validation_error(
     logger.info(
         'Multi-state license uploaded as eligible but associated single-state license is ineligible. '
         'Publishing license validation error event.',
-        provider_id=posted_license_record['providerId'],
-        jurisdiction=posted_license_record['jurisdiction'],
-        license_type=posted_license_record['licenseType'],
+        provider_id=posted_license_data.providerId,
+        jurisdiction=posted_license_data.jurisdiction,
+        license_type=posted_license_data.licenseType,
     )
     data_events.append(
         config.event_bus_client.generate_license_validation_error_event(
             'org.compactconnect.provider-data',
-            compact=posted_license_record['compact'],
-            jurisdiction=posted_license_record['jurisdiction'],
-            license_record=posted_license_record,
+            compact=posted_license_data.compact,
+            jurisdiction=posted_license_data.jurisdiction,
+            license_record=posted_license_data.to_dict(),
             errors={SCHEMA: [MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE]},
         )
     )
 
+
+def _check_for_missing_single_state_license_validation_error(
+    *,
+    posted_license_data: LicenseData,
+    provider_user_records: ProviderUserRecords | None,
+    data_events: list,
+):
+    """
+    Notify the uploading jurisdiction when a multi-state license is uploaded before its associated
+    single-state license. The license is still persisted.
+
+    A jurisdiction is expected to upload both the single-state and the multi-state license for a
+    practitioner; several downstream behaviors (CUID assignment, home jurisdiction changes) only take effect
+    once both are present. Uploading the multi-state license alone leaves the practitioner in that
+    incomplete state indefinitely, with nothing to prompt the jurisdiction to finish, so we notify them.
+
+    The check is deliberately independent of compact eligibility and active status, matching the pairing
+    semantics of ``ProviderRecordUtility.has_paired_single_and_multi_state_license``. It re-fires on every
+    re-upload while the pairing is still missing, since the notification is the only prompt the jurisdiction
+    gets and the condition is still true.
+    """
+    if posted_license_data.licenseScope != LicenseScopeEnum.MULTI_STATE.value:
+        return
+
+    # No provider records at all means this upload is the provider's first license, so there is no
+    # single-state license for it to pair with.
+    if provider_user_records is not None:
+        associated_single_state_license = (
+            provider_user_records.find_matching_single_state_license_for_multi_state_license(posted_license_data)
+        )
+        if associated_single_state_license is not None:
+            return
+
+    logger.info(
+        'Multi-state license uploaded without an associated single-state license. '
+        'Publishing license validation error event.',
+        provider_id=posted_license_data.providerId,
+        jurisdiction=posted_license_data.jurisdiction,
+        license_type=posted_license_data.licenseType,
+    )
+    data_events.append(
+        config.event_bus_client.generate_license_validation_error_event(
+            'org.compactconnect.provider-data',
+            compact=posted_license_data.compact,
+            jurisdiction=posted_license_data.jurisdiction,
+            license_record=posted_license_data.to_dict(),
+            errors={SCHEMA: [MULTI_STATE_MISSING_SINGLE_STATE_MESSAGE]},
+        )
+    )
 
 def _generate_cuid(compact: str) -> str:
     """

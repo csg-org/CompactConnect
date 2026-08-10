@@ -43,6 +43,7 @@ export const getStatsigEnvironment = () => {
 export type StatsigClientMock = {
     updateUserAsync: (user: any) => Promise<any>;
     checkGate: (gateId?: string) => boolean;
+    logEvent: (eventName?: string, value?: string | number | null, metadata?: Record<string, any>) => boolean;
 }
 
 export const getStatsigClientMock = async (isLiveFallback = false) => ({
@@ -54,6 +55,8 @@ export const getStatsigClientMock = async (isLiveFallback = false) => ({
 
         return isEnabled;
     },
+    // Returns truthy so chai-match-pattern (which treats functions as predicates) still matches across mock instances
+    logEvent: () => true,
 });
 
 export const getStatsigClient = async () => {

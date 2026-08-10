@@ -13,12 +13,16 @@ import {
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
-    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
+    revokeCognitoRefreshToken
 } from '@utils/auth';
+import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 
 @Component({
     name: 'Logout',
-    components: {}
+    components: {
+        LoadingSpinner,
+    },
 })
 export default class Logout extends Vue {
     //
@@ -33,6 +37,10 @@ export default class Logout extends Vue {
     //
     get appMode(): AppModes {
         return this.$store.state.appMode;
+    }
+
+    get appGroupMode() {
+        return this.$store.state.appGroupMode;
     }
 
     get userStore() {
@@ -117,18 +125,33 @@ export default class Logout extends Vue {
     async logoutChecklist(isRemoteLoggedInAsLicenseeOnly): Promise<void> {
         const authType = (isRemoteLoggedInAsLicenseeOnly) ? AuthTypes.LICENSEE : AuthTypes.STAFF;
 
-        this.unsetAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps
         this.stashWorkingUri();
         this.$store.dispatch('user/clearRefreshTokenTimeout');
+        await this.revokeTokens(authType);
+        this.unsetAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps
         await this.$store.dispatch('user/logoutRequest', authType);
     }
 
+    async revokeTokens(authType: AuthTypes): Promise<void> {
+        await revokeCognitoRefreshToken(this.appMode, authType).catch((err) => Promise.resolve().then(() => {
+            // https://console.statsig.com/3KcYv8LC2YCc1vsTkVi3Fb/metrics/metrics_catalog/Cognito%20Token%20Revocation%20Failure/event_count_custom?unitType=overall
+            this.$analytics.logEvent('cognito_token_revoke_failed', 1, {
+                authType,
+                appMode: this.appMode,
+                appGroupMode: this.appGroupMode,
+                errorName: err?.name,
+                errorCode: err?.code,
+                httpStatus: err?.response?.status,
+            });
+        }).catch(() => {
+            // Continue — analytics failures must never block logout
+        }));
+    }
+
     async unsetAnalyticsUser(): Promise<void> {
-        try {
-            await this.$analytics.updateUserAsync({});
-        } catch (err) {
+        await this.$analytics.updateUserAsync({}).catch(() => {
             // Continue
-        }
+        });
     }
 
     stashWorkingUri(): void {
