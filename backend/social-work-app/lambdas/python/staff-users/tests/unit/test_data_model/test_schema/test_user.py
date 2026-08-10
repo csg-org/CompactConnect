@@ -1,9 +1,12 @@
 import json
+from datetime import datetime
 
 from aws_lambda_powertools.utilities.data_classes.dynamo_db_stream_event import TypeDeserializer
 from marshmallow import ValidationError
 
 from tests import TstLambdas
+
+TEST_LAST_LOGIN_AT = '2024-09-12T12:34:56+00:00'
 
 
 class TestUserRecordSchema(TstLambdas):
@@ -67,3 +70,52 @@ class TestUserRecordSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             UserRecordSchema().load(user_data)
+
+    def test_record_loads_last_login_at(self):
+        from cc_common.data_model.schema.user.record import UserRecordSchema
+
+        user_data = self._load_dynamo_user()
+        user_data['lastLoginAt'] = TEST_LAST_LOGIN_AT
+
+        loaded_user = UserRecordSchema().load(user_data)
+
+        self.assertEqual(datetime.fromisoformat(TEST_LAST_LOGIN_AT), loaded_user['lastLoginAt'])
+
+    def test_record_loads_without_last_login_at(self):
+        """lastLoginAt is absent for users who have not signed in since login tracking was introduced."""
+        from cc_common.data_model.schema.user.record import UserRecordSchema
+
+        loaded_user = UserRecordSchema().load(self._load_dynamo_user())
+
+        self.assertNotIn('lastLoginAt', loaded_user)
+
+    def test_record_round_trips_last_login_at(self):
+        from cc_common.data_model.schema.user.record import UserRecordSchema
+
+        user_data = self._load_dynamo_user()
+        user_data['lastLoginAt'] = TEST_LAST_LOGIN_AT
+
+        schema = UserRecordSchema()
+        dumped_user = schema.dump(schema.load(user_data))
+
+        self.assertEqual(TEST_LAST_LOGIN_AT, dumped_user['lastLoginAt'])
+
+    def test_api_schema_accepts_last_login_at(self):
+        """UserAPISchema is a strict Schema, so every field the record schema loads must be declared there.
+
+        Without this, adding a field to the record schema breaks the staff user endpoints for every user.
+        """
+        from cc_common.data_model.schema.user.api import UserAPISchema
+        from cc_common.data_model.schema.user.record import UserRecordSchema
+
+        user_data = self._load_dynamo_user()
+        user_data['lastLoginAt'] = TEST_LAST_LOGIN_AT
+
+        loaded_user = UserAPISchema().load(UserRecordSchema().load(user_data))
+
+        self.assertEqual(datetime.fromisoformat(TEST_LAST_LOGIN_AT), loaded_user['lastLoginAt'])
+
+    @staticmethod
+    def _load_dynamo_user() -> dict:
+        with open('../common/tests/resources/dynamo/user.json') as f:
+            return TypeDeserializer().deserialize({'M': json.load(f)})

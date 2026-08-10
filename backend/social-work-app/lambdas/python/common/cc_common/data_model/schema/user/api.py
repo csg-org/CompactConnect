@@ -45,6 +45,8 @@ class UserAPISchema(Schema):
     userId = Raw(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([status.value for status in StaffUserStatus]))
     dateOfUpdate = Raw(required=True, allow_none=False)
+    # Absent for users who have not signed in
+    lastLoginAt = Raw(required=False, allow_none=False)
     attributes = Nested(UserAttributesAPISchema(), required=True, allow_none=False)
     permissions = Dict(
         keys=String(validate=OneOf(config.compacts)),  # Key is one compact
