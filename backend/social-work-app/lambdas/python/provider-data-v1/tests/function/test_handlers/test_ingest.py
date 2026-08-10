@@ -1,4 +1,6 @@
 import json
+import re
+from collections.abc import Callable
 from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 
@@ -6,6 +8,8 @@ from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
 from .. import TstFunction
+
+CUID_PATTERN = re.compile(r'^SWC-[0-9]{4}-[1-9][0-9]*$')
 
 
 @mock_aws
@@ -21,6 +25,9 @@ class TestIngest(TstFunction):
             for license_record in expected_provider['licenses']
             if license_record.get('licenseScope') == 'single-state'
         ]
+        # These tests only ever ingest a single single-state license, so no paired single-state/multi-state
+        # license exists and a CUID is never assigned.
+        del expected_provider['publicCompactIdentifier']
 
         return expected_provider
 
@@ -191,6 +198,11 @@ class TestIngest(TstFunction):
         # We will look at the licenses separately
         del expected_provider['licenses']
         licenses = provider_data.pop('licenses')
+
+        # The loaded fixture already has a paired OH single-state/multi-state license, so the provider already
+        # has a CUID assigned before this ingest occurs. The inactive KY license upload does not win the
+        # provider-record Put decision, so the CUID is left unchanged.
+        self.assertEqual(expected_provider['publicCompactIdentifier'], provider_data['publicCompactIdentifier'])
 
         # The original provider data is preferred over the posted license data in our test case
         self.assertEqual(expected_provider, provider_data)
@@ -1674,7 +1686,10 @@ class TestMultiStateSingleStateValidationError(TstFunction):
 
     @patch('handlers.ingest.EventBatchWriter', autospec=True)
     def test_eligible_multi_state_with_ineligible_single_state_emits_validation_error(self, mock_event_writer):
-        from handlers.ingest import ingest_license_message
+        from handlers.ingest import (
+            MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE,
+            ingest_license_message,
+        )
 
         self._setup_provider_ssn()
 
@@ -1713,7 +1728,7 @@ class TestMultiStateSingleStateValidationError(TstFunction):
         self.assertEqual('2024-11-08T23:59:59+00:00', detail['eventTime'])
         self.assertNotIn('recordNumber', detail)
         self.assertIn('validData', detail)
-        self.assertIn('errors', detail)
+        self.assertEqual({'_schema': [MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE]}, detail['errors'])
         self.assertEqual('multi-state', detail['validData']['licenseScope'])
         self.assertEqual('eligible', detail['validData']['compactEligibility'])
 
@@ -1753,28 +1768,77 @@ class TestMultiStateSingleStateValidationError(TstFunction):
 
         mock_event_writer.return_value.__enter__.return_value.put_event.assert_not_called()
 
-    @patch('handlers.ingest.EventBatchWriter', autospec=True)
-    def test_eligible_multi_state_without_single_state_does_not_emit_validation_error(self, mock_event_writer):
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestMultiStateMissingSingleStateValidationError(TstFunction):
+    """
+    license.validation-error when a multi-state license is uploaded before its associated single-state license.
+
+    A jurisdiction is expected to upload both the single-state and the multi-state license for a practitioner.
+    When the multi-state license arrives and no single-state license of the same type exists for that
+    jurisdiction, the jurisdiction is notified so it can upload the missing single-state license. The
+    multi-state license is still persisted.
+    """
+
+    def _ingest_license(self, detail_overrides: dict | None = None, *, message_id: str = '123') -> dict:
         from handlers.ingest import ingest_license_message
 
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
+        if detail_overrides:
+            message['detail'].update(detail_overrides)
+        event = {'Records': [{'messageId': message_id, 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+        return message
 
-        message['detail'].update(
+    def _setup_provider_ssn(self) -> str:
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            ssn_record = json.load(f)
+        self._ssn_table.put_item(Item=ssn_record)
+        return ssn_record['providerId']
+
+    def _get_put_entries(self, mock_event_writer) -> list[dict]:
+        put_event = mock_event_writer.return_value.__enter__.return_value.put_event
+        return [call.kwargs['Entry'] for call in put_event.call_args_list]
+
+    def _assert_missing_single_state_error(self, entry: dict, *, jurisdiction: str, license_type: str):
+        from handlers.ingest import MULTI_STATE_MISSING_SINGLE_STATE_MESSAGE
+
+        self.assertEqual('license.validation-error', entry['DetailType'])
+        self.assertEqual('org.compactconnect.provider-data', entry['Source'])
+        self.assertEqual('license-data-events', entry['EventBusName'])
+
+        detail = json.loads(entry['Detail'])
+        self.assertEqual('socw', detail['compact'])
+        self.assertEqual(jurisdiction, detail['jurisdiction'])
+        self.assertEqual('2024-11-08T23:59:59+00:00', detail['eventTime'])
+        self.assertNotIn('recordNumber', detail)
+        self.assertEqual({'_schema': [MULTI_STATE_MISSING_SINGLE_STATE_MESSAGE]}, detail['errors'])
+        self.assertEqual('multi-state', detail['validData']['licenseScope'])
+        self.assertEqual(license_type, detail['validData']['licenseType'])
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_first_upload_of_multi_state_license_emits_validation_error(self, mock_event_writer):
+        """A multi-state license is the provider's very first upload, so no single-state license can exist."""
+        self._setup_provider_ssn()
+
+        message = self._ingest_license(
             {
                 'licenseScope': 'multi-state',
                 'licenseNumber': 'B0608337260',
-                'licenseStatus': 'active',
-                'compactEligibility': 'eligible',
-            }
+            },
+            message_id='100',
         )
 
-        event = {'Records': [{'messageId': '300', 'body': json.dumps(message)}]}
-        resp = ingest_license_message(event, self.mock_context)
-        self.assertEqual({'batchItemFailures': []}, resp)
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(1, len(entries))
+        self._assert_missing_single_state_error(
+            entries[0], jurisdiction='oh', license_type='licensed clinical social worker'
+        )
 
-        mock_event_writer.return_value.__enter__.return_value.put_event.assert_not_called()
-
+        # The license is still persisted despite the validation error
         provider_records = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{message["detail"]["providerId"]}'),
@@ -1782,3 +1846,623 @@ class TestMultiStateSingleStateValidationError(TstFunction):
         license_records = [record for record in provider_records if record['type'] == 'license']
         self.assertEqual(1, len(license_records))
         self.assertEqual('multi-state', license_records[0]['licenseScope'])
+        self.assertEqual('B0608337260', license_records[0]['licenseNumber'])
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_multi_state_upload_after_associated_single_state_does_not_emit_validation_error(self, mock_event_writer):
+        """The expected upload order: single-state first, then the multi-state license of the same type."""
+        self._setup_provider_ssn()
+
+        self._ingest_license({'licenseScope': 'single-state'}, message_id='200')
+        self._ingest_license(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+            },
+            message_id='201',
+        )
+
+        self.assertEqual([], self._get_put_entries(mock_event_writer))
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_single_state_upload_without_multi_state_does_not_emit_validation_error(self, mock_event_writer):
+        """A jurisdiction is free to upload only a single-state license; the check is multi-state driven."""
+        self._setup_provider_ssn()
+
+        self._ingest_license({'licenseScope': 'single-state'}, message_id='300')
+
+        self.assertEqual([], self._get_put_entries(mock_event_writer))
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_single_state_license_in_other_jurisdiction_does_not_satisfy_pairing(self, mock_event_writer):
+        """The associated single-state license must be in the same jurisdiction as the multi-state license."""
+        self._setup_provider_ssn()
+
+        self._ingest_license({'jurisdiction': 'oh', 'licenseScope': 'single-state'}, message_id='400')
+        self._ingest_license(
+            {
+                'jurisdiction': 'ky',
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+            },
+            message_id='401',
+        )
+
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(1, len(entries))
+        self._assert_missing_single_state_error(
+            entries[0], jurisdiction='ky', license_type='licensed clinical social worker'
+        )
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_single_state_license_of_other_license_type_does_not_satisfy_pairing(self, mock_event_writer):
+        """The associated single-state license must be of the same license type as the multi-state license."""
+        self._setup_provider_ssn()
+
+        self._ingest_license(
+            {'licenseType': 'licensed clinical social worker', 'licenseScope': 'single-state'},
+            message_id='500',
+        )
+        self._ingest_license(
+            {
+                'licenseType': 'licensed master social worker',
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+            },
+            message_id='501',
+        )
+
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(1, len(entries))
+        self._assert_missing_single_state_error(
+            entries[0], jurisdiction='oh', license_type='licensed master social worker'
+        )
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_re_upload_of_still_unpaired_multi_state_license_emits_validation_error_again(self, mock_event_writer):
+        """The jurisdiction keeps being notified until it uploads the missing single-state license."""
+        self._setup_provider_ssn()
+
+        self._ingest_license(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'B0608337260'},
+            message_id='600',
+        )
+        self._ingest_license(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'B0608337260', 'familyName': 'VonSmitherton'},
+            message_id='601',
+        )
+
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(2, len(entries))
+        for entry in entries:
+            self._assert_missing_single_state_error(
+                entry, jurisdiction='oh', license_type='licensed clinical social worker'
+            )
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_ineligible_multi_state_license_without_single_state_emits_validation_error(self, mock_event_writer):
+        """The missing-pair check does not depend on the compact eligibility of the multi-state license."""
+        self._setup_provider_ssn()
+
+        self._ingest_license(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+                'licenseStatus': 'inactive',
+                'compactEligibility': 'ineligible',
+            },
+            message_id='700',
+        )
+
+        entries = self._get_put_entries(mock_event_writer)
+        self.assertEqual(1, len(entries))
+        self._assert_missing_single_state_error(
+            entries[0], jurisdiction='oh', license_type='licensed clinical social worker'
+        )
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestCuidGeneration(TstFunction):
+    """
+    Tests for Compact Unique Identifier (CUID) assignment during license ingest.
+
+    A CUID is assigned the first time a provider has a paired single-state and multi-state license (same
+    jurisdiction and licenseType). Assignment must work regardless of whether that pairing upload results in a
+    provider-record Put (the license becomes the new best license for the jurisdiction) or not (the paired
+    license loses to the existing best license, so the provider record would otherwise go untouched).
+    """
+
+    # A second, distinct provider id for tests that need two providers. DEFAULT_PROVIDER_ID (from
+    # common_test.test_constants) is used for single-provider tests, since it already matches the providerId
+    # baked into the event-bridge-message.json fixture.
+    _OTHER_PROVIDER_ID = '11111111-1111-4111-8111-111111111111'
+
+    def _ingest(self, detail_overrides: dict, message_id: str = '1'):
+        """
+        Ingest a license message. ingest_license_message never reads the SSN table (only the separate
+        preprocess_license_ingest handler does), so these tests only need providerId/ssnLastFour present on
+        the message body, not an actual SSN record.
+        """
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        message['detail'].update(detail_overrides)
+        event = {'Records': [{'messageId': message_id, 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+    def _get_provider_record(self, provider_id: str) -> dict:
+        provider_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}'),
+        )['Items']
+        return next(record for record in provider_records if record['type'] == 'provider')
+
+    def _get_cuid_counter(self) -> int | None:
+        item = self._provider_table.get_item(Key={'pk': 'socw#CUID_COUNT', 'sk': 'socw#CUID_COUNT'}).get('Item')
+        return item['cuidCount'] if item else None
+
+    def test_no_cuid_generated_for_multi_state_license_only(self):
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'multi-state'})
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertNotIn('publicCompactIdentifier', provider_record)
+        self.assertIsNone(self._get_cuid_counter())
+
+    def test_no_cuid_generated_for_single_state_license_only(self):
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state'})
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertNotIn('publicCompactIdentifier', provider_record)
+        self.assertIsNone(self._get_cuid_counter())
+
+    def test_cuid_generated_when_paired_single_state_uploaded_after_multi_state_without_provider_put(self):
+        """
+        Critical case: OH multi-state exists as the provider's home license; uploading the paired OH
+        single-state license loses to the existing multi-state license for the provider-record Put decision
+        (multi-state is always preferred), so no provider Put occurs on this upload. CUID assignment must still
+        happen via the conditional-Update path.
+        """
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+        self.assertIsNone(self._get_cuid_counter())
+
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertRegex(provider_record['publicCompactIdentifier'], CUID_PATTERN)
+        self.assertEqual(1, self._get_cuid_counter())
+
+    def test_cuid_generated_when_paired_multi_state_uploaded_after_single_state_with_provider_put(self):
+        """Single-state OH license first (home), then paired multi-state OH license, which wins the
+        provider-record Put decision (multi-state is preferred). CUID must be injected into that Put."""
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+        self.assertIsNone(self._get_cuid_counter())
+
+        self._ingest({'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2')
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertRegex(provider_record['publicCompactIdentifier'], CUID_PATTERN)
+        self.assertEqual(1, self._get_cuid_counter())
+
+    def test_no_cuid_when_pairing_is_in_different_jurisdictions(self):
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state', 'jurisdiction': 'oh'}, message_id='1')
+        self._ingest({'licenseScope': 'multi-state', 'jurisdiction': 'ky', 'licenseNumber': 'KY-MS'}, message_id='2')
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertNotIn('publicCompactIdentifier', provider_record)
+        self.assertIsNone(self._get_cuid_counter())
+
+    def test_no_cuid_when_pairing_is_of_different_license_types(self):
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state', 'licenseType': 'licensed clinical social worker'}, message_id='1')
+        self._ingest(
+            {
+                'licenseScope': 'multi-state',
+                'licenseType': 'licensed master social worker',
+                'licenseNumber': 'LMSW-MS',
+            },
+            message_id='2',
+        )
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertNotIn('publicCompactIdentifier', provider_record)
+        self.assertIsNone(self._get_cuid_counter())
+
+    def test_cuid_unchanged_and_counter_not_incremented_on_reupload(self):
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+
+        cuid_after_pairing = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+        self.assertEqual(1, self._get_cuid_counter())
+
+        # Re-upload the single-state license again; nothing about the CUID should change.
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='3')
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertEqual(cuid_after_pairing, provider_record['publicCompactIdentifier'])
+        self.assertEqual(1, self._get_cuid_counter())
+
+    def test_cuid_preserved_across_home_jurisdiction_change(self):
+        """Once assigned, a CUID must survive a subsequent home jurisdiction change triggered by a new
+        multi-state/single-state pairing in a different jurisdiction."""
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'multi-state', 'jurisdiction': 'oh'}, message_id='1')
+        self._ingest({'licenseScope': 'single-state', 'jurisdiction': 'oh', 'licenseNumber': 'OH-SS'}, message_id='2')
+        cuid_after_pairing = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        # Establish a paired KY single-state license (older), then a newer KY multi-state license to trigger
+        # the home jurisdiction change.
+        self._ingest(
+            {
+                'licenseScope': 'single-state',
+                'jurisdiction': 'ky',
+                'licenseNumber': 'KY-SS',
+                'dateOfIssuance': '2019-06-06',
+            },
+            message_id='3',
+        )
+        self._ingest(
+            {
+                'licenseScope': 'multi-state',
+                'jurisdiction': 'ky',
+                'licenseNumber': 'KY-MS',
+                'dateOfIssuance': '2020-06-06',
+            },
+            message_id='4',
+        )
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertEqual('ky', provider_record['licenseJurisdiction'])
+        self.assertEqual(cuid_after_pairing, provider_record['publicCompactIdentifier'])
+        # Still only one CUID has ever been claimed for this provider.
+        self.assertEqual(1, self._get_cuid_counter())
+
+    def test_cuid_counters_increment_across_different_providers(self):
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        provider_a = DEFAULT_PROVIDER_ID
+        self._ingest({'licenseScope': 'multi-state', 'providerId': provider_a, 'licenseNumber': 'A-MS'}, message_id='1')
+        self._ingest(
+            {
+                'licenseScope': 'single-state',
+                'providerId': provider_a,
+                'licenseNumber': 'A-SS',
+            },
+            message_id='2',
+        )
+
+        provider_b = self._OTHER_PROVIDER_ID
+        self._ingest({'licenseScope': 'multi-state', 'providerId': provider_b, 'licenseNumber': 'B-MS'}, message_id='3')
+        self._ingest(
+            {
+                'licenseScope': 'single-state',
+                'providerId': provider_b,
+                'licenseNumber': 'B-SS',
+            },
+            message_id='4',
+        )
+
+        cuid_a = self._get_provider_record(provider_a)['publicCompactIdentifier']
+        cuid_b = self._get_provider_record(provider_b)['publicCompactIdentifier']
+        self.assertNotEqual(cuid_a, cuid_b)
+        self.assertTrue(cuid_a.endswith('-1'))
+        self.assertTrue(cuid_b.endswith('-2'))
+        self.assertEqual(2, self._get_cuid_counter())
+
+    def test_date_fields_bumped_on_conditional_update_path(self):
+        """When CUID assignment takes the conditional-Update path (no provider Put), dateOfUpdate and
+        providerDateOfUpdate must still be bumped so the OpenSearch reindex stream fires."""
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        with patch(
+            'cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T00:00:00+00:00')
+        ):
+            self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+
+        with patch(
+            'cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-06-15T12:00:00+00:00')
+        ):
+            self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertEqual('2024-06-15T12:00:00+00:00', provider_record['dateOfUpdate'])
+        self.assertEqual('2024-06-15T12:00:00+00:00', provider_record['providerDateOfUpdate'])
+
+    def test_cuid_format_zero_pads_random_segment(self):
+        """With secrets.randbelow patched to return 7, the CUID must be SWC-0007-1 (locks zero-padding)."""
+        import handlers.ingest as ingest_handler
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+
+        with patch.object(ingest_handler, 'secrets') as mock_secrets:
+            mock_secrets.randbelow.return_value = 7
+            self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertEqual('SWC-0007-1', provider_record['publicCompactIdentifier'])
+
+    def test_generate_cuid_claims_counter_exactly_once_per_assignment(self):
+        """_generate_cuid claims its own counter and takes no counter argument; assignment must claim exactly
+        once, with no path for a caller-supplied or reused counter."""
+        import handlers.ingest as ingest_handler
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+
+        original_claim = ingest_handler.config.data_client.claim_cuid_number
+        with patch.object(
+            ingest_handler.config.data_client, 'claim_cuid_number', side_effect=original_claim
+        ) as mock_claim:
+            self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+
+        mock_claim.assert_called_once_with('socw')
+        provider_record = self._get_provider_record(DEFAULT_PROVIDER_ID)
+        self.assertRegex(provider_record['publicCompactIdentifier'], CUID_PATTERN)
+
+    _PROVIDER_SORT_KEY = 'socw#PROVIDER'
+
+    def _ingest_capturing_transaction_items(
+        self,
+        detail_overrides: dict,
+        message_id: str = '1',
+        *,
+        expect_failure: bool = False,
+        before_write: Callable[[], None] | None = None,
+    ) -> list[dict]:
+        """
+        Ingest a license message and return the TransactItems submitted to DynamoDB.
+
+        The real client is still called, so the table ends in the same state the handler intended.
+
+        :param expect_failure: When True, assert the message was reported as a batch item failure
+            (i.e. SQS will retry it) rather than asserting it succeeded.
+        :param before_write: Invoked after the handler has read provider state but immediately before
+            its transaction is submitted, so a test can simulate a competing write winning that race.
+        """
+        import handlers.ingest as ingest_handler
+        from handlers.ingest import ingest_license_message
+
+        captured_transaction_items: list[dict] = []
+        real_transact_write_items = ingest_handler.config.dynamodb_client.transact_write_items
+
+        def _capture_and_delegate(**kwargs):
+            captured_transaction_items.extend(kwargs['TransactItems'])
+            if before_write is not None:
+                before_write()
+            return real_transact_write_items(**kwargs)
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        message['detail'].update(detail_overrides)
+        event = {'Records': [{'messageId': message_id, 'body': json.dumps(message)}]}
+
+        with patch.object(
+            ingest_handler.config.dynamodb_client, 'transact_write_items', side_effect=_capture_and_delegate
+        ):
+            resp = ingest_license_message(event, self.mock_context)
+
+        expected_failures = [{'itemIdentifier': message_id}] if expect_failure else []
+        self.assertEqual({'batchItemFailures': expected_failures}, resp)
+
+        return captured_transaction_items
+
+    def _get_provider_put(self, transaction_items: list[dict]) -> dict:
+        """Return the Put operation targeting the top-level provider record."""
+        provider_puts = [
+            item['Put']
+            for item in transaction_items
+            if 'Put' in item and item['Put']['Item'].get('sk', {}).get('S') == self._PROVIDER_SORT_KEY
+        ]
+        self.assertEqual(1, len(provider_puts), 'Expected exactly one top-level provider Put in the transaction')
+        return provider_puts[0]
+
+    def test_provider_put_includes_cuid_condition_when_assigning_cuid(self):
+        """
+        The Put that assigns a CUID must be conditional on the field being absent.
+
+        Without it, a provider Put could overwrite a CUID that a competing transaction assigned first.
+        """
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+
+        # The paired multi-state license wins the provider-record Put decision, so the CUID is
+        # assigned via that Put rather than the conditional-Update path.
+        transaction_items = self._ingest_capturing_transaction_items(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2'
+        )
+
+        provider_put = self._get_provider_put(transaction_items)
+        self.assertIn('publicCompactIdentifier', provider_put['Item'])
+        self.assertEqual('attribute_not_exists(publicCompactIdentifier)', provider_put.get('ConditionExpression'))
+
+    def test_provider_put_has_no_cuid_condition_when_not_assigning_cuid(self):
+        """A first upload creates the provider record without a CUID, so it must not be conditional."""
+        transaction_items = self._ingest_capturing_transaction_items({'licenseScope': 'single-state'})
+
+        provider_put = self._get_provider_put(transaction_items)
+        self.assertNotIn('publicCompactIdentifier', provider_put['Item'])
+        self.assertIsNone(provider_put.get('ConditionExpression'))
+
+    def test_provider_put_has_no_cuid_condition_for_provider_that_already_has_cuid(self):
+        """
+        Once a CUID exists, later provider updates must not carry the condition.
+
+        Otherwise every subsequent upload for that practitioner would fail the condition and retry
+        forever.
+        """
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+        self._ingest({'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2')
+        assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        # A later upload that still updates the provider record, now that a CUID is already present.
+        transaction_items = self._ingest_capturing_transaction_items(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS', 'dateOfRenewal': '2025-02-02'},
+            message_id='3',
+        )
+
+        provider_put = self._get_provider_put(transaction_items)
+        self.assertEqual(assigned_cuid, provider_put['Item']['publicCompactIdentifier']['S'])
+        self.assertIsNone(provider_put.get('ConditionExpression'))
+
+    def test_cuid_preserved_when_competing_transaction_assigns_first_and_message_is_retried(self):
+        """
+        A losing provider Put must not clobber the CUID the winning transaction assigned.
+
+        Simulates the real race: the competing CUID lands *after* this handler's consistent read but
+        *before* its transaction write, so the handler still believes it must assign one. Its
+        conditional Put is cancelled, SQS retries the message, and the retry re-reads, observes the
+        existing CUID, and leaves it untouched.
+        """
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+
+        competing_cuid = 'SWC-1234-99'
+        provider_key = {'pk': f'socw#PROVIDER#{DEFAULT_PROVIDER_ID}', 'sk': self._PROVIDER_SORT_KEY}
+
+        def assign_competing_cuid():
+            self._provider_table.update_item(
+                Key=provider_key,
+                UpdateExpression='SET publicCompactIdentifier = :cuid',
+                ExpressionAttributeValues={':cuid': competing_cuid},
+            )
+
+        # The handler read a provider record with no CUID, so it mints one and makes its Put
+        # conditional. The competing assignment lands first, cancelling this transaction.
+        losing_transaction_items = self._ingest_capturing_transaction_items(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'},
+            message_id='2',
+            expect_failure=True,
+            before_write=assign_competing_cuid,
+        )
+        self.assertEqual(
+            'attribute_not_exists(publicCompactIdentifier)',
+            self._get_provider_put(losing_transaction_items).get('ConditionExpression'),
+        )
+        self.assertEqual(competing_cuid, self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier'])
+
+        # SQS redelivers the same message; the retry sees the existing CUID and assigns nothing new.
+        retry_transaction_items = self._ingest_capturing_transaction_items(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2'
+        )
+
+        provider_put = self._get_provider_put(retry_transaction_items)
+        self.assertIsNone(provider_put.get('ConditionExpression'))
+        self.assertEqual(competing_cuid, self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier'])
+
+    def _get_provider_update_records(self, provider_id: str) -> list:
+        from cc_common.data_model.update_tier_enum import UpdateTierEnum
+
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact='socw',
+            provider_id=provider_id,
+            include_update_tier=UpdateTierEnum.TIER_TWO,
+        )
+        return provider_records.get_all_provider_update_records()
+
+    def test_provider_update_record_written_when_cuid_assigned_without_provider_put(self):
+        """
+        The conditional-Update path must leave the same audit trail as the Put path.
+
+        When the paired license loses the provider-record Put decision, the CUID is assigned by a
+        standalone Update. That still changes the provider record, so it needs a providerUpdate
+        history record capturing the assignment.
+        """
+        from cc_common.data_model.schema.common import UpdateCategory
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        # Multi-state first, so the later paired single-state license loses the Put decision.
+        self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+
+        assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        provider_updates = self._get_provider_update_records(DEFAULT_PROVIDER_ID)
+        cuid_updates = [update for update in provider_updates if 'publicCompactIdentifier' in update.updatedValues]
+        self.assertEqual(1, len(cuid_updates), provider_updates)
+
+        cuid_update = cuid_updates[0]
+        self.assertEqual(UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER.value, cuid_update.updateType)
+        self.assertEqual(assigned_cuid, cuid_update.updatedValues['publicCompactIdentifier'])
+        # The practitioner had no CUID before this upload
+        self.assertNotIn('publicCompactIdentifier', cuid_update.previous)
+
+    def test_provider_update_record_captures_cuid_when_assigned_via_provider_put(self):
+        """The Put path assigns the CUID inline, and must record it in the same history record."""
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        # Single-state first, so the paired multi-state license wins the Put decision.
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+        self._ingest({'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2')
+
+        assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        cuid_updates = [
+            update
+            for update in self._get_provider_update_records(DEFAULT_PROVIDER_ID)
+            if 'publicCompactIdentifier' in update.updatedValues
+        ]
+        self.assertEqual(1, len(cuid_updates))
+        self.assertEqual(assigned_cuid, cuid_updates[0].updatedValues['publicCompactIdentifier'])
+
+    def test_no_provider_update_record_for_cuid_on_subsequent_uploads(self):
+        """A CUID is assigned once, so later uploads must not record it as changing again."""
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'multi-state'}, message_id='1')
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='2')
+        self._ingest({'licenseScope': 'single-state', 'licenseNumber': 'PAIRED-SS'}, message_id='3')
+
+        cuid_updates = [
+            update
+            for update in self._get_provider_update_records(DEFAULT_PROVIDER_ID)
+            if 'publicCompactIdentifier' in update.updatedValues
+        ]
+        self.assertEqual(1, len(cuid_updates), 'CUID assignment must be recorded exactly once')
+
+    def test_provider_update_previous_snapshot_includes_existing_cuid(self):
+        """
+        Once a CUID exists, later update records must carry it in their `previous` snapshot.
+
+        Disaster-recovery rollback rebuilds the provider record from this snapshot alone (see
+        _build_and_execute_revert_transactions in rollback_license_upload.py), so a CUID missing here
+        would be silently dropped when an upload is reverted.
+        """
+        from common_test.test_constants import DEFAULT_PROVIDER_ID
+
+        self._ingest({'licenseScope': 'single-state'}, message_id='1')
+        self._ingest({'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS'}, message_id='2')
+        assigned_cuid = self._get_provider_record(DEFAULT_PROVIDER_ID)['publicCompactIdentifier']
+
+        # A later upload changing a tracked provider field, so an update record is written for a
+        # practitioner who already holds a CUID.
+        self._ingest(
+            {'licenseScope': 'multi-state', 'licenseNumber': 'PAIRED-MS', 'familyName': 'Changed'},
+            message_id='3',
+        )
+
+        name_change_updates = [
+            update
+            for update in self._get_provider_update_records(DEFAULT_PROVIDER_ID)
+            if 'familyName' in update.updatedValues
+        ]
+        self.assertEqual(1, len(name_change_updates), 'Expected one update record for the name change')
+        self.assertEqual(assigned_cuid, name_change_updates[0].previous['publicCompactIdentifier'])

@@ -1,4 +1,5 @@
 import json
+import secrets
 from copy import deepcopy
 
 from boto3.dynamodb.types import TypeSerializer
@@ -6,10 +7,12 @@ from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema import LicenseRecordSchema
 from cc_common.data_model.schema.common import (
+    CUID_PREFIX,
     ActiveInactiveStatus,
     CompactEligibilityStatus,
     LicenseScopeEnum,
     UpdateCategory,
+    provider_pk,
 )
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
@@ -39,11 +42,18 @@ PROVIDER_UPDATE_TRACKED_FIELDS = {
     'suffix',
     'dateOfExpiration',
     'dateOfBirth',
+    'publicCompactIdentifier',
 }
 
 MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE = (
     'Multi-state license uploaded as compact eligible but the associated single-state license '
     'in the same jurisdiction is ineligible.'
+)
+
+MULTI_STATE_MISSING_SINGLE_STATE_MESSAGE = (
+    'Multi-state license uploaded without an associated single-state license of the same license type '
+    'in the same jurisdiction. Both the single-state and the multi-state license must be uploaded for '
+    'this practitioner.'
 )
 
 
@@ -160,8 +170,19 @@ def ingest_license_message(message: dict):
                 existing_license_records = []
                 current_provider_record = None
 
+            # Both validation checks below look up the posted license's paired single-state license via
+            # ProviderUserRecords, which works in terms of LicenseData, so build that view once and share it.
+            posted_license_data = LicenseData.create_new(deepcopy(posted_license_record))
+
+            # These two checks are mutually exclusive: the first only fires when the associated single-state
+            # license exists, the second only when it does not.
             _check_for_multi_state_single_state_eligibility_validation_error(
-                posted_license_record=posted_license_record,
+                posted_license_data=posted_license_data,
+                provider_user_records=provider_user_records,
+                data_events=data_events,
+            )
+            _check_for_missing_single_state_license_validation_error(
+                posted_license_data=posted_license_data,
                 provider_user_records=provider_user_records,
                 data_events=data_events,
             )
@@ -218,6 +239,16 @@ def ingest_license_message(message: dict):
             ]
             known_licenses.append(posted_license_record)
 
+            # Determine whether this upload newly qualifies the provider for a Compact Unique Identifier (CUID).
+            # This must be resolved independently of the provider-record Put decision below: the license that
+            # completes a single-state/multi-state pairing frequently loses that decision (multi-state is always
+            # preferred), which would otherwise silently skip CUID assignment.
+            new_public_compact_identifier = _resolve_public_compact_identifier(
+                compact=compact,
+                current_provider_record=current_provider_record,
+                known_licenses=known_licenses,
+            )
+
             # Determine if this upload triggers a home jurisdiction change.
             new_home_license = _get_license_triggering_home_jurisdiction_change(
                 current_provider_record=current_provider_record,
@@ -263,16 +294,24 @@ def ingest_license_message(message: dict):
                 provider_record = ProviderRecordUtility.populate_provider_record(
                     current_provider_record=current_provider_record,
                     license_record=license_record_for_provider_update,
+                    public_compact_identifier=new_public_compact_identifier,
                 )
 
-                dynamo_transactions.append(
-                    {
-                        'Put': {
-                            'TableName': config.provider_table_name,
-                            'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
-                        }
-                    }
-                )
+                provider_put = {
+                    'TableName': config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                }
+                if new_public_compact_identifier is not None:
+                    # Guard the CUID assignment against a competing transaction -- either another
+                    # provider Put, or the conditional Update path below -- assigning one between our
+                    # consistent read above and this write. DynamoDB cancels the losing transaction;
+                    # SQS redelivers it, and the retry's consistent read finds the existing CUID, so
+                    # _resolve_public_compact_identifier returns None and the retry writes without this
+                    # condition. The condition is only applied when we are actually assigning, so a
+                    # practitioner who already has a CUID is never blocked from ordinary updates.
+                    provider_put['ConditionExpression'] = 'attribute_not_exists(publicCompactIdentifier)'
+
+                dynamo_transactions.append({'Put': provider_put})
 
                 # If this is an update to an existing provider record (not a first-upload create), capture the
                 # delta as a providerUpdate history record so an upload-driven change (e.g. home jurisdiction)
@@ -283,6 +322,30 @@ def ingest_license_message(message: dict):
                         new_provider=provider_record.to_dict(),
                         dynamo_transactions=dynamo_transactions,
                     )
+            elif new_public_compact_identifier is not None:
+                # No provider Put is part of this transaction,
+                # but the CUID must still be assigned. DynamoDB transactions reject two
+                # operations on the same item, so this Update is mutually exclusive with the Put case above.
+                logger.info('Assigning CUID via conditional update; no provider Put in this transaction')
+                dynamo_transactions.append(
+                    _generate_cuid_assignment_update_item(
+                        compact=compact,
+                        provider_id=provider_id,
+                        public_compact_identifier=new_public_compact_identifier,
+                    )
+                )
+
+                # The Update still changes the provider record, so it needs the same providerUpdate
+                # history record the Put path writes. current_provider_record is never None here: a
+                # provider with no existing record always takes the Put branch above.
+                _process_provider_update(
+                    existing_provider=current_provider_record.to_dict(),
+                    new_provider={
+                        **current_provider_record.to_dict(),
+                        'publicCompactIdentifier': new_public_compact_identifier,
+                    },
+                    dynamo_transactions=dynamo_transactions,
+                )
 
             # Write the records together as a transaction that succeeds or fails as one, to ensure consistency
             config.dynamodb_client.transact_write_items(TransactItems=dynamo_transactions)
@@ -295,7 +358,7 @@ def ingest_license_message(message: dict):
 
 def _check_for_multi_state_single_state_eligibility_validation_error(
     *,
-    posted_license_record: dict,
+    posted_license_data: LicenseData,
     provider_user_records: ProviderUserRecords | None,
     data_events: list,
 ):
@@ -303,20 +366,15 @@ def _check_for_multi_state_single_state_eligibility_validation_error(
     Notify the uploading jurisdiction when a multi-state license is uploaded as compact-eligible but the
     paired single-state license in the same jurisdiction is ineligible. The license is still persisted.
     """
-    if posted_license_record['licenseScope'] != LicenseScopeEnum.MULTI_STATE.value:
+    if posted_license_data.licenseScope != LicenseScopeEnum.MULTI_STATE.value:
         return
-    if posted_license_record['jurisdictionUploadedCompactEligibility'] != CompactEligibilityStatus.ELIGIBLE:
+    if posted_license_data.jurisdictionUploadedCompactEligibility != CompactEligibilityStatus.ELIGIBLE:
         return
     if provider_user_records is None:
         return
 
-    license_type_abbr = config.license_type_abbreviations[posted_license_record['compact']][
-        posted_license_record['licenseType']
-    ]
-    associated_single_state_license = provider_user_records.get_specific_license_record(
-        posted_license_record['jurisdiction'],
-        license_type_abbr,
-        LicenseScopeEnum.SINGLE_STATE.value,
+    associated_single_state_license = provider_user_records.find_matching_single_state_license_for_multi_state_license(
+        posted_license_data
     )
     if associated_single_state_license is None:
         return
@@ -326,19 +384,136 @@ def _check_for_multi_state_single_state_eligibility_validation_error(
     logger.info(
         'Multi-state license uploaded as eligible but associated single-state license is ineligible. '
         'Publishing license validation error event.',
-        provider_id=posted_license_record['providerId'],
-        jurisdiction=posted_license_record['jurisdiction'],
-        license_type=posted_license_record['licenseType'],
+        provider_id=posted_license_data.providerId,
+        jurisdiction=posted_license_data.jurisdiction,
+        license_type=posted_license_data.licenseType,
     )
     data_events.append(
         config.event_bus_client.generate_license_validation_error_event(
             'org.compactconnect.provider-data',
-            compact=posted_license_record['compact'],
-            jurisdiction=posted_license_record['jurisdiction'],
-            license_record=posted_license_record,
+            compact=posted_license_data.compact,
+            jurisdiction=posted_license_data.jurisdiction,
+            license_record=posted_license_data.to_dict(),
             errors={SCHEMA: [MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE]},
         )
     )
+
+
+def _check_for_missing_single_state_license_validation_error(
+    *,
+    posted_license_data: LicenseData,
+    provider_user_records: ProviderUserRecords | None,
+    data_events: list,
+):
+    """
+    Notify the uploading jurisdiction when a multi-state license is uploaded before its associated
+    single-state license. The license is still persisted.
+
+    A jurisdiction is expected to upload both the single-state and the multi-state license for a
+    practitioner; several downstream behaviors (CUID assignment, home jurisdiction changes) only take effect
+    once both are present. Uploading the multi-state license alone leaves the practitioner in that
+    incomplete state indefinitely, with nothing to prompt the jurisdiction to finish, so we notify them.
+
+    The check is deliberately independent of compact eligibility and active status, matching the pairing
+    semantics of ``ProviderRecordUtility.has_paired_single_and_multi_state_license``. It re-fires on every
+    re-upload while the pairing is still missing, since the notification is the only prompt the jurisdiction
+    gets and the condition is still true.
+    """
+    if posted_license_data.licenseScope != LicenseScopeEnum.MULTI_STATE.value:
+        return
+
+    # No provider records at all means this upload is the provider's first license, so there is no
+    # single-state license for it to pair with.
+    if provider_user_records is not None:
+        associated_single_state_license = (
+            provider_user_records.find_matching_single_state_license_for_multi_state_license(posted_license_data)
+        )
+        if associated_single_state_license is not None:
+            return
+
+    logger.info(
+        'Multi-state license uploaded without an associated single-state license. '
+        'Publishing license validation error event.',
+        provider_id=posted_license_data.providerId,
+        jurisdiction=posted_license_data.jurisdiction,
+        license_type=posted_license_data.licenseType,
+    )
+    data_events.append(
+        config.event_bus_client.generate_license_validation_error_event(
+            'org.compactconnect.provider-data',
+            compact=posted_license_data.compact,
+            jurisdiction=posted_license_data.jurisdiction,
+            license_record=posted_license_data.to_dict(),
+            errors={SCHEMA: [MULTI_STATE_MISSING_SINGLE_STATE_MESSAGE]},
+        )
+    )
+
+def _generate_cuid(compact: str) -> str:
+    """
+    Generate a new Compact Unique Identifier (CUID) for a provider.
+
+    The monotonic counter segment is claimed atomically here rather than accepted as an argument, so a
+    counter value can never be reused or passed in by a caller. The four-digit random segment is not a
+    uniqueness guarantee; it only makes a mis-keyed CUID far less likely to resolve to a real, unrelated
+    practitioner. Uniqueness comes solely from the claimed counter. This is the only place in the codebase
+    that constructs a CUID.
+    """
+    counter = config.data_client.claim_cuid_number(compact)
+    return f'{CUID_PREFIX}-{secrets.randbelow(10000):04d}-{counter}'
+
+
+def _resolve_public_compact_identifier(
+    *,
+    compact: str,
+    current_provider_record: ProviderData | None,
+    known_licenses: list[dict],
+) -> str | None:
+    """
+    Return a newly generated CUID if the provider now qualifies and does not already have one, else None.
+
+    Kept separate from ``_generate_cuid`` so the "should we assign one?" decision is testable independently
+    of minting, and so a counter is only ever claimed once both preconditions hold.
+    """
+    if current_provider_record is not None and current_provider_record.publicCompactIdentifier:
+        logger.info('Provider already has a CUID; skipping CUID assignment')
+        return None
+    if not ProviderRecordUtility.has_paired_single_and_multi_state_license(known_licenses):
+        logger.info('Provider does not have a paired single-state/multi-state license; skipping CUID assignment')
+        return None
+    logger.info('Provider qualifies for CUID; generating new CUID')
+    return _generate_cuid(compact)
+
+
+def _generate_cuid_assignment_update_item(*, compact: str, provider_id: str, public_compact_identifier: str) -> dict:
+    """
+    Build a conditional Update transaction item that assigns a newly-minted CUID to the provider's top-level
+    record, for use when no provider Put is already part of this transaction.
+
+    Bumping dateOfUpdate/providerDateOfUpdate here matters: it keeps the providerDateOfUpdate GSI coherent and
+    guarantees the DynamoDB stream fires so the OpenSearch documents get reindexed with the new CUID.
+
+    The attribute_not_exists condition guard makes concurrent ingest of the two paired licenses safe: the
+    loser's transaction fails the condition check, SQS retries the message, and the retry observes the
+    already-assigned CUID and does nothing (``_resolve_public_compact_identifier`` short-circuits to None).
+    """
+    now = config.current_standard_datetime.isoformat()
+    return {
+        'Update': {
+            'TableName': config.provider_table_name,
+            'Key': {
+                'pk': {'S': provider_pk(compact, provider_id)},
+                'sk': {'S': f'{compact}#PROVIDER'},
+            },
+            'UpdateExpression': (
+                'SET publicCompactIdentifier = :cuid, dateOfUpdate = :now, providerDateOfUpdate = :now'
+            ),
+            'ConditionExpression': 'attribute_not_exists(publicCompactIdentifier)',
+            'ExpressionAttributeValues': {
+                ':cuid': {'S': public_compact_identifier},
+                ':now': {'S': now},
+            },
+        }
+    }
 
 
 def _get_license_triggering_home_jurisdiction_change(

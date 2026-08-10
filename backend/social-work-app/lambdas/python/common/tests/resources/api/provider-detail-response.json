@@ -1,6 +1,7 @@
 {
   "type": "provider",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "publicCompactIdentifier": "SWC-1234-1",
   "ssnLastFour": "1234",
   "givenName": "Björk",
   "middleName": "Gunnar",

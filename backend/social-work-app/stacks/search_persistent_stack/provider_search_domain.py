@@ -168,6 +168,10 @@ class ProviderSearchDomain(Construct):
             # https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-configuration-changes.html
             # consider working with stakeholders to schedule a maintenance window during low-traffic periods where
             # advanced search may become inaccessible during the update, to give you time to verify changes.
+            # We determined through testing that setting the `rest.action.multi.allow_explicit_index: false` domain
+            # setting causes blue/green deployments to fail consistently. The assumption was that there were Kibana
+            # related queries that AWS uses under the hood as part of the blue/green cut-over which could not be run
+            # with that setting set to false, though this was never conclusively verified.
             version=EngineVersion.OPENSEARCH_3_3,
             capacity=capacity_config,
             enable_auto_software_update=True,

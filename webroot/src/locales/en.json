@@ -53,6 +53,7 @@
         "status": "Status",
         "saving": "Saving...",
         "loading": "Loading...",
+        "loggingOut": "Logging out...",
         "viewing": "Viewing",
         "viewDetails": "View details",
         "name": "Name",

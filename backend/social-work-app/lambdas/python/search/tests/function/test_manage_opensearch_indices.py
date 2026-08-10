@@ -336,6 +336,7 @@ class TestOpenSearchIndexManager(TstFunction):
                             'providerDateOfUpdate': {'type': 'date'},
                             'providerFamGivMid': {'type': 'keyword'},
                             'providerId': {'type': 'keyword'},
+                            'publicCompactIdentifier': {'type': 'keyword'},
                             'suffix': {'type': 'keyword'},
                             'type': {'type': 'keyword'},
                         }

@@ -21,6 +21,7 @@ from cc_common.data_model.schema.fields import (
     CompactEligibility,
     Jurisdiction,
     LicenseEncumberedStatusField,
+    PublicCompactIdentifierField,
     UpdateType,
 )
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
@@ -52,6 +53,10 @@ class ProviderRecordSchema(BaseRecordSchema):
 
     # optional field for setting encumbrance status
     encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
+
+    # Compact Unique Identifier (CUID); assigned once a paired single-state/multi-state license exists.
+    # This is write-once: once assigned, it must never be overwritten or removed.
+    publicCompactIdentifier = PublicCompactIdentifierField(required=False, allow_none=False)
 
     ssnLastFour = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -174,6 +179,9 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     dateOfUpdate = AwareDateTime(required=True, allow_none=False)
+    # Optional, since a provider has no CUID until they hold a paired single-state and multi-state
+    # license. Tracked here so the upload that assigns one leaves an audit trail.
+    publicCompactIdentifier = PublicCompactIdentifierField(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('providerUpdate')

@@ -36,6 +36,33 @@ class LicenseUtility:
             raise CCInvalidRequestException(f'Invalid license type abbreviation: {abbreviation}') from e
 
     @staticmethod
+    def get_license_type_by_name(compact: str, license_type_name: str) -> LicenseType:
+        """
+        Get a license type by its full name within a compact, matched case-insensitively.
+
+        This is the shared source of truth for validating a license type *name* (as opposed to an
+        abbreviation, see get_license_type_by_abbreviation) against a compact's configured license types.
+        Returning the canonically-cased LicenseType (rather than just validating) lets callers normalize
+        user input to the exact casing configured for the compact, instead of assuming a particular casing
+        convention (e.g. lower-casing) happens to match what was persisted.
+
+        :param compact: The compact code
+        :param license_type_name: The license type name to look up (case-insensitive)
+
+        :return: LicenseType object
+        :raises CCInvalidRequestException: If the license type name is not configured for the compact
+        """
+        try:
+            abbreviations = config.license_type_abbreviations_for_compact(compact)
+            for name, abbr in abbreviations.items():
+                if name.lower() == license_type_name.lower():
+                    return LicenseType(name=name, abbreviation=abbr)
+            raise CCInvalidRequestException(f'Invalid license type: {license_type_name}')
+        except KeyError as e:
+            logger.error('Invalid license type provided.', exc_info=e)
+            raise CCInvalidRequestException(f'Invalid license type: {license_type_name}') from e
+
+    @staticmethod
     def get_valid_license_type_abbreviations(compact: str) -> set[str]:
         """
         Get all valid license type abbreviations for a compact.

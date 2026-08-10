@@ -72,6 +72,34 @@ class DataClient:
                 raise
         return provider_id
 
+    @logger_inject_kwargs(logger, 'compact')
+    def claim_cuid_number(self, compact: str) -> int:
+        """
+        Claim a unique Compact Unique Identifier (CUID) counter value for a compact by atomically incrementing
+        the CUID counter. If the counter doesn't exist yet, it will be created with an initial value of 1.
+
+        This is a single ADD-based UpdateItem, which is atomic under concurrency: numbers may be skipped
+        (if a caller claims one but never uses it), but are never reused.
+        """
+        logger.info('Claiming CUID number')
+        resp = self.config.provider_table.update_item(
+            Key={
+                'pk': f'{compact}#CUID_COUNT',
+                'sk': f'{compact}#CUID_COUNT',
+            },
+            UpdateExpression='ADD #count :increment',
+            ExpressionAttributeNames={
+                '#count': 'cuidCount',
+            },
+            ExpressionAttributeValues={
+                ':increment': 1,
+            },
+            ReturnValues='UPDATED_NEW',
+        )
+        cuid_count = resp['Attributes']['cuidCount']
+        logger.info('Claimed CUID number', cuid_count=cuid_count)
+        return cuid_count
+
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
     def get_ssn_by_provider_id(self, *, compact: str, provider_id: str) -> str:
         logger.info('Getting ssn by provider id', compact=compact, provider_id=provider_id)

@@ -9,6 +9,12 @@ from common_constructs.stack import AppStack
 # Importing module level to allow lazy loading for typing
 from common_constructs import compact_connect_api
 
+# Compact Unique Identifier format: SWC-<4-digit random>-<monotonic counter>, e.g. SWC-4548-1.
+# Case-insensitive on the SWC prefix to mirror CUID_PATTERN (with re.IGNORECASE) in cc_common/data_model/schema/
+# common.py; this is a defense-in-depth check at the API Gateway layer, ahead of the authoritative schema
+# validation performed by the lambda.
+_CUID_API_MODEL_PATTERN = r'^[Ss][Ww][Cc]-[0-9]{4}-[1-9][0-9]*$'
+
 
 class ApiModel:
     """This class is responsible for defining the model definitions used in the API endpoints."""
@@ -124,6 +130,66 @@ class ApiModel:
             ),
         )
         return self.api._v1_query_providers_request_model
+
+    @property
+    def public_query_providers_request_model(self) -> Model:
+        """Return the public query providers request model, which should only be created once per API."""
+        if hasattr(self.api, '_v1_public_query_providers_request_model'):
+            return self.api._v1_public_query_providers_request_model
+        self.api._v1_public_query_providers_request_model = self.api.add_model(
+            'V1PublicQueryProvidersRequestModel',
+            description='Public query providers request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['query'],
+                properties={
+                    'query': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        description='The query parameters',
+                        additional_properties=False,
+                        properties={
+                            'jurisdiction': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Filter for providers with license in a jurisdiction',
+                                enum=self.api.node.get_context('jurisdictions'),
+                            ),
+                            'givenName': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                max_length=100,
+                                description='Filter for providers with a given name (familyName is required if'
+                                ' givenName is provided)',
+                            ),
+                            'familyName': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                max_length=100,
+                                description='Filter for providers with a family name',
+                            ),
+                            'licenseNumber': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                min_length=1,
+                                max_length=100,
+                                description='Filter for licenses with a specific license number',
+                            ),
+                            'cuid': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Filter for the provider with a specific Compact Unique Identifier',
+                                max_length=64,
+                                pattern=_CUID_API_MODEL_PATTERN,
+                            ),
+                            'licenseType': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Filter for licenses of a specific license type',
+                                enum=self.stack.license_type_names,
+                            ),
+                        },
+                    ),
+                    'pagination': self._pagination_request_schema,
+                    'sorting': self._sorting_schema,
+                },
+            ),
+        )
+        return self.api._v1_public_query_providers_request_model
 
     @property
     def query_providers_response_model(self) -> Model:
@@ -970,6 +1036,7 @@ class ApiModel:
                 type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
             ),
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+            'publicCompactIdentifier': JsonSchema(type=JsonSchemaType.STRING, pattern=_CUID_API_MODEL_PATTERN),
         }
 
     @property
@@ -1344,6 +1411,17 @@ class ApiModel:
                                 max_length=100,
                                 description='Filter for licenses with a specific license number',
                             ),
+                            'cuid': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Filter for the provider with a specific Compact Unique Identifier',
+                                max_length=64,
+                                pattern=_CUID_API_MODEL_PATTERN,
+                            ),
+                            'licenseType': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Filter for licenses of a specific license type',
+                                enum=self.stack.license_type_names,
+                            ),
                         },
                     ),
                     'sorting': self._sorting_schema,
@@ -1662,6 +1740,7 @@ class ApiModel:
                     description='Whether the license is eligible for compact participation in public search results',
                     enum=['eligible', 'ineligible'],
                 ),
+                'publicCompactIdentifier': JsonSchema(type=JsonSchemaType.STRING, pattern=_CUID_API_MODEL_PATTERN),
             },
         )
 
@@ -1694,6 +1773,7 @@ class ApiModel:
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
             'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+            'publicCompactIdentifier': JsonSchema(type=JsonSchemaType.STRING, pattern=_CUID_API_MODEL_PATTERN),
         }
 
     @property
