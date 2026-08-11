@@ -1,52 +1,14 @@
-from datetime import date, datetime
-from unittest.mock import patch
-from uuid import uuid4
+from datetime import date
 
 from tests import TstLambdas
+from tests.unit.staff_user_test_data import build_directory, build_staff_user
+
 
 # The directory's own query and pagination are covered by the UserClient function tests. These tests
 # feed it users directly, so they are only about how it classifies them.
-ITERATE_USERS = 'cc_common.data_model.user_client.UserClient.iterate_all_users_in_compact'
-
-
 class TestCompactStaffUserDirectory(TstLambdas):
-    @staticmethod
-    def _staff_user(
-        *,
-        last_login_at: str | None = '2024-11-08T12:00:00+00:00',
-        status: str | None = None,
-        compact_actions: set | None = None,
-        jurisdictions: dict | None = None,
-    ):
-        from cc_common.data_model.schema.common import StaffUserStatus
-        from cc_common.data_model.schema.user import StaffUserData
-        from common_test.test_data_generator import TestDataGenerator
-
-        staff_user = TestDataGenerator.generate_default_staff_user(
-            {
-                'userId': str(uuid4()),
-                'status': status or StaffUserStatus.ACTIVE.value,
-                'lastLoginAt': datetime.fromisoformat(last_login_at or '2024-11-08T12:00:00+00:00'),
-                'permissions': {
-                    'actions': compact_actions or set(),
-                    'jurisdictions': jurisdictions or {},
-                },
-            }
-        )
-        if last_login_at is not None:
-            return staff_user
-
-        # A user who has not signed in since login tracking was introduced has no lastLoginAt at all
-        record = staff_user.serialize_to_database_record()
-        del record['lastLoginAt']
-        return StaffUserData.from_database_record(record)
-
-    @staticmethod
-    def _build_directory(users):
-        from staff_user_directory import CompactStaffUserDirectory
-
-        with patch(ITERATE_USERS, return_value=iter(users)):
-            return CompactStaffUserDirectory(compact='socw')
+    _staff_user = staticmethod(build_staff_user)
+    _build_directory = staticmethod(build_directory)
 
     def test_users_last_seen_on_matches_only_that_date(self):
         day_before = self._staff_user(last_login_at='2024-11-07T23:59:59+00:00')

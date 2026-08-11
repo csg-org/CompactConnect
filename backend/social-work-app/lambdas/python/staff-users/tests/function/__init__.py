@@ -49,6 +49,7 @@ class TstFunction(TstLambdas):
             ],
         )
         self.create_compact_configuration_table()
+        self.create_event_state_table()
         # Adding a waiter allows for testing against an actual AWS account, if needed
         waiter = self._table.meta.client.get_waiter('table_exists')
         waiter.wait(TableName=self._table.name)
@@ -63,6 +64,18 @@ class TstFunction(TstLambdas):
         )
         os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._user_pool_id = user_pool_response['UserPool']['Id']
+
+    def create_event_state_table(self):
+        """Create the event state table, which tracks what work has already been done for an event."""
+        self._event_state_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['EVENT_STATE_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+        )
 
     def create_compact_configuration_table(self):
         """Create the compact configuration table for testing."""
@@ -82,6 +95,7 @@ class TstFunction(TstLambdas):
     def delete_resources(self):
         self._table.delete()
         self._compact_configuration_table.delete()
+        self._event_state_table.delete()
         waiter = self._table.meta.client.get_waiter('table_not_exists')
         waiter.wait(TableName=self._table.name)
         # Delete the Cognito user pool
