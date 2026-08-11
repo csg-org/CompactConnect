@@ -92,7 +92,7 @@
                         <div class="discipline-logo-container">
                             <AlertCircleIcon class="alert-icon" />
                         </div>
-                        <div class="title-text">{{ $t('licensing.disciplineTitle') }}</div>
+                        <div id="discipline-title" class="title-text">{{ $t('licensing.disciplineTitle') }}</div>
                     </div>
                     <CollapseCaretButton @toggleCollapse="toggleDisciplineCollapsed" />
                 </div>
@@ -101,26 +101,37 @@
                     <div v-if="!licenseeDiscipline.length" class="no-discipline">
                         {{ $t('licensing.noDiscipline') }}
                     </div>
-                    <div v-else class="discipline-list">
-                        <div v-if="$matches.tablet.min" class="discipline-row header">
-                            <div class="discipline-cell state">{{ $t('common.state') }}</div>
-                            <div class="discipline-cell start-date">{{ $t('common.startDate') }}</div>
-                            <div class="discipline-cell end-date">{{ $t('common.endDate') }}</div>
+                    <div v-else class="discipline-list" role="table" aria-labelledby="discipline-title">
+                        <div v-if="$matches.tablet.min" class="discipline-row header" role="row">
+                            <div class="discipline-cell state" role="columnheader">
+                                {{ $t('common.state') }}
+                            </div>
+                            <div class="discipline-cell start-date" role="columnheader">
+                                {{ $t('common.startDate') }}
+                            </div>
+                            <div class="discipline-cell end-date" role="columnheader">
+                                {{ $t('common.endDate') }}
+                            </div>
                         </div>
-                        <div v-for="(discipline, index) in licenseeDiscipline" :key="index" class="discipline-row">
-                            <div class="discipline-cell state">
+                        <div
+                            v-for="(discipline, index) in licenseeDiscipline"
+                            :key="index"
+                            class="discipline-row"
+                            role="row"
+                        >
+                            <div class="discipline-cell state" role="cell">
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('common.state') }}:
                                 </span>
                                 {{ discipline.state.name() }}
                             </div>
-                            <div class="discipline-cell start-date">
+                            <div class="discipline-cell start-date" role="cell">
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('common.startDate') }}:
                                 </span>
                                 {{ discipline.startDateDisplay() }}
                             </div>
-                            <div class="discipline-cell end-date">
+                            <div class="discipline-cell end-date" role="cell">
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('common.endDate') }}:
                                 </span>
