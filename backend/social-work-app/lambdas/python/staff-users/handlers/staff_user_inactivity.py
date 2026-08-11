@@ -5,6 +5,7 @@ from enum import StrEnum
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.common import StaffUserStatus
 from cc_common.data_model.schema.user import StaffUserData
 from cc_common.email_service_client import StaffUserInactivityNotificationTemplateVariables
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
@@ -284,7 +285,7 @@ def resolve_admin_recipients(*, user: StaffUserData, directory: CompactStaffUser
 
     admin_emails: set[str] = set()
     for jurisdiction in user.jurisdictions:
-        others = [admin for admin in directory.jurisdiction_admins(jurisdiction) if admin.userId != user.userId]
+        others = _notifiable_admins(directory.jurisdiction_admins(jurisdiction), excluding=user)
         if not others:
             # Covers both "the state has no admins" and "the user is the state's only admin" - once the
             # user is excluded, those are the same condition
@@ -297,7 +298,7 @@ def resolve_admin_recipients(*, user: StaffUserData, directory: CompactStaffUser
         notify_compact_admins = True
 
     if notify_compact_admins:
-        admin_emails.update(admin.email for admin in directory.compact_admins if admin.userId != user.userId)
+        admin_emails.update(admin.email for admin in _notifiable_admins(directory.compact_admins, excluding=user))
 
     if not admin_emails:
         logger.error(
@@ -307,3 +308,17 @@ def resolve_admin_recipients(*, user: StaffUserData, directory: CompactStaffUser
         )
 
     return admin_emails
+
+
+def _notifiable_admins(admins: list[StaffUserData], *, excluding: StaffUserData) -> list[StaffUserData]:
+    """The admins from this list who are worth notifying.
+
+    The directory returns admins whatever their status, since other callers may want them all. Here we
+    want only admins who can act: an inactive admin cannot sign in, and counting one would suppress
+    escalation to the compact admins for a state whose only admin is inactive.
+
+    The user being deactivated is excluded too - they receive their own copy.
+    """
+    return [
+        admin for admin in admins if admin.userId != excluding.userId and admin.status == StaffUserStatus.ACTIVE.value
+    ]

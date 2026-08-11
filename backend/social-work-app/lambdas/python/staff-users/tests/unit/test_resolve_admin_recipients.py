@@ -83,6 +83,32 @@ class TestResolveAdminRecipients(TstLambdas):
 
         self.assertEqual({oh_admin.email, compact_admin.email}, recipients)
 
+    def test_deactivated_state_admin_does_not_suppress_escalation(self):
+        """A deactivated admin cannot sign in to act, so the state counts as having no admins.
+
+        Without this, a state whose only admin has been deactivated notifies a disabled account and
+        never escalates to the compact admins - so nobody who can act is told.
+        """
+        from cc_common.data_model.schema.common import StaffUserStatus
+
+        user = build_staff_user(jurisdictions={'oh': {WRITE}})
+        deactivated_oh_admin = build_staff_user(jurisdictions={'oh': {ADMIN}}, status=StaffUserStatus.INACTIVE.value)
+        compact_admin = build_staff_user(compact_actions={ADMIN})
+
+        recipients = self._resolve(user, build_directory([user, deactivated_oh_admin, compact_admin]))
+
+        self.assertEqual({compact_admin.email}, recipients)
+
+    def test_deactivated_compact_admin_is_not_notified(self):
+        from cc_common.data_model.schema.common import StaffUserStatus
+
+        user = build_staff_user(compact_actions={READ_PRIVATE})
+        deactivated_compact_admin = build_staff_user(compact_actions={ADMIN}, status=StaffUserStatus.INACTIVE.value)
+
+        recipients = self._resolve(user, build_directory([user, deactivated_compact_admin]))
+
+        self.assertEqual(set(), recipients)
+
     def test_no_admins_anywhere_returns_empty_set(self):
         """A compact with nobody to notify is a configuration problem, but the user still gets their own email."""
         user = build_staff_user(jurisdictions={'oh': {WRITE}})
