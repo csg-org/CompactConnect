@@ -1,5 +1,6 @@
 from aws_cdk.assertions import Capture, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
+from aws_cdk.aws_cloudwatch import CfnAlarm
 from aws_cdk.aws_iam import CfnPolicy
 from aws_cdk.aws_lambda import CfnFunction
 
@@ -130,6 +131,34 @@ class TestCompactsApi(TestApi):
                 }
             },
         )
+
+    def test_synth_generates_invoked_alarm_for_post_credentials_payment_processor_handler(self):
+        """
+        Compact admins set a compact's payment processor credentials once, out of band, so this endpoint is
+        not expected to be called again afterward. Any invocation at all should alert on-call support so
+        they can verify the request was legitimate, given its impact on the payment system.
+        """
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+        alarms = api_lambda_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
+
+        handler = api_lambda_stack.credentials_lambdas.credentials_handler
+        alarm_logical_id = api_lambda_stack.get_logical_id(handler.node.find_child('InvokedAlarm').node.default_child)
+        alarm = self.get_resource_properties_by_logical_id(alarm_logical_id, resources=alarms)
+
+        self.assertEqual(alarm['Namespace'], 'AWS/Lambda')
+        self.assertEqual(alarm['MetricName'], 'Invocations')
+        self.assertEqual(
+            alarm['Dimensions'],
+            [{'Name': 'FunctionName', 'Value': {'Ref': api_lambda_stack.get_logical_id(handler.node.default_child)}}],
+        )
+        self.assertEqual(alarm['Statistic'], 'Sum')
+        self.assertEqual(alarm['EvaluationPeriods'], 1)
+        # any invocation at all should alert -- there is no legitimate steady-state traffic to this endpoint
+        self.assertEqual(alarm['Threshold'], 1)
+        self.assertEqual(alarm['ComparisonOperator'], 'GreaterThanOrEqualToThreshold')
+        self.assertEqual(alarm['TreatMissingData'], 'notBreaching')
+        self.assertTrue(alarm['AlarmActions'])
 
     def test_synth_generates_post_credentials_payment_processor_endpoint_resources(self):
         api_stack = self.app.sandbox_backend_stage.api_stack

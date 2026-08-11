@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Stack
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_lambda import Runtime
@@ -104,4 +106,23 @@ class CredentialsLambdas:
                 },
             ],
         )
+
+        # This endpoint is not expected to be called often after a compact admin has initially set their
+        # payment processing credentials. Alert on any invocation at all, so on-call support is aware and
+        # can verify the request was legitimate, given its impact on the payment system.
+        Alarm(
+            handler,
+            'InvokedAlarm',
+            metric=handler.metric_invocations(statistic=Stats.SUM),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'{handler.node.path} was invoked. This endpoint is not expected to be called '
+            "after a compact's payment processor credentials are initially set, so this may indicate an "
+            'unauthorized or accidental attempt to change payment processor credentials. Verify the request '
+            'was legitimate.',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        ).add_alarm_action(SnsAction(alarm_topic))
+
         return handler
