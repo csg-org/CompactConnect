@@ -66,8 +66,9 @@ class Metrics:
 
 
 def process_staff_user_inactivity(event: dict, context: LambdaContext) -> dict:
-    """Notify a staff user and their administrators that the account is nearing inactivity deactivation,
-    and on the day-of run, deactivate.
+    """Send inactivity reminders to a staff user and their administrators, and deactivate on the day-of
+    run. The day-of run only deactivates - the 1-day run already sent the last actionable notice, so a
+    second email at the moment access is revoked would just be noise on top of a decision already made.
 
     Event format:
         {
@@ -137,7 +138,6 @@ def process_staff_user_inactivity(event: dict, context: LambdaContext) -> dict:
             user=user,
             directory=directory,
             event_type=event_type,
-            today=today,
             days_to_deactivation=days_to_deactivation,
             inactivity_period_days=inactivity_period_days,
             is_deactivation_run=is_deactivation_run,
@@ -158,28 +158,34 @@ def _process_user(
     user: StaffUserData,
     directory: CompactStaffUserDirectory,
     event_type: InactivityEventType,
-    today: date,
     days_to_deactivation: int,
     inactivity_period_days: int,
     is_deactivation_run: bool,
     metrics: Metrics,
 ) -> None:
-    """Notify one user and their admins, then deactivate if this is the deactivation run."""
-    last_login_date = user.lastLoginAt.astimezone(UTC).date()
-    # Clamped, so a straggler swept up late is not told about a date in the past
-    deactivation_date = max(last_login_date + timedelta(days=days_to_deactivation), today)
+    """Deactivate the user on the day-of run; otherwise send their reminder notice.
 
+    The day-of run never sends a notice of its own - the 1-day run already told this user their account
+    would be deactivated today, so nothing new is left to say.
+    """
+    last_login_date = user.lastLoginAt.astimezone(UTC).date()
     tracker = StaffUserInactivityTracker(
         compact=directory.compact,
         user_id=str(user.userId),
         last_login_date=last_login_date,
         event_type=event_type,
     )
+
+    if is_deactivation_run:
+        _deactivate_user(user=user, tracker=tracker, metrics=metrics)
+        return
+
+    # Every non-deactivation run matches on an exact lastLoginAt date, so this is always in the future.
     template_variables = StaffUserInactivityNotificationTemplateVariables(
         staff_user_first_name=user.givenName,
         staff_user_last_name=user.familyName,
         staff_user_email=user.email,
-        deactivation_date=deactivation_date,
+        deactivation_date=last_login_date + timedelta(days=days_to_deactivation),
         inactivity_period_days=inactivity_period_days,
     )
 
@@ -210,10 +216,6 @@ def _process_user(
             ),
             step=InactivityStep.ADMIN_EMAIL,
         )
-
-    # Deactivate only after the notifications have been attempted, so nobody is locked out silently
-    if is_deactivation_run:
-        _deactivate_user(user=user, tracker=tracker, metrics=metrics)
 
 
 def _send_tracked_email(

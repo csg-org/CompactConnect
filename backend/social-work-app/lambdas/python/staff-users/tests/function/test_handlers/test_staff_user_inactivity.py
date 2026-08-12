@@ -217,16 +217,6 @@ class TestStaffUserInactivity(TstFunction):
         self.assertEqual((MOCK_TODAY + timedelta(days=10)).date(), template_variables.deactivation_date)
         self.assertEqual(60, template_variables.inactivity_period_days)
 
-    def test_deactivation_date_is_clamped_to_today_for_a_straggler(self):
-        """A user 75 days dormant would otherwise be told about a date in the past."""
-        self._seed_user(days_since_login=75)
-
-        with patch('cc_common.config._Config.email_service_client') as mock_email_client:
-            self._run(days_before=0)
-
-        template_variables = self._sent_payloads(mock_email_client)[0]['template_variables']
-        self.assertEqual(MOCK_TODAY.date(), template_variables.deactivation_date)
-
     def test_already_notified_users_are_not_emailed_twice(self):
         self._seed_user(days_since_login=51)
 
@@ -241,17 +231,15 @@ class TestStaffUserInactivity(TstFunction):
         self.assertGreater(result['metrics']['alreadyDone'], 0)
 
     def test_an_email_failure_is_counted_and_does_not_abort_the_run(self):
-        self._seed_user(days_since_login=61)
-        self._seed_user(days_since_login=61)
+        self._seed_user(days_since_login=60)
+        self._seed_user(days_since_login=60)
 
         with patch('cc_common.config._Config.email_service_client') as mock_email_client:
             mock_email_client.send_staff_user_inactivity_notification_email.side_effect = RuntimeError('SES is down')
-            result = self._run(days_before=0)
+            result = self._run(days_before=1)
 
         self.assertEqual(2, result['metrics']['matchedUsers'])
         self.assertEqual(2, result['metrics']['emailsFailed'])
-        # The deactivation still happens - a failed notice does not buy the user more time
-        self.assertEqual(2, result['metrics']['deactivated'])
 
     def test_no_admin_recipients_is_counted(self):
         _, user_email = self._seed_user(days_since_login=51, jurisdictions={'oh': {WRITE}})
@@ -265,22 +253,32 @@ class TestStaffUserInactivity(TstFunction):
 
     # -- deactivation --
 
-    def test_day_of_run_deactivates_after_sending(self):
+    def test_day_of_run_deactivates_without_sending_a_notice(self):
+        """The 1-day run already sent the last actionable notice, so day-of only deactivates."""
         from cc_common.data_model.schema.common import StaffUserStatus
 
         user_id, _ = self._seed_user(days_since_login=61)
-        statuses_when_emailed = []
 
         with patch('cc_common.config._Config.email_service_client') as mock_email_client:
-            mock_email_client.send_staff_user_inactivity_notification_email.side_effect = lambda **_kwargs: (
-                statuses_when_emailed.append(self._user_status(user_id))
-            )
             result = self._run(days_before=0)
 
-        self.assertEqual([StaffUserStatus.ACTIVE.value], statuses_when_emailed)
+            mock_email_client.send_staff_user_inactivity_notification_email.assert_not_called()
+
         self.assertEqual(StaffUserStatus.INACTIVE.value, self._user_status(user_id))
         self.assertFalse(self._is_cognito_user_enabled(user_id))
         self.assertEqual(1, result['metrics']['deactivated'])
+        self.assertEqual(0, result['metrics']['userEmailsSent'])
+        self.assertEqual(0, result['metrics']['adminEmailsSent'])
+        self.assertEqual(0, result['metrics']['noAdminRecipients'])
+
+    def test_day_of_run_sends_no_notice_even_for_a_straggler(self):
+        """A user 75 days dormant was missed by the 1-day run, but day-of still does not email them."""
+        self._seed_user(days_since_login=75)
+
+        with patch('cc_common.config._Config.email_service_client') as mock_email_client:
+            self._run(days_before=0)
+
+            mock_email_client.send_staff_user_inactivity_notification_email.assert_not_called()
 
     def test_reminder_runs_deactivate_nobody(self):
         from cc_common.data_model.schema.common import StaffUserStatus

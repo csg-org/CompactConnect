@@ -20,7 +20,8 @@ from stacks import persistent_stack as ps
 # How long a staff user can go without signing in before their account is deactivated
 STAFF_USER_INACTIVITY_PERIOD_DAYS = 60
 
-# Days before the stated deactivation date that each rule fires. 0 is the run that deactivates.
+# Days before the stated deactivation date that each rule fires. 0 is the run that deactivates - it
+# sends no notice of its own, since the 1-day run already sent the last actionable one.
 REMINDER_CONFIGS = [
     {'days_before': 10, 'suffix': '10Day'},
     {'days_before': 3, 'suffix': '3Day'},
@@ -38,9 +39,9 @@ class StaffUserInactivityStack(AppStack):
     """
     Stack for staff user inactivity notifications and deactivation.
 
-    - Lambda that notifies a staff user and their administrators ahead of deactivation, and deactivates
-      on the day-of run
-    - EventBridge rules per compact and reminder type (10-day, 3-day, day-of) that run daily
+    - Lambda that notifies a staff user and their administrators ahead of deactivation (10-day, 3-day,
+      and 1-day runs), and deactivates on the day-of run
+    - EventBridge rules per compact and reminder type (10-day, 3-day, 1-day, day-of) that run daily
     - CloudWatch alarms for errors and execution duration
     """
 
@@ -98,14 +99,20 @@ class StaffUserInactivityStack(AppStack):
             ],
         )
 
-        # All three rules fire in the same minute.
+        # All four rules fire in the same minute.
         for compact in json.loads(self.common_env_vars['COMPACTS']):
             for reminder_config in REMINDER_CONFIGS:
+                days_before = reminder_config['days_before']
+                description = (
+                    f'Daily rule to deactivate inactive staff users in {compact}'
+                    if days_before == 0
+                    else f'Daily rule to notify staff users in {compact} {days_before} days before '
+                    'inactivity deactivation'
+                )
                 Rule(
                     self,
                     f'StaffUserInactivity{reminder_config["suffix"]}Rule{compact.upper()}',
-                    description=f'Daily rule to notify staff users in {compact} '
-                    f'{reminder_config["days_before"]} days before inactivity deactivation',
+                    description=description,
                     schedule=Schedule.cron(week_day='*', hour=RUN_HOUR_UTC, minute='0', month='*', year='*'),
                     targets=[
                         LambdaFunction(
@@ -113,7 +120,7 @@ class StaffUserInactivityStack(AppStack):
                             event=RuleTargetInput.from_object(
                                 {
                                     'compact': compact,
-                                    'daysBeforeDeactivation': reminder_config['days_before'],
+                                    'daysBeforeDeactivation': days_before,
                                 }
                             ),
                         )
