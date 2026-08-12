@@ -14,5 +14,6 @@
   "CC_TEST_PROVIDER_ID": "exampleProviderId",
   "ENVIRONMENT_NAME": "sandboxEnvironmentNamePlaceholder",
   "CC_TEST_SMOKE_TEST_NOTIFICATION_EMAIL": "smoke-test-notifications@example.com",
-  "CC_TEST_ROLLBACK_STEP_FUNCTION_ARN": "arn:aws:states:us-east-1:123456789012:stateMachine:Sandbox-DisasterRecoveryStack-LicenseUploadRollbackStateMachine"
+  "CC_TEST_ROLLBACK_STEP_FUNCTION_ARN": "arn:aws:states:us-east-1:123456789012:stateMachine:Sandbox-DisasterRecoveryStack-LicenseUploadRollbackStateMachine",
+  "CC_TEST_STAFF_USER_INACTIVITY_LAMBDA_NAME": "Sandbox-StaffUserInactivityStack-StaffUserInactivityHandler12345"
 }

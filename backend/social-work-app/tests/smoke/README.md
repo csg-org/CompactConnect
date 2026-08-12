@@ -79,6 +79,8 @@ Some smoke tests create their own practitioner data via the state API (for examp
    - `CC_TEST_ROLLBACK_STEP_FUNCTION_ARN`: Step function ARN for rollback tests
    - `CC_TEST_RATE_LIMITING_DYNAMO_TABLE_NAME`: DynamoDB table name for rate limiting
    - `CC_TEST_SSN_DYNAMO_TABLE_NAME`: DynamoDB table name for SSN data
+   - `CC_TEST_STAFF_USER_INACTIVITY_LAMBDA_NAME`: Function name of the staff user inactivity handler, used by
+     `staff_user_inactivity_smoke_tests.py` (found in the `StaffUserInactivityStack`)
 
 3. **Important:** Never commit `smoke_tests_env.json` to version control. It contains sensitive credentials and should be in `.gitignore`.
 

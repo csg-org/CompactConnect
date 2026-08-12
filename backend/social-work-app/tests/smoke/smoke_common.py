@@ -43,9 +43,13 @@ _TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for tes
 _TEMP_STAFF_PASSWORD = 'TempPass123!'  # noqa: S105 temporary password for creating test staff users
 
 
-def _create_staff_user_in_cognito(*, email: str) -> str:
+def _create_staff_user_in_cognito(*, email: str, suppress_welcome_message: bool = False) -> str:
     """
     Creates a staff user in Cognito and returns the user's sub.
+
+    :param email: The email address for the new user
+    :param suppress_welcome_message: If True, Cognito will not send its default welcome/invite email.
+        Defaults to False to preserve the existing behavior for smoke tests that rely on that email.
     """
 
     def get_sub_from_attributes(user_attributes: list):
@@ -55,12 +59,15 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
         raise ValueError('Failed to find user sub!')
 
     try:
-        user_data = config.cognito_client.admin_create_user(
-            UserPoolId=config.cognito_staff_user_pool_id,
-            Username=email,
-            UserAttributes=[{'Name': 'email', 'Value': email}],
-            TemporaryPassword=_TEMP_STAFF_PASSWORD,
-        )
+        create_user_kwargs = {
+            'UserPoolId': config.cognito_staff_user_pool_id,
+            'Username': email,
+            'UserAttributes': [{'Name': 'email', 'Value': email}],
+            'TemporaryPassword': _TEMP_STAFF_PASSWORD,
+        }
+        if suppress_welcome_message:
+            create_user_kwargs['MessageAction'] = 'SUPPRESS'
+        user_data = config.cognito_client.admin_create_user(**create_user_kwargs)
         logger.info(f"Created staff user, '{email}'. Setting password.")
         # set this to simplify login flow for user
         config.cognito_client.admin_set_user_password(
@@ -104,18 +111,22 @@ def delete_test_staff_user(email: str, user_sub: str, compact: str):
         raise e
 
 
-def create_test_staff_user(*, email: str, compact: str, jurisdiction: str, permissions: dict):
+def create_test_staff_user(
+    *, email: str, compact: str, jurisdiction: str, permissions: dict, suppress_welcome_message: bool = False
+):
     """Creates a test staff user in Cognito, stores their data in DynamoDB, and returns their user sub id.
 
     :param email: The email address of the staff user to create
     :param compact: The compact identifier
     :param jurisdiction: The jurisdiction identifier
     :param permissions: The permissions dictionary for the user
+    :param suppress_welcome_message: If True, Cognito will not send its default welcome/invite email.
+        Defaults to False to preserve the existing behavior for smoke tests that rely on that email.
     :return: The staff user's sub ID
     """
     logger.info(f"Creating staff user, '{email}', in {compact}/{jurisdiction}")
     user_attributes = {'email': email, 'familyName': 'Dokes', 'givenName': 'Joe'}
-    sub = _create_staff_user_in_cognito(email=email)
+    sub = _create_staff_user_in_cognito(email=email, suppress_welcome_message=suppress_welcome_message)
     schema = UserRecordSchema()
     config.staff_users_dynamodb_table.put_item(
         Item=schema.dump(
