@@ -189,8 +189,8 @@ def _process_user(
         inactivity_period_days=inactivity_period_days,
     )
 
-    # The user and their admins get separate sends, so one admin cannot see another's address and a
-    # partial failure only retries the half that failed
+    # The user and their admins get separate sends, so a partial failure only retries the half that
+    # failed.
     metrics.record_email_outcome(
         _send_tracked_email(
             tracker=tracker,
