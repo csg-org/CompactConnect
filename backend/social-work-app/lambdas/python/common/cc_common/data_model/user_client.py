@@ -116,12 +116,16 @@ class UserClient:
         user_records = self.config.users_table.query(KeyConditionExpression=Key('pk').eq(f'USER#{user_id}')).get(
             'Items', []
         )
+        date_of_update = self.config.current_standard_datetime.isoformat()
         for record in user_records:
             self.config.users_table.update_item(
                 Key={'pk': record['pk'], 'sk': record['sk']},
-                UpdateExpression='SET #status = :status',
+                UpdateExpression='SET #status = :status, dateOfUpdate = :dateOfUpdate',
                 ExpressionAttributeNames={'#status': 'status'},
-                ExpressionAttributeValues={':status': StaffUserStatus.INACTIVE.value},
+                ExpressionAttributeValues={
+                    ':status': StaffUserStatus.INACTIVE.value,
+                    ':dateOfUpdate': date_of_update,
+                },
             )
 
     def iterate_all_users_in_compact(self, *, compact: str) -> Generator[StaffUserData, None, None]:
