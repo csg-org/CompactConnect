@@ -42,14 +42,12 @@ class CompactStaffUserDirectory:
         return [user for user in self._candidates() if self._last_login_date(user) <= last_login_date]
 
     def jurisdiction_admins(self, jurisdiction: str) -> list[StaffUserData]:
-        """Users holding the admin action in this jurisdiction, whatever their status.
-        """
+        """Users holding the admin action in this jurisdiction, whatever their status."""
         return list(self._jurisdiction_admins[jurisdiction])
 
     @property
     def compact_admins(self) -> list[StaffUserData]:
-        """Users holding the admin action at the compact level, whatever their status.
-        """
+        """Users holding the admin action at the compact level, whatever their status."""
         return list(self._compact_admins)
 
     def _candidates(self) -> Generator[StaffUserData, None, None]:

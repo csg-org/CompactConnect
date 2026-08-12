@@ -15,6 +15,7 @@ from staff_user_inactivity_tracker import InactivityEventType, InactivityStep, S
 DAYS_BEFORE_TO_EVENT_TYPE = {
     10: InactivityEventType.TEN_DAY,
     3: InactivityEventType.THREE_DAY,
+    1: InactivityEventType.ONE_DAY,
     0: InactivityEventType.DAY_OF,
 }
 
@@ -71,7 +72,7 @@ def process_staff_user_inactivity(event: dict, context: LambdaContext) -> dict:
     Event format:
         {
             "compact": "socw",                    # required
-            "daysBeforeDeactivation": 10,         # required - 10, 3, or 0
+            "daysBeforeDeactivation": 10,         # required - 10, 3, 1, or 0
             "targetLastLoginDate": "2026-06-21"   # optional - replay a specific day's matched_users
         }
     """

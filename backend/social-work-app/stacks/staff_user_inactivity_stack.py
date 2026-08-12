@@ -24,6 +24,7 @@ STAFF_USER_INACTIVITY_PERIOD_DAYS = 60
 REMINDER_CONFIGS = [
     {'days_before': 10, 'suffix': '10Day'},
     {'days_before': 3, 'suffix': '3Day'},
+    {'days_before': 1, 'suffix': '1Day'},
     {'days_before': 0, 'suffix': 'DayOf'},
 ]
 

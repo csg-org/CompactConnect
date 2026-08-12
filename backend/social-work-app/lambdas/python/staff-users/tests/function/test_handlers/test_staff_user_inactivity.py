@@ -84,7 +84,7 @@ class TestStaffUserInactivity(TstFunction):
             self._run(days_before=7)
 
         self.assertEqual(
-            'Invalid daysBeforeDeactivation: 7. Must be one of [0, 3, 10].',
+            'Invalid daysBeforeDeactivation: 7. Must be one of [0, 1, 3, 10].',
             ctx.exception.message,
         )
 
@@ -101,23 +101,48 @@ class TestStaffUserInactivity(TstFunction):
         )
 
     def test_each_reminder_run_targets_its_own_day(self):
-        """10-day fires at 51 days since login, 3-day at 58. Both are exact, not ranges."""
-        _, ten_day_email = self._seed_user(days_since_login=51)
-        _, three_day_email = self._seed_user(days_since_login=58)
-        # Neighbours on either side of both boundaries
-        for days in (50, 52, 57, 59):
+        """10-day fires at 51 days since login, 3-day at 58, 1-day at 60. All exact, not ranges."""
+        expected_email_by_run = {
+            10: self._seed_user(days_since_login=51)[1],
+            3: self._seed_user(days_since_login=58)[1],
+            1: self._seed_user(days_since_login=60)[1],
+        }
+        # Neighbours on either side of every boundary
+        for days in (50, 52, 57, 59, 61):
             self._seed_user(days_since_login=days)
 
-        with patch('cc_common.config._Config.email_service_client') as mock_email_client:
-            self._run(days_before=10)
-            self.assertEqual([[ten_day_email]], self._recipient_sets(mock_email_client))
+        for days_before, expected_email in expected_email_by_run.items():
+            with (
+                self.subTest(days_before=days_before),
+                patch('cc_common.config._Config.email_service_client') as mock_email_client,
+            ):
+                self._run(days_before=days_before)
+                self.assertEqual([[expected_email]], self._recipient_sets(mock_email_client))
+
+    def test_one_day_run_notifies_on_the_last_usable_day(self):
+        """The 1-day notice lands on day 60 - the last day the user can sign in and stop this."""
+        user_id, user_email = self._seed_user(days_since_login=60)
 
         with patch('cc_common.config._Config.email_service_client') as mock_email_client:
-            self._run(days_before=3)
-            self.assertEqual([[three_day_email]], self._recipient_sets(mock_email_client))
+            result = self._run(days_before=1)
+
+        self.assertEqual(1, result['metrics']['matchedUsers'])
+        self.assertEqual([[user_email]], self._recipient_sets(mock_email_client))
+        self.assertEqual(0, result['metrics']['deactivated'])
+        self.assertTrue(self._is_cognito_user_enabled(user_id))
+
+    def test_one_day_notice_says_deactivation_is_tomorrow(self):
+        """On the final usable day the notice must point at the following day, not today."""
+        self._seed_user(days_since_login=60)
+
+        with patch('cc_common.config._Config.email_service_client') as mock_email_client:
+            self._run(days_before=1)
+
+        template_variables = self._sent_payloads(mock_email_client)[0]['template_variables']
+        self.assertEqual((MOCK_TODAY + timedelta(days=1)).date(), template_variables.deactivation_date)
 
     def test_user_last_seen_exactly_60_days_ago_is_not_deactivated(self):
-        """The user keeps the whole of day 60 - deactivation lands on day 61."""
+        """The user keeps the whole of day 60 - the day-of run does not reach back that far."""
         user_id, _ = self._seed_user(days_since_login=60)
 
         with patch('cc_common.config._Config.email_service_client'):

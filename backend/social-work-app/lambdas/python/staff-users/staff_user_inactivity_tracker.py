@@ -8,10 +8,11 @@ from cc_common.config import config, logger
 
 
 class InactivityEventType(StrEnum):
-    """Which of the three scheduled runs an attempt belongs to."""
+    """Which of the scheduled runs an attempt belongs to."""
 
     TEN_DAY = 'staffUser.inactivity.10day'
     THREE_DAY = 'staffUser.inactivity.3day'
+    ONE_DAY = 'staffUser.inactivity.1day'
     DAY_OF = 'staffUser.inactivity.dayOf'
 
 

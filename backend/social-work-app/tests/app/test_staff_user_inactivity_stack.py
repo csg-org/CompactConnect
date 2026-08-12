@@ -13,8 +13,8 @@ from tests.app.base import TstAppABC
 # Guam (UTC+10) through Hawaii (UTC-10). Running outside that window would deactivate accounts a day
 # before the date the notification emails state.
 EXPECTED_SCHEDULE = 'cron(0 12 ? * * *)'
-EXPECTED_RULE_SUFFIXES = ('10Day', '3Day', 'DayOf')
-EXPECTED_DAYS_BEFORE = {'10Day': 10, '3Day': 3, 'DayOf': 0}
+EXPECTED_RULE_SUFFIXES = ('10Day', '3Day', '1Day', 'DayOf')
+EXPECTED_DAYS_BEFORE = {'10Day': 10, '3Day': 3, '1Day': 1, 'DayOf': 0}
 
 
 class TestStaffUserInactivityStack(TstAppABC, TestCase):

@@ -57,11 +57,11 @@ class TestStaffUserInactivityTracker(TstFunction):
                 InactivityStep.USER_EMAIL
             )
         )
-        self.assertFalse(
-            self._tracker(user_id=user_id, event_type=InactivityEventType.DAY_OF).was_already_done(
-                InactivityStep.USER_EMAIL
-            )
-        )
+        for event_type in (InactivityEventType.ONE_DAY, InactivityEventType.DAY_OF):
+            with self.subTest(event_type=event_type):
+                self.assertFalse(
+                    self._tracker(user_id=user_id, event_type=event_type).was_already_done(InactivityStep.USER_EMAIL)
+                )
 
     def test_users_are_tracked_independently(self):
         from staff_user_inactivity_tracker import InactivityStep
