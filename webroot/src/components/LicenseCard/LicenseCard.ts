@@ -16,7 +16,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { dateFormatPatterns } from '@/app.config';
+import { dateFormatPatterns, AppModes, getEncumberConfigLicense } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -106,6 +106,10 @@ class LicenseCard extends mixins(MixinForm) {
     //
     get userStore() {
         return this.$store.state.user;
+    }
+
+    get appMode(): AppModes {
+        return this.$store.state.appMode;
     }
 
     get isAppModeJcc(): boolean {
@@ -288,21 +292,13 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        let options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
+        const includeList: Array<string> = getEncumberConfigLicense(this.appMode).disciplineTypes;
+        const options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
             value: disciplineType.key,
             name: disciplineType.name,
-        }));
+        })).filter((option) => includeList.includes(option.value) || option.value === '');
 
-        if (this.isAppModeCosmetology || this.isAppModeSocialWork) {
-            const includeList = ['suspension', 'revocation', 'surrender of license'];
-
-            options = options.filter((option) => includeList.includes(option.value));
-        } else {
-            const excludeList = ['surrender of privilege'];
-
-            options = options.filter((option) => !excludeList.includes(option.value));
-        }
-
+        // For a single-select, include the blank option
         options.unshift({
             value: '',
             name: computed(() => this.$t('common.selectOption')),
@@ -312,41 +308,14 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const { isAppModeJcc, isAppModeCosmetology, isAppModeSocialWork } = this;
-        const includeList: Array<string> = [];
-        let isMultiSelect = true;
-        let options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
+        const includeList: Array<string> = getEncumberConfigLicense(this.appMode).npdbTypes;
+        const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
-        }));
-
-        // Define the included keys per compact
-        if (isAppModeJcc) {
-            includeList.push('Non-compliance With Requirements');
-            includeList.push('Criminal Conviction or Adjudication');
-            includeList.push('Confidentiality, Consent or Disclosure Violations');
-            includeList.push('Misconduct or Abuse');
-            includeList.push('Fraud, Deception, or Misrepresentation');
-            includeList.push('Unsafe Practice or Substandard Care');
-            includeList.push('Improper Supervision or Allowing Unlicensed Practice');
-            includeList.push('Other');
-        } else if (isAppModeCosmetology) {
-            isMultiSelect = false;
-            includeList.push('fraud');
-            includeList.push('consumer harm');
-            includeList.push('other');
-        } else if (isAppModeSocialWork) {
-            isMultiSelect = false;
-            includeList.push('fraud');
-            includeList.push('consumer harm');
-            includeList.push('other');
-        }
-
-        // Filter the compact-specific options
-        options = options.filter((option) => includeList.includes(option.value) || option.value === '');
+        })).filter((option) => includeList.includes(option.value) || option.value === '');
 
         // For a single-select, include the blank option
-        if (!isMultiSelect) {
+        if (!this.shouldAllowNpdbMultiSelect) {
             options.unshift({ value: '', name: computed(() => this.$t('common.selectOption')) });
         }
 
@@ -354,7 +323,7 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get shouldAllowNpdbMultiSelect(): boolean {
-        return this.isAppModeJcc;
+        return this.isAppModeJcc || this.isAppModeSocialWork;
     }
 
     get endInvestigationModalTitle(): string {

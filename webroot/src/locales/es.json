@@ -943,6 +943,14 @@
                 "key": "Non-compliance With Requirements"
             },
             {
+                "name": "Conflicto de intereses",
+                "key": "Conflict of Interest"
+            },
+            {
+                "name": "Atención deficiente o negligencia/abuso del paciente",
+                "key": "Substandard Care or Patient Neglect/Abuse"
+            },
+            {
                 "name": "Condena o sentencia penal",
                 "key": "Criminal Conviction or Adjudication"
             },
@@ -965,6 +973,10 @@
             {
                 "name": "Supervisión inadecuada o autorización de prácticas sin licencia",
                 "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Prescripción, dispensación y administración inadecuadas de medicamentos/violación de la ley de medicamentos",
+                "key": "Improper Prescribing, Dispensing, Administering Medication/Drug Violation"
             },
             {
                 "name": "Fraude",
