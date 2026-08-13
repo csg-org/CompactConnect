@@ -281,7 +281,8 @@ class UserClient:
                 expression_attribute_values[f':{jurisdiction}AddActions'] = actions
 
         if update_expression_parts:
-            update_expression = 'ADD ' + ', '.join(update_expression_parts)
+            update_expression = 'ADD ' + ', '.join(update_expression_parts) + ' SET dateOfUpdate = :dateOfUpdate'
+            expression_attribute_values[':dateOfUpdate'] = self.config.current_standard_datetime.isoformat()
 
             try:
                 return self.config.users_table.update_item(
@@ -328,7 +329,8 @@ class UserClient:
                 expression_attribute_values[f':{jurisdiction}DeleteActions'] = actions
 
         if update_expression_parts:
-            update_expression = 'DELETE ' + ', '.join(update_expression_parts)
+            update_expression = 'DELETE ' + ', '.join(update_expression_parts) + ' SET dateOfUpdate = :dateOfUpdate'
+            expression_attribute_values[':dateOfUpdate'] = self.config.current_standard_datetime.isoformat()
 
             return self.config.users_table.update_item(
                 Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
@@ -365,6 +367,9 @@ class UserClient:
             update_expression_parts.append(f'attributes.#{attr_name} = :{attr_name}')
             expression_attribute_names[f'#{attr_name}'] = attr_name
             expression_attribute_values[f':{attr_name}'] = attr_value
+
+        update_expression_parts.append('dateOfUpdate = :dateOfUpdate')
+        expression_attribute_values[':dateOfUpdate'] = self.config.current_standard_datetime.isoformat()
 
         update_expression = 'SET ' + ', '.join(update_expression_parts)
 

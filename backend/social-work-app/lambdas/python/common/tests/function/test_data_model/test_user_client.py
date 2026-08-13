@@ -7,8 +7,14 @@ from moto import mock_aws
 
 from .. import TstFunction
 
+# Frozen "now" for the whole class, so any write that stamps a timestamp is assertable by value. The
+# user.json fixture carries an older dateOfUpdate, so a record still holding that value has not been
+# written by the code under test.
+MOCK_DATETIME = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', MOCK_DATETIME)
 class TestClient(TstFunction):
     def _get_email_from_user_attributes(self, user_data: dict) -> str:
         for attribute in user_data['UserAttributes']:
@@ -42,12 +48,10 @@ class TestClient(TstFunction):
         # The fixture user has never signed in
         self.assertEqual(StaffUserStatus.INACTIVE.value, self._get_user_record(user_id)['status'])
 
-        login_time = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
-        with patch('cc_common.config._Config.current_standard_datetime', login_time):
-            UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw'])
+        UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw'])
 
         user_record = self._get_user_record(user_id)
-        self.assertEqual(login_time.isoformat(), user_record['lastLoginAt'])
+        self.assertEqual(MOCK_DATETIME.isoformat(), user_record['lastLoginAt'])
         self.assertEqual(StaffUserStatus.ACTIVE.value, user_record['status'])
 
     def test_record_user_login_refreshes_last_login_at_for_active_user(self):
@@ -57,9 +61,9 @@ class TestClient(TstFunction):
         user_id = self._load_user_data()
         client = UserClient(self.config)
 
-        first_login = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
-        with patch('cc_common.config._Config.current_standard_datetime', first_login):
-            client.record_user_login(user_id=user_id, compacts=['socw'])
+        # The first login uses the class-wide frozen time; the second overrides it, since this test is
+        # specifically about the stamp moving between two sign-ins
+        client.record_user_login(user_id=user_id, compacts=['socw'])
 
         second_login = datetime.fromisoformat('2024-12-25T08:00:00+00:00')
         with patch('cc_common.config._Config.current_standard_datetime', second_login):
@@ -73,11 +77,7 @@ class TestClient(TstFunction):
         user_id = self._load_user_data()
         original_record = self._get_user_record(user_id)
 
-        with patch(
-            'cc_common.config._Config.current_standard_datetime',
-            datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-        ):
-            UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw'])
+        UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw'])
 
         updated_record = self._get_user_record(user_id)
         for field in ('attributes', 'permissions', 'famGiv', 'compact', 'type', 'userId'):
@@ -94,13 +94,11 @@ class TestClient(TstFunction):
             Item=self._get_user_record(user_id) | {'sk': 'COMPACT#some-other-compact', 'compact': 'some-other-compact'}
         )
 
-        login_time = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
-        with patch('cc_common.config._Config.current_standard_datetime', login_time):
-            UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw', 'some-other-compact'])
+        UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw', 'some-other-compact'])
 
         for compact in ('socw', 'some-other-compact'):
             self.assertEqual(
-                login_time.isoformat(),
+                MOCK_DATETIME.isoformat(),
                 self._get_user_record(user_id, compact)['lastLoginAt'],
                 f'the {compact} record should have been stamped',
             )
@@ -118,13 +116,7 @@ class TestClient(TstFunction):
         # This user only has a socw record
         user_id = self._load_user_data()
 
-        with (
-            patch(
-                'cc_common.config._Config.current_standard_datetime',
-                datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-            ),
-            self.assertRaises(CCNotFoundException),
-        ):
+        with self.assertRaises(CCNotFoundException):
             UserClient(self.config).record_user_login(user_id=user_id, compacts=['socw', 'some-other-compact'])
 
         stub_record = self.config.users_table.get_item(
@@ -160,11 +152,7 @@ class TestClient(TstFunction):
             Item=self._get_user_record(user_id) | {'sk': 'COMPACT#some-other-compact', 'compact': 'some-other-compact'}
         )
         client = UserClient(self.config)
-        with patch(
-            'cc_common.config._Config.current_standard_datetime',
-            datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-        ):
-            client.record_user_login(user_id=user_id, compacts=['socw', 'some-other-compact'])
+        client.record_user_login(user_id=user_id, compacts=['socw', 'some-other-compact'])
 
         client.deactivate_user(user_id=user_id)
 
@@ -198,11 +186,7 @@ class TestClient(TstFunction):
 
         user_id = self._load_user_data()
         client = UserClient(self.config)
-        with patch(
-            'cc_common.config._Config.current_standard_datetime',
-            datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-        ):
-            client.record_user_login(user_id=user_id, compacts=['socw'])
+        client.record_user_login(user_id=user_id, compacts=['socw'])
 
         statuses_when_disabled = []
         with patch('cc_common.config._Config.cognito_client') as mock_cognito_client:
@@ -450,6 +434,31 @@ class TestClient(TstFunction):
                 jurisdiction_action_additions={},
             )
 
+    def test_update_user_permissions_additions_refresh_date_of_update(self):
+        """Permission additions build a raw ADD expression rather than going through
+        UserRecordSchema.dump, so they do not get the schema's populate_date_of_update hook for free."""
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+
+        UserClient(self.config).update_user_permissions(
+            compact='socw', user_id=user_id, jurisdiction_action_additions={'ky': {'write'}}
+        )
+
+        self.assertEqual(MOCK_DATETIME.isoformat(), self._get_user_record(user_id)['dateOfUpdate'])
+
+    def test_update_user_permissions_removals_refresh_date_of_update(self):
+        """Removals build a separate raw DELETE expression, so they need their own dateOfUpdate set."""
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+
+        UserClient(self.config).update_user_permissions(
+            compact='socw', user_id=user_id, jurisdiction_action_removals={'oh': {'write'}}
+        )
+
+        self.assertEqual(MOCK_DATETIME.isoformat(), self._get_user_record(user_id)['dateOfUpdate'])
+
     def test_update_user_attributes(self):
         # The sample user looks like board staff in socw/oh
         user_id = UUID(self._load_user_data())
@@ -480,6 +489,17 @@ class TestClient(TstFunction):
                 user_id='does-not-exist',
                 attributes={'givenName': 'Bob', 'familyName': 'Smith'},
             )
+
+    def test_update_user_attributes_refreshes_date_of_update(self):
+        """Attribute updates build a raw SET expression rather than going through UserRecordSchema.dump,
+        so they do not get the schema's populate_date_of_update hook for free."""
+        from cc_common.data_model.user_client import UserClient
+
+        user_id = self._load_user_data()
+
+        UserClient(self.config).update_user_attributes(user_id=user_id, attributes={'givenName': 'Changed'})
+
+        self.assertEqual(MOCK_DATETIME.isoformat(), self._get_user_record(user_id)['dateOfUpdate'])
 
     def test_create_new_user(self):
         from cc_common.data_model.schema.common import StaffUserStatus
