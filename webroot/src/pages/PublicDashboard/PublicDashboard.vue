@@ -224,7 +224,7 @@
                     {{ $t('privacyPolicy.title') }}
                 </router-link>
                 <a
-                    href="https://compactconnect.zendesk.com/hc/en-us"
+                    href="https://compactconnect.org/?page_id=399"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="footer-link"
