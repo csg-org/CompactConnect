@@ -74,18 +74,24 @@ class TestPartitionLicensesBySsnPresence(TstLambdas):
 
         ssn_licenses, ssnless_licenses = partition_licenses_by_ssn_presence(licenses)
 
+        # By the time the method under test is run in the lambda,
+        # we have already validated all the license records against the schema,
+        # so the only reason we continue to track the index on those at this point
+        # is in the case where a license without an SSN does not match any existing license number for the state
+        # or the license number matches against more than one practitioner. For that reason, we don't include
+        # the indices on the SSN records.
         self.assertEqual(['SECOND'], [record['licenseNumber'] for record in ssn_licenses])
         self.assertEqual([(0, 'FIRST'), (2, 'THIRD')], [(i, r['licenseNumber']) for i, r in ssnless_licenses])
 
-    def test_returns_lists_independent_of_the_input_list(self):
+    def test_returns_empty_list_when_no_records_with_ssns(self):
         from license_upload_without_ssn import partition_licenses_by_ssn_presence
 
         licenses = [_license(licenseNumber='ONLY')]
 
-        _, ssnless_licenses = partition_licenses_by_ssn_presence(licenses)
-        licenses.clear()
+        ssn_licenses, ssnless_licenses = partition_licenses_by_ssn_presence(licenses)
 
         self.assertEqual(1, len(ssnless_licenses))
+        self.assertEqual([], ssn_licenses)
 
 
 class TestLicenseNumberDedupeKey(TstLambdas):

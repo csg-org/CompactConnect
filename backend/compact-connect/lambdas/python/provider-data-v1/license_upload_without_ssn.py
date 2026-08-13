@@ -63,14 +63,12 @@ LICENSE_INGEST_DETAIL_TYPE = 'license.ingest'
 def partition_licenses_by_ssn_presence(licenses: list[dict]) -> tuple[list[dict], list[tuple[int, dict]]]:
     """Split validated license records into those carrying an SSN and those without one.
 
-    Callers partition before running any of the existing upload logic, so that logic continues to see
-    only SSN-bearing records and needs no changes.
-
     The SSN-less records come back paired with their index in the input list, because that path reports
-    per-record errors to the caller keyed by the record's position in the request.
+    per-record errors when the record's license number does not match any existing license number for the
+    uploading state or the license number matches against more than one practitioner in the state.
 
     :param licenses: Validated license records, in request order
-    :return: (records with an ssn, (index, record) pairs for records without an ssn), each preserving
+    :return: (records with a ssn, (index, record) pairs for records without an ssn), each preserving
         the original order
     """
     ssn_licenses = [record for record in licenses if record.get('ssn')]

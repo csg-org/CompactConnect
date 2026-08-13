@@ -748,7 +748,39 @@ class TestPostLicensesWithoutSsn(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         # the SSN-bearing record still goes through the preprocessor
         self.assertEqual(1, len(self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)))
-        self.assertEqual(1, len(self._published_ingest_events()))
+        # the SSN-less record goes straight to the ingest processor as an event bridge event
+        self.assertEqual(
+            [
+                {
+                    'compact': 'socw',
+                    'compactEligibility': 'eligible',
+                    'dateOfBirth': '1985-06-06',
+                    'dateOfExpiration': '2025-04-04',
+                    'dateOfIssuance': '2010-06-06',
+                    'dateOfRenewal': '2020-04-04',
+                    'emailAddress': 'björk@example.com',
+                    'eventTime': '2024-11-08T23:59:59+00:00',
+                    'familyName': 'Guðmundsdóttir',
+                    'givenName': 'Björk',
+                    'homeAddressCity': 'Columbus',
+                    'homeAddressPostalCode': '43004',
+                    'homeAddressState': 'oh',
+                    'homeAddressStreet1': '123 A St.',
+                    'homeAddressStreet2': 'Apt 321',
+                    'jurisdiction': 'oh',
+                    'licenseNumber': 'A0608337260',
+                    'licenseScope': 'single-state',
+                    'licenseStatus': 'active',
+                    'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                    'licenseType': 'licensed clinical social worker',
+                    'middleName': 'Gunnar',
+                    'phoneNumber': '+13213214321',
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'ssnLastFour': '1234',
+                }
+            ],
+            self._published_ingest_events(),
+        )
 
     def test_raises_when_the_event_bus_rejects_entries(self):
         """Matches the existing behavior for a failed preprocessing-queue send: raise, so the caller sees

@@ -36,6 +36,10 @@ license_upload_without_ssn_flag_enabled = is_feature_enabled(
     FeatureFlagEnum.LICENSE_UPLOAD_WITHOUT_SSN_FLAG, fail_default=True
 )
 
+# Number of license records held in memory before being flushed on to the next stage of processing,
+# to limit memory footprint.
+LICENSE_PROCESSING_BATCH_SIZE = 100
+
 
 @api_handler
 @authorize_compact_jurisdiction(action='write')
@@ -148,8 +152,6 @@ def process_bulk_upload_file(
     # We need to use utf-8-sig to handle potential BOM characters at the beginning of the file
     stream = TextIOWrapper(body, encoding='utf-8-sig')
 
-    # Define batch size for processing to limit memory footprint
-    batch_size = 100
     current_batch = []
     total_processed = 0
     failed_validation_count = 0
@@ -189,7 +191,7 @@ def process_bulk_upload_file(
                                 resolve_license_number=resolve_license_number,
                             )
                         )
-                        if len(current_ssnless_batch) >= batch_size:
+                        if len(current_ssnless_batch) >= LICENSE_PROCESSING_BATCH_SIZE:
                             _process_ssnless_license_batch(
                                 current_ssnless_batch, event_time, event_writer, compact, jurisdiction
                             )
@@ -225,7 +227,7 @@ def process_bulk_upload_file(
                 current_batch.append(schema.dump(validated_license))
 
                 # When batch is full, send to preprocessing queue
-                if len(current_batch) >= batch_size:
+                if len(current_batch) >= LICENSE_PROCESSING_BATCH_SIZE:
                     _process_license_batch(current_batch, event_time, compact, jurisdiction)
                     total_processed += len(current_batch)
                     current_batch = []  # Reset batch

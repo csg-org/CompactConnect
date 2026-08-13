@@ -810,8 +810,14 @@ class TestBulkUploadWithoutSsn(TstFunction):
             )
             rows.append(self._csv_row(license_number=license_number))
 
-        _, entries = self._process_csv(rows)
+        real_process_batch = bulk_upload._process_ssnless_license_batch  # noqa: SLF001
+        with (
+            patch.object(bulk_upload, '_process_ssnless_license_batch', wraps=real_process_batch) as mock_process_batch,
+        ):
+            _, entries = self._process_csv(rows)
 
+        # the rows were genuinely split across batches, rather than all published in a single pass
+        self.assertEqual(2, mock_process_batch.call_count)
         self.assertEqual([], self._details_of_type(entries, 'license.validation-error'))
         self.assertEqual(record_count, len(self._details_of_type(entries, 'license.ingest')))
 
