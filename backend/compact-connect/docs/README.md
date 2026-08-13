@@ -117,6 +117,12 @@ Because accounts are matched on SSN, simply changing the SSN in your state's sys
 > **⚠️ Verify SSNs before you upload.** The SSN is the sole identifier CompactConnect uses to match a license to a practitioner's account, and every downstream consequence of an upload (account creation, privilege eligibility, public lookup, etc.) follows from it. Uploading an incorrect SSN is not a low-risk mistake to leave unaddressed, as it silently creates or attaches records to the wrong account, fragmenting the practitioner's licensure history and leaving privileges tied to whichever account was in place at the time they were purchased.
 >
 > Correcting an SSN with `previousSSN` is itself a significant action which migrates (moves) the affected license and any privileges purchased against it to the account associated with the corrected SSN and forces the practitioner to re-register if they have already registered under the account with the incorrect SSN. Because of this, during onboarding testing before a state begins uploading licenses into the production account, it is imperative that the state verify there is no issue with the internal process or data pipeline that sends licensure data to CompactConnect which could result in incorrect or inconsistent SSNs being uploaded, so that this feature is not relied upon to routinely correct otherwise avoidable upload errors.
+> 
+
+**Note: A practitioner's SSN only needs to be transmitted once per license record.** After the upload that first creates their record, subsequent
+uploads for that license can omit it - see
+[Omitting the SSN on Subsequent Uploads](./it_staff_onboarding_instructions.md#omitting-the-ssn-on-subsequent-uploads).
+
 
 ### Which of these license values will be publicly visible?
 

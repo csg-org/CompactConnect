@@ -241,6 +241,34 @@ For your convenience, use of this feature is included in the [Postman Collection
 - For JSON uploads, SSNs must be unique within a single request payload (array). Do not include duplicate `ssn` values in the same batch. Attempting to do so will cause the entire request to be rejected.
 - License numbers must be unique per license type within a single upload, for both CSV files and JSON requests. This applies to records uploaded without an SSN (see section below).
 
+## Why CompactConnect Requires the SSN on the First Upload
+
+The purpose of a licensure compact is to allow a practitioner who holds a license in good standing in their home state
+to practice in other member states. For that to work, CompactConnect must be able to recognize that a license your state
+uploads and a license uploaded by a different state belong to the **same person**, so that all of a practitioner's
+licenses and privileges resolve to a single account.
+
+No other value available to the system makes that possible across state lines:
+
+- **License numbers are state-specific.** Each state issues license numbers under its own scheme. They are unique only
+  within that state's records, and a practitioner licensed in several states holds a different number in each one. A
+  license number identifies a practitioner within your jurisdiction, but says nothing about who they are outside of it.
+- **Names and dates of birth are not reliable identifiers.** Names change (for example, after a marriage or a legal name
+  change), are formatted and transliterated inconsistently between systems, and are frequently shared by different
+  people. Dates of birth collide often. Matching on these values at a national scale produces both false matches and
+  missed matches.
+
+Misidentification is costly in both directions. If a single practitioner is split across multiple accounts, their
+licensure history is fragmented and they may be unable to obtain privileges they qualify for. If two different
+practitioners are merged into one account, an encumbrance or investigation recorded against one person's license could
+appear on the other person's record.
+
+The SSN is the only identifier that every practitioner already has, that is unique to them, and that remains consistent
+across every state, which is why it is required to establish a practitioner's identity in the system.
+
+**The SSN is only needed to establish that identity once.** After the upload that first creates a practitioner's record,
+you can omit it from all subsequent uploads for that license, as described in the next section.
+
 ## Omitting the SSN on Subsequent Uploads
 
 Once you have uploaded a license record for a practitioner **with** their SSN, CompactConnect stores that record with
