@@ -97,14 +97,14 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
     # Records with no SSN are handled entirely separately, below. Splitting them out here keeps the
     # SSN upload path unchanged: everything after this point in the original flow only ever sees
     # records that carry an SSN.
-    licenses, ssnless_licenses = partition_licenses_by_ssn_presence(licenses)
+    licenses_with_ssns, licenses_without_ssns = partition_licenses_by_ssn_presence(licenses)
     # TODO - remove these two lines once the LICENSE_UPLOAD_WITHOUT_SSN_FLAG scaffolding is  # noqa: FIX002
     #  removed. Only the flag check goes; the partitioning above and the handling below are the feature.
-    if ssnless_licenses and not license_upload_without_ssn_flag_enabled:
+    if licenses_without_ssns and not license_upload_without_ssn_flag_enabled:
         raise CCInvalidRequestException(FLAG_DISABLED_ERROR_MESSAGE)
 
     # verify that none of the SSN+LicenseType combinations are repeats within the same batch
-    license_keys = [(license_record['ssn'], license_record['licenseType']) for license_record in licenses]
+    license_keys = [(license_record['ssn'], license_record['licenseType']) for license_record in licenses_with_ssns]
     if len(set(license_keys)) < len(license_keys):
         logger.info('Duplicate SSNs detected in same request.', compact=compact, jurisdiction=jurisdiction)
         raise CCInvalidRequestCustomResponseException(
@@ -119,11 +119,13 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
 
     event_time = config.current_standard_datetime
 
-    if licenses:
-        logger.info('Sending license records to preprocessing queue', compact=compact, jurisdiction=jurisdiction)
+    if licenses_with_ssns:
+        logger.info(
+            'Sending license records with ssns to preprocessing queue', compact=compact, jurisdiction=jurisdiction
+        )
         # Use the utility function to send licenses to the preprocessing queue
         failed_license_numbers = send_licenses_to_preprocessing_queue(
-            licenses_data=schema.dump(licenses, many=True),
+            licenses_data=schema.dump(licenses_with_ssns, many=True),
             event_time=event_time.isoformat(),
         )
 
@@ -136,11 +138,11 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
             )
             raise CCInternalException('Failed to process licenses!')
 
-    if ssnless_licenses:
+    if licenses_without_ssns:
         _process_licenses_without_ssn(
             compact=compact,
             jurisdiction=jurisdiction,
-            ssnless_licenses=ssnless_licenses,
+            licenses_without_ssns=licenses_without_ssns,
             event_time=event_time,
         )
 
@@ -151,7 +153,7 @@ def _process_licenses_without_ssn(
     *,
     compact: str,
     jurisdiction: str,
-    ssnless_licenses: list[tuple[int, dict]],
+    licenses_without_ssns: list[tuple[int, dict]],
     event_time: datetime,
 ):
     """Resolve license records that carry no SSN and send them straight to the ingest handler.
@@ -163,13 +165,13 @@ def _process_licenses_without_ssn(
         'Resolving license records uploaded without an SSN',
         compact=compact,
         jurisdiction=jurisdiction,
-        record_count=len(ssnless_licenses),
+        record_count=len(licenses_without_ssns),
     )
 
     resolved_licenses, errors = resolve_licenses_without_ssn(
         compact=compact,
         jurisdiction=jurisdiction,
-        indexed_licenses=[(index, schema.dump(record)) for index, record in ssnless_licenses],
+        indexed_licenses=[(index, schema.dump(record)) for index, record in licenses_without_ssns],
     )
 
     if errors:

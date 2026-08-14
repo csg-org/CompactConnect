@@ -768,6 +768,8 @@ class TestBulkUploadWithoutSsn(TstFunction):
 
     def test_publishes_every_record_when_the_file_exceeds_one_batch(self):
         """The SSN-less path batches independently of the SSN path, so a large file must not drop rows."""
+        from handlers import bulk_upload
+
         record_count = 105
         rows = []
         for index in range(record_count):
