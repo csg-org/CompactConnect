@@ -1117,80 +1117,80 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@csg-org/block-avatar@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-avatar/-/block-avatar-0.0.13.tgz#815b68d8771865b3c6cacb939a8472ead9675c07"
-  integrity sha512-v5/kKyGGZU6cZ1vKkE9E4YbDm4hTi4DDC9f4B9uLegyR+mr1r7LNeGwMRbAfX3z817Myby8cx6KbFE3+aK5wlQ==
+"@csg-org/block-avatar@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-avatar/-/block-avatar-0.0.15.tgz#701ed2de31bf3dd072b78b28e22165d2fd582ae4"
+  integrity sha512-WV102mWlg+PCjz4ujc7M2LLuapZSVkfj3i0QVAYkLWValyBPLLhvSRDtwe+TXWA/GK+dBt5yHRAAo6fhvho++g==
 
-"@csg-org/block-button@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-button/-/block-button-0.0.13.tgz#480e21281593f98135a83f51708e8bcff0285086"
-  integrity sha512-g2FWzr5moAaI+s1fitlt0KxhMFs3rbLYGz4BoiZzFGVYqufit/sRIYaxLrvL37WgEgVMwoFcUN7wXUNb9ry5XQ==
+"@csg-org/block-button@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-button/-/block-button-0.0.15.tgz#89dd8ff00e43338ea4bc9949952f2a33aaf24751"
+  integrity sha512-P4pBPciMxRrVSK0oSuzgGQ4QXM8DM+/6Mf1Ln8OykNbMWg8iVemn+9cz5SbGz+IJvgNh2GeNxTPV89dVd78WPw==
 
-"@csg-org/block-columns-container@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-columns-container/-/block-columns-container-0.0.13.tgz#c0f5b5aaeef2b7169873df2b1904da496e1ea2be"
-  integrity sha512-0o4xO8IhghpGWsiCbL+BlvEo2Nn55lH2uWJsK3/waBr0Vz6rUk92VZM200RyNhStdyoLpZSSgilknTQyfixscA==
+"@csg-org/block-columns-container@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-columns-container/-/block-columns-container-0.0.15.tgz#3ad5f7b131f030c281a68a765efdca3269e78069"
+  integrity sha512-OWfL41XFMk/znt/6cOi1+JPfza9JGJ89/MgaarkVZ5A3KqedzKkz+ND/Xi4ujLvOR+5EV+M+YFSAnT+FtV26+w==
 
-"@csg-org/block-container@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-container/-/block-container-0.0.13.tgz#0b0ac0a68b8b5c389311edc9421018b5e2906a72"
-  integrity sha512-z2n/+feBRJOhPCsOrdBpz3U0wYSn0vOvuUgBut+b4ZBwJA5uX9v8Mu/2Y2OgHsdXr8AC3frDfU6V8GhWsLD2EQ==
+"@csg-org/block-container@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-container/-/block-container-0.0.15.tgz#5d43008cd485cdc31ab15cd76efc38f2121dce7a"
+  integrity sha512-e+XoG8q3Pj170IrI9PJCFs5iuzO1pkGM1nQrNOqe33krKQi0mzWcLHcjiAvYTR9EBvqHUoaW78HuAvAJ1uJdMA==
 
-"@csg-org/block-divider@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-divider/-/block-divider-0.0.13.tgz#8d95709e2fc7641fff31dc23e9d8730e870bb123"
-  integrity sha512-b1ZqdRIA/kmpMGezfiwQmR22pvQlB+vwQju74G0h4j5YQFPwmJsF8nLJMGt9IrTQtmzQnDmaEEn+ura4lbbxuw==
+"@csg-org/block-divider@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-divider/-/block-divider-0.0.15.tgz#82ba92268b871a5c876619393fddddf180bb544f"
+  integrity sha512-jrL6rZChIq3W4zXZYp590uJQLQ5/VRZ+H7SevaZRqeon5ohv40+deGAFl5cfmBz4j4BrV9uAM48Hn18/WOj2Gw==
 
-"@csg-org/block-heading@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-heading/-/block-heading-0.0.13.tgz#4d7ab222ac8606acfe696c49f6395aa2a81614ed"
-  integrity sha512-86qcSA8G8kTGc6ue6Hr99BDRKhZiDCVPsB2BzTNIVrXsxYzIUjo2sMW4er23jYOWFarPasGJRpUymKOZgd+P6w==
+"@csg-org/block-heading@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-heading/-/block-heading-0.0.15.tgz#18bc3a8ff141c190dd08b5f4f2ad716bc52b40bb"
+  integrity sha512-RX6JwXQMsS6oFW8m74NB0q2r4c7uVEgNG9zK7Bj0SQVlXgKyp5w2BLJAzR8NZ7dr4tkzR1ZmE0Gu7ZajaE/2Fg==
 
-"@csg-org/block-html@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-html/-/block-html-0.0.13.tgz#72471c34b0055adcef26aad06f8a80275c76d45b"
-  integrity sha512-T4yoQWScDQu/QJLpzLj7KJ/QuPtiPEh4Uvh8+riov6u6HNWGW+jCi5vDdXxbrJ1m5wV2SpXnZSdpCf/xylazVw==
+"@csg-org/block-html@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-html/-/block-html-0.0.15.tgz#d2c31d433ae1274e07fdd987aa9b49385043025f"
+  integrity sha512-5oxa4GTvkKA04wnkxYSY1I8ZRmFWEAeHDGv5oNF0jXYtExtmcNme+viEysR7iYXaQ5EwPBjZEtMdQGG8z4iO2Q==
 
-"@csg-org/block-image@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-image/-/block-image-0.0.13.tgz#80a01aceb529518600803645a019eeb570527738"
-  integrity sha512-oHnS+v6WAwAhgc7/KTqKLZAJzNh4E//9N57SfA/uYlM8TzCgjLXxXdpu7M+BzORdEDWdu1wQqFPcAuiu/P9BoQ==
+"@csg-org/block-image@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-image/-/block-image-0.0.15.tgz#9002bb77dc500c3eaa254d78f58aa4deb4bec9cc"
+  integrity sha512-Qb9vs1LB0rzQf3jUDda8nA74UkI+UW6bjcQVNBCl7zA1uB7YHEkRvLMLltNy1jjQrccwHabYQ06hoUHivnzZMg==
 
-"@csg-org/block-spacer@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-spacer/-/block-spacer-0.0.13.tgz#fc05fb42e619931061697d85517ed659b9a918d7"
-  integrity sha512-QEm9dWs1bB8WXIX01YZQhG02K0DSY+N+ptPMtvyfe7eFQjlnw980Tvj6rHiHa7kfq6SfbehKXhyZ35byCvoQGA==
+"@csg-org/block-spacer@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-spacer/-/block-spacer-0.0.15.tgz#e3b6dfead507bd7f4a82a8276fad6ecb62db9920"
+  integrity sha512-lHxi2f2R34YzNUtcRucpsDG3LEUMS5YGnSdMbJwtqyKSFx+TtDZ7rlyEaQZgarjBxbA9CBBm9AJugkNvnzvzKw==
 
-"@csg-org/block-text@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/block-text/-/block-text-0.0.13.tgz#a68fe1e66e578e02236aaae0f280df6aacde0dfc"
-  integrity sha512-NYiWwJbnXfTOO3fVDZxRXp53ZAXrjsbepBmI/AyXvU9iNoaxXqKDBNTvAwIQet51XPC+2sm643Z+flNvVmfo/w==
+"@csg-org/block-text@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/block-text/-/block-text-0.0.15.tgz#5ae604602a7c43182e84eb471c58f57c31162ce2"
+  integrity sha512-0qTEU7bJ3ykCOXxZ/vglXCKtm7fsjd6BaAC2seDxYE3Rvk7WS5rnTzp6OYWrbZb2tTh9ufpvYkpWlF828lYgQg==
   dependencies:
     marked "^12.0.2"
     sanitize-html "^2.17.0"
 
-"@csg-org/document-core@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/document-core/-/document-core-0.0.13.tgz#99f1a43f524dff5cc68984762a79f2d21d33829e"
-  integrity sha512-O8gzvFj2X7CsknyKzZ2pA3WboENn/dWwv48QTX06kXB8ILmzMqtGaNh6SrcYNWcFMNdHVZpqS/hcdR6SC91Jkw==
+"@csg-org/document-core@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/document-core/-/document-core-0.0.15.tgz#b68d9392bb081a7e37082d167f8177a3c9e6a555"
+  integrity sha512-eJ2LebPsBlxoVtA4EN3Jm60PwwgEuExfNiH1+movqhUpFf/JoinCsC9qyW5+Lp6JOiTQXcFN16PfK6w7pvKz4w==
 
-"@csg-org/email-builder@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@csg-org/email-builder/-/email-builder-0.0.13.tgz#eb22b08c06d8fb6541a5c8b920a0e962ad9d3d8f"
-  integrity sha512-TiGNL/zfdV0cYMXZzG8Lm8Lzvem2Sx6bnaa10b8VCgoont0RbNefiThyu6GaOATyA1ohxa2ouP0ZGq+0OE/8PA==
+"@csg-org/email-builder@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@csg-org/email-builder/-/email-builder-0.0.15.tgz#e33f4b63a01e7b5c336fa2cdfdc931e980d6da71"
+  integrity sha512-78iNyg8XbFbe/rAEQYH6V6ZwjLHtvvGGgLYKJuJmuzjh4k+PixkxDHHmsxXDTXPSBiIXkx34+1HU1eNKZUhHMg==
   dependencies:
-    "@csg-org/block-avatar" "^0.0.13"
-    "@csg-org/block-button" "^0.0.13"
-    "@csg-org/block-columns-container" "^0.0.13"
-    "@csg-org/block-container" "^0.0.13"
-    "@csg-org/block-divider" "^0.0.13"
-    "@csg-org/block-heading" "^0.0.13"
-    "@csg-org/block-html" "^0.0.13"
-    "@csg-org/block-image" "^0.0.13"
-    "@csg-org/block-spacer" "^0.0.13"
-    "@csg-org/block-text" "^0.0.13"
-    "@csg-org/document-core" "^0.0.13"
+    "@csg-org/block-avatar" "^0.0.15"
+    "@csg-org/block-button" "^0.0.15"
+    "@csg-org/block-columns-container" "^0.0.15"
+    "@csg-org/block-container" "^0.0.15"
+    "@csg-org/block-divider" "^0.0.15"
+    "@csg-org/block-heading" "^0.0.15"
+    "@csg-org/block-html" "^0.0.15"
+    "@csg-org/block-image" "^0.0.15"
+    "@csg-org/block-spacer" "^0.0.15"
+    "@csg-org/block-text" "^0.0.15"
+    "@csg-org/document-core" "^0.0.15"
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
