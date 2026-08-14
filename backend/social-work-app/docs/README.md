@@ -145,6 +145,10 @@ Because accounts are matched on SSN, simply changing the SSN in your state's sys
 Yes. A multi-state license does not replace the single-state license it is built on, and CompactConnect stores them as
 two separate records. A practitioner with a multi-state license should always have both records in the system.
 
+**Note: A practitioner's SSN only needs to be transmitted once per license record.** After the upload that first creates their record, subsequent
+uploads for that license can omit it - see
+[Omitting the SSN on Subsequent Uploads](./it_staff_onboarding_instructions.md#omitting-the-ssn-on-subsequent-uploads).
+
 ### Which of these license values will be publicly visible?
 
 The following license fields are publicly visible through CompactConnect's public lookup endpoints:

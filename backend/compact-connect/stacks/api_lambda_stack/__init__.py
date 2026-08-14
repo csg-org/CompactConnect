@@ -22,7 +22,6 @@ from .bulk_upload_url import BulkUploadUrlLambdas
 from .compact_configuration_api import CompactConfigurationApiLambdas
 from .credentials import CredentialsLambdas
 from .feature_flags import FeatureFlagsLambdas
-from .post_licenses import PostLicensesLambdas
 from .provider_management import ProviderManagementLambdas
 from .provider_users import ProviderUsersLambdas
 from .public_lookup_api import PublicLookupApiLambdas
@@ -100,13 +99,6 @@ class ApiLambdaStack(AppStack):
             scope=self,
             persistent_stack=persistent_stack,
             compact_payment_processor_secrets=compact_payment_processor_secrets,
-            api_lambda_stack=self,
-        )
-
-        # Post licenses lambdas
-        self.post_licenses_lambdas = PostLicensesLambdas(
-            scope=self,
-            persistent_stack=persistent_stack,
             api_lambda_stack=self,
         )
 

@@ -15,8 +15,10 @@ from smoke_common import (
     SmokeTestFailureException,
     cleanup_test_provider_records,
     config,
+    create_test_app_client,
     create_test_privilege_record,
     create_test_staff_user,
+    delete_test_app_client,
     delete_test_staff_user,
     get_staff_user_auth_headers,
     load_smoke_test_env,
@@ -32,6 +34,7 @@ TEST_PRIVILEGE_JURISDICTION = 'ne'  # Where privilege is purchased
 TEST_LICENSE_TYPE = 'speech-language pathologist'
 TEST_GIVEN_NAME = 'TestProvider'
 TEST_FAMILY_NAME = 'LicenseDeactivation'
+TEST_APP_CLIENT_NAME = 'test-license-deactivation-smoke-client'
 TEST_SSN = '999-99-9999'  # Test SSN for license uploads
 
 
@@ -160,8 +163,16 @@ def test_license_deactivation_privilege_workflow():
     provider_id = None
     staff_email = None
     staff_user_sub = None
+    client_id = None
 
     try:
+        # The license upload endpoint lives on the State API and authenticates a state IT system, so it
+        # needs an app client. The staff user below is still needed for the provider read calls, which
+        # are on the general API.
+        client_credentials = create_test_app_client(TEST_APP_CLIENT_NAME, TEST_COMPACT, TEST_JURISDICTION)
+        client_id = client_credentials['client_id']
+        client_secret = client_credentials['client_secret']
+
         # Create test staff user with permissions to upload licenses
         staff_email = f'test-license-deactivation-{TEST_JURISDICTION}@ccSmokeTestFakeEmail.com'
         staff_user_sub = create_test_staff_user(
@@ -177,7 +188,8 @@ def test_license_deactivation_privilege_workflow():
         logger.info('Step 1: Uploading active license and waiting for provider creation...')
 
         upload_license_record(
-            staff_headers=staff_headers,
+            client_id=client_id,
+            client_secret=client_secret,
             compact=TEST_COMPACT,
             jurisdiction=TEST_JURISDICTION,
             data_overrides={
@@ -237,7 +249,8 @@ def test_license_deactivation_privilege_workflow():
         logger.info('Step 3: Uploading license with inactive status to trigger deactivation...')
 
         upload_license_record(
-            staff_headers=staff_headers,
+            client_id=client_id,
+            client_secret=client_secret,
             compact=TEST_COMPACT,
             jurisdiction=TEST_JURISDICTION,
             data_overrides={
@@ -272,6 +285,9 @@ def test_license_deactivation_privilege_workflow():
 
         if provider_id:
             cleanup_test_provider_records(provider_id, TEST_COMPACT)
+
+        if client_id:
+            delete_test_app_client(client_id)
 
         if staff_email and staff_user_sub:
             delete_test_staff_user(staff_email, staff_user_sub, TEST_COMPACT)

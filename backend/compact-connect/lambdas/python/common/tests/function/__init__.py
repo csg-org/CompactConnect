@@ -167,6 +167,8 @@ class TstFunction(TstLambdas):
                 {'AttributeName': 'sk', 'AttributeType': 'S'},
                 {'AttributeName': 'providerFamGivMid', 'AttributeType': 'S'},
                 {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseGSIPK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseNumber', 'AttributeType': 'S'},
             ],
             TableName=os.environ['PROVIDER_TABLE_NAME'],
             GlobalSecondaryIndexes=[
@@ -185,6 +187,17 @@ class TstFunction(TstLambdas):
                         {'AttributeName': 'providerDateOfUpdate', 'KeyType': 'RANGE'},
                     ],
                     'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['LICENSE_NUMBER_GSI_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'licenseGSIPK', 'KeyType': 'HASH'},
+                        {'AttributeName': 'licenseNumber', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE',
+                        'NonKeyAttributes': ['providerId', 'ssnLastFour'],
+                    },
                 },
             ],
         )

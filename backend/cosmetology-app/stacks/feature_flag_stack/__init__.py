@@ -113,6 +113,23 @@ class FeatureFlagStack(AppStack):
             environment_name=environment_name,
         )
 
+        # Kill switch for the license upload path that identifies a practitioner by their license number
+        # instead of their SSN. The feature ships enabled; this exists so it can be turned off from the
+        # StatSig console if a problem shows up after release.
+        self.license_upload_without_ssn_flag = FeatureFlagResource(
+            self,
+            'CosmetologyLicenseUploadWithoutSsnFlag',
+            provider=self.provider,  # Shared provider
+            flag_name='cosmetology-license-upload-without-ssn-flag',
+            # Automatically enable for every environment
+            auto_enable_envs=[
+                FeatureFlagEnvironmentName.TEST,
+                FeatureFlagEnvironmentName.BETA,
+                FeatureFlagEnvironmentName.PROD,
+            ],
+            environment_name=environment_name,
+        )
+
     def _create_common_provider(self, environment_name: str) -> Provider:
         # Create shared Lambda function for managing all feature flags
         # This function is reused across all FeatureFlagResource instances

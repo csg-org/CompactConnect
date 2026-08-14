@@ -349,59 +349,6 @@ def get_provider_user_records(compact: str, provider_id: str) -> ProviderUserRec
     return ProviderUserRecords(resp['Items'])
 
 
-def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, data_overrides: dict = None):
-    """Upload a license record using the API with default test data that can be overridden.
-
-    :param staff_headers: Authentication headers for staff user
-    :param compact: The compact abbreviation
-    :param jurisdiction: The jurisdiction abbreviation
-    :param data_overrides: Dict of fields to override in the default license data
-    :return: The API response JSON
-    """
-    # Default test license data
-    default_license_data = {
-        'licenseNumber': 'TEST-LIC-123',
-        'homeAddressPostalCode': '68001',
-        'givenName': 'TestProvider',
-        'familyName': 'LicenseDeactivation',
-        'homeAddressStreet1': '123 Test Street',
-        'dateOfBirth': '1985-01-01',
-        'dateOfIssuance': '2020-01-01',
-        'ssn': '999-99-9999',
-        'licenseType': 'cosmetologist',
-        'dateOfExpiration': '2050-01-01',
-        'homeAddressState': 'AZ',
-        'homeAddressCity': 'Omaha',
-        'licenseStatus': 'active',
-        'compactEligibility': 'eligible',
-        'emailAddress': 'test-license@example.com',
-        'phoneNumber': '+15551234567',
-    }
-
-    # Apply any overrides
-    if data_overrides:
-        default_license_data.update(data_overrides)
-
-    post_body = [default_license_data]
-
-    logger.info(
-        f'Uploading license record for {jurisdiction} with status "{default_license_data.get("licenseStatus")}"'
-    )
-
-    post_response = requests.post(
-        url=f'{config.api_base_url}/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses',
-        headers=staff_headers,
-        json=post_body,
-        timeout=30,
-    )
-
-    if post_response.status_code != 200:
-        raise SmokeTestFailureException(f'Failed to upload license record. Response: {post_response.json()}')
-
-    logger.info(f'License record successfully uploaded with status "{default_license_data.get("licenseStatus")}"')
-    return post_response.json()
-
-
 def query_provider_by_name(staff_headers: dict, compact: str, given_name: str, family_name: str):
     """Query for a provider by name and return the provider ID if found.
 

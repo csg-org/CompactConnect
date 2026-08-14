@@ -15,15 +15,34 @@ class TestLicensePostSchema(TstLambdas):
         with open('tests/resources/api/license-post.json') as f:
             LicensePostRequestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **json.load(f)})
 
-    def test_invalid_post(self):
+    def test_validate_post_without_ssn(self):
+        """
+        A state may omit the SSN, because the license number it always supplies is enough to identify the
+        practitioner from a license record already stored for them.
+        """
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 
         with open('tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         license_data.pop('ssn')
 
-        with self.assertRaises(ValidationError):
+        result = LicensePostRequestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_data})
+
+        self.assertNotIn('ssn', result)
+        self.assertEqual(license_data['licenseNumber'], result['licenseNumber'])
+
+    def test_invalid_post_without_license_number(self):
+        """licenseNumber is required on this endpoint, with or without an ssn."""
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data.pop('licenseNumber')
+
+        with self.assertRaises(ValidationError) as context:
             LicensePostRequestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_data})
+
+        self.assertEqual({'licenseNumber': ['Missing data for required field.']}, context.exception.messages)
 
     def test_compact_eligible_with_inactive_license_not_allowed(self):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema

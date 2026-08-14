@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 import re
 import time
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import requests
 from boto3.dynamodb.conditions import Key
@@ -47,6 +47,16 @@ HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME = 'TestSmith'
 HOME_STATE_CHANGE_LICENSE_TYPE = 'licensed bachelors social worker'
 HOME_STATE_CHANGE_FORMER_JURISDICTION = 'az'
 HOME_STATE_CHANGE_NEW_JURISDICTION = 'oh'
+
+# Constants for the license-upload-without-ssn test, which verifies that a state can update an existing
+# license by license number alone once the practitioner's record has been created with their SSN.
+SSN_LESS_MOCK_SSN = '999-77-7777'
+SSN_LESS_JURISDICTION = 'az'
+SSN_LESS_PROVIDER_GIVEN_NAME = 'Pat'
+SSN_LESS_PROVIDER_FAMILY_NAME = 'NoSsnTest'
+SSN_LESS_PROVIDER_UPDATED_FAMILY_NAME = 'NoSsnTestUpdated'
+SSN_LESS_LICENSE_NUMBER = 'AZ-NO-SSN-TEST'
+SSN_LESS_LICENSE_SCOPE = 'single-state'
 UNRECOGNIZED_LICENSE_TYPE_JURISDICTION = 'co'
 UNRECOGNIZED_LICENSE_TYPE_MOCK_SSN = '999-77-7777'
 # three states, co does not recognize license type, oh is home state, so only az should be returned in
@@ -324,6 +334,128 @@ def _query_license_ingest_events_for_jurisdiction(
         },
         ConsistentRead=True,
     )
+
+
+def _build_ssn_less_license_post_body(family_name: str, include_ssn: bool):
+    """Build the license body for the SSN-less upload test.
+
+    The same license number is used for both uploads: that is what lets the second upload, which carries
+    no ssn, be matched to the practitioner created by the first.
+    """
+    license_record = {
+        'licenseNumber': SSN_LESS_LICENSE_NUMBER,
+        'homeAddressPostalCode': '68001',
+        'givenName': SSN_LESS_PROVIDER_GIVEN_NAME,
+        'familyName': family_name,
+        'homeAddressStreet1': '123 No SSN Test Street',
+        'dateOfBirth': '1991-12-10',
+        'dateOfIssuance': '2024-01-15',
+        'licenseType': HOME_STATE_CHANGE_LICENSE_TYPE,
+        'licenseScope': SSN_LESS_LICENSE_SCOPE,
+        'dateOfExpiration': '2050-12-10',
+        'homeAddressState': SSN_LESS_JURISDICTION.upper(),
+        'homeAddressCity': 'Omaha',
+        'compactEligibility': 'eligible',
+        'licenseStatus': 'active',
+    }
+    if include_ssn:
+        license_record['ssn'] = SSN_LESS_MOCK_SSN
+    return [license_record]
+
+
+def test_license_upload_without_ssn(client_id: str, client_secret: str):
+    """
+    Verify that a state can update an existing license without sending the practitioner's SSN.
+
+    The second upload omits the ssn entirely and changes the family name. It can only succeed by matching
+    the license number stored on the record the first upload created, and the name change proves the
+    update was actually applied to that record.
+    """
+    provider_id = None
+    try:
+        # Step 1: create the practitioner's record with their SSN
+        _post_license_to_state_api(
+            client_id=client_id,
+            client_secret=client_secret,
+            jurisdiction=SSN_LESS_JURISDICTION,
+            post_body=_build_ssn_less_license_post_body(family_name=SSN_LESS_PROVIDER_FAMILY_NAME, include_ssn=True),
+        )
+
+        provider_id = wait_for_provider_creation(
+            staff_headers=get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL),
+            compact=COMPACT,
+            given_name=SSN_LESS_PROVIDER_GIVEN_NAME,
+            family_name=SSN_LESS_PROVIDER_FAMILY_NAME,
+            max_wait_time=750,
+            staff_user_email=TEST_STAFF_USER_EMAIL,
+            poll_interval_seconds=60,
+        )
+        logger.info(f'Found no-ssn test provider id {provider_id}')
+
+        # Step 2: upload the same license again with no ssn and a changed family name
+        _post_license_to_state_api(
+            client_id=client_id,
+            client_secret=client_secret,
+            jurisdiction=SSN_LESS_JURISDICTION,
+            post_body=_build_ssn_less_license_post_body(
+                family_name=SSN_LESS_PROVIDER_UPDATED_FAMILY_NAME, include_ssn=False
+            ),
+        )
+
+        # Step 3: poll until the license record reflects the new family name
+        updated_license_record = None
+        provider_details = {}
+        for _ in range(12):
+            provider_details = call_provider_details_endpoint(
+                headers=get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL),
+                compact=COMPACT,
+                provider_id=provider_id,
+            )
+            license_record = next(
+                (
+                    record
+                    for record in provider_details.get('licenses', [])
+                    if record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
+                ),
+                None,
+            )
+            if license_record and license_record.get('familyName') == SSN_LESS_PROVIDER_UPDATED_FAMILY_NAME:
+                updated_license_record = license_record
+                break
+
+            logger.info('License record not yet updated from the upload without an SSN. Retrying...')
+            time.sleep(60)
+
+        if not updated_license_record:
+            raise SmokeTestFailureException('License record was not updated by the upload without an SSN.')
+
+        # Step 4: confirm the existing record was updated rather than a new practitioner being created
+        if str(updated_license_record.get('providerId')) != str(provider_id):
+            raise SmokeTestFailureException(
+                'License uploaded without an SSN was associated with a different provider id: '
+                f'{updated_license_record.get("providerId")} instead of {provider_id}'
+            )
+
+        if updated_license_record.get('licenseNumber') != SSN_LESS_LICENSE_NUMBER:
+            raise SmokeTestFailureException('License number changed on the record uploaded without an SSN.')
+
+        # the provider's own name is derived from their best license, so it must reflect the update too
+        if provider_details.get('familyName') != SSN_LESS_PROVIDER_UPDATED_FAMILY_NAME:
+            raise SmokeTestFailureException(
+                'Provider record family name was not updated by the license upload without an SSN: '
+                f'{provider_details.get("familyName")}'
+            )
+
+        logger.info('License record successfully updated by an upload without an SSN')
+    finally:
+        if provider_id:
+            ingest_events = _query_license_ingest_events_for_jurisdiction(
+                jurisdiction=SSN_LESS_JURISDICTION,
+                provider_id=provider_id,
+                start_time=datetime.now(tz=UTC) - timedelta(minutes=30),
+                end_time=datetime.now(tz=UTC),
+            )
+            _cleanup_test_generated_records(provider_id, ingest_events)
 
 
 def test_home_state_change_notification(
@@ -700,6 +832,9 @@ if __name__ == '__main__':
         )
         test_provider_privileges_exclude_unrecognized_license_type_jurisdictions(practitioner_state.provider_id)
         test_provider_is_searchable_by_cuid(practitioner_state)
+
+        test_license_upload_without_ssn(client_id=client_id, client_secret=client_secret)
+        logger.info('License upload without SSN smoke test passed')
         logger.info('License upload smoke tests passed')
     except SmokeTestFailureException as e:
         logger.error(f'License record upload smoke test failed: {str(e)}')

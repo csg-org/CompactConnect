@@ -186,6 +186,10 @@ class _Config:
         return os.environ['LICENSE_GSI_NAME']
 
     @property
+    def license_number_gsi_name(self):
+        return os.environ['LICENSE_NUMBER_GSI_NAME']
+
+    @property
     def compact_transaction_id_gsi_name(self):
         return os.environ['COMPACT_TRANSACTION_ID_GSI_NAME']
 

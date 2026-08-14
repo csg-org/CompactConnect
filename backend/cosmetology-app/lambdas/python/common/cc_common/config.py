@@ -204,6 +204,10 @@ class _Config:
         return os.environ['LICENSE_GSI_NAME']
 
     @property
+    def license_number_gsi_name(self):
+        return os.environ['LICENSE_NUMBER_GSI_NAME']
+
+    @property
     def ssn_index_name(self):
         return os.environ['SSN_INDEX_NAME']
 

@@ -45,6 +45,15 @@ class CCInternalException(CCBaseException):
     """Internal error in the request, corresponds to a 500 response"""
 
 
+class CCAmbiguousLicenseNumberException(CCInternalException):
+    """A license number resolved to more than one practitioner within a single jurisdiction.
+
+    A jurisdiction's license numbers are expected to identify exactly one practitioner, so this
+    represents unexpected data rather than a caller error. It is a distinct type so that the bulk
+    upload path can fail the single offending row instead of aborting an entire file.
+    """
+
+
 class CCFailedTransactionException(CCBaseException):
     """Authorize.Net transaction failed due to user input, corresponds to a 400 response"""
 

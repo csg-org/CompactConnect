@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
+from cc_common.exceptions import CCAmbiguousLicenseNumberException, CCInternalException
 from common_test.sign_request import sign_request
 from moto import mock_aws
 
@@ -236,7 +237,7 @@ class TestLicenses(TstFunction):
                         'licenseNumber': ['Missing data for required field.'],
                         'licenseStatus': ['Missing data for required field.'],
                         'licenseType': ['Missing data for required field.'],
-                        'ssn': ['Missing data for required field.'],
+                        # ssn is no longer a required field, so its absence is not reported here.
                     }
                 },
             },
@@ -527,3 +528,265 @@ class TestLicenses(TstFunction):
         expected_message['jurisdiction'] = 'oh'
         expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
         self.assertEqual(expected_message, json.loads(queue_messages[0].body))
+
+
+# TODO - once LICENSE_UPLOAD_WITHOUT_SSN_FLAG is removed, drop the flag patches in this class  # noqa: FIX002
+#  and keep the tests themselves
+@mock_aws
+@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestPostLicensesWithoutSsn(TstFunction):
+    """
+    Tests for uploading a license record without an SSN, identifying the practitioner by the license
+    number a previous SSN-bearing upload stored for them.
+    """
+
+    def setUp(self):
+        super().setUp()
+        with open('../common/tests/resources/client_public_key.pem') as f:
+            public_key_pem = f.read()
+        self._compact_configuration_table.put_item(
+            Item={
+                'pk': 'cosm#SIGNATURE_KEYS#oh',
+                'sk': 'cosm#JURISDICTION#oh#test-key-001',
+                'publicKey': public_key_pem,
+                'compact': 'cosm',
+                'jurisdiction': 'oh',
+                'keyId': 'test-key-001',
+                'createdAt': '2024-01-01T00:00:00Z',
+            }
+        )
+
+    def _seed_existing_license(self, **overrides):
+        """Store the license record a previous SSN-bearing upload would have created."""
+        return self.test_data_generator.put_default_license_record_in_provider_table(value_overrides=overrides)
+
+    def _build_event(self, license_records: list[dict]) -> dict:
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['body'] = json.dumps(license_records)
+        # this endpoint's signature auth is optional and only enforced when keys are configured
+        self._compact_configuration_table.delete_item(
+            Key={'pk': 'cosm#SIGNATURE_KEYS#oh', 'sk': 'cosm#JURISDICTION#oh#test-key-001'}
+        )
+        return event
+
+    @staticmethod
+    def _license_without_ssn(**overrides) -> dict:
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        del license_data['ssn']
+        license_data.update(overrides)
+        return license_data
+
+    def _published_ingest_events(self) -> list[dict]:
+        return [
+            json.loads(entry['Detail']) for entry in self._published_entries if entry['DetailType'] == 'license.ingest'
+        ]
+
+    def _post(self, license_records: list[dict], failed_entry_count: int = 0):
+        """POST the records with the event writer patched, so published entries can be inspected.
+
+        The writer is patched rather than the events client because config.events_client is a
+        cached_property: once any test in the session has touched it, patching the class attribute no
+        longer affects the instance the feature module holds.
+        """
+        from handlers.licenses import post_licenses
+
+        event = self._build_event(license_records)
+        with patch('license_upload_without_ssn.EventBatchWriter') as mock_event_writer_class:
+            mock_event_writer = mock_event_writer_class.return_value.__enter__.return_value
+            mock_event_writer.failed_entry_count = failed_entry_count
+            try:
+                return post_licenses(event, self.mock_context)
+            finally:
+                self._published_entries = [call.kwargs['Entry'] for call in mock_event_writer.put_event.call_args_list]
+
+    def test_publishes_ingest_event_for_a_known_license_number(self):
+        existing_license = self._seed_existing_license()
+
+        resp = self._post([self._license_without_ssn(licenseNumber=existing_license.licenseNumber)])
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # nothing goes to the SSN preprocessing queue, because there is no SSN to strip
+        self.assertEqual(0, len(self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)))
+
+        published = self._published_ingest_events()
+        self.assertEqual(1, len(published))
+        self.assertEqual(str(existing_license.providerId), published[0]['providerId'])
+        self.assertEqual(existing_license.ssnLastFour, published[0]['ssnLastFour'])
+        self.assertNotIn('ssn', published[0])
+        self.assertEqual('2024-11-08T23:59:59+00:00', published[0]['eventTime'])
+
+    def test_returns_400_when_the_license_number_is_unknown(self):
+        from license_upload_without_ssn import LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE
+
+        resp = self._post([self._license_without_ssn(licenseNumber='NOT-A-REAL-NUMBER')])
+
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+        self.assertEqual('Invalid license records in request. See errors for more detail.', body['message'])
+        self.assertEqual({'0': {'licenseNumber': [LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE]}}, body['errors'])
+        self.assertEqual([], self._published_ingest_events())
+
+    def test_raises_when_the_license_number_maps_to_multiple_providers(self):
+        """
+        A license number that identifies more than one practitioner is unexpected data, so it surfaces as
+        a server error rather than something the state is asked to correct. Like the other internal
+        failures on this endpoint, it propagates out of the handler for API Gateway to turn into a 5xx.
+        """
+        existing_license = self._seed_existing_license()
+        self._seed_existing_license(
+            providerId='2d3f1b0e-4c5a-4d6b-8e7f-9a0b1c2d3e4f',
+            licenseType='esthetician',
+        )
+
+        with self.assertRaises(CCAmbiguousLicenseNumberException):
+            self._post([self._license_without_ssn(licenseNumber=existing_license.licenseNumber)])
+
+        self.assertEqual([], self._published_ingest_events())
+
+    def test_returns_400_for_duplicate_license_number_and_license_type_in_one_request(self):
+        existing_license = self._seed_existing_license()
+        license_record = self._license_without_ssn(licenseNumber=existing_license.licenseNumber)
+
+        resp = self._post([license_record, dict(license_record)])
+
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+        # the error is reported against the duplicate row, not the first occurrence
+        # the error is reported against the duplicate row and names the earlier row it collides with,
+        # so the state can find both entries in the array they sent
+        self.assertEqual(
+            [
+                'Same license number for the same license type detected on multiple rows. License number '
+                'matches with record 0. Every record must have a unique license number per license type '
+                'within the same request.'
+            ],
+            body['errors']['1']['licenseNumber'],
+        )
+        self.assertEqual([], self._published_ingest_events())
+
+    def test_accepts_the_same_license_number_for_two_license_types(self):
+        """
+        Rows sharing a license number but differing in license type write different license records, so
+        they are not duplicates of each other.
+        """
+        existing_license = self._seed_existing_license()
+        self._seed_existing_license(licenseType='esthetician')
+
+        resp = self._post(
+            [
+                self._license_without_ssn(licenseNumber=existing_license.licenseNumber),
+                self._license_without_ssn(licenseNumber=existing_license.licenseNumber, licenseType='esthetician'),
+            ]
+        )
+
+        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual(2, len(self._published_ingest_events()))
+
+    def test_processes_a_mixed_batch_down_both_paths(self):
+        existing_license = self._seed_existing_license()
+
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_with_ssn = json.load(f)
+        license_with_ssn['licenseType'] = 'esthetician'
+
+        resp = self._post([license_with_ssn, self._license_without_ssn(licenseNumber=existing_license.licenseNumber)])
+
+        self.assertEqual(200, resp['statusCode'])
+        # the SSN-bearing record still goes through the preprocessor
+        self.assertEqual(1, len(self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)))
+        # the SSN-less record goes straight to the ingest processor as an event bridge event
+        self.assertEqual(
+            [
+                {
+                    'compact': 'cosm',
+                    'compactEligibility': 'eligible',
+                    'dateOfBirth': '1985-06-06',
+                    'dateOfExpiration': '2025-04-04',
+                    'dateOfIssuance': '2010-06-06',
+                    'dateOfRenewal': '2020-04-04',
+                    'emailAddress': 'björk@example.com',
+                    'eventTime': '2024-11-08T23:59:59+00:00',
+                    'familyName': 'Guðmundsdóttir',
+                    'givenName': 'Björk',
+                    'homeAddressCity': 'Columbus',
+                    'homeAddressPostalCode': '43004',
+                    'homeAddressState': 'oh',
+                    'homeAddressStreet1': '123 A St.',
+                    'homeAddressStreet2': 'Apt 321',
+                    'jurisdiction': 'oh',
+                    'licenseNumber': 'A0608337260',
+                    'licenseStatus': 'active',
+                    'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                    'licenseType': 'cosmetologist',
+                    'middleName': 'Gunnar',
+                    'phoneNumber': '+13213214321',
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'ssnLastFour': '1234',
+                }
+            ],
+            self._published_ingest_events(),
+        )
+
+    def test_raises_when_the_event_bus_rejects_entries(self):
+        """Matches the existing behavior for a failed preprocessing-queue send: raise, so the caller sees
+        a server error and the failure is alarmed on rather than silently reported as success."""
+        existing_license = self._seed_existing_license()
+
+        with self.assertRaises(CCInternalException):
+            self._post(
+                [self._license_without_ssn(licenseNumber=existing_license.licenseNumber)],
+                failed_entry_count=1,
+            )
+
+    def test_returns_400_when_the_license_number_is_missing(self):
+        """licenseNumber is required on this endpoint, so an upload without it cannot identify anyone."""
+        license_record = self._license_without_ssn()
+        del license_record['licenseNumber']
+
+        resp = self._post([license_record])
+
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+        self.assertEqual({'0': {'licenseNumber': ['Missing data for required field.']}}, body['errors'])
+
+    def test_returns_400_when_the_matched_provider_has_no_indexed_license_number(self):
+        """
+        licenseNumber is optional on license records, so a practitioner whose record predates license
+        number collection cannot be resolved and must still be uploaded with their SSN.
+        """
+        from license_upload_without_ssn import LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE
+
+        license_data = self.test_data_generator.generate_default_license()
+        license_record = license_data.serialize_to_database_record()
+        del license_record['licenseNumber']
+        self.test_data_generator.store_record_in_provider_table(license_record)
+
+        resp = self._post([self._license_without_ssn(licenseNumber='A0608337260')])
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {'0': {'licenseNumber': [LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE]}},
+            json.loads(resp['body'])['errors'],
+        )
+
+    # TODO - remove this test once the LICENSE_UPLOAD_WITHOUT_SSN_FLAG scaffolding is removed  # noqa: FIX002
+    def test_returns_400_when_the_feature_flag_is_disabled(self):
+        from handlers.licenses import post_licenses
+        from license_upload_without_ssn import FLAG_DISABLED_ERROR_MESSAGE
+
+        existing_license = self._seed_existing_license()
+        event = self._build_event([self._license_without_ssn(licenseNumber=existing_license.licenseNumber)])
+
+        with patch('handlers.licenses.license_upload_without_ssn_flag_enabled', False):
+            resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(FLAG_DISABLED_ERROR_MESSAGE, json.loads(resp['body'])['message'])
+        self.assertEqual(0, len(self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)))

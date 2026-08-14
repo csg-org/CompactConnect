@@ -73,6 +73,7 @@ class TstFunction(TstLambdas):
                 {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
                 {'AttributeName': 'licenseGSIPK', 'AttributeType': 'S'},
                 {'AttributeName': 'licenseGSISK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseNumber', 'AttributeType': 'S'},
                 {'AttributeName': 'licenseUploadDateGSIPK', 'AttributeType': 'S'},
                 {'AttributeName': 'licenseUploadDateGSISK', 'AttributeType': 'S'},
             ],
@@ -103,6 +104,17 @@ class TstFunction(TstLambdas):
                         {'AttributeName': 'licenseGSISK', 'KeyType': 'RANGE'},
                     ],
                     'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['LICENSE_NUMBER_GSI_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'licenseGSIPK', 'KeyType': 'HASH'},
+                        {'AttributeName': 'licenseNumber', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE',
+                        'NonKeyAttributes': ['providerId', 'ssnLastFour'],
+                    },
                 },
                 {
                     'IndexName': 'licenseUploadDateGSI',

@@ -527,3 +527,284 @@ class TestProcessObjects(TstFunction):
         # The object should be gone, once parsing is complete
         with self.assertRaises(ClientError):
             self._bucket.Object(object_key).get()
+
+
+# TODO - once LICENSE_UPLOAD_WITHOUT_SSN_FLAG is removed, drop the flag patch in the disabled-flag  # noqa: FIX002
+#  test and keep the rest
+@mock_aws
+@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(VALIDATION_ERROR_EVENT_TIME))
+class TestBulkUploadWithoutSsn(TstFunction):
+    """
+    Tests for CSV rows that leave the ssn column blank, identifying the practitioner by the license
+    number a previous SSN-bearing upload stored for them.
+    """
+
+    CSV_HEADER = (
+        'ssn,licenseNumber,givenName,familyName,dateOfBirth,dateOfIssuance,dateOfExpiration,'
+        'licenseStatus,compactEligibility,homeAddressStreet1,homeAddressCity,homeAddressState,'
+        'homeAddressPostalCode,licenseType'
+    )
+
+    def _csv_row(
+        self,
+        *,
+        ssn: str = '',
+        license_number: str = 'A0608337260',
+        license_type: str = 'speech-language pathologist',
+        family_name: str = 'Guðmundsdóttir',
+    ) -> str:
+        return (
+            f'{ssn},{license_number},Björk,{family_name},1985-06-06,2010-06-06,2050-04-04,'
+            f'active,eligible,123 A St.,Columbus,oh,43004,{license_type}'
+        )
+
+    def _seed_existing_license(self, **overrides):
+        return self.test_data_generator.put_default_license_record_in_provider_table(value_overrides=overrides)
+
+    def _process_csv(self, rows: list[str], flag_enabled: bool = True):
+        """Upload a CSV to the mock bucket and run the parse handler over it."""
+        from handlers import bulk_upload
+
+        csv_content = '\n'.join([self.CSV_HEADER, *rows])
+        object_key = f'aslp/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content)
+
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        with patch('handlers.bulk_upload.EventBatchWriter') as mock_event_writer_class:
+            mock_event_writer = mock_event_writer_class.return_value.__enter__.return_value
+            mock_event_writer.failed_entry_count = 0
+            with patch(
+                'handlers.bulk_upload.license_upload_without_ssn_flag_enabled',
+                flag_enabled,
+            ):
+                bulk_upload.parse_bulk_upload_file(event, self.mock_context)
+
+        entries = [call.kwargs['Entry'] for call in mock_event_writer.put_event.call_args_list]
+        return object_key, entries
+
+    @staticmethod
+    def _details_of_type(entries: list[dict], detail_type: str) -> list[dict]:
+        return [json.loads(entry['Detail']) for entry in entries if entry['DetailType'] == detail_type]
+
+    def test_publishes_ingest_event_for_a_known_license_number(self):
+        existing_license = self._seed_existing_license()
+
+        _, entries = self._process_csv([self._csv_row(license_number=existing_license.licenseNumber)])
+
+        ingest_details = self._details_of_type(entries, 'license.ingest')
+        self.assertEqual(1, len(ingest_details))
+        self.assertEqual(str(existing_license.providerId), ingest_details[0]['providerId'])
+        self.assertEqual(existing_license.ssnLastFour, ingest_details[0]['ssnLastFour'])
+        self.assertNotIn('ssn', ingest_details[0])
+
+        # nothing goes to the SSN preprocessing queue, because there is no SSN to strip
+        self.assertEqual(0, len(self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)))
+
+    def test_emits_validation_error_for_an_unknown_license_number_and_keeps_processing(self):
+        from license_upload_without_ssn import LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE
+
+        existing_license = self._seed_existing_license()
+
+        _, entries = self._process_csv(
+            [
+                self._csv_row(license_number='NOT-A-REAL-NUMBER'),
+                self._csv_row(license_number=existing_license.licenseNumber),
+            ]
+        )
+
+        validation_errors = self._details_of_type(entries, 'license.validation-error')
+        self.assertEqual(1, len(validation_errors))
+        self.assertEqual(1, validation_errors[0]['recordNumber'])
+        self.assertEqual(
+            {'_schema': [LICENSE_NUMBER_NOT_FOUND_ERROR_MESSAGE]},
+            validation_errors[0]['errors'],
+        )
+        self.assertEqual('NOT-A-REAL-NUMBER', validation_errors[0]['validData']['licenseNumber'])
+
+        # the valid row on line 2 is still processed
+        self.assertEqual(1, len(self._details_of_type(entries, 'license.ingest')))
+
+    def test_emits_validation_error_for_an_ambiguous_license_number_and_keeps_processing(self):
+        """
+        An ambiguous license number fails only its own row. Aborting the whole file would punish every
+        other practitioner in what can be a very large upload.
+        """
+        existing_license = self._seed_existing_license()
+        self._seed_existing_license(
+            providerId='2d3f1b0e-4c5a-4d6b-8e7f-9a0b1c2d3e4f',
+            licenseType='audiologist',
+        )
+        other_license = self._seed_existing_license(licenseNumber='B0608337260', licenseType='audiologist')
+
+        _, entries = self._process_csv(
+            [
+                self._csv_row(license_number=existing_license.licenseNumber),
+                self._csv_row(license_number=other_license.licenseNumber, license_type='audiologist'),
+            ]
+        )
+
+        validation_errors = self._details_of_type(entries, 'license.validation-error')
+        self.assertEqual(1, len(validation_errors))
+        self.assertEqual(1, validation_errors[0]['recordNumber'])
+
+        # the unambiguous row on line 2 is still processed
+        self.assertEqual(1, len(self._details_of_type(entries, 'license.ingest')))
+
+    def test_emits_validation_error_for_a_duplicate_license_number_in_the_same_file(self):
+        existing_license = self._seed_existing_license()
+
+        _, entries = self._process_csv(
+            [
+                self._csv_row(license_number=existing_license.licenseNumber),
+                self._csv_row(license_number=existing_license.licenseNumber),
+            ]
+        )
+
+        validation_errors = self._details_of_type(entries, 'license.validation-error')
+        self.assertEqual(1, len(validation_errors))
+        self.assertEqual(2, validation_errors[0]['recordNumber'])
+        # the error names the earlier line it collides with, so the state can find both rows
+        self.assertEqual(
+            [
+                'Same license number for the same license type detected on multiple rows. License number '
+                'matches with record 1. Every record must have a unique license number per license type '
+                'within the same request.'
+            ],
+            validation_errors[0]['errors']['_schema'],
+        )
+
+        # only the first occurrence is ingested
+        self.assertEqual(1, len(self._details_of_type(entries, 'license.ingest')))
+
+    def test_reports_a_duplicate_even_when_the_first_occurrence_could_not_be_resolved(self):
+        """
+        A row claims its license number whether or not it resolves, so the state is told the second row is
+        a duplicate rather than being shown the same unknown-license-number error twice.
+        """
+        _, entries = self._process_csv(
+            [
+                self._csv_row(license_number='NOT-A-REAL-NUMBER'),
+                self._csv_row(license_number='NOT-A-REAL-NUMBER'),
+            ]
+        )
+
+        validation_errors = self._details_of_type(entries, 'license.validation-error')
+        self.assertEqual(2, len(validation_errors))
+        self.assertIn('No existing license record was found', validation_errors[0]['errors']['_schema'][0])
+        self.assertIn('matches with record 1', validation_errors[1]['errors']['_schema'][0])
+        self.assertEqual([], self._details_of_type(entries, 'license.ingest'))
+
+    def test_accepts_the_same_license_number_for_two_license_types(self):
+        existing_license = self._seed_existing_license()
+        self._seed_existing_license(licenseType='audiologist')
+
+        _, entries = self._process_csv(
+            [
+                self._csv_row(license_number=existing_license.licenseNumber),
+                self._csv_row(license_number=existing_license.licenseNumber, license_type='audiologist'),
+            ]
+        )
+
+        self.assertEqual([], self._details_of_type(entries, 'license.validation-error'))
+        self.assertEqual(2, len(self._details_of_type(entries, 'license.ingest')))
+
+    def test_processes_a_mixed_file_down_both_paths(self):
+        existing_license = self._seed_existing_license()
+
+        _, entries = self._process_csv(
+            [
+                self._csv_row(ssn='123-45-6789', license_number='C0608337260', license_type='audiologist'),
+                self._csv_row(license_number=existing_license.licenseNumber),
+            ]
+        )
+
+        # the SSN-bearing row still goes through the preprocessor
+        self.assertEqual(1, len(self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)))
+        self.assertEqual(1, len(self._details_of_type(entries, 'license.ingest')))
+        self.assertEqual([], self._details_of_type(entries, 'license.validation-error'))
+
+    def test_loads_the_license_number_index_once_for_the_whole_file(self):
+        """
+        The bulk path resolves rows against a single in-memory load of the jurisdiction's license number
+        index. Querying per row would mean a network round trip per row, which is what puts a large file
+        at risk of exhausting the lambda's execution time.
+        """
+        record_count = 25
+        rows = []
+        for index in range(record_count):
+            license_number = f'INDEXLOAD{index:05d}'
+            self._seed_existing_license(licenseNumber=license_number, providerId=str(uuid4()))
+            rows.append(self._csv_row(license_number=license_number))
+
+        import license_upload_without_ssn
+
+        with patch.object(license_upload_without_ssn.config, 'data_client') as mock_data_client:
+            mock_data_client.load_license_number_lookup.return_value.get.return_value = MagicMock(
+                provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570', ssn_last_four='1234'
+            )
+            _, entries = self._process_csv(rows)
+
+        self.assertEqual(1, mock_data_client.load_license_number_lookup.call_count)
+        mock_data_client.find_provider_by_license_number.assert_not_called()
+        self.assertEqual(record_count, len(self._details_of_type(entries, 'license.ingest')))
+
+    def test_does_not_load_the_license_number_index_when_no_rows_need_it(self):
+        """A file made entirely of SSN-bearing rows must not pay for the index load."""
+        import license_upload_without_ssn
+
+        with patch.object(license_upload_without_ssn.config, 'data_client') as mock_data_client:
+            self._process_csv([self._csv_row(ssn='123-45-6789')])
+
+        mock_data_client.load_license_number_lookup.assert_not_called()
+
+    def test_publishes_every_record_when_the_file_exceeds_one_batch(self):
+        """The SSN-less path batches independently of the SSN path, so a large file must not drop rows."""
+        from handlers import bulk_upload
+
+        record_count = 105
+        rows = []
+        for index in range(record_count):
+            license_number = f'BULK{index:05d}'
+            # each row must belong to a distinct practitioner, or the seeded records would share a
+            # primary key and overwrite one another
+            self._seed_existing_license(
+                licenseNumber=license_number,
+                providerId=str(uuid4()),
+            )
+            rows.append(self._csv_row(license_number=license_number))
+
+        real_process_batch = bulk_upload._process_ssnless_license_batch  # noqa: SLF001
+        with (
+            patch.object(bulk_upload, '_process_ssnless_license_batch', wraps=real_process_batch) as mock_process_batch,
+        ):
+            _, entries = self._process_csv(rows)
+
+        # the rows were genuinely split across batches, rather than all published in a single pass
+        self.assertEqual(2, mock_process_batch.call_count)
+        self.assertEqual([], self._details_of_type(entries, 'license.validation-error'))
+        self.assertEqual(record_count, len(self._details_of_type(entries, 'license.ingest')))
+
+    # TODO - remove this test once the LICENSE_UPLOAD_WITHOUT_SSN_FLAG scaffolding is removed  # noqa: FIX002
+    def test_emits_validation_error_when_the_feature_flag_is_disabled(self):
+        from license_upload_without_ssn import FLAG_DISABLED_ERROR_MESSAGE
+
+        existing_license = self._seed_existing_license()
+
+        _, entries = self._process_csv(
+            [self._csv_row(license_number=existing_license.licenseNumber)],
+            flag_enabled=False,
+        )
+
+        validation_errors = self._details_of_type(entries, 'license.validation-error')
+        self.assertEqual(1, len(validation_errors))
+        self.assertEqual({'_schema': [FLAG_DISABLED_ERROR_MESSAGE]}, validation_errors[0]['errors'])
+        self.assertEqual([], self._details_of_type(entries, 'license.ingest'))

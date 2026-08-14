@@ -24,6 +24,7 @@ class TstLambdas(TestCase):
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'FAM_GIV_INDEX_NAME': 'famGiv',
                 'LICENSE_GSI_NAME': 'licenseGSI',
+                'LICENSE_NUMBER_GSI_NAME': 'licenseNumberGSI',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'SSN_INDEX_NAME': 'ssnIndex',
                 'COMPACTS': '["socw"]',

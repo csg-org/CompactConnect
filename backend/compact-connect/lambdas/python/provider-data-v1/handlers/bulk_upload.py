@@ -6,13 +6,13 @@ from uuid import uuid4
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
-from cc_common.config import config, logger
+from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.license.api import (
     LicensePostRequestSchema,
     LicenseReportResponseSchema,
 )
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCInternalException
+from cc_common.exceptions import CCAmbiguousLicenseNumberException, CCInternalException, CCInvalidRequestException
 
 # initialize flag outside of handler so the flag is cached for the lifecycle of the lambda execution environment
 from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled  # noqa: E402
@@ -23,6 +23,12 @@ from cc_common.utils import (
     send_licenses_to_preprocessing_queue,
 )
 from license_csv_reader import LicenseCSVReader
+from license_upload_without_ssn import (  # noqa: E402
+    FLAG_DISABLED_ERROR_MESSAGE,
+    build_preloaded_resolver,
+    put_license_ingest_events,
+    resolve_license_without_ssn,
+)
 from marshmallow import ValidationError
 from marshmallow.exceptions import SCHEMA
 
@@ -30,6 +36,18 @@ from marshmallow.exceptions import SCHEMA
 ssn_correction_migration_flag_enabled = is_feature_enabled(
     FeatureFlagEnum.LICENSE_SSN_CORRECTION_MIGRATION_FLAG, fail_default=False
 )
+
+# TODO - remove this flag once the feature is proven stable  # noqa: FIX002
+# This flag is a kill switch for a feature that is enabled by default, so we fail open: a feature flag
+# outage should not stop states from uploading. Unlike the SSN-correction flag above, this feature
+# deletes nothing and writes the same license record the SSN path writes, so failing open is safe.
+license_upload_without_ssn_flag_enabled = is_feature_enabled(
+    FeatureFlagEnum.LICENSE_UPLOAD_WITHOUT_SSN_FLAG, fail_default=True
+)
+
+# Number of license records held in memory before being flushed on to the next stage of processing,
+# to limit memory footprint.
+LICENSE_PROCESSING_BATCH_SIZE = 100
 
 
 @api_handler
@@ -64,6 +82,7 @@ def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # noqa: ARG0
     return {'upload': upload}
 
 
+@metrics.log_metrics
 @logger.inject_lambda_context
 def parse_bulk_upload_file(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Receive an S3 put event, and parse/validate the new s3 file before deleting it
@@ -143,8 +162,6 @@ def process_bulk_upload_file(
     # We need to use utf-8-sig to handle potential BOM characters at the beginning of the file
     stream = TextIOWrapper(body, encoding='utf-8-sig')
 
-    # Define batch size for processing to limit memory footprint
-    batch_size = 100
     current_batch = []
     total_processed = 0
     failed_validation_count = 0
@@ -152,6 +169,14 @@ def process_bulk_upload_file(
     # which are not allowed within the same file upload
     # We track by (ssn, licenseType) tuple to allow same SSN for different license types
     ssns_in_file_upload = {}
+    # Rows with no SSN are batched and de-duplicated separately from the SSN rows above, so that the
+    # existing SSN handling is untouched. We track by (licenseNumber, licenseType) to allow the same
+    # license number for different license types.
+    current_ssnless_batch = []
+    license_numbers_in_file_upload = {}
+    # Built on the first row that needs it, so a file made entirely of SSN-bearing rows does not pay to
+    # load the index. Held for the whole file: one load, rather than a query per row.
+    resolve_license_number = None
 
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
@@ -161,6 +186,28 @@ def process_bulk_upload_file(
                     # dict() here, because it prevents `compact` and `jurisdiction` from being allowed in the
                     # raw_license
                     validated_license = schema.load(dict(compact=compact, jurisdiction=jurisdiction, **raw_license))
+                    # A row with no SSN is handled entirely by this branch, so the SSN handling that
+                    # follows only ever sees rows that carry an SSN.
+                    if not validated_license.get('ssn'):
+                        if resolve_license_number is None:
+                            resolve_license_number = _build_ssnless_license_resolver(
+                                compact=compact, jurisdiction=jurisdiction
+                            )
+                        current_ssnless_batch.append(
+                            _resolve_ssnless_license_row(
+                                validated_license=schema.dump(validated_license),
+                                record_number=i + 1,
+                                license_numbers_in_file_upload=license_numbers_in_file_upload,
+                                resolve_license_number=resolve_license_number,
+                            )
+                        )
+                        if len(current_ssnless_batch) >= LICENSE_PROCESSING_BATCH_SIZE:
+                            _process_ssnless_license_batch(
+                                current_ssnless_batch, event_time, event_writer, compact, jurisdiction
+                            )
+                            total_processed += len(current_ssnless_batch)
+                            current_ssnless_batch = []
+                        continue
                     # verify that this ssn/licenseType combination has not been used previously in the same batch
                     ssn_key = (validated_license['ssn'], validated_license['licenseType'])
                     matched_ssn_index = ssns_in_file_upload.get(ssn_key)
@@ -191,7 +238,7 @@ def process_bulk_upload_file(
                 current_batch.append(schema.dump(validated_license))
 
                 # When batch is full, send to preprocessing queue
-                if len(current_batch) >= batch_size:
+                if len(current_batch) >= LICENSE_PROCESSING_BATCH_SIZE:
                     _process_license_batch(current_batch, event_time, compact, jurisdiction)
                     total_processed += len(current_batch)
                     current_batch = []  # Reset batch
@@ -240,6 +287,11 @@ def process_bulk_upload_file(
             _process_license_batch(current_batch, event_time, compact, jurisdiction)
             total_processed += len(current_batch)
 
+        # Process any remaining SSN-less licenses in the final batch
+        if current_ssnless_batch:
+            _process_ssnless_license_batch(current_ssnless_batch, event_time, event_writer, compact, jurisdiction)
+            total_processed += len(current_ssnless_batch)
+
     logger.info(
         'Bulk upload processing complete',
         total_processed=total_processed,
@@ -254,6 +306,83 @@ def process_bulk_upload_file(
             logger.debug('Failed event entry', entry=failure)
 
         raise CCInternalException('Failed to process object!')
+
+
+def _build_ssnless_license_resolver(*, compact: str, jurisdiction: str):
+    """Load the jurisdiction's license number index for this file to resolve against.
+
+    Separated from the loop purely so the flag check happens before the load: a disabled feature must not
+    read the index at all.
+    """
+    # TODO - remove this check once the LICENSE_UPLOAD_WITHOUT_SSN_FLAG scaffolding is removed  # noqa: FIX002
+    if not license_upload_without_ssn_flag_enabled:
+        raise ValidationError({SCHEMA: [FLAG_DISABLED_ERROR_MESSAGE]})
+
+    return build_preloaded_resolver(compact=compact, jurisdiction=jurisdiction)
+
+
+def _resolve_ssnless_license_row(
+    *,
+    validated_license: dict,
+    record_number: int,
+    license_numbers_in_file_upload: dict,
+    resolve_license_number,
+) -> dict:
+    """Resolve one CSV row that carries no SSN, returning the record enriched for ingest.
+
+    Every failure here is raised as a ValidationError so it lands in the caller's existing
+    ValidationError handling, which reports the row back to the state's operational staff and moves on to
+    the next line. One unresolvable row must never abort a file that can contain hundreds of thousands of
+    valid ones.
+
+    :param license_numbers_in_file_upload: Registry of license keys already seen in this file, updated by
+        the shared resolution
+    :return: The license record with providerId and ssnLastFour populated
+    :raises ValidationError: If the row duplicates an earlier row, the license number is unknown, or it
+        does not identify exactly one practitioner
+    """
+    try:
+        return resolve_license_without_ssn(
+            license_record=validated_license,
+            record_position=record_number,
+            seen_license_keys=license_numbers_in_file_upload,
+            resolve_license_number=resolve_license_number,
+        )
+    except CCAmbiguousLicenseNumberException as e:
+        # Unexpected data rather than a caller mistake, but the state still needs to know which row we
+        # could not process, and the rest of the file must still be ingested.
+        logger.error('Ambiguous license number on SSN-less upload row', record_number=record_number)
+        raise ValidationError({SCHEMA: [e.message]}) from e
+    except CCInvalidRequestException as e:
+        raise ValidationError({SCHEMA: [e.message]}) from e
+
+
+def _process_ssnless_license_batch(
+    licenses_batch: list[dict],
+    event_time: datetime,
+    event_writer: EventBatchWriter,
+    compact: str,
+    jurisdiction: str,
+):
+    """Publish a batch of resolved SSN-less license records straight to the ingest handler.
+
+    These records skip the SSN preprocessing queue because there is no SSN to strip out. The shared
+    event writer is reused so the caller's existing failed_entry_count check covers this path too.
+    """
+    if not licenses_batch:
+        return
+
+    logger.info(
+        'Publishing license ingest events for rows uploaded without an SSN',
+        record_count=len(licenses_batch),
+        compact=compact,
+        jurisdiction=jurisdiction,
+    )
+    put_license_ingest_events(
+        event_writer=event_writer,
+        licenses=licenses_batch,
+        event_time=event_time.isoformat(),
+    )
 
 
 def _process_license_batch(licenses_batch: list[dict], event_time: datetime, compact: str, jurisdiction: str):
