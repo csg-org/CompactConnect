@@ -1,0 +1,261 @@
+# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+"""
+Schema for API objects.
+"""
+
+from datetime import date
+
+from marshmallow import ValidationError, pre_load, validates_schema
+from marshmallow.fields import Date, Email, List, Nested, Raw, String
+from marshmallow.validate import Length
+
+from cc_common.config import config
+from cc_common.data_model.schema.adverse_action.api import AdverseActionGeneralResponseSchema
+from cc_common.data_model.schema.base_record import ForgivingSchema, StrictSchema
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CCRequestSchema, CompactEligibilityStatus
+from cc_common.data_model.schema.fields import (
+    ActiveInactive,
+    Compact,
+    CompactEligibility,
+    InvestigationStatusField,
+    ITUTE164PhoneNumber,
+    Jurisdiction,
+    NationalProviderIdentifier,
+    SocialSecurityNumber,
+)
+from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
+
+
+class LicenseExpirationStatusMixin:
+    """
+    Mixin that checks for stale 'licenseStatus' values when loading license data.
+
+    OpenSearch documents may have stale status values because the licenseStatus field is
+    calculated at write time. If the dateOfExpiration has passed since the last update,
+    the licenseStatus should be 'inactive' even if the stored value in OpenSearch says 'active'.
+    To account for this, this mixin performs the same expiration check that is performed when loading
+    license records from DynamoDB, so the status will factor in the date of expiration and show the correct
+    active/inactive status.
+
+    This mixin should be applied to license API response schemas that load data from
+    OpenSearch or other sources where the status may be stale.
+    """
+
+    @pre_load
+    def check_for_stale_license_status(self, in_data, **kwargs):
+        """Set licenseStatus to inactive if the license has expired."""
+        if in_data.get('licenseStatus') != ActiveInactiveStatus.ACTIVE:
+            # Already inactive, no check needed
+            return in_data
+
+        date_of_expiration = in_data.get('dateOfExpiration')
+        if date_of_expiration is None:
+            return in_data
+
+        # Parse the expiration date (handle both string and date objects)
+        if isinstance(date_of_expiration, str):
+            expiration_date = date.fromisoformat(date_of_expiration)
+        else:
+            expiration_date = date_of_expiration
+
+        # If expired, correct the status to inactive
+        if expiration_date < config.expiration_resolution_date:
+            in_data['licenseStatus'] = ActiveInactiveStatus.INACTIVE
+
+        return in_data
+
+
+class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
+    """
+    Schema for license data as posted by a board staff-user
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    # Optional because a state that has already uploaded this practitioner's license record with their
+    # SSN can identify them on subsequent uploads by their license number alone. See
+    # validate_ssn_or_license_number_present for the resulting either-or requirement.
+    ssn = SocialSecurityNumber(required=False, allow_none=False)
+    # If provided, the system will migrate any records associated with this SSN over to the provider
+    # associated with the `ssn` field, to correct a previously-uploaded incorrect SSN. This value is
+    # stripped out before the license data leaves the SSN-scoped preprocessing path and is never persisted.
+    previousSSN = SocialSecurityNumber(required=False, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    # Note that the two fields below, `licenseStatus` and `compactEligibility`, are stored
+    # in the database as `jurisdictionUploadedLicenseStatus` and `jurisdictionUploadedCompactEligibility`.
+    # This is to distinguish them from the `licenseStatus` and `compactEligibility` fields returned via the
+    # API, which are dynamically calculated based on logic that includes the current time and the
+    # license expiration date.
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    # These date values are determined by the license records uploaded by a state
+    # they do not include a timestamp, so we use the Date field type
+    dateOfIssuance = Date(required=True, allow_none=False)
+    dateOfRenewal = Date(required=False, allow_none=False)
+    dateOfExpiration = Date(required=True, allow_none=False)
+    dateOfBirth = Date(required=True, allow_none=False)
+    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
+    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
+    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+
+    @validates_schema
+    def validate_license_type(self, data, **_kwargs):
+        license_types = config.license_types_for_compact(data['compact'])
+        if data['licenseType'] not in license_types:
+            raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+
+    @validates_schema
+    def validate_ssn_or_license_number_present(self, data, **_kwargs):
+        """A license record must carry at least one identifier we can tie to a practitioner.
+
+        The SSN identifies them directly. A license number identifies them indirectly, by matching a
+        license record the same jurisdiction has already uploaded for them under their SSN.
+        """
+        if not data.get('ssn') and not data.get('licenseNumber'):
+            raise ValidationError({'ssn': ['ssn is required when licenseNumber is not provided.']})
+
+    @validates_schema
+    def validate_previous_ssn_requires_ssn(self, data, **_kwargs):
+        """previousSSN only has meaning as a correction of the ssn provided alongside it."""
+        if data.get('previousSSN') and not data.get('ssn'):
+            raise ValidationError({'previousSSN': ['previousSSN may only be provided together with ssn.']})
+
+    @validates_schema
+    def validate_compact_eligibility(self, data, **_kwargs):
+        if (
+            data['licenseStatus'] == ActiveInactiveStatus.INACTIVE
+            and data['compactEligibility'] == CompactEligibilityStatus.ELIGIBLE
+        ):
+            raise ValidationError(
+                {'compactEligibility': ['compactEligibility cannot be eligible if licenseStatus is inactive.']}
+            )
+
+
+class LicenseReportResponseSchema(ForgivingSchema):
+    """
+    License object fields, as included in ingest error reports to state operational staff.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    type = String(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+
+
+class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):
+    """
+    License object fields, as seen by staff users with only the 'readGeneral' permission.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    type = String(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
+    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    emailAddress = Email(required=False, allow_none=False)
+    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
+    # This field is only set if the license is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
+
+
+class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):
+    """
+    License object fields, as seen by staff users with only the 'readPrivate' permission.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    type = String(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
+    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    emailAddress = Email(required=False, allow_none=False)
+    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
+    # This field is only set if the license is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
+
+    # these fields are specific to the read private role
+    dateOfBirth = Raw(required=False, allow_none=False)
+    ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))

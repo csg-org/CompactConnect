@@ -1,0 +1,2 @@
+ssn,npi,licenseNumber,licenseType,licenseStatus,licenseStatusName,compactEligibility,givenName,middleName,familyName,suffix,dateOfIssuance,dateOfRenewal,dateOfExpiration,dateOfBirth,homeAddressStreet1,homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode,emailAddress,phoneNumber
+555-88-5556,,SSG-9M76F7X731T,occupational therapist,active,ACTIVE_IN_RENEWAL,eligible,Amanda,,Perry,,2005-04-09,2025-07-28,2027-07-28,1975-06-26,5266 Amanda Mission,Suite 896,Lake Justin,oh,44044,,+19995743801
