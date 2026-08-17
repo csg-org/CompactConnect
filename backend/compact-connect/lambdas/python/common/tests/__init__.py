@@ -35,6 +35,7 @@ class TstLambdas(TestCase):
                 'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'LICENSE_NUMBER_GSI_NAME': 'licenseNumberGSI',
+                'COMPACT_TRANSACTION_ID_GSI_NAME': 'compactTransactionIdGSI',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': json.dumps(
                     [

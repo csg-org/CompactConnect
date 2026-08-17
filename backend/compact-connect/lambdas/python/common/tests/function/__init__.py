@@ -169,6 +169,7 @@ class TstFunction(TstLambdas):
                 {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
                 {'AttributeName': 'licenseGSIPK', 'AttributeType': 'S'},
                 {'AttributeName': 'licenseNumber', 'AttributeType': 'S'},
+                {'AttributeName': 'compactTransactionIdGSIPK', 'AttributeType': 'S'},
             ],
             TableName=os.environ['PROVIDER_TABLE_NAME'],
             GlobalSecondaryIndexes=[
@@ -197,6 +198,24 @@ class TstFunction(TstLambdas):
                     'Projection': {
                         'ProjectionType': 'INCLUDE',
                         'NonKeyAttributes': ['providerId', 'ssnLastFour'],
+                    },
+                },
+                {
+                    'IndexName': os.environ['COMPACT_TRANSACTION_ID_GSI_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'compactTransactionIdGSIPK', 'KeyType': 'HASH'},
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE',
+                        'NonKeyAttributes': [
+                            'privilegeId',
+                            'updatedValues',
+                            'previous',
+                            'jurisdiction',
+                            'type',
+                            'compactTransactionId',
+                            'providerId',
+                        ],
                     },
                 },
             ],
