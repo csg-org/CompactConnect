@@ -12,11 +12,11 @@ aws-lambda-powertools==3.31.1
     # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
-boto3==1.43.63
+boto3==1.43.67
     # via
     #   -r requirements-dev.in
     #   moto
-botocore==1.43.63
+botocore==1.43.72
     # via
     #   boto3
     #   moto
@@ -37,7 +37,7 @@ charset-normalizer==3.4.9
     # via requests
 click==8.4.2
     # via pip-tools
-coverage[toml]==7.15.3
+coverage[toml]==7.15.4
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -70,7 +70,7 @@ markdown-it-py==4.2.0
     # via rich
 markupsafe==3.0.3
     # via werkzeug
-marshmallow==4.3.0
+marshmallow==4.3.1
     # via -r requirements-dev.in
 mdurl==0.1.2
     # via markdown-it-py
@@ -141,7 +141,7 @@ responses==0.26.2
     # via moto
 rich==15.0.0
     # via pip-audit
-ruff==0.16.1
+ruff==0.16.2
     # via -r requirements-dev.in
 s3transfer==0.19.2
     # via boto3
