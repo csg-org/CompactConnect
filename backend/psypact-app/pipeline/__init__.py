@@ -15,6 +15,8 @@ from pipeline.backend_pipeline import BackendPipeline
 from pipeline.backend_stage import BackendStage
 from pipeline.synth_substitute_stage import SynthSubstituteStage
 
+APP_NAME='psypact'
+
 # Action constants
 ACTION_CONTEXT_KEY = 'action'
 PIPELINE_STACK_CONTEXT_KEY = 'pipelineStack'
@@ -120,7 +122,7 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern='cc-test-*',
+            git_tag_trigger_pattern=f'{APP_NAME}-test-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -177,7 +179,7 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             connection_arn=self.connection_arn,
             # We will explicitly tie beta deploys to the production tag, because we always want the
             # beta environment code to mirror production.
-            git_tag_trigger_pattern='cc-prod-*',
+            git_tag_trigger_pattern=f'{APP_NAME}-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -236,7 +238,7 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern='cc-prod-*',
+            git_tag_trigger_pattern=f'{APP_NAME}-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
