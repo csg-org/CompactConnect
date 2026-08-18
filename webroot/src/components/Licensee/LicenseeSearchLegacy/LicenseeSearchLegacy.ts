@@ -65,27 +65,15 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get isAppModeJcc(): boolean {
-        return this.$store.getters.isAppModeJcc;
-    }
-
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
     }
 
     get compactOptions(): Array<any> {
-        let options = this.$tm('compacts').map((compact) => ({
-            value: compact.key,
+        const options: Array<any> = this.$compactsEnabled.map((compact) => ({
+            value: compact.type,
             name: compact.name,
         }));
-
-        if (this.$envConfig.isAppProduction) { // @NOTE: Hide compacts that have no Prod infra
-            options = options.filter((option) => !['cosm', 'socw'].includes(option.value));
-        }
 
         options.unshift({
             value: '',
@@ -211,7 +199,7 @@ class LicenseeSearch extends mixins(MixinForm) {
             ];
 
             // Per compact search props
-            if (this.isAppGroupModeMultiState) {
+            if (this.$isAppGroupModeMultiState) {
                 allowedSearchProps.push('licenseNumber');
             }
 
@@ -227,7 +215,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         const { firstName, lastName } = this.formData;
         const shouldSkip = (asTouched) ? false : !lastName.isTouched;
 
-        if (this.isAppModeJcc) { // Currently only JCC requires this check
+        if (this.$isAppModeJcc) { // Currently only JCC requires this check
             if (!shouldSkip && firstName.value && !lastName.value) {
                 lastName.isValid = false;
                 lastName.errorMessage = this.$t('inputErrors.lastNameRequired');
@@ -259,7 +247,7 @@ class LicenseeSearch extends mixins(MixinForm) {
 
     async mockPopulate(): Promise<void> {
         if (this.enableCompactSelect) {
-            this.formData.compact.value = (this.isAppModeJcc)
+            this.formData.compact.value = (this.$isAppModeJcc)
                 ? CompactType.OT
                 : this.formData.compact.valueOptions[1];
 
@@ -270,7 +258,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.lastName.value = 'User';
         this.formData.state.value = 'co';
 
-        if (this.isAppGroupModeMultiState) {
+        if (this.$isAppGroupModeMultiState) {
             this.formData.licenseNumber.value = 'ABC123';
         }
 

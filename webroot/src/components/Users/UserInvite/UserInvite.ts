@@ -78,14 +78,6 @@ class UserInvite extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get isAppModeJcc(): boolean {
-        return this.$store.getters.isAppModeJcc;
-    }
-
-    get isAppModeCosmetology(): boolean {
-        return this.$store.getters.isAppModeCosmetology;
-    }
-
     get currentUser(): StaffUser {
         return this.userStore.model;
     }
@@ -137,7 +129,7 @@ class UserInvite extends mixins(MixinForm) {
     get userPermissionOptionsCompact(): Array<PermissionOption> {
         let permissionOptions: Array<PermissionOption> = [];
 
-        if (this.isAppModeJcc) {
+        if (this.$isAppModeJcc) {
             permissionOptions = [
                 { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
                 { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
@@ -164,7 +156,7 @@ class UserInvite extends mixins(MixinForm) {
     get userPermissionOptionsState(): Array<PermissionOption> {
         let permissionOptions: Array<PermissionOption> = [];
 
-        if (this.isAppModeJcc) {
+        if (this.$isAppModeJcc) {
             permissionOptions = [
                 { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
                 { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
@@ -421,7 +413,7 @@ class UserInvite extends mixins(MixinForm) {
             }
         }
 
-        if (!this.isAppModeJcc) {
+        if (!this.$isAppModeJcc) {
             delete response.isReadSsn;
         }
 
@@ -484,7 +476,7 @@ class UserInvite extends mixins(MixinForm) {
             break;
         }
 
-        if (!this.isAppModeJcc) {
+        if (!this.$isAppModeJcc) {
             delete response.isReadSsn;
         }
 

@@ -16,7 +16,8 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { dateFormatPatterns, AppModes, getEncumberConfigPrivilege } from '@/app.config';
+import { dateFormatPatterns } from '@/app.config';
+import { getEncumberConfigPrivilege } from '@utils/compactConfig';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputTextarea from '@components/Forms/InputTextarea/InputTextarea.vue';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
@@ -85,26 +86,6 @@ class PrivilegeCard extends mixins(MixinForm) {
     //
     get userStore() {
         return this.$store.state.user;
-    }
-
-    get appMode(): AppModes {
-        return this.$store.state.appMode;
-    }
-
-    get isAppModeJcc(): boolean {
-        return this.$store.getters.isAppModeJcc;
-    }
-
-    get isAppModeCosmetology(): boolean {
-        return this.$store.getters.isAppModeCosmetology;
-    }
-
-    get isAppModeSocialWork(): boolean {
-        return this.$store.getters.isAppModeSocialWork;
-    }
-
-    get isAppGroupModePrivilegePurchase(): boolean {
-        return this.$store.getters.isAppGroupModePrivilegePurchase;
     }
 
     get currentUser(): StaffUser {
@@ -239,7 +220,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const includeList: Array<string> = getEncumberConfigPrivilege(this.appMode).disciplineTypes;
+        const includeList: Array<string> = getEncumberConfigPrivilege(this.$appMode).disciplineTypes;
         const options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
             value: disciplineType.key,
             name: disciplineType.name,
@@ -255,7 +236,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const includeList: Array<string> = getEncumberConfigPrivilege(this.appMode).npdbTypes;
+        const includeList: Array<string> = getEncumberConfigPrivilege(this.$appMode).npdbTypes;
         const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
@@ -270,7 +251,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get shouldAllowNpdbMultiSelect(): boolean {
-        return this.isAppModeJcc || this.isAppModeSocialWork;
+        return this.$isAppModeJcc || this.$isAppModeSocialWork;
     }
 
     get endInvestigationModalTitle(): string {

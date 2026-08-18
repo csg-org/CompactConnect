@@ -11,7 +11,6 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { AppModes } from '@/app.config';
 import {
     authStorage,
     AuthTypes,
@@ -70,10 +69,6 @@ class MfaResetConfirmLicensee extends Vue {
     //
     // Computed
     //
-    get appMode(): AppModes {
-        return this.$store.state.appMode;
-    }
-
     get compactQuery(): string {
         const compact: string = (this.$route.query?.compact as string) || '';
 
@@ -89,7 +84,7 @@ class MfaResetConfirmLicensee extends Vue {
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login', this.csrfState, this.pkceChallenge);
+        return getHostedLoginUri(this.$appMode, AuthTypes.LICENSEE, '/login', this.csrfState, this.pkceChallenge);
     }
 
     get isUsingMockApi(): boolean {

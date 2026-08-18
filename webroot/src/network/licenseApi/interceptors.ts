@@ -4,9 +4,8 @@
 //
 //  Created by InspiringApps on 6/18/24.
 //
-import { AppModes } from '@/app.config';
 import { authStorage, tokens } from '@utils/auth';
-import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { getApiBaseUrl } from '@network/apiUrls';
 
 // ============================================================================
 // =                           REQUEST INTERCEPTORS                           =
@@ -21,17 +20,15 @@ export const requestSuccess = (store) => async (requestConfig) => {
     const authTokenStaffType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
     const authTokenLicensee = authStorage.getItem(tokens.licensee.ID_TOKEN);
     const authTokenLicenseeType = authStorage.getItem(tokens.licensee.AUTH_TOKEN_TYPE);
-    const appMode = store?.state?.appMode;
+    const baseURL = getApiBaseUrl(store?.state?.appMode, 'license');
     const { headers } = requestConfig;
 
     // Add auth token
     headers.Authorization = `${authTokenStaffType || authTokenLicenseeType} ${authTokenStaff || authTokenLicensee}`;
 
     // Update base url for different compacts / app modes
-    if (appMode === AppModes.COSMETOLOGY) {
-        requestConfig.baseURL = envConfig.apiUrlLicenseCosmo;
-    } else if (appMode === AppModes.SOCIAL_WORK) {
-        requestConfig.baseURL = envConfig.apiUrlLicenseSw;
+    if (baseURL) {
+        requestConfig.baseURL = baseURL;
     }
 
     return requestConfig;

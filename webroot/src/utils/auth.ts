@@ -166,6 +166,27 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
     return config;
 };
 
+export const getAuthCallbackPath = (appMode: AppModes, authType: AuthTypes): string => {
+    let authTypeSegment = '';
+
+    switch (authType) {
+    case AuthTypes.STAFF:
+        authTypeSegment = 'staff';
+        break;
+    case AuthTypes.LICENSEE:
+        authTypeSegment = 'licensee';
+        break;
+    default:
+        break;
+    }
+
+    if (!authTypeSegment || !appMode) {
+        return '';
+    }
+
+    return `/auth/callback/${authTypeSegment}/${appMode}`;
+};
+
 export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login', state = '', codeChallenge = ''): string => {
     const { domain } = envConfig;
     const {
@@ -173,37 +194,6 @@ export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hosted
         clientId,
         authDomain
     } = getCognitoConfig(appMode, authType);
-    const getCallbackPath = () => {
-        let userScopePath = ``;
-        let compactScopePath = ``;
-
-        switch (authType) {
-        case AuthTypes.STAFF:
-            userScopePath += `/staff`;
-            break;
-        case AuthTypes.LICENSEE:
-            userScopePath += `/licensee`;
-            break;
-        default:
-            break;
-        }
-
-        switch (appMode) {
-        case AppModes.JCC:
-            compactScopePath += `/jcc`;
-            break;
-        case AppModes.COSMETOLOGY:
-            compactScopePath += `/cosmo`;
-            break;
-        case AppModes.SOCIAL_WORK:
-            compactScopePath += `/socialwork`;
-            break;
-        default:
-            break;
-        }
-
-        return `/auth/callback${userScopePath}${compactScopePath}`;
-    };
     const loginUriQuery = [
         `?client_id=${clientId}`,
         `&response_type=code`,
@@ -211,7 +201,7 @@ export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hosted
         `&state=${encodeURIComponent(state)}`,
         `&code_challenge=${encodeURIComponent(codeChallenge)}`,
         `&code_challenge_method=S256`,
-        `&redirect_uri=${encodeURIComponent(`${domain}${getCallbackPath()}`)}`,
+        `&redirect_uri=${encodeURIComponent(`${domain}${getAuthCallbackPath(appMode, authType)}`)}`,
     ].join('');
     const loginUri = `${authDomain}${hostedIdpPath}${loginUriQuery}`;
 
@@ -293,6 +283,7 @@ export default {
     staffLoginScopes,
     licenseeLoginScopes,
     getCognitoConfig,
+    getAuthCallbackPath,
     getHostedLoginUri,
     revokeCognitoRefreshToken,
     createAuthCsrfState,

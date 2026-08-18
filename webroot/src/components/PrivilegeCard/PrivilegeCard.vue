@@ -88,11 +88,11 @@
             </div>
         </div>
         <div class="license-type" :class="{ 'active': isActive }">
-            <template v-if="isAppModeSocialWork">{{privilegeTypeDisplay}}</template>
+            <template v-if="$isAppModeSocialWork">{{privilegeTypeDisplay}}</template>
             <template v-else>{{privilegeTypeAbbrev}}</template>
         </div>
         <div class="privilege-info-grid">
-            <div v-if="isAppGroupModePrivilegePurchase" class="info-item-container">
+            <div v-if="$isAppGroupModePrivilegePurchase" class="info-item-container">
                 <div class="info-item-title">{{ $t('licensing.activeFrom') }}</div>
                 <div class="info-item">{{ (isActive) ? activeFromContent : $t('licensing.deactivated') }}</div>
             </div>
@@ -100,12 +100,12 @@
                 <div class="info-item-title">{{expiresTitle}}</div>
                 <div class="info-item" :class="{ 'error': isExpired }">{{expiresContent}}</div>
             </div>
-            <div v-if="isAppGroupModePrivilegePurchase" class="info-item-container">
+            <div v-if="$isAppGroupModePrivilegePurchase" class="info-item-container">
                 <div class="info-item-title">{{$t('licensing.privilegeNumSymbol')}}</div>
                 <div class="info-item rr-block">{{privilegeId}}</div>
             </div>
             <div
-                v-if="isAppGroupModePrivilegePurchase || isCurrentUserPrivilegeAdmin"
+                v-if="$isAppGroupModePrivilegePurchase || isCurrentUserPrivilegeAdmin"
                 class="info-item-container discipline-item"
             >
                 <div class="info-item-title">{{ $t('licensing.disciplineStatus') }}</div>
@@ -113,7 +113,7 @@
             </div>
         </div>
         <InputButton
-            v-if="isAppGroupModePrivilegePurchase"
+            v-if="$isAppGroupModePrivilegePurchase"
             :label="$t('common.viewDetails')"
             :aria-label="$t('common.viewDetails')"
             class="view-details-button"
@@ -209,7 +209,7 @@
                                 </div>
                             </div>
                             <div class="form-row static-container">
-                                <div v-if="isAppGroupModePrivilegePurchase" class="static-input">
+                                <div v-if="$isAppGroupModePrivilegePurchase" class="static-input">
                                     <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
                                     <div class="static-value">{{ privilegeId }}</div>
                                 </div>
@@ -283,7 +283,7 @@
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeEncumberSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
-                            <div v-if="isAppGroupModePrivilegePurchase" class="static-value">{{ privilegeId }}</div>
+                            <div v-if="$isAppGroupModePrivilegePurchase" class="static-value">{{ privilegeId }}</div>
                         </div>
                         <InputButton
                             id="encumber-modal-cancel-button"
@@ -451,7 +451,7 @@
                                 </div>
                             </div>
                             <div class="form-row static-container">
-                                <div v-if="isAppGroupModePrivilegePurchase" class="static-input">
+                                <div v-if="$isAppGroupModePrivilegePurchase" class="static-input">
                                     <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
                                     <div class="static-value">{{ privilegeId }}</div>
                                 </div>
@@ -499,7 +499,9 @@
                             <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeInvestigationStartSuccess') }}</h1>
                             <div class="success-container">
                                 <div class="input-label static-label">{{ licenseeName }}</div>
-                                <div v-if="isAppGroupModePrivilegePurchase" class="static-value">{{ privilegeId }}</div>
+                                <div v-if="$isAppGroupModePrivilegePurchase" class="static-value">
+                                    {{ privilegeId }}
+                                </div>
                             </div>
                             <InputSubmit
                                 :formInput="formData.addInvestigationModalContinue"
@@ -648,7 +650,7 @@
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeInvestigationEndSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
-                            <div v-if="isAppGroupModePrivilegePurchase" class="static-value">{{ privilegeId }}</div>
+                            <div v-if="$isAppGroupModePrivilegePurchase" class="static-value">{{ privilegeId }}</div>
                         </div>
                         <InputButton
                             id="end-investigation-modal-cancel-button"

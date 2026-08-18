@@ -8,7 +8,8 @@
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import LicenseCard from '@components/LicenseCard/LicenseCard.vue';
-import { AppModes, getEncumberConfigLicense } from '@/app.config';
+import { AppModes } from '@/app.config';
+import { getEncumberConfigLicense } from '@utils/compactConfig';
 
 describe('LicenseCard component', async () => {
     it('should mount the component', async () => {

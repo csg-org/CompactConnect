@@ -16,7 +16,8 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { dateFormatPatterns, AppModes, getEncumberConfigLicense } from '@/app.config';
+import { dateFormatPatterns } from '@/app.config';
+import { getEncumberConfigLicense } from '@utils/compactConfig';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -106,26 +107,6 @@ class LicenseCard extends mixins(MixinForm) {
     //
     get userStore() {
         return this.$store.state.user;
-    }
-
-    get appMode(): AppModes {
-        return this.$store.state.appMode;
-    }
-
-    get isAppModeJcc(): boolean {
-        return this.$store.getters.isAppModeJcc;
-    }
-
-    get isAppModeCosmetology(): boolean {
-        return this.$store.getters.isAppModeCosmetology;
-    }
-
-    get isAppModeSocialWork(): boolean {
-        return this.$store.getters.isAppModeSocialWork;
-    }
-
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
     }
 
     get currentUser(): StaffUser {
@@ -288,7 +269,7 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const includeList: Array<string> = getEncumberConfigLicense(this.appMode).disciplineTypes;
+        const includeList: Array<string> = getEncumberConfigLicense(this.$appMode).disciplineTypes;
         const options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
             value: disciplineType.key,
             name: disciplineType.name,
@@ -304,7 +285,7 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const includeList: Array<string> = getEncumberConfigLicense(this.appMode).npdbTypes;
+        const includeList: Array<string> = getEncumberConfigLicense(this.$appMode).npdbTypes;
         const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
@@ -319,7 +300,7 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get shouldAllowNpdbMultiSelect(): boolean {
-        return this.isAppModeJcc || this.isAppModeSocialWork;
+        return this.$isAppModeJcc || this.$isAppModeSocialWork;
     }
 
     get endInvestigationModalTitle(): string {

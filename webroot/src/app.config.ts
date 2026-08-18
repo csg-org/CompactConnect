@@ -11,7 +11,7 @@
 export enum AppModes {
     JCC = 'jcc',
     COSMETOLOGY = 'cosmo',
-    SOCIAL_WORK = 'social-work',
+    SOCIAL_WORK = 'socialwork',
 }
 
 export enum AppGroupModes {
@@ -207,182 +207,6 @@ export const stateList = [
 ];
 
 // =============================
-// =  Compact configuration    =
-// =============================
-export const compacts = {
-    aslp: {},
-    octp: {},
-    coun: {},
-    cosm: {},
-};
-
-export const getEncumberConfigLicense = (appMode: AppModes) => {
-    let disciplineTypes: Array<string> = [];
-    let npdbTypes: Array<string> = [];
-
-    switch (appMode) {
-    case AppModes.JCC:
-        disciplineTypes = [
-            'fine',
-            'reprimand',
-            'required supervision',
-            'completion of continuing education',
-            'public reprimand',
-            'probation',
-            'injunctive action',
-            'suspension',
-            'revocation',
-            'denial',
-            'surrender of license',
-            'modification of previous action-extension',
-            'modification of previous action-reduction',
-            'other monitoring',
-            'other adjudicated action not listed',
-        ];
-        npdbTypes = [
-            'Non-compliance With Requirements',
-            'Criminal Conviction or Adjudication',
-            'Confidentiality, Consent or Disclosure Violations',
-            'Misconduct or Abuse',
-            'Fraud, Deception, or Misrepresentation',
-            'Unsafe Practice or Substandard Care',
-            'Improper Supervision or Allowing Unlicensed Practice',
-            'Other',
-        ];
-        break;
-    case AppModes.COSMETOLOGY:
-        disciplineTypes = [
-            'suspension',
-            'revocation',
-            'surrender of license',
-        ];
-        npdbTypes = [
-            'fraud',
-            'consumer harm',
-            'other',
-        ];
-        break;
-    case AppModes.SOCIAL_WORK:
-        disciplineTypes = [
-            'fine',
-            'reprimand',
-            'required supervision',
-            'completion of continuing education',
-            'public reprimand',
-            'probation',
-            'injunctive action',
-            'suspension',
-            'revocation',
-            'denial',
-            'surrender of license',
-            'modification of previous action-extension',
-            'modification of previous action-reduction',
-            'other monitoring',
-            'other adjudicated action not listed',
-        ];
-        npdbTypes = [
-            'Non-compliance With Requirements',
-            'Conflict of Interest',
-            'Substandard Care or Patient Neglect/Abuse',
-            'Criminal Conviction or Adjudication',
-            'Confidentiality, Consent or Disclosure Violations',
-            'Fraud, Deception, or Misrepresentation',
-            'Improper Supervision or Allowing Unlicensed Practice',
-            'Improper Prescribing, Dispensing, Administering Medication/Drug Violation',
-            'Other',
-        ];
-        break;
-    default:
-        break;
-    }
-
-    return { disciplineTypes, npdbTypes };
-};
-
-export const getEncumberConfigPrivilege = (appMode: AppModes) => {
-    let disciplineTypes: Array<string> = [];
-    let npdbTypes: Array<string> = [];
-
-    switch (appMode) {
-    case AppModes.JCC:
-        disciplineTypes = [
-            'fine',
-            'reprimand',
-            'required supervision',
-            'completion of continuing education',
-            'public reprimand',
-            'probation',
-            'injunctive action',
-            'suspension',
-            'revocation',
-            'denial',
-            'surrender of privilege',
-            'modification of previous action-extension',
-            'modification of previous action-reduction',
-            'other monitoring',
-            'other adjudicated action not listed',
-        ];
-        npdbTypes = [
-            'Non-compliance With Requirements',
-            'Criminal Conviction or Adjudication',
-            'Confidentiality, Consent or Disclosure Violations',
-            'Misconduct or Abuse',
-            'Fraud, Deception, or Misrepresentation',
-            'Unsafe Practice or Substandard Care',
-            'Improper Supervision or Allowing Unlicensed Practice',
-            'Other',
-        ];
-        break;
-    case AppModes.COSMETOLOGY:
-        disciplineTypes = [
-            'suspension',
-            'revocation',
-            'surrender of privilege',
-        ];
-        npdbTypes = [
-            'fraud',
-            'consumer harm',
-            'other',
-        ];
-        break;
-    case AppModes.SOCIAL_WORK:
-        disciplineTypes = [
-            'fine',
-            'reprimand',
-            'required supervision',
-            'completion of continuing education',
-            'public reprimand',
-            'probation',
-            'injunctive action',
-            'suspension',
-            'revocation',
-            'denial',
-            'surrender of privilege',
-            'modification of previous action-extension',
-            'modification of previous action-reduction',
-            'other monitoring',
-            'other adjudicated action not listed',
-        ];
-        npdbTypes = [
-            'Non-compliance With Requirements',
-            'Conflict of Interest',
-            'Substandard Care or Patient Neglect/Abuse',
-            'Criminal Conviction or Adjudication',
-            'Confidentiality, Consent or Disclosure Violations',
-            'Fraud, Deception, or Misrepresentation',
-            'Improper Supervision or Allowing Unlicensed Practice',
-            'Improper Prescribing, Dispensing, Administering Medication/Drug Violation',
-            'Other',
-        ];
-        break;
-    default:
-        break;
-    }
-
-    return { disciplineTypes, npdbTypes };
-};
-
-// =============================
 // =     Feature gate IDs      =
 // =============================
 export enum FeatureGates {
@@ -403,5 +227,4 @@ export default {
     relativeTimeFormats,
     UploadFileType,
     uploadTypes,
-    compacts,
 };

@@ -19,8 +19,7 @@ import {
 } from 'vue';
 import {
     stateList,
-    dateFormatPatterns,
-    AppModes
+    dateFormatPatterns
 } from '@/app.config';
 import {
     AuthTypes,
@@ -95,10 +94,6 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     //
     // Computed
     //
-    get appMode(): AppModes {
-        return this.$store.state.appMode;
-    }
-
     get stateOptions(): Array<SelectOption> {
         const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
 
@@ -187,7 +182,7 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
 
     get hostedForgotPasswordUriLicensee(): string {
         return getHostedLoginUri(
-            this.appMode,
+            this.$appMode,
             AuthTypes.LICENSEE,
             '/forgotPassword',
             this.csrfState,

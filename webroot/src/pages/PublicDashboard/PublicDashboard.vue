@@ -91,110 +91,26 @@
                         </div>
                     </div>
                     <div class="staff-compacts">
-                        <a
-                            v-if="!isUsingMockApi"
-                            :href="hostedLoginUriStaff"
-                            class="login-link small"
-                            rel="noopener noreferrer"
-                            @click="setGotoCompact(compactTypes.ASLP)"
-                        >
-                            {{ getCompactDisplay(compactTypes.ASLP) }}
-                        </a>
-                        <div
-                            v-else
-                            class="login-link small"
-                            @click="bypassToStaffLogin(compactTypes.ASLP)"
-                            @keyup.enter="bypassToStaffLogin(compactTypes.ASLP)"
-                            tabindex="0"
-                            role="button"
-                            :aria-label="getCompactDisplay(compactTypes.ASLP)"
-                        >
-                            {{ getCompactDisplay(compactTypes.ASLP) }}
-                        </div>
-                        <a
-                            v-if="!isUsingMockApi"
-                            :href="hostedLoginUriStaff"
-                            class="login-link small"
-                            rel="noopener noreferrer"
-                            @click="setGotoCompact(compactTypes.OT)"
-                        >
-                            {{ getCompactDisplay(compactTypes.OT) }}
-                        </a>
-                        <div
-                            v-else
-                            class="login-link small"
-                            @click="bypassToStaffLogin(compactTypes.OT)"
-                            @keyup.enter="bypassToStaffLogin(compactTypes.OT)"
-                            tabindex="0"
-                            role="button"
-                            :aria-label="getCompactDisplay(compactTypes.OT)"
-                        >
-                            {{ getCompactDisplay(compactTypes.OT) }}
-                        </div>
-                        <a
-                            v-if="!isUsingMockApi"
-                            :href="hostedLoginUriStaff"
-                            class="login-link small"
-                            rel="noopener noreferrer"
-                            @click="setGotoCompact(compactTypes.COUNSELING)"
-                        >
-                            {{ getCompactDisplay(compactTypes.COUNSELING) }}
-                        </a>
-                        <div
-                            v-else
-                            class="login-link small"
-                            @click="bypassToStaffLogin(compactTypes.COUNSELING)"
-                            @keyup.enter="bypassToStaffLogin(compactTypes.COUNSELING)"
-                            tabindex="0"
-                            role="button"
-                            :aria-label="getCompactDisplay(compactTypes.COUNSELING)"
-                        >
-                            {{ getCompactDisplay(compactTypes.COUNSELING) }}
-                        </div>
-                        <!-- @NOTE: Hide compacts that have no Prod infra -->
-                        <template v-if="!$envConfig.isAppProduction">
+                        <template v-for="compact in $compactsEnabled" :key="compact.type">
                             <a
                                 v-if="!isUsingMockApi"
-                                :href="hostedLoginUriStaffCosmo"
+                                :href="staffLoginUri(compact.appMode)"
                                 class="login-link small"
                                 rel="noopener noreferrer"
-                                @click="setGotoCompact(compactTypes.COSMETOLOGY)"
+                                @click="setGotoCompact(compact.type)"
                             >
-                                {{ getCompactDisplay(compactTypes.COSMETOLOGY) }}
+                                {{ getCompactDisplay(compact) }}
                             </a>
                             <div
                                 v-else
                                 class="login-link small"
-                                @click="bypassToStaffLoginCosmo(compactTypes.COSMETOLOGY)"
-                                @keyup.enter="bypassToStaffLoginCosmo(compactTypes.COSMETOLOGY)"
+                                @click="bypassToStaffLogin(compact.appMode, compact.type)"
+                                @keyup.enter="bypassToStaffLogin(compact.appMode, compact.type)"
                                 tabindex="0"
                                 role="button"
-                                :aria-label="getCompactDisplay(compactTypes.COSMETOLOGY)"
+                                :aria-label="getCompactDisplay(compact)"
                             >
-                                {{ getCompactDisplay(compactTypes.COSMETOLOGY) }}
-                            </div>
-                        </template>
-                        <!-- @NOTE: Hide compacts that have no Prod infra -->
-                        <template v-if="!$envConfig.isAppProduction">
-                            <a
-                                v-if="!isUsingMockApi"
-                                :href="hostedLoginUriStaffSw"
-                                class="login-link small"
-                                rel="noopener noreferrer"
-                                @click="setGotoCompact(compactTypes.SOCIAL_WORK)"
-                            >
-                                {{ getCompactDisplay(compactTypes.SOCIAL_WORK) }}
-                            </a>
-                            <div
-                                v-else
-                                class="login-link small"
-                                @click="bypassToStaffLoginSw(compactTypes.SOCIAL_WORK)"
-                                @keyup.enter="bypassToStaffLoginSw(compactTypes.SOCIAL_WORK)"
-                                tabindex="0"
-                                role="button"
-                                :aria-label="getCompactDisplay(compactTypes.SOCIAL_WORK)"
-                            >
-                                {{ getCompactDisplay(compactTypes.SOCIAL_WORK) }}
+                                {{ getCompactDisplay(compact) }}
                             </div>
                         </template>
                     </div>

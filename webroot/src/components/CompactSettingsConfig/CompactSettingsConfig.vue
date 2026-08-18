@@ -15,19 +15,19 @@
         <form v-else class="compact-config-form" @submit.prevent="handleSubmit(false)">
             <div class="compact-config-form-container">
                 <!-- Privilege fees -->
-                <h2 v-if="isAppGroupModePrivilegePurchase" class="form-section-title fees">
+                <h2 v-if="$isAppGroupModePrivilegePurchase" class="form-section-title fees">
                     {{ $t('compact.privilegeFees') }}
                 </h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                 <InputText
-                    v-if="isAppGroupModePrivilegePurchase"
+                    v-if="$isAppGroupModePrivilegePurchase"
                     :formInput="formData.compactFee"
                     class="form-row currency"
                     @input="formatInput(formData.compactFee)"
                     @blur="formatBlur(formData.compactFee)"
                 />
                 <InputText
-                    v-if="isAppGroupModePrivilegePurchase"
+                    v-if="$isAppGroupModePrivilegePurchase"
                     :formInput="formData.creditCardTransactionFee"
                     class="form-row currency"
                     @input="formatInput(formData.creditCardTransactionFee)"
@@ -38,7 +38,7 @@
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
                 <InputEmailList
-                    v-if="isAppGroupModePrivilegePurchase"
+                    v-if="$isAppGroupModePrivilegePurchase"
                     :formInput="formData.summaryReportNotificationEmails"
                 />
                 <button

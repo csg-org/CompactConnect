@@ -7,7 +7,6 @@
 
 import { AppModes } from '@/app.config';
 import { AuthTypes } from '@utils/auth';
-import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { Component, mixins } from 'vue-facing-decorator';
 import MixinAuthCallbackHandler from '@pages/AuthCallback/_mixins/handler.mixin';
 
@@ -20,6 +19,4 @@ export default class AuthCallbackStaffSocialWork extends mixins(MixinAuthCallbac
     //
     appMode: AppModes = AppModes.SOCIAL_WORK;
     authType: AuthTypes = AuthTypes.STAFF;
-    cognitoAuthDomain = envConfig.cognitoAuthDomainStaffSw || '';
-    cognitoClientId = envConfig.cognitoClientIdStaffSw || '';
 }

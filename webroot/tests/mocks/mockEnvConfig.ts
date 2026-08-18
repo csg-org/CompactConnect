@@ -5,27 +5,52 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
+import { EnvConfig } from '@plugins/EnvConfig/envConfig.plugin';
+
 // ========================================================
 // =                     ENV CONFIG                       =
 // ========================================================
-export default {
+const mockEnvConfig: EnvConfig = {
     name: 'test',
     isProduction: false,
     isTest: true,
     isDevelopment: false,
+    appEnv: 'local',
+    isAppProduction: false,
+    isAppBeta: false,
+    isAppTest: false,
+    isAppTestIa: false,
+    isAppTestCsg: false,
+    isAppLocal: true,
     baseUrl: '/',
-    oktaClientId: '',
-    oktaDomain: '',
-    oktaIssuer: '',
-    apiUrlSoftPro: '/',
-    apiKeySoftPro: 'abc',
-    apiUrlSmartView: '/',
-    apiKeySmartView: 'abc',
-    apiUrlExpedite: '/',
-    apiUrlExpediteToken: '/',
-    bingMapsKey: 'abc',
-    shouldUseEventApi: true,
-    maxTotalAttachmentSizeMB: 10,
-    marketingSiteDomain: '',
+    domain: 'localhost',
+    apiUrlState: '/',
+    apiUrlLicense: '/',
+    apiUrlSearch: '/',
+    apiUrlUser: '/',
+    apiUrlStateCosmo: '/',
+    apiUrlLicenseCosmo: '/',
+    apiUrlSearchCosmo: '/',
+    apiUrlUserCosmo: '/',
+    apiUrlStateSw: '/',
+    apiUrlLicenseSw: '/',
+    apiUrlSearchSw: '/',
+    apiUrlUserSw: '/',
+    apiUrlExample: '/api',
+    apiKeyExample: 'example',
+    cognitoRegion: 'us-east-1',
+    cognitoAuthDomainStaff: '',
+    cognitoClientIdStaff: '',
+    cognitoAuthDomainLicensee: '',
+    cognitoClientIdLicensee: '',
+    cognitoAuthDomainStaffCosmo: '',
+    cognitoClientIdStaffCosmo: '',
+    cognitoAuthDomainStaffSw: '',
+    cognitoClientIdStaffSw: '',
+    recaptchaKey: '',
+    statsigKey: '',
+    isStatsigDisabled: true,
     isUsingMockApi: true,
 };
+
+export default mockEnvConfig;

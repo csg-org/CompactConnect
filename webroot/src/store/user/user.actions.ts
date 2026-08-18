@@ -6,17 +6,17 @@
 //
 
 import { dataApi } from '@network/data.api';
-import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import { AppModes } from '@/app.config';
+import { getAppModeForCompact } from '@utils/compactConfig';
 import {
     authStorage,
     AuthTypes,
     tokens,
     AUTH_TYPE,
-    autoLogoutConfig
+    autoLogoutConfig,
+    getCognitoConfig
 } from '@utils/auth';
 import localStorage from '@store/local.storage';
-import { Compact, CompactType } from '@models/Compact/Compact.model';
+import { Compact } from '@models/Compact/Compact.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import moment from 'moment';
 import axios from 'axios';
@@ -171,13 +171,7 @@ export default {
 
         if (compact?.type) {
             // Set the AppMode based on compact
-            if (compact.type === CompactType.COSMETOLOGY) {
-                dispatch('setAppMode', AppModes.COSMETOLOGY, { root: true });
-            } else if (compact.type === CompactType.SOCIAL_WORK) {
-                dispatch('setAppMode', AppModes.SOCIAL_WORK, { root: true });
-            } else {
-                dispatch('setAppMode', AppModes.JCC, { root: true });
-            }
+            dispatch('setAppMode', getAppModeForCompact(compact.type), { root: true });
 
             // Fetch the states for the compact
             await dispatch('getCompactStatesRequest', { compact: compact.type });
@@ -240,25 +234,7 @@ export default {
     },
     setRefreshTokenTimeout: async ({ rootState, commit, dispatch }, { refreshToken, expiresIn, authType }) => {
         const { appMode } = rootState;
-        let cognitoClientId;
-        let cognitoAuthDomain;
-
-        if (authType === AuthTypes.STAFF) {
-            if (appMode === AppModes.JCC) {
-                cognitoClientId = config.cognitoClientIdStaff;
-                cognitoAuthDomain = config.cognitoAuthDomainStaff;
-            } else if (appMode === AppModes.COSMETOLOGY) {
-                cognitoClientId = config.cognitoClientIdStaffCosmo;
-                cognitoAuthDomain = config.cognitoAuthDomainStaffCosmo;
-            } else if (appMode === AppModes.SOCIAL_WORK) {
-                cognitoClientId = config.cognitoClientIdStaffSw;
-                cognitoAuthDomain = config.cognitoAuthDomainStaffSw;
-            }
-        } else if (authType === AuthTypes.LICENSEE) {
-            cognitoClientId = config.cognitoClientIdLicensee;
-            cognitoAuthDomain = config.cognitoAuthDomainLicensee;
-        }
-
+        const { clientId: cognitoClientId, authDomain: cognitoAuthDomain } = getCognitoConfig(appMode, authType);
         const params = new URLSearchParams();
         const refreshInMs = moment().add(expiresIn, 'seconds').subtract(1, 'minutes').diff(moment(), 'milliseconds');
         const refreshTokens = async () => {

@@ -53,10 +53,6 @@ export default class PublicLicensingDetail extends Vue {
         return this.$store.state.user;
     }
 
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get compact(): string {
         const defaultCompactType = this.userStore.currentCompact?.type;
 

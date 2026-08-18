@@ -81,14 +81,6 @@ class StateSettingsConfig extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get isAppGroupModePrivilegePurchase(): boolean {
-        return this.$store.getters.isAppGroupModePrivilegePurchase;
-    }
-
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get compactType(): CompactType | null {
         return this.userStore?.currentCompact?.type || null;
     }
@@ -98,7 +90,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
     }
 
     get liveStatusLabel(): string {
-        return (this.isAppGroupModeMultiState)
+        return (this.$isAppGroupModeMultiState)
             ? this.$t('compact.privilegePurchaseEnabledSubtextMultiState')
             : this.$t('compact.privilegePurchaseEnabledSubtext');
     }
@@ -148,14 +140,14 @@ class StateSettingsConfig extends mixins(MixinForm) {
     }
 
     initFormInputs(): void {
-        const { isAppGroupModePrivilegePurchase } = this;
+        const { $isAppGroupModePrivilegePurchase } = this;
 
         this.formData = reactive({
             isJurisprudenceExamRequired: new FormInput({
                 id: 'jurisprudence-exam-required',
                 name: 'jurisprudence-exam-required',
                 label: computed(() => this.$t('compact.jurisprudenceExamRequired')),
-                validation: (isAppGroupModePrivilegePurchase)
+                validation: ($isAppGroupModePrivilegePurchase)
                     ? Joi.boolean().required().messages(this.joiMessages.boolean)
                     : Joi.any(),
                 valueOptions: [
@@ -197,7 +189,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 label: computed(() => this.$t('compact.summaryReportEmails')),
                 labelSubtext: computed(() => this.$t('compact.summaryReportEmailsSubtext')),
                 placeholder: computed(() => this.$t('compact.addEmails')),
-                validation: Joi.array().min(isAppGroupModePrivilegePurchase ? 1 : 0).messages(this.joiMessages.array),
+                validation: Joi.array().min($isAppGroupModePrivilegePurchase ? 1 : 0).messages(this.joiMessages.array),
                 value: this.initialStateConfig?.jurisdictionSummaryReportNotificationEmails || [],
             }),
             isPurchaseEnabled: new FormInput({
@@ -324,7 +316,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
         };
 
         // Per compact config fields
-        if (this.isAppGroupModePrivilegePurchase) {
+        if (this.$isAppGroupModePrivilegePurchase) {
             payload.privilegeFees = feeInputsCore.map((feeInputCore) => {
                 // Map indeterminate set of privilege fee inputs to their payload structure
                 const [ licenseType ] = feeInputCore.id.split('-');
@@ -413,7 +405,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
         this.populateFormInput(this.formData.isPurchaseEnabled, true);
 
         // Per compact state configs
-        if (this.isAppGroupModePrivilegePurchase) {
+        if (this.$isAppGroupModePrivilegePurchase) {
             this.feeInputs.forEach((feeInput) => {
                 this.populateFormInput(feeInput, 5);
             });

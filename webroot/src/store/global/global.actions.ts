@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { AppModes, AppGroupModes } from '@/app.config';
+import { getAppGroupModeForAppMode } from '@utils/compactConfig';
 import { MutationTypes } from './global.mutations';
 
 export default {
@@ -34,18 +34,10 @@ export default {
     setAppMode: ({ commit }, mode) => {
         commit(MutationTypes.SET_APP_MODE, mode);
 
-        switch (mode) {
-        case AppModes.JCC:
-            // Intentional fall through for all privilege-purchase compacts
-            commit(MutationTypes.SET_APP_GROUP_MODE, AppGroupModes.PRIVILEGE_PURCHASE);
-            break;
-        case AppModes.COSMETOLOGY:
-        case AppModes.SOCIAL_WORK:
-            // Intentional fall through for all multi-state compacts
-            commit(MutationTypes.SET_APP_GROUP_MODE, AppGroupModes.MULTI_STATE);
-            break;
-        default:
-            break;
+        const appGroupMode = getAppGroupModeForAppMode(mode);
+
+        if (appGroupMode) {
+            commit(MutationTypes.SET_APP_GROUP_MODE, appGroupMode);
         }
     },
     setAppModeDisplay: ({ commit }, isDisplayed) => {

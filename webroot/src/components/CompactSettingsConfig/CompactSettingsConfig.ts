@@ -77,14 +77,6 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get isAppGroupModePrivilegePurchase(): boolean {
-        return this.$store.getters.isAppGroupModePrivilegePurchase;
-    }
-
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
     }
@@ -94,7 +86,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     }
 
     get liveStatusLabel(): string {
-        return (this.isAppGroupModeMultiState)
+        return (this.$isAppGroupModeMultiState)
             ? this.$t('compact.licenseRegistrationEnabledSubtextMultiState')
             : this.$t('compact.licenseRegistrationEnabledSubtext');
     }
@@ -145,14 +137,14 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     }
 
     initFormInputs(): void {
-        const { isAppGroupModePrivilegePurchase } = this;
+        const { $isAppGroupModePrivilegePurchase } = this;
 
         this.formData = reactive({
             compactFee: new FormInput({
                 id: 'compact-fee',
                 name: 'compact-fee',
                 label: computed(() => this.$t('compact.compactFee')),
-                validation: (isAppGroupModePrivilegePurchase)
+                validation: ($isAppGroupModePrivilegePurchase)
                     ? Joi.number().required().min(0).messages(this.joiMessages.currency)
                     : Joi.any(),
                 value: this.initialCompactConfig?.compactCommissionFee?.feeAmount,
@@ -188,7 +180,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 label: computed(() => this.$t('compact.summaryReportEmails')),
                 labelSubtext: computed(() => this.$t('compact.summaryReportEmailsSubtext')),
                 placeholder: computed(() => this.$t('compact.addEmails')),
-                validation: Joi.array().min(isAppGroupModePrivilegePurchase ? 1 : 0).messages(this.joiMessages.array),
+                validation: Joi.array().min($isAppGroupModePrivilegePurchase ? 1 : 0).messages(this.joiMessages.array),
                 value: this.initialCompactConfig?.compactSummaryReportNotificationEmails || [],
             }),
             isRegistrationEnabled: new FormInput({
@@ -267,7 +259,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         };
 
         // Per compact config fields
-        if (this.isAppGroupModePrivilegePurchase) {
+        if (this.$isAppGroupModePrivilegePurchase) {
             payload.compactCommissionFee = {
                 feeType: FeeType.FLAT_RATE,
                 feeAmount: Number(compactFee),
@@ -356,7 +348,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         this.populateFormInput(this.formData.isRegistrationEnabled, true);
 
         // Per compact configs
-        if (this.isAppGroupModePrivilegePurchase) {
+        if (this.$isAppGroupModePrivilegePurchase) {
             this.populateFormInput(this.formData.compactFee, 5.55);
             this.populateFormInput(this.formData.creditCardTransactionFee, 5);
             this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);

@@ -1674,6 +1674,39 @@ export const users = {
                         },
                     },
                 },
+                socw: {
+                    actions: {
+                        admin: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                    },
+                },
             },
         },
         {

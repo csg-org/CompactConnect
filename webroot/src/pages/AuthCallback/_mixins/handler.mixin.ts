@@ -13,7 +13,8 @@ import {
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     consumeAuthCsrfState,
-    consumePkceCodeVerifier
+    consumePkceCodeVerifier,
+    getCognitoConfig
 } from '@utils/auth';
 import { nextTick } from 'vue';
 import { Component, Vue } from 'vue-facing-decorator';
@@ -34,8 +35,6 @@ class MixinAuthCallbackHandler extends Vue {
     //
     appMode: AppModes = AppModes.JCC;
     authType: AuthTypes = AuthTypes.LICENSEE;
-    cognitoAuthDomain = '';
-    cognitoClientId = '';
     isError = false;
 
     //
@@ -70,6 +69,14 @@ class MixinAuthCallbackHandler extends Vue {
 
     get stateParam(): string {
         return this.$route.query?.state?.toString() || '';
+    }
+
+    get cognitoAuthDomain(): string {
+        return getCognitoConfig(this.appMode, this.authType).authDomain || '';
+    }
+
+    get cognitoClientId(): string {
+        return getCognitoConfig(this.appMode, this.authType).clientId || '';
     }
 
     //
