@@ -426,7 +426,12 @@ its own `CCPipelineType` member:
   cdk-nag validates that every suppression path resolves to a real construct, so a stale path is a hard error rather
   than a silently ignored suppression.
 
-**4. SSM context parameter name — `bin/put_ssm_context.sh`**
+**4. Github tag trigger names
+
+In [`backend/psypact-app/pipeline/__init__.py`], update `git_tag_trigger_pattern` to '`f'<compact>-<env>-*'`'. Note that both
+beta and prod should be generally be triggered from the prod tag.
+
+**5. SSM context parameter name — `bin/put_ssm_context.sh`**
 
 Update the `aws ssm put-parameter --name` argument to `"$1-<compact>-context"`. This name **must** match the values set
 in steps 1 and 2 exactly.
@@ -436,7 +441,7 @@ in steps 1 and 2 exactly.
 > compact's pipelines pointed at the **original compact's account IDs and domains**. Verify all three names agree before
 > deploying.
 
-**5. Compact configuration — `cdk.json`**
+**6. Compact configuration — `cdk.json`**
 
 Under `context`, update:
 - `tags.service` — the new compact's service tag (e.g. `cosmetology`).
@@ -445,7 +450,7 @@ Under `context`, update:
 - `jurisdictions` and `active_compact_member_jurisdictions` — re-key to the new compact's abbreviation and list the
   jurisdictions participating in this compact.
 
-**6. Environment context — `cdk.context.<environment>-example.json`**
+**7. Environment context — `cdk.context.<environment>-example.json`**
 
 Update the example files (and the `cdk.context.json` you copy from them) for `test`, `beta`, and `prod`:
 - `app_name` — a compact-specific application name (e.g. `cosmetology-compact-connect`). This feeds generated resource
@@ -458,7 +463,7 @@ Update the example files (and the `cdk.context.json` you copy from them) for `te
 - `environments.<environment>.account_id` — the new compact's application account IDs from the previous step.
 - `backup_config.backup_account_id` — the new compact's secondary (backup) account ID.
 
-**7. Pipeline tests — `tests/app/test_pipeline.py`**
+**8. Pipeline tests — `tests/app/test_pipeline.py`**
 
 The test suite simulates the SSM context lookup using a hardcoded parameter name (e.g. `prod-cosmetology-context`).
 Update it to match the name chosen above, or the pipeline tests will fail.
