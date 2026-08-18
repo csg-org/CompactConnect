@@ -365,20 +365,108 @@ pipeline stacks. Each compact's CDK app defines its own set of pipeline stacks (
 defines `TestBackendCosmetology`, `BetaBackendCosmetology`, and `ProdBackendCosmetology`), so the pipelines for
 different compacts do not collide.
 
-- Navigate to the new compact's CDK project directory (for example, `backend/cosmetology-app` or
-  `backend/social-work-app`)
-- Follow that project's deployment instructions for the pipelined environments. The Cosmetology compact's instructions
-  are a good reference for any new compact and live at
-  [Cosmetology README - First deploy to the pipelined environments](../cosmetology-app/README.md#first-deploy-to-the-pipelined-environments).
-  In particular, you generally will need to perform the following:
-  - Complete the StatSig Feature Flag Setup for each environment (test, beta, prod)
-  - Create Route53 hosted zones for the new compact's domain names in each of its Test, Beta, and Production accounts
-  - Populate the compact-specific `cdk.context.json` files with the new account IDs and push them to SSM via
-    `bin/put_ssm_context.sh <environment>`
-  - Configure your CLI to use the Deploy account and run the appropriate `cdk deploy` command to create the new
-    compact's pipeline stacks (e.g.
-    `cdk deploy --context action=bootstrapDeploy TestBackendCosmetology BetaBackendCosmetology ProdBackendCosmetology`
-    for the Cosmetology compact; substitute the equivalent stack names for any other compact)
+A new compact's CDK project normally starts life as a copy of an existing compact's project directory. **Because the
+Deploy account is shared across every compact, every compact-identifying name in that copy must be renamed before the
+pipeline stacks will deploy.** Any name left at its original value either collides with the source compact's existing
+resource (a hard `CREATE_FAILED`) or silently resolves to the source compact's configuration.
+
+#### Required renames before the first pipeline deploy
+Work through every item below in the new compact's project directory before running any `cdk` command. The examples use
+a hypothetical compact whose short abbreviation is `<compact>` (for example `cosm`) and whose CamelCase name is
+`<Compact>` (for example `Cosmetology`). The Cosmetology project is a fully-renamed reference implementation — when in
+doubt, diff your new project against `backend/cosmetology-app`.
+
+**1. Pipeline stack names — `app.py`**
+
+The four stack-name constants near the top of the file become the CloudFormation stack names in the Deploy account, so
+they must be unique per compact:
+
+| Constant | Value to use | Example (Cosmetology) |
+| --- | --- | --- |
+| `TEST_BACKEND_PIPELINE_STACK` | `TestBackend<Compact>` | `TestBackendCosmetology` |
+| `BETA_BACKEND_PIPELINE_STACK` | `BetaBackend<Compact>` | `BetaBackendCosmetology` |
+| `PROD_BACKEND_PIPELINE_STACK` | `ProdBackend<Compact>` | `ProdBackendCosmetology` |
+| `DEPLOYMENT_RESOURCES_STACK` | `DeploymentResources<Compact>` | `DeploymentResourcesCosmetology` |
+
+Also in `app.py`:
+- `CDK_PATH` — set to the new project's path relative to the repository root (e.g. `backend/cosmetology-app`). The
+  pipeline's synth step `cd`s into this directory, so a stale value makes the pipeline build the wrong compact's app.
+- `add_deployment_resources_stack()` — update `pipeline_context_parameter_name` to
+  `f'{DEPLOY_ENVIRONMENT_NAME}-<compact>-context'`.
+
+**2. Pipeline name and context parameter — `pipeline/__init__.py`**
+
+In `BaseBackendPipelineStack`:
+- `pipeline_context_parameter_name` — change to `f'{environment_name}-<compact>-context'`.
+- `_get_backend_pipeline_name()` — change the returned string to `f'{self.environment_name}-<compact>-backendPipeline'`.
+  This is the physical CodePipeline name; leaving it unchanged collides with the source compact's pipeline in the Deploy
+  account and the stack fails to create.
+
+**3. Cross-account role type — `pipeline/backend_pipeline.py` and `common-cdk`**
+
+The call to `scope.create_predictable_pipeline_role(...)` produces an IAM role named
+`CompactConnect-<environment>-<PipelineType>-CrossAccountRole`. IAM role names are account-global, so each compact needs
+its own `CCPipelineType` member:
+- Add a member for the new compact to `CCPipelineType` in
+  [`backend/common-cdk/common_constructs/base_pipeline_stack.py`](../common-cdk/common_constructs/base_pipeline_stack.py)
+  (e.g. `COSMETOLOGY = 'Cosmetology'`).
+- Update `pipeline/backend_pipeline.py` to pass that new member instead of the inherited
+  `CCPipelineType.BACKEND`.
+
+**4. SSM context parameter name — `bin/put_ssm_context.sh`**
+
+Update the `aws ssm put-parameter --name` argument to `"$1-<compact>-context"`. This name **must** match the values set
+in steps 1 and 2 exactly.
+
+> **Watch out:** the original compact's `<environment>-compact-connect-context` parameters already exist in the shared
+> Deploy account. If the pipeline code still reads that name, synthesis *succeeds* and silently deploys the new
+> compact's pipelines pointed at the **original compact's account IDs and domains**. Verify all three names agree before
+> deploying.
+
+**5. Compact configuration — `cdk.json`**
+
+Under `context`, update:
+- `tags.service` — the new compact's service tag (e.g. `cosmetology`).
+- `compacts` — replace the inherited entry with the new compact's abbreviation.
+- `license_types` — re-key to the new compact's abbreviation and list its license types and abbreviations.
+- `jurisdictions` and `active_compact_member_jurisdictions` — re-key to the new compact's abbreviation and list the
+  jurisdictions participating in this compact.
+
+**6. Environment context — `cdk.context.<environment>-example.json`**
+
+Update the example files (and the `cdk.context.json` you copy from them) for `test`, `beta`, and `prod`:
+- `app_name` — a compact-specific application name (e.g. `cosmetology-compact-connect`). This feeds generated resource
+  names throughout the application stacks.
+- `environments.<environment>.domain_name` — the new compact's API domain (e.g. `test.cosmetology.compactconnect.org`).
+- `environments.<environment>.ui_domain_name_override` — the shared UI domain for that environment (e.g.
+  `app.test.compactconnect.org`). The frontend is deployed by the separate `compact-connect-ui-app` project, so a new
+  compact does **not** get its own frontend pipeline.
+- `environments.pipeline.account_id` and `connection_arn` — the shared Deploy account ID and the CodeStar connection ARN.
+- `environments.<environment>.account_id` — the new compact's application account IDs from the previous step.
+- `backup_config.backup_account_id` — the new compact's secondary (backup) account ID.
+
+**7. Pipeline tests — `tests/app/test_pipeline.py`**
+
+The test suite simulates the SSM context lookup using a hardcoded parameter name (e.g. `prod-cosmetology-context`).
+Update it to match the name chosen above, or the pipeline tests will fail.
+
+#### Deploy the stacks
+Once the renames above are complete:
+- Complete the StatSig Feature Flag Setup for each environment (test, beta, prod)
+- Create Route53 hosted zones for the new compact's domain names in each of its Test, Beta, and Production accounts
+- Copy the appropriate `cdk.context.<environment>-example.json` to `cdk.context.json`, fill in the real values, and push
+  each environment's context to SSM in the Deploy account via `bin/put_ssm_context.sh <environment>` (run this for
+  `deploy`, `test`, `beta`, and `prod`)
+- Configure your CLI to use the Deploy account, and set `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to the Deploy
+  account ID and `us-east-1`
+- Deploy the pipeline stacks, substituting the stack names chosen in step 1:
+  ```
+  cdk deploy --context action=bootstrapDeploy TestBackend<Compact> BetaBackend<Compact> ProdBackend<Compact>
+  ```
+
+For the full application deploy that follows, see that project's deployment instructions. The Cosmetology compact's
+instructions are a good reference for any new compact and live at
+[Cosmetology README - First deploy to the pipelined environments](../cosmetology-app/README.md#first-deploy-to-the-pipelined-environments).
 
 **Important**: As with the initial compact setup, the new compact's pipeline stacks create cross-account roles in the
 Deploy account (e.g. `CompactConnect-test-Cosmetology-CrossAccountRole`) that the new compact's application account
@@ -388,6 +476,14 @@ accounts in the next step.
 ### Bootstrap the new compact's application accounts
 Each compact ships its own custom bootstrap templates that trust only the pipeline roles for that specific compact,
 under `<compact-app>/resources/bootstrap-stack-{test,beta,prod}.yaml`. Update the role names in those templates (not the original compact's templates) to reference the new cross-account roles and then use the templates when bootstrapping the new compact's application accounts so the resulting bootstrap roles trust the correct cross-account roles.
+
+In each of the new compact's three templates, replace every
+`arn:aws:iam::${TrustedAccount}:role/CompactConnect-<environment>-Backend-CrossAccountRole` reference with
+`arn:aws:iam::${TrustedAccount}:role/CompactConnect-<environment>-<Compact>-CrossAccountRole`, matching the
+`CCPipelineType` member added in step 3 of the previous section. Because a new compact does not get its own frontend
+pipeline, also remove the `...-Frontend-CrossAccountRole` entries that were inherited from the copied project. Each
+template references these roles in several separate trust policies, so update every occurrence (compare against
+`backend/cosmetology-app/resources/bootstrap-stack-test.yaml` to confirm you have them all).
 
 - For each of the new compact's Test, Beta, and Production accounts:
   - Configure your CLI to use the target account
