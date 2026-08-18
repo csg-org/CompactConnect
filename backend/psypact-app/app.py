@@ -21,6 +21,8 @@ from pipeline import (
 )
 from pipeline.backend_stage import BackendStage
 
+APP_NAME= 'psypact'
+
 # Pipeline stack name constants for DRY code
 TEST_BACKEND_PIPELINE_STACK = 'TestBackendPsypact'
 BETA_BACKEND_PIPELINE_STACK = 'BetaBackendPsypact'
