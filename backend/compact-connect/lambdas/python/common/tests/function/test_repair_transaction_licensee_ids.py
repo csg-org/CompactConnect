@@ -137,6 +137,10 @@ class TestRepairTransactionLicenseeIds(TstFunction):
         self.assertEqual(1, summary.resolution_counts[repair.Resolution.MISMATCHED])
         self.assertEqual({STALE_PROVIDER_ID}, summary.stale_provider_ids)
         self.assertEqual({CORRECTED_PROVIDER_ID}, summary.correct_provider_ids)
+        self.assertEqual(1, len(summary.mismatches))
+        self.assertEqual('tx-stale', summary.mismatches[0].transaction.transaction_id)
+        self.assertEqual(STALE_PROVIDER_ID, summary.mismatches[0].transaction.licensee_id)
+        self.assertEqual(CORRECTED_PROVIDER_ID, summary.mismatches[0].correct_provider_id)
         self.assertEqual(0, summary.updated)
         self.assertFalse(summary.applied)
         # the record is untouched
@@ -151,6 +155,10 @@ class TestRepairTransactionLicenseeIds(TstFunction):
 
         self.assertEqual(1, summary.updated)
         self.assertEqual(0, summary.condition_failures)
+        self.assertEqual(1, len(summary.mismatches))
+        self.assertEqual('tx-stale', summary.mismatches[0].transaction.transaction_id)
+        self.assertEqual(STALE_PROVIDER_ID, summary.mismatches[0].transaction.licensee_id)
+        self.assertEqual(CORRECTED_PROVIDER_ID, summary.mismatches[0].correct_provider_id)
         updated = self._get_transaction(record)
         self.assertEqual(CORRECTED_PROVIDER_ID, updated['licenseeId'])
         # this repair corrects a value that was always meant to be the corrected provider id, so it is not an
@@ -311,22 +319,25 @@ class TestRepairTransactionLicenseeIds(TstFunction):
         self.assertEqual(1, summary.stale_ids_without_provider_record)
         self.assertEqual(1, summary.stale_ids_with_provider_record)
 
-    # -- output discipline ------------------------------------------------------------------------------------
+    # -- per-transaction output -------------------------------------------------------------------------------
 
-    def test_summary_output_does_not_correlate_providers_with_transactions(self):
+    def test_summary_output_logs_each_altered_transaction(self):
         self._put_transaction(transaction_id='tx-stale', licensee_id=STALE_PROVIDER_ID)
-        privilege = self._put_privilege(provider_id=CORRECTED_PROVIDER_ID, transaction_id='tx-stale')
+        self._put_privilege(provider_id=CORRECTED_PROVIDER_ID, transaction_id='tx-stale')
         summary = self._run()
 
         with self.assertLogs(repair.logger, level='INFO') as captured:
             repair.log_summary(summary)
         output = '\n'.join(captured.output)
 
-        # the stale ids are reported, since they are what the operator cross-checks against the correction batch
-        self.assertIn(STALE_PROVIDER_ID, output)
-        # but nothing ties a person to a transaction or a privilege
-        self.assertNotIn('tx-stale', output)
-        self.assertNotIn(privilege.privilegeId, output)
+        self.assertIn(
+            '{"transactionId": "tx-stale", "staleProviderId": "'
+            + STALE_PROVIDER_ID
+            + '", "newProviderId": "'
+            + CORRECTED_PROVIDER_ID
+            + '"}',
+            output,
+        )
 
     # -- confirmation guard -----------------------------------------------------------------------------------
 

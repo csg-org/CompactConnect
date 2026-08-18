@@ -22,9 +22,8 @@ The transaction history table has no GSI on transactionId (it is the last compon
 transactions cannot be looked up by id. The script therefore sweeps whole month partitions and asks the
 question once per settled transaction it finds.
 
-Runs as a dry run unless --apply is passed. Output is intentionally limited to aggregate counts plus the set of
-stale provider ids: nothing correlates a transaction id or privilege id with a provider id, and no file is
-written, so running this does not create a re-identification artifact.
+Runs as a dry run unless --apply is passed. The summary includes aggregate counts and one JSON object per
+transaction that would be (or was) altered: transactionId, staleProviderId, and newProviderId.
 
 Required environment variables:
     PROVIDER_TABLE_NAME             Provider table holding privilege records and the compactTransactionIdGSI
@@ -44,6 +43,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -124,6 +124,8 @@ class RepairSummary:
     stale_provider_ids: set[str] = field(default_factory=set)
     # Provider ids the privilege records say those transactions belong to
     correct_provider_ids: set[str] = field(default_factory=set)
+    # One entry per transaction whose licenseeId disagrees with its privilege records
+    mismatches: list[Mismatch] = field(default_factory=list)
     # Of the stale ids, how many no longer have a top-level provider record (the full-migration signature)
     stale_ids_without_provider_record: int = 0
     stale_ids_with_provider_record: int = 0
@@ -408,11 +410,12 @@ def run_repair(
             if resolution is not Resolution.MISMATCHED:
                 continue
 
+            mismatch = Mismatch(transaction=transaction, correct_provider_id=correct_provider_id)
+            summary.mismatches.append(mismatch)
             summary.stale_provider_ids.add(transaction.licensee_id)
             summary.correct_provider_ids.add(correct_provider_id)
 
             if apply_repairs:
-                mismatch = Mismatch(transaction=transaction, correct_provider_id=correct_provider_id)
                 if apply_repair(client, transaction_table_name, mismatch):
                     summary.updated += 1
                 else:
@@ -426,11 +429,7 @@ def run_repair(
 
 
 def log_summary(summary: RepairSummary) -> None:
-    """
-    Report aggregate counts and the stale provider ids, and nothing that correlates a person to a transaction.
-
-    Provider ids appear only as a bare set, never alongside a transaction id or privilege id.
-    """
+    """Report aggregate counts and one JSON object per transaction that would be (or was) altered."""
     counts = summary.resolution_counts
 
     logger.info('=' * 72)
@@ -463,10 +462,18 @@ def log_summary(summary: RepairSummary) -> None:
         if summary.condition_failures:
             logger.warning('conditional check failures (re-run to pick these up): %d', summary.condition_failures)
 
-    if summary.stale_provider_ids:
-        logger.info('stale provider ids:')
-        for provider_id in sorted(summary.stale_provider_ids):
-            logger.info('    %s', provider_id)
+    if summary.mismatches:
+        logger.info('altered transactions:')
+        for mismatch in summary.mismatches:
+            logger.info(
+                json.dumps(
+                    {
+                        'transactionId': mismatch.transaction.transaction_id,
+                        'staleProviderId': mismatch.transaction.licensee_id,
+                        'newProviderId': mismatch.correct_provider_id,
+                    }
+                )
+            )
 
     logger.info('=' * 72)
 
