@@ -262,6 +262,19 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard');
         });
 
+        it('should render the deactivation date in bold everywhere it appears in the body', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
+
+            await sendInactivityNotification();
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            // The date appears twice in the body: once stating the deactivation date, once as the
+            // sign-in deadline. Both should be emphasized so the date doesn't get lost in the paragraph.
+            expect(htmlContent?.match(/<strong>09\/14\/2026<\/strong>/g)).toHaveLength(2);
+        });
+
         it('should throw when there are no recipients', async () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 

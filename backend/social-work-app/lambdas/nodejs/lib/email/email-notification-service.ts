@@ -122,8 +122,8 @@ export class EmailNotificationService extends BaseEmailService {
         const subject = `CompactConnect account for ${staffUserName} will be deactivated on ${deactivationDateDisplay}`;
 
         const report = this.getNewEmailTemplate();
-        const bodyText = `The ${compactConfig.compactName} CompactConnect account for ${staffUserName} (${staffUserEmail}) will be deactivated on ${deactivationDateDisplay}. CompactConnect deactivates staff user accounts after ${inactivityPeriodDays} days with no sign-in activity.\n\n` +
-            `To prevent deactivation, ${staffUserName} should sign in to CompactConnect before ${deactivationDateDisplay}.\n\n` +
+        const bodyText = `The ${compactConfig.compactName} CompactConnect account for ${staffUserName} (${staffUserEmail}) will be deactivated on **${deactivationDateDisplay}**. CompactConnect deactivates staff user accounts after ${inactivityPeriodDays} days with no sign-in activity.\n\n` +
+            `To prevent deactivation, ${staffUserName} should sign in to CompactConnect before **${deactivationDateDisplay}**.\n\n` +
             `If the account has already been deactivated, an administrator will need to re-invite ${staffUserName} to CompactConnect to restore access.\n\n` +
             `Sign in: ${environmentVariableService.getUiBasePathUrl()}/Dashboard`;
 
