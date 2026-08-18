@@ -22,13 +22,13 @@ from pipeline import (
 from pipeline.backend_stage import BackendStage
 
 # Pipeline stack name constants for DRY code
-TEST_BACKEND_PIPELINE_STACK = 'TestBackendPipelineStack'
-BETA_BACKEND_PIPELINE_STACK = 'BetaBackendPipelineStack'
-PROD_BACKEND_PIPELINE_STACK = 'ProdBackendPipelineStack'
-DEPLOYMENT_RESOURCES_STACK = 'DeploymentResourcesStack'
+TEST_BACKEND_PIPELINE_STACK = 'TestBackendPsypact'
+BETA_BACKEND_PIPELINE_STACK = 'BetaBackendPsypact'
+PROD_BACKEND_PIPELINE_STACK = 'ProdBackendPsypact'
+DEPLOYMENT_RESOURCES_STACK = 'DeploymentResourcesPsypact'
 
 # CDK path
-CDK_PATH = 'backend/compact-connect'
+CDK_PATH = 'backend/psypact-app'
 
 
 class CompactConnectApp(App):

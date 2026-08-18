@@ -17,7 +17,7 @@
   "context": {
     "tags": {
       "project": "compact-connect",
-      "service": "jcc"
+      "service": "psypact"
     },
     "jurisdictions": [
       "al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl",
@@ -28,27 +28,16 @@
       "wv", "wi", "wy"
     ],
     "license_types": {
-      "aslp": [
+      "psypact": [
         {"name": "audiologist", "abbreviation": "aud"},
         {"name": "speech-language pathologist", "abbreviation": "slp"}
-      ],
-      "octp": [
-        {"name": "occupational therapist", "abbreviation": "ot"},
-        {"name": "occupational therapy assistant", "abbreviation": "ota"}
-      ],
-      "coun": [
-        {"name": "licensed professional counselor", "abbreviation": "lpc"}
       ]
     },
     "compacts": [
-      "aslp",
-      "octp",
-      "coun"
+      "psypact"
     ],
     "active_compact_member_jurisdictions": {
-      "aslp": ["al", "ak", "ar", "co", "de", "fl", "ga", "id", "in", "ia", "ks", "ky", "la", "me", "md", "mn", "ms", "mo", "mt", "ne", "nh", "nc", "oh", "ok", "ri", "sc", "tn", "ut", "vt", "va", "vi", "wa", "wv", "wi", "wy"],
-      "octp": ["al", "ar", "az", "co", "de", "ga", "ia", "in", "ky", "la", "me", "md", "mn", "ms", "mo", "mt", "ne", "nh", "nc", "nd", "oh", "ri", "sc", "sd", "tn", "ut", "vt", "va", "wa", "wv", "wi", "wy"],
-      "coun": ["al", "ar", "az", "co", "ct", "dc", "de", "fl", "ga", "ia", "in", "ks", "ky", "la", "me", "md", "mn", "ms", "mo", "mt", "ne", "nh", "nj", "nc", "nd", "oh", "ok", "ri", "sc", "sd", "tn", "ut", "vt", "va", "wa", "wv", "wi", "wy"]
+      "psypact": [ "co", "ut"]
     },
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
