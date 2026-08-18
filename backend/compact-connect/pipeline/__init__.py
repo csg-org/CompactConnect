@@ -43,7 +43,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
             construct_id,
             environment_name=environment_name,
             env=env,
-            pipeline_context_parameter_name=f'{environment_name}-compact-connect-context',
+            pipeline_context_parameter_name=f'{environment_name}-psypact-context',
             removal_policy=removal_policy,
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             **kwargs,
@@ -53,7 +53,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
         if self.environment_name not in ALLOWED_ENVIRONMENT_NAMES:
             raise ValueError(f'Environment name must be one of {ALLOWED_ENVIRONMENT_NAMES}')
 
-        return f'{self.environment_name}-compactConnect-backendPipeline'
+        return f'{self.environment_name}-psypact-backendPipeline'
 
     def _determine_backend_stage(self, construct_id, app_name, environment_name, environment_context):
         """

@@ -100,7 +100,7 @@ class BackendPipeline(BasePipeline):
         )
 
         # Create predictable pipeline role before initializing the pipeline
-        pipeline_role = scope.create_predictable_pipeline_role(CCPipelineType.BACKEND)
+        pipeline_role = scope.create_predictable_pipeline_role(CCPipelineType.PSYPACT)
         artifact_bucket.grant_read(pipeline_role)
 
         super().__init__(

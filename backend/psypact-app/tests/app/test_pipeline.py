@@ -375,7 +375,7 @@ class TestBackendPipelineVulnerable(TestCase):
         pipeline_context = context['ssm_context']['environments']['pipeline']
         context[
             f'ssm:account={pipeline_context["account_id"]}'
-            ':parameterName=prod-compact-connect-context'
+            ':parameterName=prod-psypact-context'
             f':region={pipeline_context["region"]}'
         ] = json.dumps(ssm_context)
 
