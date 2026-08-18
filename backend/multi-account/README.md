@@ -412,6 +412,19 @@ its own `CCPipelineType` member:
   (e.g. `COSMETOLOGY = 'Cosmetology'`).
 - Update `pipeline/backend_pipeline.py` to pass that new member instead of the inherited
   `CCPipelineType.BACKEND`.
+- **In the same file**, update the cdk-nag suppression path that references this role by construct ID. The role's
+  construct ID is derived as `f'{pipeline_type}CrossAccountRole'`, so changing the `CCPipelineType` member also renames
+  the construct. Change the `NagSuppressions.add_resource_suppressions_by_path(...)` path from
+  `f'{stack.node.path}/BackendCrossAccountRole/DefaultPolicy/Resource'` to
+  `f'{stack.node.path}/<Compact>CrossAccountRole/DefaultPolicy/Resource'`.
+
+  If this is missed, synthesis fails before any deploy with:
+  ```text
+  RuntimeError: Error: Suppression path "TestBackend<Compact>/BackendCrossAccountRole/DefaultPolicy/Resource"
+  did not match any resource.
+  ```
+  cdk-nag validates that every suppression path resolves to a real construct, so a stale path is a hard error rather
+  than a silently ignored suppression.
 
 **4. SSM context parameter name — `bin/put_ssm_context.sh`**
 

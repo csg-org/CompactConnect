@@ -170,7 +170,7 @@ class BackendPipeline(BasePipeline):
         # Add NAG suppressions for the cross-account role's default policy
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            f'{stack.node.path}/BackendCrossAccountRole/DefaultPolicy/Resource',
+            f'{stack.node.path}/PsypactCrossAccountRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
