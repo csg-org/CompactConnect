@@ -1,4 +1,3 @@
-from datetime import date
 from unittest.mock import MagicMock, patch
 
 from botocore.exceptions import ClientError
@@ -89,17 +88,12 @@ class TestCollectTransactionIds(TstLambdas):
             license_type=privilege_without_transaction_id.licenseType,
         )
 
-    def test_collects_both_transaction_ids_from_an_update_record(self):
+    def test_collects_the_previous_transaction_id_from_an_update_record(self):
+        """Only the `previous` snapshot is read. A renewal's own transaction id is written to the privilege
+        record in the same db transaction, so it is collected from there rather than from `updatedValues`.
+        """
         privilege_update = self.test_data_generator.generate_default_privilege_update(
             value_overrides={'updatedValues': {'compactTransactionId': 'tx-new'}},
-            previous_privilege=self.test_data_generator.generate_default_privilege({'compactTransactionId': 'tx-old'}),
-        )
-
-        self.assertEqual({'tx-old', 'tx-new'}, self.collect([privilege_update]))
-
-    def test_update_record_without_an_updated_transaction_id_contributes_only_the_previous_one(self):
-        privilege_update = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={'updatedValues': {'dateOfExpiration': date.fromisoformat('2030-01-01')}},
             previous_privilege=self.test_data_generator.generate_default_privilege({'compactTransactionId': 'tx-old'}),
         )
 

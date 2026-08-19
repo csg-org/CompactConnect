@@ -3276,9 +3276,9 @@ class DataClient:
         Collect every payment transaction id referenced by the privilege records being migrated.
 
         A privilege record carries the transaction id of its most recent purchase or renewal; the earlier
-        ones survive only on the privilege update history records, in `previous` (and, for a renewal, in
-        `updatedValues`). Taking the union of all three covers the practitioner's full purchase history for
-        the privileges that are moving.
+        ones survive only on the privilege update history records, each of which snapshots the privilege as
+        it was before that update. The current record plus those snapshots cover the practitioner's full
+        purchase history for the privileges that are moving.
         """
         transaction_ids = set()
         for record in records:
@@ -3289,10 +3289,6 @@ class DataClient:
                 if transaction_id:
                     transaction_ids.add(transaction_id)
                 else:
-                    # Every privilege is written with the id of the transaction it was purchased with, so a
-                    # privilege without one is a data defect. Its transaction cannot be re-pointed here, and
-                    # will keep reporting the practitioner under the old provider id until it is corrected
-                    # by hand, so this is surfaced as an error for someone to act on.
                     logger.error(
                         'Migrated privilege record has no compactTransactionId; its transaction cannot be '
                         're-pointed to the new provider id',
@@ -3302,14 +3298,9 @@ class DataClient:
                         license_type=record.licenseType,
                     )
             elif record.type == ProviderRecordType.PRIVILEGE_UPDATE:
-                transaction_ids.update(
-                    transaction_id
-                    for transaction_id in (
-                        record.previous.get('compactTransactionId'),
-                        record.updatedValues.get('compactTransactionId'),
-                    )
-                    if transaction_id
-                )
+                # Using the `previous` snapshot we can collect all transaction ids from previous renewals and
+                # walk back to the transaction id of the original purchase.
+                transaction_ids.add(record.previous['compactTransactionId'])
         return transaction_ids
 
     @staticmethod
