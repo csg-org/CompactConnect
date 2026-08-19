@@ -3226,6 +3226,11 @@ class DataClient:
         # flips, so a failure before it retries the whole migration (and these writes are idempotent), while
         # anything left until after it would never be retried at all. This runs on partial migrations too -
         # the privileges purchased against the corrected license move in both cases.
+        #
+        # The ordering accepts a transient inconsistency: if the commit below fails, these transactions
+        # already point at new_provider_id while the provider records are still under previous_provider_id,
+        # so a report generated in that window renders the practitioner as UNKNOWN - briefly, the same
+        # symptom this re-pointing exists to remove. The SQS retry closes it by completing the migration.
         payment_transaction_ids = self._collect_transaction_ids(records_to_move)
         if payment_transaction_ids:
             self.config.transaction_client.update_licensee_id_for_transactions(
