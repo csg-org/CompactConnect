@@ -3233,6 +3233,8 @@ class DataClient:
                 transaction_ids=payment_transaction_ids,
                 new_licensee_id=new_provider_id,
             )
+        else:
+            logger.info('No payment transactions are associated with the migrated records')
 
         all_transaction_items = [
             *create_transaction_items,
@@ -3286,6 +3288,19 @@ class DataClient:
                 transaction_id = record.to_dict().get('compactTransactionId')
                 if transaction_id:
                     transaction_ids.add(transaction_id)
+                else:
+                    # Every privilege is written with the id of the transaction it was purchased with, so a
+                    # privilege without one is a data defect. Its transaction cannot be re-pointed here, and
+                    # will keep reporting the practitioner under the old provider id until it is corrected
+                    # by hand, so this is surfaced as an error for someone to act on.
+                    logger.error(
+                        'Migrated privilege record has no compactTransactionId; its transaction cannot be '
+                        're-pointed to the new provider id',
+                        compact=record.compact,
+                        provider_id=record.providerId,
+                        jurisdiction=record.jurisdiction,
+                        license_type=record.licenseType,
+                    )
             elif record.type == ProviderRecordType.PRIVILEGE_UPDATE:
                 transaction_ids.update(
                     transaction_id

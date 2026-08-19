@@ -1,5 +1,5 @@
 from datetime import date
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from botocore.exceptions import ClientError
 from cc_common.exceptions import CCNotFoundException
@@ -64,15 +64,30 @@ class TestCollectTransactionIds(TstLambdas):
 
         self.assertEqual({'tx-current'}, self.collect([privilege]))
 
-    def test_privilege_without_a_transaction_id_contributes_nothing(self):
-        """compactTransactionId is optional on load, so a record read from the table may not carry one."""
+    def test_privilege_without_a_transaction_id_does_not_raise_exception_and_logs_an_error(self):
+        """compactTransactionId is optional on load, so a record read from the table may not carry one.
+        Its transaction cannot be re-pointed, which leaves the practitioner reporting as UNKNOWN until
+        someone corrects it by hand - so it is surfaced as an error rather than passed over quietly.
+        """
         from cc_common.data_model.schema.privilege import PrivilegeData
 
         database_record = self.test_data_generator.generate_default_privilege().serialize_to_database_record()
         database_record.pop('compactTransactionId')
         privilege_without_transaction_id = PrivilegeData.from_database_record(database_record)
 
-        self.assertEqual(set(), self.collect([privilege_without_transaction_id]))
+        with patch('cc_common.data_model.data_client.logger') as mock_logger:
+            collected = self.collect([privilege_without_transaction_id])
+
+        self.assertEqual(set(), collected)
+        # the message states what is wrong, and the context identifies which privilege needs correcting
+        mock_logger.error.assert_called_once_with(
+            'Migrated privilege record has no compactTransactionId; its transaction cannot be '
+            're-pointed to the new provider id',
+            compact=privilege_without_transaction_id.compact,
+            provider_id=privilege_without_transaction_id.providerId,
+            jurisdiction=privilege_without_transaction_id.jurisdiction,
+            license_type=privilege_without_transaction_id.licenseType,
+        )
 
     def test_collects_both_transaction_ids_from_an_update_record(self):
         privilege_update = self.test_data_generator.generate_default_privilege_update(

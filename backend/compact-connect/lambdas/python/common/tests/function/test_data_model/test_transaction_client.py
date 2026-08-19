@@ -489,15 +489,13 @@ class TestUpdateLicenseeIdForTransactions(TstFunction):
         self.assertEqual(1, len(response['Items']))
         self.assertEqual('123', response['Items'][0]['transactionId'])
 
-    def test_rewrites_licensee_id_and_date_of_update(self):
+    def test_rewrites_licensee_id(self):
         self._store_transaction('123')
 
         updated_count = self._update({'123'})
 
         self.assertEqual(1, updated_count)
-        record = self._get_settled_record('123')
-        self.assertEqual(NEW_LICENSEE_ID, record['licenseeId'])
-        self.assertEqual(UPDATED_AT.isoformat(), record['dateOfUpdate'])
+        self.assertEqual(NEW_LICENSEE_ID, self._get_settled_record('123')['licenseeId'])
 
     def test_leaves_every_other_attribute_untouched(self):
         self._store_transaction('123')
@@ -505,11 +503,7 @@ class TestUpdateLicenseeIdForTransactions(TstFunction):
 
         self._update({'123'})
 
-        expected_record = {
-            **original_record,
-            'licenseeId': NEW_LICENSEE_ID,
-            'dateOfUpdate': UPDATED_AT.isoformat(),
-        }
+        expected_record = {**original_record, 'licenseeId': NEW_LICENSEE_ID}
         self.assertEqual(expected_record, self._get_settled_record('123'))
 
     def test_updates_several_transactions_in_one_call(self):
@@ -582,8 +576,6 @@ class TestUpdateLicenseeIdForTransactions(TstFunction):
             )
 
         self.assertEqual(0, updated_count)
-        # the record was not rewritten, so its dateOfUpdate still reflects the first update
-        self.assertEqual(UPDATED_AT.isoformat(), self._get_settled_record('123')['dateOfUpdate'])
 
     def test_empty_transaction_ids_makes_no_calls(self):
         with patch('cc_common.config._Config.transaction_history_table') as mock_table:

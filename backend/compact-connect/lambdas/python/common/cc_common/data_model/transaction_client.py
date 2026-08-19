@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Attr, Key
 
 from cc_common.config import _Config, logger
 from cc_common.data_model.schema.transaction import TransactionData
@@ -312,10 +312,11 @@ class TransactionClient:
             response = self.config.transaction_history_table.query(
                 IndexName=self.config.transaction_history_transaction_id_gsi_name,
                 KeyConditionExpression=Key('transactionId').eq(transaction_id) & Key('compact').eq(compact),
+                # the index is not sparse: the unsettled record written at purchase time carries the same
+                # transaction id and compact, and has no licenseeId to update
+                FilterExpression=Attr('type').eq(SETTLED_TRANSACTION_RECORD_TYPE),
             )
-            settled_records = [
-                item for item in response.get('Items', []) if item.get('type') == SETTLED_TRANSACTION_RECORD_TYPE
-            ]
+            settled_records = response.get('Items', [])
             if not settled_records:
                 logger.warning(
                     'No settled transaction record found for transaction id; skipping licensee id update',
@@ -326,15 +327,27 @@ class TransactionClient:
 
             for record in settled_records:
                 if record.get('licenseeId') == new_licensee_id:
-                    # already updated by an earlier attempt at this migration
+                    logger.info(
+                        'Transaction is already attributed to the new provider id; skipping update',
+                        compact=compact,
+                        transaction_id=transaction_id,
+                        licensee_id=new_licensee_id,
+                    )
                     continue
+                logger.info(
+                    'Re-pointing transaction to the new provider id',
+                    compact=compact,
+                    transaction_id=transaction_id,
+                    previous_licensee_id=record.get('licenseeId'),
+                    new_licensee_id=new_licensee_id,
+                )
+                # Only the licenseeId is written. The transaction itself did not change, only which provider
+                # record it is attributed to, so dateOfUpdate, which tracks when the settlement data was written,
+                # is left as it was.
                 self.config.transaction_history_table.update_item(
                     Key={'pk': record['pk'], 'sk': record['sk']},
-                    UpdateExpression='SET licenseeId = :licenseeId, dateOfUpdate = :dateOfUpdate',
-                    ExpressionAttributeValues={
-                        ':licenseeId': new_licensee_id,
-                        ':dateOfUpdate': self.config.current_standard_datetime.isoformat(),
-                    },
+                    UpdateExpression='SET licenseeId = :licenseeId',
+                    ExpressionAttributeValues={':licenseeId': new_licensee_id},
                 )
                 updated_count += 1
 
