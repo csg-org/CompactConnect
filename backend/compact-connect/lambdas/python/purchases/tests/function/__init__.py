@@ -57,10 +57,22 @@ class TstFunction(TstLambdas):
             AttributeDefinitions=[
                 {'AttributeName': 'pk', 'AttributeType': 'S'},
                 {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'transactionId', 'AttributeType': 'S'},
+                {'AttributeName': 'compact', 'AttributeType': 'S'},
             ],
             TableName=os.environ['TRANSACTION_HISTORY_TABLE_NAME'],
             KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
             BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['TRANSACTION_HISTORY_TRANSACTION_ID_GSI_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'transactionId', 'KeyType': 'HASH'},
+                        {'AttributeName': 'compact', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
         )
 
     def create_provider_table(self):

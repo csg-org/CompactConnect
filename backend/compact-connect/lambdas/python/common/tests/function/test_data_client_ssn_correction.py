@@ -76,15 +76,8 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.test_data_generator.put_default_military_affiliation_in_provider_table()
         self.test_data_generator.put_default_provider_update_record_in_provider_table()
         # the settled transaction the default privilege was purchased with, recorded against the old provider
-        self._store_transaction(DEFAULT_COMPACT_TRANSACTION_ID, licensee_id=DEFAULT_PROVIDER_ID)
-
-    def _store_transaction(self, transaction_id: str, licensee_id: str):
-        self.config.transaction_client.store_transactions(
-            transactions=[
-                self.test_data_generator.generate_default_transaction(
-                    {'transactionId': transaction_id, 'licenseeId': licensee_id}
-                )
-            ]
+        self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': DEFAULT_COMPACT_TRANSACTION_ID, 'licenseeId': DEFAULT_PROVIDER_ID}
         )
 
     def _get_transaction_licensee_ids(self) -> dict[str, str]:
@@ -802,7 +795,9 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             {'licenseType': OTHER_LICENSE_TYPE, 'compactTransactionId': OTHER_LICENSE_TRANSACTION_ID}
         )
-        self._store_transaction(OTHER_LICENSE_TRANSACTION_ID, licensee_id=DEFAULT_PROVIDER_ID)
+        self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': OTHER_LICENSE_TRANSACTION_ID, 'licenseeId': DEFAULT_PROVIDER_ID}
+        )
 
         result = self._migrate()
 
@@ -825,7 +820,9 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             {'compactTransactionId': RENEWAL_TRANSACTION_ID}
         )
-        self._store_transaction(RENEWAL_TRANSACTION_ID, licensee_id=DEFAULT_PROVIDER_ID)
+        self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': RENEWAL_TRANSACTION_ID, 'licenseeId': DEFAULT_PROVIDER_ID}
+        )
 
         self._migrate()
 

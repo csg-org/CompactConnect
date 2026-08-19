@@ -1012,15 +1012,6 @@ class TestIngestSsnCorrection(TstFunction):
         )
         return json.loads(json.dumps(provider_user_records.generate_api_response_object(), cls=ResponseEncoder))
 
-    def _store_transaction(self, transaction_id: str, licensee_id: str):
-        self.config.transaction_client.store_transactions(
-            transactions=[
-                self.test_data_generator.generate_default_transaction(
-                    {'transactionId': transaction_id, 'licenseeId': licensee_id}
-                )
-            ]
-        )
-
     def _get_transaction_licensee_ids(self) -> dict[str, str]:
         return {
             record['transactionId']: record['licenseeId']
@@ -1034,7 +1025,9 @@ class TestIngestSsnCorrection(TstFunction):
         """
         self._put_old_provider_records()
         # the transaction the default privilege was purchased with, recorded against the old provider id
-        self._store_transaction(DEFAULT_COMPACT_TRANSACTION_ID, licensee_id=self.OLD_PROVIDER_ID)
+        self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': DEFAULT_COMPACT_TRANSACTION_ID, 'licenseeId': self.OLD_PROVIDER_ID}
+        )
 
         resp = self._run_ingest_with_previous_provider_id()
 

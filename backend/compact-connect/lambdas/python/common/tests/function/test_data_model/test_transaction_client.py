@@ -442,17 +442,9 @@ NEW_LICENSEE_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 class TestUpdateLicenseeIdForTransactions(TstFunction):
     """Tests for re-pointing a transaction's licenseeId after an SSN-correction migration."""
 
-    def _store_transaction(self, transaction_id: str, compact: str = 'aslp', licensee_id: str | None = None):
-        self.config.transaction_client.store_transactions(
-            transactions=[
-                self.test_data_generator.generate_default_transaction(
-                    {
-                        'transactionId': transaction_id,
-                        'compact': compact,
-                        **({'licenseeId': licensee_id} if licensee_id else {}),
-                    }
-                )
-            ]
+    def _store_transaction(self, transaction_id: str, compact: str = 'aslp'):
+        return self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': transaction_id, 'compact': compact}
         )
 
     def _get_all_records(self) -> list[dict]:
