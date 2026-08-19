@@ -60,6 +60,7 @@ describe('Licensee model', () => {
         expect(licensee.compactConnectEmail).to.equal(null);
         expect(licensee.dob).to.equal(null);
         expect(licensee.birthMonthDay).to.equal(null);
+        expect(licensee.cuid).to.equal(null);
         expect(licensee.licenseType).to.equal(null);
         expect(licensee.ssnLastFour).to.equal(null);
         expect(licensee.licenseStates).to.matchPattern([]);
@@ -123,6 +124,7 @@ describe('Licensee model', () => {
             compactConnectEmail: 'test@example.com',
             dob: '2020-01-01',
             birthMonthDay: '01-16',
+            cuid: 'test-cuid',
             ssnLastFour: '0000',
             militaryAffiliations: [new MilitaryAffiliation()],
             militaryStatus: 'approved',
@@ -182,6 +184,7 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
+        expect(licensee.cuid).to.equal(data.cuid);
         expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
@@ -331,6 +334,7 @@ describe('Licensee model', () => {
             currentHomeJurisdiction: 'co',
             compactConnectRegisteredEmailAddress: 'test@example.com',
             ssnLastFour: '0000',
+            cuid: 'test-cuid',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
             militaryAffiliations: [{
@@ -473,6 +477,7 @@ describe('Licensee model', () => {
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
+        expect(licensee.cuid).to.equal(data.cuid);
         expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
@@ -578,6 +583,7 @@ describe('Licensee model', () => {
             phoneNumber: '+13234558990',
             birthMonthDay: '01-16',
             dateOfBirth: moment().format(serverDateFormat),
+            cuid: 'test-cuid',
             licenseType: LicenseType.AUDIOLOGIST,
             ssnLastFour: '0000',
             licenseJurisdiction: 'co',

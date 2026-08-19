@@ -82,6 +82,10 @@ export default class PublicLicensingDetail extends Vue {
         return this.licensee?.nameDisplay() || '';
     }
 
+    get licenseeCuidDisplay(): string {
+        return this.licensee?.cuid || '';
+    }
+
     get licenseeHomeStateDisplay(): string {
         return this.licensee?.homeJurisdictionDisplay() || '';
     }

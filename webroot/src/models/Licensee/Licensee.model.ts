@@ -55,6 +55,7 @@ export interface InterfaceLicensee {
     birthMonthDay?: string | null;
     ssnLastFour?: string | null;
     phoneNumber?: string | null;
+    cuid?: string | null;
     licenseType?: LicenseType | null;
     militaryAffiliations?: Array <MilitaryAffiliation>;
     militaryStatus?: string | null;
@@ -88,6 +89,7 @@ export class Licensee implements InterfaceLicensee {
     public birthMonthDay? = null;
     public ssnLastFour? = null;
     public phoneNumber? = null;
+    public cuid? = null;
     public licenseType? = null;
     public licenseStates? = [];
     public licenses? = [];
@@ -449,6 +451,7 @@ export class LicenseeSerializer {
             birthMonthDay: json.birthMonthDay,
             ssnLastFour: json.ssnLastFour,
             phoneNumber: json.phoneNumber,
+            cuid: json.cuid,
             licenseType: json.licenseType,
             licenseStates: [] as Array<State>,
             licenses: [] as Array<License>,

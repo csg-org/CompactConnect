@@ -37,9 +37,9 @@ describe('apiUrls helpers', () => {
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'user')).to.equal(envConfig.apiUrlUserSw);
     });
 
-    it('should successfully fall back to jcc for an unknown or missing app mode', () => {
-        expect(getApiBaseUrl(null, 'license')).to.equal(envConfig.apiUrlLicense);
-        expect(getApiBaseUrl(undefined, 'user')).to.equal(envConfig.apiUrlUser);
-        expect(getApiBaseUrl('not-an-app-mode' as AppModes, 'search')).to.equal(envConfig.apiUrlSearch);
+    it('should successfully not resolve for an unknown or missing app mode', () => {
+        expect(getApiBaseUrl(null, 'license')).to.equal(undefined);
+        expect(getApiBaseUrl(undefined, 'user')).to.equal(undefined);
+        expect(getApiBaseUrl('not-an-app-mode' as AppModes, 'search')).to.equal(undefined);
     });
 });

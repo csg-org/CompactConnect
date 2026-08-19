@@ -22,6 +22,9 @@
                     <span v-if="licenseStore.isLoading && !licenseeNameDisplay">{{ $t('common.loading') }}</span>
                     <span v-else>{{ licenseeNameDisplay }}</span>
                 </div>
+                <div v-if="$isAppModeSocialWork" class="licensee-id">
+                    {{ $t('licensing.cuid') }}: {{ licenseeCuidDisplay }}
+                </div>
                 <div class="tags">
                     <div v-if="licenseeHomeStateDisplay" class="tag">
                         <div class="tag-icon-container house">

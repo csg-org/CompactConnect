@@ -115,12 +115,28 @@ class LicenseeList extends Vue {
         return (licenseNumber) ? `${this.$t('licensing.licenseNumSymbol')}: ${licenseNumber}`.trim() : '';
     }
 
+    get searchDisplayLicenseType(): string {
+        const { licenseType = '' } = this.searchParams;
+        const licenseTypeRecord = this.$tm('licensing.licenseTypes')
+            ?.find((record) => record.key === licenseType);
+
+        return `${licenseTypeRecord?.name || ''}`.trim();
+    }
+
+    get searchDisplayCuid(): string {
+        const { cuid = '' } = this.searchParams;
+
+        return (cuid) ? `${this.$t('licensing.cuid')}: ${cuid}`.trim() : '';
+    }
+
     get searchDisplayAll(): string {
         return [
             this.searchDisplayCompact,
             this.searchDisplayFullName,
             this.searchDisplayState,
-            this.searchDisplayLicenseNumber
+            this.searchDisplayLicenseNumber,
+            this.searchDisplayLicenseType,
+            this.searchDisplayCuid
         ]
             .filter((displayPart) => !!displayPart?.trim())
             .join(', ').trim();
@@ -146,22 +162,27 @@ class LicenseeList extends Vue {
     }
 
     get headerRecord() {
-        const cosmetologySpecificColumns = {
+        const multiStateColumns = {
             licenseNumber: this.$t('licensing.stateLicenseNumber'),
             ...(this.isPublicSearch)
                 ? {
                     isPublicSearch: true,
+                    ...(this.$isAppModeSocialWork)
+                        ? {
+                            licenseTypeName: () => this.$t('licensing.category'),
+                        }
+                        : {},
                     eligibilityDisplay: () => this.$t('licensing.compactRestriction'),
                     isRestricted: () => false,
                 }
-                : {}
+                : {},
         };
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             ...(this.$isAppGroupModeMultiState
-                ? { ...cosmetologySpecificColumns }
+                ? { ...multiStateColumns }
                 : {
                     privilegeStatesDisplay: () => this.$t('licensing.privileges'),
                 }
@@ -304,6 +325,12 @@ class LicenseeList extends Vue {
         }
         if (this.$isAppGroupModeMultiState && searchParams?.licenseNumber) {
             requestConfig.licenseNumber = searchParams.licenseNumber;
+        }
+        if (this.$isAppModeSocialWork && searchParams?.licenseType) {
+            requestConfig.licenseType = searchParams.licenseType;
+        }
+        if (this.$isAppModeSocialWork && searchParams?.cuid) {
+            requestConfig.cuid = searchParams.cuid;
         }
 
         // Make fetch request

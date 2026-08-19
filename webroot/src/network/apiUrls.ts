@@ -34,6 +34,4 @@ export const appModeApiUrls: Record<AppModes, Record<ApiFamily, string | undefin
 export const getApiBaseUrl = (
     appMode: AppModes | null | undefined,
     apiFamily: ApiFamily
-): string | undefined =>
-    appModeApiUrls[appMode as AppModes]?.[apiFamily]
-    || appModeApiUrls[AppModes.JCC][apiFamily];
+): string | undefined => appModeApiUrls[appMode as AppModes]?.[apiFamily];

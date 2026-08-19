@@ -635,6 +635,8 @@
         "licenseDetails": "License details",
         "licenseNumSymbol": "License #",
         "privilegeNumSymbol": "Privilege #",
+        "cuid": "CUID",
+        "cuidSearchMatch": "CUID entry must be an exact match",
         "driversLicense": "Drivers License #",
         "militaryAffilitionDocs": "military affiliation documents",
         "selectLicense": "Select a license",
@@ -653,6 +655,7 @@
         "jurisdictionFeeMilitary": "State Fee (Military)",
         "licenseTypeSearch": "Profession type",
         "licenseType": "License type",
+        "category": "Category",
         "adverseActions": "Adverse actions",
         "status": "Status",
         "expired": "Expired",
@@ -856,19 +859,19 @@
                 "abbrev": "esth"
             },
             {
-                "name": "Licensed Clinical Social Worker",
+                "name": "Clinical",
                 "key": "licensed clinical social worker",
                 "compactKey": "socw",
                 "abbrev": "lcsw"
             },
             {
-                "name": "Licensed Master Social Worker",
+                "name": "Master",
                 "key": "licensed master social worker",
                 "compactKey": "socw",
                 "abbrev": "lmsw"
             },
             {
-                "name": "Licensed Bachelors Social Worker",
+                "name": "Bachelors",
                 "key": "licensed bachelors social worker",
                 "compactKey": "socw",
                 "abbrev": "lbsw"
