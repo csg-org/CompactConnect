@@ -14,6 +14,8 @@ These tests require:
 - A registered test provider user (CC_TEST_PROVIDER_USER_USERNAME) whose license records are stored under
   the SSN configured in the CC_TEST_PROVIDER_MOCK_SSN env var.
 - The CC_TEST_PROVIDER_USER_BUCKET_NAME env var set to the environment's provider users S3 bucket.
+- The CC_TEST_TRANSACTION_HISTORY_DYNAMO_TABLE_NAME env var set to the environment's transaction history
+  table, so the transactions the provider's privileges were purchased with can be checked after migration.
 
 License uploads are performed against the State API (CC_TEST_STATE_API_BASE_URL) using a Cognito
 client-credentials app client, the same way state IT systems authenticate in production - see
@@ -36,6 +38,7 @@ from collections.abc import Callable
 
 import boto3
 import requests
+from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
 from config import config, logger
 from military_affiliation_smoke_tests import test_military_affiliation_upload
@@ -57,6 +60,9 @@ from smoke_common import (
 
 # If you test provider is in a different compact, change this value
 TEST_COMPACT = 'coun'
+# The transaction history table index that maps a payment transaction id back to its record. Fixed in
+# the CDK (see stacks/persistent_stack/transaction_history_table.py), so it is not environment-specific.
+TRANSACTION_ID_GSI_NAME = 'transactionIdGSI'
 # The corrected SSN the test provider is temporarily migrated to during the full migration roundtrip
 FULL_MIGRATION_CORRECTED_SSN = '999-99-8877'
 
@@ -228,6 +234,87 @@ def _verify_all_records_migrated(
             f'The following records were not migrated to provider {target_provider_id}: {missing_records}'
         )
     print(f'Verified all {len(source_normalized)} migratable records now exist under provider {target_provider_id}')
+
+
+def _get_privilege_transaction_ids(records: list[dict]) -> set[str]:
+    """Collect every payment transaction id referenced by a provider's privilege records.
+
+    This mirrors the collection the migration itself performs: each privilege record carries the id of the
+    transaction it was most recently purchased or renewed with, and the earlier ones survive only on the
+    privilege update history records, which snapshot the privilege as it was before each update.
+    """
+    transaction_ids = set()
+    for record in records:
+        if record['type'] == 'privilege' and record.get('compactTransactionId'):
+            transaction_ids.add(record['compactTransactionId'])
+        elif record['type'] == 'privilegeUpdate':
+            previous_transaction_id = record.get('previous', {}).get('compactTransactionId')
+            if previous_transaction_id:
+                transaction_ids.add(previous_transaction_id)
+    return transaction_ids
+
+
+def _verify_transactions_attributed_to_provider(*, compact: str, provider_id: str, records: list[dict]):
+    """Verify every transaction the provider's privileges were purchased with is attributed to that provider.
+
+    An SSN correction moves the privileges to a new provider id, and the migration re-points the licenseeId
+    on the matching transaction records so the weekly transaction report can still resolve the
+    practitioner's name afterwards. Without that, transactions settled before the correction report the
+    practitioner as UNKNOWN.
+
+    A transaction id with no settled record in the transaction history table is reported but not treated as
+    a failure: the purchase may not have settled yet (settlement processing runs on a nightly schedule), and
+    once it does the settlement workflow resolves the licensee id from the privilege record, which by then
+    already lives under the new provider id.
+    """
+    transaction_ids = _get_privilege_transaction_ids(records)
+    if not transaction_ids:
+        print(
+            f'Provider {provider_id} has no privileges carrying transaction ids; no transaction attribution to verify'
+        )
+        return
+
+    transaction_table = config.transaction_history_dynamodb_table
+    misattributed = {}
+    unsettled_transaction_ids = []
+    verified_transaction_ids = []
+    for transaction_id in sorted(transaction_ids):
+        query_response = transaction_table.query(
+            IndexName=TRANSACTION_ID_GSI_NAME,
+            KeyConditionExpression=Key('transactionId').eq(transaction_id) & Key('compact').eq(compact),
+            # the index also covers the unsettled record written at purchase time, which has no licenseeId
+            FilterExpression=Attr('type').eq('transaction'),
+        )
+        settled_records = query_response.get('Items', [])
+        if not settled_records:
+            unsettled_transaction_ids.append(transaction_id)
+            continue
+        for settled_record in settled_records:
+            if settled_record.get('licenseeId') != provider_id:
+                misattributed[transaction_id] = settled_record.get('licenseeId')
+            else:
+                verified_transaction_ids.append(transaction_id)
+
+    if misattributed:
+        raise SmokeTestFailureException(
+            f'The following transactions are not attributed to provider {provider_id} after migration '
+            f'(transaction id -> licenseeId found): {misattributed}'
+        )
+
+    print(
+        f'Verified {len(verified_transaction_ids)} of {len(transaction_ids)} privilege transaction(s) are '
+        f'attributed to provider {provider_id}'
+    )
+    if unsettled_transaction_ids:
+        print(
+            f'No settled transaction record found for {unsettled_transaction_ids} - these purchases have '
+            f'likely not settled yet in this environment, so there was nothing to re-point'
+        )
+    if not verified_transaction_ids:
+        print(
+            "WARNING: none of this provider's privilege transactions had settled records to check, so the "
+            'transaction attribution check did not verify anything in this run'
+        )
 
 
 def _verify_license_ssn_last_four(*, records: list[dict], expected_ssn_last_four: str, license_type: str | None = None):
@@ -552,9 +639,11 @@ def test_full_ssn_migration_roundtrip():
     Step 1: Capture the test provider's baseline state (all DynamoDB records + all S3 objects).
     Step 2: Upload a fresh military affiliation document so there is a recent document to migrate.
     Step 3: Upload the provider's license with a corrected SSN and previousSSN set to their current mock SSN.
-    Step 4: Wait for the migration, then verify every record and S3 object moved to the new provider id.
-    Step 5: Migrate back to the original SSN (roundtrip) and verify everything returned to the original
-            provider id and the intermediate provider id was cleaned up.
+    Step 4: Wait for the migration, then verify every record and S3 object moved to the new provider id,
+            and that the transactions the provider's privileges were purchased with are attributed to it.
+    Step 5: Migrate back to the original SSN (roundtrip) and verify everything - records, documents, and
+            transaction attribution - returned to the original provider id and the intermediate provider id
+            was cleaned up.
     Step 6: Restore the test provider's Cognito account (deleted by the full migration) and registration
             fields so the shared test account remains usable.
     """
@@ -640,6 +729,11 @@ def test_full_ssn_migration_roundtrip():
         _verify_all_s3_objects_migrated(
             source_objects=pre_migration_s3_objects, compact=compact, target_provider_id=migrated_provider_id
         )
+        # the transactions the provider's privileges were purchased with must follow them to the new
+        # provider id, or the transaction report renders the practitioner as UNKNOWN
+        _verify_transactions_attributed_to_provider(
+            compact=compact, provider_id=migrated_provider_id, records=migrated_records
+        )
 
         # Step 5: roundtrip back to the original SSN and verify everything returned home
         returned_provider_id = _migrate_test_provider_to_ssn(
@@ -669,6 +763,10 @@ def test_full_ssn_migration_roundtrip():
         )
         _verify_all_s3_objects_migrated(
             source_objects=pre_migration_s3_objects, compact=compact, target_provider_id=original_provider_id
+        )
+        # the same transactions must now be attributed to the original provider id
+        _verify_transactions_attributed_to_provider(
+            compact=compact, provider_id=original_provider_id, records=returned_records
         )
         print('Roundtrip migration completed; all records and documents are back under the original provider id')
     finally:
