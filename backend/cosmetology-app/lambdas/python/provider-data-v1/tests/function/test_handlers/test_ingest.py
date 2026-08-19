@@ -58,6 +58,72 @@ class TestIngest(TstFunction):
         self.assertEqual(resp['statusCode'], 200)
         return json.loads(resp['body'])
 
+    def _get_license_record(self, provider_id: str) -> dict:
+        from boto3.dynamodb.conditions import Key
+
+        records = self.config.provider_table.query(KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_id}'))[
+            'Items'
+        ]
+        return next(record for record in records if record['type'] == 'license')
+
+    def _set_license_field(self, provider_id: str, field: str, value: str):
+        """Set a field on the stored license record that a state cannot send in an upload."""
+        license_record = self._get_license_record(provider_id)
+        self.config.provider_table.update_item(
+            Key={'pk': license_record['pk'], 'sk': license_record['sk']},
+            UpdateExpression='SET #field = :value',
+            ExpressionAttributeNames={'#field': field},
+            ExpressionAttributeValues={':value': value},
+        )
+
+    def _reingest_default_license(self):
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+    def test_existing_license_encumbered_status_survives_a_reupload(self):
+        """A state's upload cannot express an encumbrance, so a routine re-upload must not clear one.
+
+        Dropping it would also flip the license's calculated status back to active and compact-eligible.
+        """
+        provider_id = self._with_ingested_license()
+        # a board encumbrance applied after the original upload
+        self._set_license_field(provider_id, 'encumberedStatus', 'encumbered')
+
+        self._reingest_default_license()
+
+        self.assertEqual('encumbered', self._get_license_record(provider_id).get('encumberedStatus'))
+
+    def test_existing_license_investigation_status_survives_a_reupload(self):
+        """As with encumbrances, an investigation is a CompactConnect action a state cannot send."""
+        provider_id = self._with_ingested_license()
+        self._set_license_field(provider_id, 'investigationStatus', 'underInvestigation')
+
+        self._reingest_default_license()
+
+        self.assertEqual('underInvestigation', self._get_license_record(provider_id).get('investigationStatus'))
+
+    def test_unchanged_reupload_of_a_preserved_license_creates_no_update_record(self):
+        """A re-upload that changes nothing must not leave an empty update record in the practitioner's
+        history. The calculated licenseStatus / compactEligibility differ between an encumbered record and
+        the freshly-loaded upload, but they are derived values rather than license data.
+        """
+        from cc_common.data_model.update_tier_enum import UpdateTierEnum
+
+        provider_id = self._with_ingested_license()
+        self._set_license_field(provider_id, 'encumberedStatus', 'encumbered')
+        self._set_license_field(provider_id, 'investigationStatus', 'underInvestigation')
+
+        self._reingest_default_license()
+
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        self.assertEqual([], provider_user_records._license_update_records)  # noqa: SLF001
+
     def test_new_provider_ingest(self):
         from handlers.ingest import ingest_license_message
 

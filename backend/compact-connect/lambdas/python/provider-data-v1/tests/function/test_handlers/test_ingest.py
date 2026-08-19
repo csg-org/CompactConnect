@@ -531,6 +531,98 @@ class TestIngest(TstFunction):
         self.assertEqual(1, len(provider_user_records._license_update_records))  # noqa SLF001
         self.assertEqual(['emailAddress'], provider_user_records._license_update_records[0].removedValues)  # noqa SLF001
 
+    def _get_license_record(self, provider_id: str) -> dict:
+        from boto3.dynamodb.conditions import Key
+
+        records = self.config.provider_table.query(KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}'))[
+            'Items'
+        ]
+        return next(record for record in records if record['type'] == 'license')
+
+    def _set_license_field(self, provider_id: str, field: str, value: str):
+        """Set a field on the stored license record that a state cannot send in an upload."""
+        license_record = self._get_license_record(provider_id)
+        self.config.provider_table.update_item(
+            Key={'pk': license_record['pk'], 'sk': license_record['sk']},
+            UpdateExpression='SET #field = :value',
+            ExpressionAttributeNames={'#field': field},
+            ExpressionAttributeValues={':value': value},
+        )
+
+    def test_existing_license_encumbered_status_survives_a_reupload(self):
+        """A state's upload cannot express an encumbrance, so a routine re-upload must not clear one.
+
+        Dropping it would also flip the license's calculated status back to active and compact-eligible.
+        """
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        # a board encumbrance applied after the original upload
+        self._set_license_field(provider_id, 'encumberedStatus', 'encumbered')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+        self.assertEqual('encumbered', self._get_license_record(provider_id).get('encumberedStatus'))
+
+    def test_existing_license_investigation_status_survives_a_reupload(self):
+        """As with encumbrances, an investigation is a CompactConnect action a state cannot send."""
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        self._set_license_field(provider_id, 'investigationStatus', 'underInvestigation')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+        self.assertEqual('underInvestigation', self._get_license_record(provider_id).get('investigationStatus'))
+
+    def test_preserved_license_fields_are_not_reported_as_removed(self):
+        """The update history must reflect what actually happened: these fields were carried forward, not
+        removed, so they must not show up in the update record's removedValues.
+        """
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        self._set_license_field(provider_id, 'encumberedStatus', 'encumbered')
+        self._set_license_field(provider_id, 'investigationStatus', 'underInvestigation')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        for update_record in provider_user_records._license_update_records:  # noqa: SLF001
+            self.assertNotIn('encumberedStatus', update_record.to_dict().get('removedValues', []))
+            self.assertNotIn('investigationStatus', update_record.to_dict().get('removedValues', []))
+
+    def test_unchanged_reupload_of_a_preserved_license_creates_no_update_record(self):
+        """A re-upload that changes nothing must not leave an empty update record in the practitioner's
+        history. The calculated licenseStatus / compactEligibility differ between an encumbered record and
+        the freshly-loaded upload, but they are derived values rather than license data.
+        """
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        self._set_license_field(provider_id, 'encumberedStatus', 'encumbered')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        self.assertEqual([], provider_user_records._license_update_records)  # noqa: SLF001
+
     def test_existing_provider_added_email(self):
         from handlers.ingest import ingest_license_message
 

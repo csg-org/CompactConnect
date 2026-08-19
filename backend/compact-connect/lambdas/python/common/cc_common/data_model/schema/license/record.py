@@ -34,6 +34,27 @@ from cc_common.data_model.schema.investigation.record import InvestigationDetail
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 
+# Fields on a license record that CompactConnect owns rather than the uploading state. They are set by
+# actions taken within the system (board encumbrances, investigations) or by the ingest process itself,
+# and there is no way for a state to express them in a license upload.
+#
+# A license upload writes the whole record, so the uploading state is authoritative for every field it can
+# send - omitting one removes it, which is intentional and recorded in the update record's removedValues.
+# These fields are the exception: an upload cannot assert them, so it must not be able to retract them
+# either. The ingest handler carries them forward from the existing record when re-uploading a license
+# that already exists.
+#
+# Any future field of this kind must be added here, or a routine re-upload will silently drop it. Note
+# that a field must also be declared on LicenseRecordSchema below to survive at all: this schema excludes
+# undeclared attributes when a record is loaded.
+SYSTEM_OWNED_LICENSE_FIELDS = frozenset(
+    {
+        'encumberedStatus',
+        'investigationStatus',
+        'firstUploadDate',
+    }
+)
+
 
 @BaseRecordSchema.register_schema('license')
 class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):

@@ -16,7 +16,7 @@ from cc_common.data_model.schema.common import (
 )
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
-from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
+from cc_common.data_model.schema.license.record import SYSTEM_OWNED_LICENSE_FIELDS, LicenseUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.schema.provider.record import ProviderUpdateRecordSchema
 from cc_common.event_batch_writer import EventBatchWriter
@@ -26,6 +26,16 @@ from marshmallow.exceptions import SCHEMA
 
 license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()
+
+# Keys on a license record that are not part of the state-supplied license data, so a difference in one is
+# not a change to the license itself and does not belong in a licenseUpdate record:
+#   - dateOfUpdate is stamped on every write.
+#   - licenseStatus / compactEligibility are calculated when a record is loaded (see
+#     LicenseRecordSchema._calculate_statuses) and are stripped again before it is written, so they follow
+#     whatever else changed rather than being a change in their own right.
+#   - the system-owned fields are copied from the existing record onto the new one before this comparison
+#     runs, so they cannot differ here.
+NON_LICENSE_DATA_KEYS = SYSTEM_OWNED_LICENSE_FIELDS | {'dateOfUpdate', 'licenseStatus', 'compactEligibility'}
 provider_update_schema = ProviderUpdateRecordSchema()
 
 # Fields tracked on the provider update "previous" snapshot (ProviderUpdatePreviousRecordSchema).
@@ -204,16 +214,20 @@ def ingest_license_message(message: dict):
             )
             if existing_license_data is not None:
                 existing_license = existing_license_data.to_dict()
+                # The write below replaces the whole license record, so any field the upload cannot carry
+                # would be dropped. Carry the system-owned fields (encumbrance / investigation status set
+                # by actions within CompactConnect, and the firstUploadDate behind the license upload date
+                # GSI) forward from the existing record. This happens before the update record is built, so
+                # the recorded history reflects what is actually written.
+                for field in SYSTEM_OWNED_LICENSE_FIELDS:
+                    if existing_license.get(field) is not None:
+                        posted_license_record[field] = existing_license[field]
                 _process_license_update(
                     existing_license=existing_license,
                     new_license=posted_license_record,
                     dynamo_transactions=dynamo_transactions,
                     data_events=data_events,
                 )
-                # now grab the firstUploadDate from the existing record if available and put it in the posted_license
-                # for the license upload date GSI
-                if existing_license.get('firstUploadDate'):
-                    posted_license_record['firstUploadDate'] = existing_license.get('firstUploadDate')
             else:
                 logger.info('New license record detected')
                 # If this is the first time creating the license record,
@@ -448,6 +462,7 @@ def _check_for_missing_single_state_license_validation_error(
         )
     )
 
+
 def _generate_cuid(compact: str) -> str:
     """
     Generate a new Compact Unique Identifier (CUID) for a provider.
@@ -623,11 +638,10 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     """
     # Remove fields that are calculated at runtime, not stored in the database
     # uploadDate is metadata tracking when the license was first uploaded, not part of the license data
-    dynamic_keys = {'dateOfUpdate', 'status', 'uploadDate'}
     updated_values = {
         key: value
         for key, value in new_license.items()
-        if key not in dynamic_keys and (key not in existing_license.keys() or value != existing_license[key])
+        if key not in NON_LICENSE_DATA_KEYS and (key not in existing_license.keys() or value != existing_license[key])
     }
     # If any fields are missing from the new license, we'll consider them removed
     removed_values = existing_license.keys() - new_license.keys()
