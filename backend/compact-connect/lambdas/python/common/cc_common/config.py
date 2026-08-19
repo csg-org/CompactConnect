@@ -305,6 +305,10 @@ class _Config:
         return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
 
     @property
+    def transaction_history_transaction_id_gsi_name(self):
+        return os.environ['TRANSACTION_HISTORY_TRANSACTION_ID_GSI_NAME']
+
+    @property
     def rate_limiting_table_name(self):
         return os.environ['RATE_LIMITING_TABLE_NAME']
 

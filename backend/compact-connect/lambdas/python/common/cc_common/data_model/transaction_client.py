@@ -7,6 +7,9 @@ from cc_common.data_model.schema.transaction import TransactionData
 from cc_common.data_model.schema.transaction.record import UnsettledTransactionRecordSchema
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
+# The record type of a settled transaction, as registered by TransactionRecordSchema. Distinguishes
+# settled transactions from the 'unsettled_transaction' records that share their compact/transactionId.
+SETTLED_TRANSACTION_RECORD_TYPE = 'transaction'
 
 
 class TransactionClient:
@@ -281,6 +284,67 @@ class TransactionClient:
             transaction.update({'lineItems': line_items})
 
         return transactions
+
+    def update_licensee_id_for_transactions(
+        self, *, compact: str, transaction_ids: set[str], new_licensee_id: str
+    ) -> int:
+        """
+        Re-point the licenseeId of the given transactions at a new provider id.
+
+        Used by the SSN-correction migration: a transaction records the provider id that was in place when
+        the privilege was purchased, and the transaction report resolves practitioner names from that field.
+        Without this, every transaction settled before a correction reports the practitioner as UNKNOWN.
+
+        Only settled 'transaction' records are written, since unsettled transactions do not have a licenseeId field.
+        Once it does settle, the settlement processing workflow resolves the licensee id from the privilege record,
+        which by then lives under the new provider id.
+
+        Writes are idempotent: a record already carrying the new licensee id is left alone, so a replay of a
+        retried migration is a no-op.
+
+        :param compact: The compact name
+        :param transaction_ids: The transaction ids to re-point
+        :param new_licensee_id: The provider id the transactions now belong to
+        :return: The number of transaction records updated
+        """
+        updated_count = 0
+        for transaction_id in sorted(transaction_ids):
+            response = self.config.transaction_history_table.query(
+                IndexName=self.config.transaction_history_transaction_id_gsi_name,
+                KeyConditionExpression=Key('transactionId').eq(transaction_id) & Key('compact').eq(compact),
+            )
+            settled_records = [
+                item for item in response.get('Items', []) if item.get('type') == SETTLED_TRANSACTION_RECORD_TYPE
+            ]
+            if not settled_records:
+                logger.warning(
+                    'No settled transaction record found for transaction id; skipping licensee id update',
+                    compact=compact,
+                    transaction_id=transaction_id,
+                )
+                continue
+
+            for record in settled_records:
+                if record.get('licenseeId') == new_licensee_id:
+                    # already updated by an earlier attempt at this migration
+                    continue
+                self.config.transaction_history_table.update_item(
+                    Key={'pk': record['pk'], 'sk': record['sk']},
+                    UpdateExpression='SET licenseeId = :licenseeId, dateOfUpdate = :dateOfUpdate',
+                    ExpressionAttributeValues={
+                        ':licenseeId': new_licensee_id,
+                        ':dateOfUpdate': self.config.current_standard_datetime.isoformat(),
+                    },
+                )
+                updated_count += 1
+
+        logger.info(
+            'Updated licensee id on transaction records',
+            compact=compact,
+            requested_transaction_ids=len(transaction_ids),
+            updated_records=updated_count,
+        )
+        return updated_count
 
     def store_unsettled_transaction(self, compact: str, transaction_id: str, transaction_date: str) -> None:
         """

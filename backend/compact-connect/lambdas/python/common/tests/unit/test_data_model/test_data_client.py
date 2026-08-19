@@ -1,3 +1,4 @@
+from datetime import date
 from unittest.mock import MagicMock
 
 from botocore.exceptions import ClientError
@@ -45,3 +46,68 @@ class TestDataClient(TstLambdas):
         # Verify it raises CCNotFoundException
         with self.assertRaises(CCNotFoundException):
             self.client.get_provider(compact='aslp', provider_id='test_id', detail=True, consistent_read=False)
+
+
+class TestCollectTransactionIds(TstLambdas):
+    """
+    Tests for the collection of payment transaction ids from the privilege records an SSN-correction
+    migration is moving. These are the transactions whose licenseeId has to follow the practitioner.
+    """
+
+    def setUp(self):
+        from cc_common.data_model.data_client import DataClient
+
+        self.collect = DataClient._collect_transaction_ids  # noqa: SLF001 protected-access
+
+    def test_collects_the_privilege_records_transaction_id(self):
+        privilege = self.test_data_generator.generate_default_privilege({'compactTransactionId': 'tx-current'})
+
+        self.assertEqual({'tx-current'}, self.collect([privilege]))
+
+    def test_privilege_without_a_transaction_id_contributes_nothing(self):
+        """compactTransactionId is optional on load, so a record read from the table may not carry one."""
+        from cc_common.data_model.schema.privilege import PrivilegeData
+
+        database_record = self.test_data_generator.generate_default_privilege().serialize_to_database_record()
+        database_record.pop('compactTransactionId')
+        privilege_without_transaction_id = PrivilegeData.from_database_record(database_record)
+
+        self.assertEqual(set(), self.collect([privilege_without_transaction_id]))
+
+    def test_collects_both_transaction_ids_from_an_update_record(self):
+        privilege_update = self.test_data_generator.generate_default_privilege_update(
+            value_overrides={'updatedValues': {'compactTransactionId': 'tx-new'}},
+            previous_privilege=self.test_data_generator.generate_default_privilege({'compactTransactionId': 'tx-old'}),
+        )
+
+        self.assertEqual({'tx-old', 'tx-new'}, self.collect([privilege_update]))
+
+    def test_update_record_without_an_updated_transaction_id_contributes_only_the_previous_one(self):
+        privilege_update = self.test_data_generator.generate_default_privilege_update(
+            value_overrides={'updatedValues': {'dateOfExpiration': date.fromisoformat('2030-01-01')}},
+            previous_privilege=self.test_data_generator.generate_default_privilege({'compactTransactionId': 'tx-old'}),
+        )
+
+        self.assertEqual({'tx-old'}, self.collect([privilege_update]))
+
+    def test_ignores_records_that_are_not_privileges(self):
+        records = [
+            self.test_data_generator.generate_default_license(),
+            self.test_data_generator.generate_default_license_update(),
+            self.test_data_generator.generate_default_adverse_action(),
+            self.test_data_generator.generate_default_investigation(),
+            self.test_data_generator.generate_default_military_affiliation(),
+            self.test_data_generator.generate_default_provider(),
+            self.test_data_generator.generate_default_provider_update(),
+        ]
+
+        self.assertEqual(set(), self.collect(records))
+
+    def test_shared_transaction_id_is_collected_once(self):
+        privilege = self.test_data_generator.generate_default_privilege({'compactTransactionId': 'tx-shared'})
+        privilege_update = self.test_data_generator.generate_default_privilege_update(
+            value_overrides={'updatedValues': {'compactTransactionId': 'tx-shared'}},
+            previous_privilege=privilege,
+        )
+
+        self.assertEqual({'tx-shared'}, self.collect([privilege, privilege_update]))

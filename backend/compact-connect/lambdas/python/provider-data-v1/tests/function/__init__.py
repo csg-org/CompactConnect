@@ -55,6 +55,7 @@ class TstFunction(TstLambdas):
         self.create_ssn_table()
         self.create_rate_limiting_table()
         self.create_compact_configuration_table()
+        self.create_transaction_history_table()
         self.create_license_preprocessing_queue()
         self.create_staff_user_pool()
 
@@ -241,6 +242,29 @@ class TstFunction(TstLambdas):
         self._license_preprocessing_queue = boto3.resource('sqs').create_queue(QueueName='workflow-queue')
         os.environ['LICENSE_PREPROCESSING_QUEUE_URL'] = self._license_preprocessing_queue.url
 
+    def create_transaction_history_table(self):
+        self._transaction_history_table = boto3.resource('dynamodb').create_table(
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'transactionId', 'AttributeType': 'S'},
+                {'AttributeName': 'compact', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['TRANSACTION_HISTORY_TABLE_NAME'],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['TRANSACTION_HISTORY_TRANSACTION_ID_GSI_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'transactionId', 'KeyType': 'HASH'},
+                        {'AttributeName': 'compact', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
+        )
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
@@ -248,6 +272,7 @@ class TstFunction(TstLambdas):
         self._staff_users_table.delete()
         self._ssn_table.delete()
         self._compact_configuration_table.delete()
+        self._transaction_history_table.delete()
         self._rate_limiting_table.delete()
         self._license_preprocessing_queue.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])

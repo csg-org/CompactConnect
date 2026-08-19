@@ -24,6 +24,7 @@ class TstLambdas(TestCase):
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': 'email-notification-service',
                 'TRANSACTION_HISTORY_TABLE_NAME': 'transaction-history-table',
+                'TRANSACTION_HISTORY_TRANSACTION_ID_GSI_NAME': 'transactionIdGSI',
                 'ENVIRONMENT_NAME': 'test',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'FAM_GIV_INDEX_NAME': 'famGiv',

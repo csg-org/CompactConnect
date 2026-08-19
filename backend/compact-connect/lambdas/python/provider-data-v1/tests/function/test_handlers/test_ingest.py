@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from aws_lambda_powertools.metrics import MetricUnit
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
-from common_test.test_constants import DEFAULT_PROVIDER_ID
+from common_test.test_constants import DEFAULT_COMPACT_TRANSACTION_ID, DEFAULT_PROVIDER_ID
 from moto import mock_aws
 
 from .. import TstFunction
@@ -1011,6 +1011,38 @@ class TestIngestSsnCorrection(TstFunction):
             provider_id=provider_id,
         )
         return json.loads(json.dumps(provider_user_records.generate_api_response_object(), cls=ResponseEncoder))
+
+    def _store_transaction(self, transaction_id: str, licensee_id: str):
+        self.config.transaction_client.store_transactions(
+            transactions=[
+                self.test_data_generator.generate_default_transaction(
+                    {'transactionId': transaction_id, 'licenseeId': licensee_id}
+                )
+            ]
+        )
+
+    def _get_transaction_licensee_ids(self) -> dict[str, str]:
+        return {
+            record['transactionId']: record['licenseeId']
+            for record in self._transaction_history_table.scan()['Items']
+            if record['type'] == 'transaction'
+        }
+
+    def test_migration_repoints_transaction_records_at_the_new_provider_id(self):
+        """The practitioner's settled transactions must follow them to the corrected provider id, so the
+        transaction report can still resolve their name once the old provider partition is gone.
+        """
+        self._put_old_provider_records()
+        # the transaction the default privilege was purchased with, recorded against the old provider id
+        self._store_transaction(DEFAULT_COMPACT_TRANSACTION_ID, licensee_id=self.OLD_PROVIDER_ID)
+
+        resp = self._run_ingest_with_previous_provider_id()
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+        self.assertEqual(
+            {DEFAULT_COMPACT_TRANSACTION_ID: self.NEW_PROVIDER_ID},
+            self._get_transaction_licensee_ids(),
+        )
 
     def test_full_migration_moves_records_under_new_provider_id(self):
         old_provider_record_items = self._put_old_provider_records()

@@ -3221,6 +3221,19 @@ class DataClient:
                 new_provider_id=new_provider_id,
             )
 
+        # Re-point the practitioner's payment transactions at the new provider id, for the same replay-safety
+        # reason as the document move above: the commit below is the point at which the idempotency guard
+        # flips, so a failure before it retries the whole migration (and these writes are idempotent), while
+        # anything left until after it would never be retried at all. This runs on partial migrations too -
+        # the privileges purchased against the corrected license move in both cases.
+        payment_transaction_ids = self._collect_transaction_ids(records_to_move)
+        if payment_transaction_ids:
+            self.config.transaction_client.update_licensee_id_for_transactions(
+                compact=compact,
+                transaction_ids=payment_transaction_ids,
+                new_licensee_id=new_provider_id,
+            )
+
         all_transaction_items = [
             *create_transaction_items,
             *delete_transaction_items,
@@ -3254,6 +3267,35 @@ class DataClient:
                 else None
             ),
         )
+
+    @staticmethod
+    def _collect_transaction_ids(records: list[CCDataClass]) -> set[str]:
+        """
+        Collect every payment transaction id referenced by the privilege records being migrated.
+
+        A privilege record carries the transaction id of its most recent purchase or renewal; the earlier
+        ones survive only on the privilege update history records, in `previous` (and, for a renewal, in
+        `updatedValues`). Taking the union of all three covers the practitioner's full purchase history for
+        the privileges that are moving.
+        """
+        transaction_ids = set()
+        for record in records:
+            if record.type == ProviderRecordType.PRIVILEGE:
+                # compactTransactionId is optional on the privilege record, so this reads through the dict
+                # rather than the data class property, which raises when the field is absent
+                transaction_id = record.to_dict().get('compactTransactionId')
+                if transaction_id:
+                    transaction_ids.add(transaction_id)
+            elif record.type == ProviderRecordType.PRIVILEGE_UPDATE:
+                transaction_ids.update(
+                    transaction_id
+                    for transaction_id in (
+                        record.previous.get('compactTransactionId'),
+                        record.updatedValues.get('compactTransactionId'),
+                    )
+                    if transaction_id
+                )
+        return transaction_ids
 
     @staticmethod
     def _provider_record_key(record: CCDataClass) -> dict[str, str]:

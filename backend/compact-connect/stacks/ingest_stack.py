@@ -57,6 +57,10 @@ class IngestStack(AppStack):
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': (
                     persistent_stack.email_notification_service_lambda.function_name
                 ),
+                'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
+                'TRANSACTION_HISTORY_TRANSACTION_ID_GSI_NAME': (
+                    persistent_stack.transaction_history_table.transaction_id_gsi_name
+                ),
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -72,6 +76,9 @@ class IngestStack(AppStack):
         persistent_stack.provider_users_bucket.grant_read_write(ingest_handler)
         persistent_stack.provider_users_bucket.grant_delete(ingest_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(ingest_handler)
+        # The SSN-correction migration also re-points the licenseeId of the practitioner's payment
+        # transactions at their new provider id, so the transaction report can still resolve their name
+        persistent_stack.transaction_history_table.grant_read_write_data(ingest_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(ingest_handler.role),
@@ -81,8 +88,8 @@ class IngestStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                     This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key, Table, user pool, bucket, and lambda that this handler
-                    specifically needs access to.
+                    specific actions, KMS key, Tables (including the transaction history table's indexes),
+                    user pool, bucket, and lambda that this handler specifically needs access to.
                     """,
                 },
             ],
