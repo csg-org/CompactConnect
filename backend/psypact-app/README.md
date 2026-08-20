@@ -252,7 +252,7 @@ The production environment requires a few steps to fully set up before deploys c
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipelines into the appropriate AWS account:
 - Complete the [StatSig Feature Flag Setup](#statsig-feature-flag-setup) steps for each environment you will be deploying to (test, beta, prod).
-- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, beta, prod).
+- (PENDING - not sure if we need recaptcha for Psypact) -Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, beta, prod).
   Use the appropriate domain name for the environment (ie `app.test.compactconnect.org` for test environment,
   `app.beta.compactconnect.org` for beta environment, `app.compactconnect.org` for production). For the production
   environment, make sure to complete the billing setup steps as well.
@@ -293,6 +293,37 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
     ```
     cdk deploy --context action=bootstrapDeploy TestBackendPipelineStack BetaBackendPipelineStack ProdBackendPipelineStack
     ```
+    
+### Manually deploy each environment from your local CLI
+
+- Setup the pipeline stacks
+  - Configure your terminal to use the credentials for the deploy account
+  - Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deploy account id and `us-east-1`, respectively.
+
+- To get the application stood up for the first time, manually use cdk to deploy the app into the environment account for each environment account (test, beta, and prod):
+  - While authenticated into the deploy account, synthesize the application:
+    ```
+    # For Test environment:
+    cdk synth --context pipelineStack=TestBackendPsypact --context action=pipelineSynth
+
+    # For Beta environment (after **deploying** the test app):
+    cdk synth --context pipelineStack=BetaBackendPsypact --context action=pipelineSynth
+
+    # For Prod environment (after **deploying** the beta app):
+    cdk synth --context pipelineStack=ProdBackendPsypact --context action=pipelineSynth
+    ```
+  - Authenticate into the environment account and deploy the synthesized application:
+    ```sh
+    cd cdk.out
+
+    # For Test environment:
+    cdk deploy --app . --no-rollback --require-approval never 'TestBackendPsypact/Test/*'
+
+    # For Beta environment (after deploying the test app):
+    cdk deploy --app . --no-rollback --require-approval never 'BetaBackendPsypact/Beta/*'
+
+    # For Prod environment (after deploying the beta app):
+    cdk deploy --app . --no-rollback --require-approval never 'ProdBackendPsypact/Prod/*'
   - Restrict the environment account's bootstrap role access to the pipeline's cross-account role by deploying the
     [custom bootstrap stack](#custom-bootstrap-stack).
 
