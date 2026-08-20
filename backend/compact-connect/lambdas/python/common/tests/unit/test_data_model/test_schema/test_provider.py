@@ -142,17 +142,25 @@ class TestProviderRecordFieldOwnership(TstLambdas):
         from cc_common.data_model.schema.license.record import LicenseRecordSchema
         from cc_common.data_model.schema.provider.record import (
             PROVIDER_ACCOUNT_STATE_FIELDS,
+            PROVIDER_AGGREGATE_FIELDS,
             PROVIDER_PERSON_LEVEL_FIELDS,
             ProviderRecordSchema,
         )
 
-        not_suppliable_by_the_license = set(ProviderRecordSchema().fields) - set(LicenseRecordSchema().fields)
+        # We push several fields onto the provider record from the license record
+        # but not all fields on the provider record come from the license record.
+        # we define those here to catch any new fields which are added to the schema
+        # and not properly classified to prevent fields from being dropped.
+        not_suppliable_by_the_license = (
+            set(ProviderRecordSchema().fields) - set(LicenseRecordSchema().fields)
+        ) | PROVIDER_AGGREGATE_FIELDS
         unclassified = (
             not_suppliable_by_the_license
             - self.GENERATED_ON_WRITE
             - self.DERIVED_FROM_RECORDS
             - PROVIDER_ACCOUNT_STATE_FIELDS
             - PROVIDER_PERSON_LEVEL_FIELDS
+            - PROVIDER_AGGREGATE_FIELDS
         )
 
         self.assertEqual(
