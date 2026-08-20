@@ -8,7 +8,7 @@ from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissin
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
-from aws_cdk.aws_logs import QueryDefinition, QueryString, RetentionDays
+from aws_cdk.aws_logs import FilterPattern, MetricFilter, QueryDefinition, QueryString, RetentionDays
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import AppStack
@@ -148,6 +148,34 @@ class StaffUserInactivityStack(AppStack):
             actions_enabled=True,
             alarm_description=f'{self.staff_user_inactivity_handler.node.path} Lambda Duration exceeded 10 minutes',
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+
+        # Several failure paths in the handler (a failed send, a failed deactivation, no admins found to
+        # notify) are deliberately swallowed per-user so one bad record can't fail the whole batch, and
+        # so never surface on the Lambda Errors metric above. The ERROR logs they write are the only
+        # signal, so we alarm on those directly.
+        error_log_metric = MetricFilter(
+            self,
+            'StaffUserInactivityErrorLogMetric',
+            log_group=self.staff_user_inactivity_handler.log_group,
+            metric_namespace='CompactConnect/StaffUsers',
+            metric_name='StaffUserInactivityHandlerErrors',
+            filter_pattern=FilterPattern.string_value(json_field='$.level', comparison='=', value='ERROR'),
+            metric_value='1',
+            default_value=0,
+        )
+
+        Alarm(
+            self,
+            'StaffUserInactivityErrorLogAlarm',
+            metric=error_log_metric.metric(statistic='Sum'),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'The Staff User Inactivity Lambda logged an ERROR level message. Investigate the '
+            f'logs for the {self.staff_user_inactivity_handler.function_name} lambda to determine the cause.',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
