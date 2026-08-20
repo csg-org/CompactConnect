@@ -106,9 +106,10 @@ class UserClient:
         logger.info('Deactivating staff user', user_id=user_id)
 
         # Disable in Cognito first. If this succeeds but the record updates below do not, the user is
-        # locked out while still showing active, and the next sweep finishes the job. The reverse order
-        # would leave a user marked inactive who can still sign in - and the pre-token hook would then
-        # flip them straight back to active.
+        # locked out while still showing active, and the next day's scheduled day-of run retries the
+        # DynamoDB update alone (the inactivity tracker records each step separately, so it knows this
+        # one didn't succeed). The reverse order would leave a user marked inactive who can still sign
+        # in - and the pre-token hook would then flip them straight back to active.
         self.config.cognito_client.admin_disable_user(UserPoolId=self.config.user_pool_id, Username=user_id)
 
         # A user only ever has a handful of compact records, all in one partition, so a single query

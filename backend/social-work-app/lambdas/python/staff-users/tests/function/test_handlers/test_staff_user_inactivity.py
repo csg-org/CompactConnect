@@ -21,7 +21,7 @@ class TestStaffUserInactivity(TstFunction):
         self.mock_context.get_remaining_time_in_millis.return_value = 900_000
 
     def _seed_user(self, *, days_since_login: int | None, compact_actions=None, jurisdictions=None, status=None):
-        """Create a staff user, in Cognito and in the table, last seen `days_since_login` days before TODAY."""
+        """Create a staff user, in Cognito and in the table, last seen `days_since_login` days before MOCK_TODAY."""
         from cc_common.data_model.schema.common import StaffUserStatus
         from cc_common.data_model.schema.user.record import UserRecordSchema
 
@@ -101,7 +101,8 @@ class TestStaffUserInactivity(TstFunction):
         )
 
     def test_each_reminder_run_targets_its_own_day(self):
-        """10-day fires at 51 days since login, 3-day at 58, 1-day at 60. All exact, not ranges."""
+        """Under the default 60-day-inactivity threshold, 10-day fires at 51 days since login, 3-day at 58,
+        1-day at 60. All exact, not ranges."""
         expected_email_by_run = {
             10: self._seed_user(days_since_login=51)[1],
             3: self._seed_user(days_since_login=58)[1],
@@ -188,6 +189,9 @@ class TestStaffUserInactivity(TstFunction):
         self.assertEqual(0, result['metrics']['matchedUsers'])
 
     def test_target_last_login_date_overrides_the_computed_date(self):
+        """In the case of a failure that needs to be manually replayed, verify that the replay date is used in place
+         of the current date.
+        """
         self._seed_user(days_since_login=40)
         replay_date = (MOCK_TODAY - timedelta(days=40)).date().isoformat()
 

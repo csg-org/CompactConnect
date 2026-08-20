@@ -108,6 +108,10 @@ class TestResolveAdminRecipients(TstLambdas):
         recipients = self._resolve(user, build_directory([user, deactivated_compact_admin]))
 
         self.assertEqual(set(), recipients)
+        self.assertTrue(
+            any(record.levelname == 'ERROR' for record in logs.records),
+            'expected an ERROR log when there is no one to notify',
+        )
 
     def test_no_admins_anywhere_returns_empty_set(self):
         """A compact with nobody to notify is a configuration problem, but the user still gets their own email."""

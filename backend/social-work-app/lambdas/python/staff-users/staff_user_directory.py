@@ -11,7 +11,7 @@ class CompactStaffUserDirectory:
     """All staff users in a compact, loaded in a single pass over the famGiv GSI.
 
     Built once and queried repeatedly. The admin buckets are classified eagerly at construction;
-    cohort selection is a query against the loaded set, so this class is usable by anything that
+    matching is a query against the loaded set, so this class is usable by anything that
     needs to reach a compact's staff users or their admins.
     """
 
@@ -51,10 +51,10 @@ class CompactStaffUserDirectory:
         return list(self._compact_admins)
 
     def _candidates(self) -> Generator[StaffUserData, None, None]:
-        """Users eligible for an inactivity cohort.
+        """Users eligible to be matched for inactivity processing.
 
         Users who are already inactive have been deactivated, and users with no lastLoginAt have not
-        signed in since login tracking was introduced, so neither has an inactivity clock running.
+        signed in, so neither has an inactivity clock running.
         """
         return (
             user for user in self._users if user.status == StaffUserStatus.ACTIVE.value and user.lastLoginAt is not None

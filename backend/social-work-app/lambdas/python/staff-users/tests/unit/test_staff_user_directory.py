@@ -34,7 +34,7 @@ class TestCompactStaffUserDirectory(TstLambdas):
             {user.userId for user in directory.users_last_seen_on_or_before(date(2024, 11, 8))},
         )
 
-    def test_cohorts_exclude_inactive_users(self):
+    def test_matching_excludes_inactive_users(self):
         """Already-deactivated users must not be swept up again."""
         from cc_common.data_model.schema.common import StaffUserStatus
 
@@ -49,7 +49,7 @@ class TestCompactStaffUserDirectory(TstLambdas):
             [user.userId for user in directory.users_last_seen_on_or_before(date(2024, 11, 8))],
         )
 
-    def test_cohorts_exclude_users_who_have_never_signed_in(self):
+    def test_matching_excludes_users_who_have_never_signed_in(self):
         never_signed_in = self._staff_user(last_login_at=None)
 
         directory = self._build_directory([never_signed_in])
@@ -83,8 +83,8 @@ class TestCompactStaffUserDirectory(TstLambdas):
 
         self.assertEqual([compact_admin.userId], [user.userId for user in directory.compact_admins])
 
-    def test_admin_lookups_do_not_require_cohort_selection(self):
-        """The directory is usable purely as an admin lookup, without picking a cohort first."""
+    def test_admin_lookups_do_not_require_matching(self):
+        """The directory is usable purely as an admin lookup, without matching users first."""
         from cc_common.data_model.schema.common import CCPermissionsAction
 
         compact_admin = self._staff_user(compact_actions={CCPermissionsAction.ADMIN.value})

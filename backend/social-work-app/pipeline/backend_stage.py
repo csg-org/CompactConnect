@@ -175,7 +175,7 @@ class BackendStage(Stage):
             )
 
             # This job emails staff users before deactivating them, so it must not run in an
-            # environment that cannot send email
+            # environment that cannot send email because it does not have a hosted zone.
             self.staff_user_inactivity_stack = StaffUserInactivityStack(
                 self,
                 'StaffUserInactivityStack',

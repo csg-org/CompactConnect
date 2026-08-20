@@ -180,7 +180,6 @@ def _process_user(
         _deactivate_user(user=user, tracker=tracker, metrics=metrics)
         return
 
-    # Every non-deactivation run matches on an exact lastLoginAt date, so this is always in the future.
     template_variables = StaffUserInactivityNotificationTemplateVariables(
         staff_user_first_name=user.givenName,
         staff_user_last_name=user.familyName,
