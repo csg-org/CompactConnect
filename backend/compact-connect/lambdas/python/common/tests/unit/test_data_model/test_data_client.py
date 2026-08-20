@@ -56,7 +56,7 @@ class TestCollectTransactionIds(TstLambdas):
     def setUp(self):
         from cc_common.data_model.data_client import DataClient
 
-        self.collect = DataClient._collect_transaction_ids  # noqa: SLF001 protected-access
+        self.collect = DataClient._collect_payment_transaction_ids  # noqa: SLF001 protected-access
 
     def test_collects_the_privilege_records_transaction_id(self):
         privilege = self.test_data_generator.generate_default_privilege({'compactTransactionId': 'tx-current'})

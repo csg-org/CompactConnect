@@ -3237,7 +3237,7 @@ class DataClient:
         # already point at new_provider_id while the provider records are still under previous_provider_id,
         # so a report generated in that window renders the practitioner as UNKNOWN - briefly, the same
         # symptom this re-pointing exists to remove. The SQS retry closes it by completing the migration.
-        payment_transaction_ids = self._collect_transaction_ids(records_to_move)
+        payment_transaction_ids = self._collect_payment_transaction_ids(records_to_move)
         if payment_transaction_ids:
             self.config.transaction_client.update_licensee_id_for_transactions(
                 compact=compact,
@@ -3275,9 +3275,7 @@ class DataClient:
             migration_performed=True,
             full_migration=full_migration,
             old_provider_registered_email=(
-                old_top_level_provider_data.to_dict().get('compactConnectRegisteredEmailAddress')
-                if full_migration
-                else None
+                old_top_level_provider_data.compactConnectRegisteredEmailAddress if full_migration else None
             ),
         )
 
@@ -3296,7 +3294,7 @@ class DataClient:
         )
 
     @staticmethod
-    def _collect_transaction_ids(records: list[CCDataClass]) -> set[str]:
+    def _collect_payment_transaction_ids(records: list[CCDataClass]) -> set[str]:
         """
         Collect every payment transaction id referenced by the privilege records being migrated.
 
