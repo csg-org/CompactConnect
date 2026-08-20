@@ -121,6 +121,12 @@ _PROVIDER_ACCOUNT_STATE_FIELDS = (
     'recoveryExpiry',
 )
 
+# Most account-state fields simply disappear from a migrated record. currentHomeJurisdiction does not: its
+# schema field carries a load_default, so it is filled in whenever a record is loaded and written back on
+# every dump. What a migration resets is its *value*, and 'unknown' is the assertion that matters - that is
+# the value which keeps the migrated provider compact-ineligible until the practitioner registers again.
+_PROVIDER_ACCOUNT_STATE_RESET_VALUES = {'currentHomeJurisdiction': 'unknown'}
+
 _MIGRATION_WAIT_SECONDS = 900
 _POLL_INTERVAL_SECONDS = 30
 
@@ -211,7 +217,24 @@ def _get_provider_s3_objects(compact: str, provider_id: str) -> dict[str, bytes]
     return objects
 
 
-def _normalized_migratable_records(records: list[dict], provider_id: str) -> dict[str, str]:
+def _stable_record_key(record: dict, provider_id: str) -> str:
+    """A record identity that survives a migration.
+
+    Every sort key this system writes is stable across a migration except for update records, whose final
+    segment is a hash over the record's `previous` snapshot - and that snapshot carries the provider id, so
+    re-keying a record always changes it (see ChangeHashMixin.hash_changes). Dropping that one segment
+    leaves the scope and the createDate, neither of which a migration touches.
+
+    The hash exists to separate updates made within the same second for the same scope, so this key is not
+    guaranteed unique. Callers group by it rather than assuming one record per key.
+    """
+    sort_key = record['sk'].replace(provider_id, '<PROVIDER_ID>')
+    if '#UPDATE#' in sort_key:
+        sort_key = sort_key.rsplit('/', 1)[0]
+    return f'{record["type"]}: {sort_key}'
+
+
+def _normalized_migratable_records(records: list[dict], provider_id: str) -> dict[str, list[str]]:
     """Canonicalize a provider's records for comparison across provider ids.
 
     Each record is serialized with its provider id replaced by a placeholder (which also normalizes
@@ -230,8 +253,7 @@ def _normalized_migratable_records(records: list[dict], provider_id: str) -> dic
             continue
         scrubbed = {key: value for key, value in record.items() if key not in _VOLATILE_RECORD_FIELDS}
         canonical = json.dumps(scrubbed, sort_keys=True, default=str).replace(provider_id, '<PROVIDER_ID>')
-        # key by something readable for failure messages
-        normalized[f'{record["type"]}: {record["sk"].replace(provider_id, "<PROVIDER_ID>")}'] = canonical
+        normalized.setdefault(_stable_record_key(record, provider_id), []).append(canonical)
     return normalized
 
 
@@ -253,24 +275,34 @@ def _verify_all_records_migrated(
 ):
     """Verify every migratable record captured from the source provider now exists under the target provider,
     field for field.
+
+    Records are paired on the stable part of their sort key (see _stable_record_key) and compared on
+    content, so a record that changed is reported as a field-level diff rather than as a missing record.
+    Keys are grouped because an update record's key is not guaranteed unique.
     """
     source_normalized = _normalized_migratable_records(source_records, source_provider_id)
     target_normalized = _normalized_migratable_records(target_records, target_provider_id)
 
     problems = []
-    for label, source_canonical in source_normalized.items():
-        target_canonical = target_normalized.get(label)
-        if target_canonical is None:
-            problems.append(f'{label}: no matching record under provider {target_provider_id}')
-        elif target_canonical != source_canonical:
-            problems.append(f'{label}: {_describe_record_differences(source_canonical, target_canonical)}')
+    source_record_count = 0
+    for record_key, source_canonicals in source_normalized.items():
+        unmatched_target_canonicals = list(target_normalized.get(record_key, []))
+        for source_canonical in source_canonicals:
+            source_record_count += 1
+            if source_canonical in unmatched_target_canonicals:
+                unmatched_target_canonicals.remove(source_canonical)
+            elif unmatched_target_canonicals:
+                differences = _describe_record_differences(source_canonical, unmatched_target_canonicals.pop(0))
+                problems.append(f'{record_key}: {differences}')
+            else:
+                problems.append(f'{record_key}: no matching record under provider {target_provider_id}')
 
     if problems:
         raise SmokeTestFailureException(
             f'The following records did not survive migration to provider {target_provider_id} intact:\n  '
             + '\n  '.join(problems)
         )
-    print(f'Verified all {len(source_normalized)} migratable records now exist under provider {target_provider_id}')
+    print(f'Verified all {source_record_count} migratable records now exist under provider {target_provider_id}')
 
 
 def _verify_provider_record_migrated(
@@ -303,14 +335,22 @@ def _verify_provider_record_migrated(
             f'{_describe_record_differences(source_canonical, target_canonical)}'
         )
 
-    # the account state is expected to be gone, and that expectation is worth asserting rather than
-    # merely ignoring: a full migration deletes the Cognito user, so a record that still looked registered
-    # would be its own bug
-    still_registered = [field for field in _PROVIDER_ACCOUNT_STATE_FIELDS if field in target_provider_record]
-    if still_registered:
+    # the account state is expected to be reset, and that expectation is worth asserting rather than merely
+    # ignoring: a full migration deletes the Cognito user, so a record that still looked registered would be
+    # its own bug
+    carried_over = []
+    for field in _PROVIDER_ACCOUNT_STATE_FIELDS:
+        expected_reset_value = _PROVIDER_ACCOUNT_STATE_RESET_VALUES.get(field)
+        actual_value = target_provider_record.get(field, '<absent>')
+        if expected_reset_value is None:
+            if field in target_provider_record:
+                carried_over.append(f'{field}={actual_value!r}, expected it to be dropped')
+        elif actual_value != expected_reset_value:
+            carried_over.append(f'{field}={actual_value!r}, expected {expected_reset_value!r}')
+    if carried_over:
         raise SmokeTestFailureException(
             f'The migrated provider record for {target_provider_id} still carries account state that a full '
-            f'migration should have left behind: {still_registered}'
+            f'migration should have reset: {carried_over}'
         )
     print(f'Verified the top-level provider record migrated intact to provider {target_provider_id}')
 
@@ -430,7 +470,7 @@ def _verify_records_left_behind_are_untouched(
 
     def _keyed(records: list[dict]) -> dict[str, dict]:
         return {
-            f'{record["type"]}: {record["sk"]}': record
+            _stable_record_key(record, ''): record
             for record in records
             if record['type'] != 'provider' and record.get('licenseType') != migrated_license_type
         }
@@ -608,6 +648,24 @@ def _migrate_test_provider_to_ssn(
     return new_provider_id
 
 
+def _expected_registration_values(provider_record: dict) -> dict:
+    """The registration values the shared test provider account is expected to carry.
+
+    These cannot be read back off a record that has just been migrated: a migration deliberately strips
+    account state, so a migrated record has none to give. Restoring from one restores nothing and leaves the
+    provider unregistered - which then makes the next full migration skip the Cognito deletion that the
+    roundtrip exists to exercise, silently weakening the test.
+
+    Both values are knowable without a baseline: the registered email address is the Cognito username by
+    definition, and the home jurisdiction is the jurisdiction of the license the provider record was built
+    from (which is what registration sets it to).
+    """
+    return {
+        'compactConnectRegisteredEmailAddress': config.test_provider_user_username,
+        'currentHomeJurisdiction': provider_record['licenseJurisdiction'],
+    }
+
+
 def _restore_test_provider_account(compact: str, provider_id: str, baseline_provider_record: dict):
     """Restore the shared test provider account after a full migration deleted its Cognito user.
 
@@ -666,9 +724,17 @@ def _restore_test_provider_account(compact: str, provider_id: str, baseline_prov
     # over, if they are not already present - independent of whether the Cognito user needed recreating
     provider_key = {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'}
     current_provider_record = get_provider_user_dynamodb_table().get_item(Key=provider_key).get('Item', {})
+    restorable_fields = ('compactConnectRegisteredEmailAddress', 'currentHomeJurisdiction')
+    missing_from_baseline = [field for field in restorable_fields if field not in baseline_provider_record]
+    if missing_from_baseline:
+        # a baseline taken from an already-migrated record cannot restore what the migration stripped
+        print(
+            f'WARNING: no baseline value for {missing_from_baseline}, so provider record {provider_id} will '
+            f'be left unregistered for those fields'
+        )
     registration_fields = {
         field: baseline_provider_record[field]
-        for field in ('compactConnectRegisteredEmailAddress', 'currentHomeJurisdiction')
+        for field in restorable_fields
         if field in baseline_provider_record and current_provider_record.get(field) != baseline_provider_record[field]
     }
     if registration_fields:
@@ -765,7 +831,12 @@ def _recover_stranded_test_provider():
         for record in _get_provider_dynamo_records(TEST_COMPACT, config.test_provider_original_provider_id)
         if record['type'] == 'provider'
     )
-    _restore_test_provider_account(TEST_COMPACT, config.test_provider_original_provider_id, recovered_provider_record)
+    # the recovered record has just been through a migration, so it carries no registration state of its own
+    _restore_test_provider_account(
+        TEST_COMPACT,
+        config.test_provider_original_provider_id,
+        _expected_registration_values(recovered_provider_record),
+    )
     print('Recovery complete: records and Cognito account are back under the original provider id.')
 
 
@@ -785,8 +856,9 @@ def test_full_ssn_migration_roundtrip():
     Step 5: Migrate back to the original SSN (roundtrip) and verify everything - records, documents, and
             transaction attribution - returned to the original provider id and the intermediate provider id
             was cleaned up.
-    Step 6: Restore the test provider's Cognito account (deleted by the full migration) and registration
-            fields so the shared test account remains usable.
+    Step 6: On success, restore the test provider's Cognito account (deleted by the full migration) and
+            registration fields so the shared test account remains usable. On failure the account is left
+            alone, so the next run's recovery step can repair it.
     """
     _recover_stranded_test_provider()
 
@@ -922,11 +994,23 @@ def test_full_ssn_migration_roundtrip():
             compact=compact, provider_id=original_provider_id, records=returned_records
         )
         print('Roundtrip migration completed; all records and documents are back under the original provider id')
-    finally:
-        # Restore the shared test provider account no matter what state the test failed in: point the
-        # Cognito user at whichever provider id currently holds the provider's records (last_known_provider_id,
-        # tracked above - see its comment for why this is reliable without an extra lookup here).
+
+        # Step 6: restore the shared test provider account. This runs only on success.
+        # A full migration deletes the Cognito user; recreating it after a failure points it at whichever
+        # provider id the records happened to reach, and 'custom:providerId' is immutable, so the next run
+        # cannot repair it. Leaving the account deleted is the state _recover_stranded_test_provider is
+        # built to detect and repair, which makes a re-run self-service.
         _restore_test_provider_account(compact, last_known_provider_id, baseline_provider_record)
+    except Exception:
+        print(
+            f'Test failed with the provider records under provider id {last_known_provider_id}. The Cognito '
+            f'account has been left as-is rather than repointed; re-running will detect and recover this '
+            f'state (supply {last_known_provider_id} when prompted). If the account still exists but is '
+            f'bound to a different provider id, delete the Cognito user {config.test_provider_user_username} '
+            f'first, since custom:providerId cannot be changed.'
+        )
+        raise
+    finally:
         delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_staff_user_sub, compact=compact)
         delete_test_app_client(test_app_client_id)
 
