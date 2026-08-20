@@ -180,11 +180,7 @@ export const getAuthCallbackPath = (appMode: AppModes, authType: AuthTypes): str
         break;
     }
 
-    if (!authTypeSegment || !appMode) {
-        return '';
-    }
-
-    return `/auth/callback/${authTypeSegment}/${appMode}`;
+    return (authTypeSegment && appMode) ? `/auth/callback/${authTypeSegment}/${appMode}` : '';
 };
 
 export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login', state = '', codeChallenge = ''): string => {
