@@ -167,6 +167,13 @@ def ingest_license_message(message: dict):
                 for field in SYSTEM_OWNED_LICENSE_FIELDS:
                     if existing_license.get(field) is not None:
                         posted_license_record[field] = existing_license[field]
+                # licenseStatus and compactEligibility were calculated when this record was loaded,
+                # before the encumbrance above was carried onto it. Round-trip through the schema so the
+                # derived values reflect it - find_best_license reads them when choosing which license
+                # represents the practitioner.
+                posted_license_record = license_record_schema.load(
+                    json.loads(license_record_schema.dumps(deepcopy(posted_license_record)))
+                )
                 _process_license_update(
                     existing_license=existing_license,
                     new_license=posted_license_record,

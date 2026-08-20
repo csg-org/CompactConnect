@@ -1293,3 +1293,29 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             docs = provider_user_records.generate_opensearch_documents()
 
         self.assertEqual([], docs)
+
+
+class TestPopulateProviderRecordAggregateFields(TstLambdas):
+    """
+    The provider record's encumberedStatus aggregates every license AND privilege the practitioner holds,
+    and is maintained by the encumbrance flows. populate_provider_record overlays a single license onto the
+    provider record, so it must not carry that field across when refreshing an existing record - otherwise a
+    routine license upload (or registration, home-state change, or rollback) silently clears the aggregate.
+    """
+
+    def test_existing_provider_keeps_its_own_encumbered_status(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # the provider is encumbered because of a privilege, while the license itself was lifted earlier
+        # and carries the residual 'unencumbered'
+        current_provider = self.test_data_generator.generate_default_provider({'encumberedStatus': 'encumbered'})
+        license_record = self.test_data_generator.generate_default_license(
+            {'encumberedStatus': 'unencumbered'}
+        ).to_dict()
+
+        provider_record = ProviderRecordUtility.populate_provider_record(
+            current_provider_record=current_provider,
+            license_record=license_record,
+        )
+
+        self.assertEqual('encumbered', provider_record.to_dict()['encumberedStatus'])

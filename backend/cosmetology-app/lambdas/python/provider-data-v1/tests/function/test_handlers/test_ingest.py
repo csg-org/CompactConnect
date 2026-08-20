@@ -84,6 +84,35 @@ class TestIngest(TstFunction):
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
         self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
 
+    def test_reupload_does_not_overwrite_the_provider_encumbrance_aggregate(self):
+        """The provider record's encumberedStatus aggregates every license AND privilege, and is maintained
+        by the encumbrance flows. A license upload must not push one license's value onto it - a provider
+        encumbered because of a privilege would otherwise be cleared by a routine roster upload.
+        """
+        from boto3.dynamodb.conditions import Key
+
+        provider_id = self._with_ingested_license()
+        # provider encumbered because of a privilege; the license itself was lifted earlier, so it carries
+        # the residual 'unencumbered' value
+        self._set_license_field(provider_id, 'encumberedStatus', 'unencumbered')
+
+        def provider_record():
+            records = self.config.provider_table.query(
+                KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_id}')
+            )['Items']
+            return next(record for record in records if record['type'] == 'provider')
+
+        record = provider_record()
+        self.config.provider_table.update_item(
+            Key={'pk': record['pk'], 'sk': record['sk']},
+            UpdateExpression='SET encumberedStatus = :value',
+            ExpressionAttributeValues={':value': 'encumbered'},
+        )
+
+        self._reingest_default_license()
+
+        self.assertEqual('encumbered', provider_record().get('encumberedStatus'))
+
     def test_existing_license_encumbered_status_survives_a_reupload(self):
         """A state's upload cannot express an encumbrance, so a routine re-upload must not clear one.
 

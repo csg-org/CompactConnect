@@ -15,6 +15,7 @@ from cc_common.data_model.schema.common import (
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
+from cc_common.data_model.schema.provider.record import PROVIDER_AGGREGATE_FIELDS
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
@@ -124,7 +125,11 @@ class ProviderRecordUtility:
                 }
             )
         # else populate the current fields of the provider record first before updating with
-        # new values
+        # new values.
+        # The provider's aggregate fields are deliberately held back from the license overlay: they
+        # summarize every license and privilege the practitioner holds, so one license's value must not
+        # replace them. (On the create branch above there is no prior aggregate, so the license seeds it.)
+        license_record = {key: value for key, value in license_record.items() if key not in PROVIDER_AGGREGATE_FIELDS}
         return ProviderData.create_new(
             {
                 # keep existing values from the current provider record
