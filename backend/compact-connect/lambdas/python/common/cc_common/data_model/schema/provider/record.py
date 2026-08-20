@@ -44,6 +44,21 @@ PROVIDER_AGGREGATE_FIELDS = frozenset({'encumberedStatus'})
 # alongside the registered email address (see DataClient registration flow), and until it is set the
 # provider is calculated as compact-ineligible. Carrying it would leave a provider that cannot sign in
 # looking registered and eligible to purchase.
+# Fields describing the practitioner rather than their licenses or their account. They are maintained by
+# flows that have nothing to do with license uploads - the military file upload and audit flows - and
+# cannot be rebuilt from any record a migration moves, so a full SSN-correction migration has to carry
+# them onto the corrected provider id explicitly.
+#
+# A partial migration does not: the records that back these stay with the old provider, so a status
+# carried across would have no supporting documentation behind it.
+PROVIDER_PERSON_LEVEL_FIELDS = frozenset(
+    {
+        'militaryStatus',
+        'militaryStatusNote',
+    }
+)
+
+
 PROVIDER_ACCOUNT_STATE_FIELDS = frozenset(
     {
         'compactConnectRegisteredEmailAddress',
@@ -55,7 +70,6 @@ PROVIDER_ACCOUNT_STATE_FIELDS = frozenset(
         'recoveryExpiry',
     }
 )
-
 
 
 @BaseRecordSchema.register_schema('provider')

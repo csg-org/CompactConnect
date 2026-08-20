@@ -107,6 +107,20 @@ _UPLOADABLE_LICENSE_FIELDS = (
 # normalized (not dropped) so that provider-id-derived fields still participate in the comparison.
 _VOLATILE_RECORD_FIELDS = ('pk', 'sk', 'dateOfUpdate', 'providerDateOfUpdate', 'ssnLastFour')
 
+# Fields on the top-level provider record that a FULL migration is expected to drop, because they describe
+# the practitioner's CompactConnect account rather than the practitioner: the old Cognito user is deleted
+# and they must register again under the corrected provider id, which is what re-sets these. Everything
+# else on the record has to survive the migration unchanged - that is what this list makes checkable.
+_PROVIDER_ACCOUNT_STATE_FIELDS = (
+    'compactConnectRegisteredEmailAddress',
+    'currentHomeJurisdiction',
+    'pendingEmailAddress',
+    'emailVerificationCode',
+    'emailVerificationExpiry',
+    'recoveryToken',
+    'recoveryExpiry',
+)
+
 _MIGRATION_WAIT_SECONDS = 900
 _POLL_INTERVAL_SECONDS = 30
 
@@ -221,19 +235,84 @@ def _normalized_migratable_records(records: list[dict], provider_id: str) -> dic
     return normalized
 
 
+def _describe_record_differences(source_canonical: str, target_canonical: str) -> str:
+    """Describe field-by-field how two canonicalized records differ, for a readable failure message."""
+    source_fields = json.loads(source_canonical)
+    target_fields = json.loads(target_canonical)
+    differences = []
+    for field in sorted(set(source_fields) | set(target_fields)):
+        before = source_fields.get(field, '<absent>')
+        after = target_fields.get(field, '<absent>')
+        if before != after:
+            differences.append(f'{field}: before={before!r} after={after!r}')
+    return '; '.join(differences)
+
+
 def _verify_all_records_migrated(
     *, source_records: list[dict], source_provider_id: str, target_records: list[dict], target_provider_id: str
 ):
-    """Verify every migratable record captured from the source provider now exists under the target provider."""
+    """Verify every migratable record captured from the source provider now exists under the target provider,
+    field for field.
+    """
     source_normalized = _normalized_migratable_records(source_records, source_provider_id)
-    target_normalized = set(_normalized_migratable_records(target_records, target_provider_id).values())
+    target_normalized = _normalized_migratable_records(target_records, target_provider_id)
 
-    missing_records = [label for label, canonical in source_normalized.items() if canonical not in target_normalized]
-    if missing_records:
+    problems = []
+    for label, source_canonical in source_normalized.items():
+        target_canonical = target_normalized.get(label)
+        if target_canonical is None:
+            problems.append(f'{label}: no matching record under provider {target_provider_id}')
+        elif target_canonical != source_canonical:
+            problems.append(f'{label}: {_describe_record_differences(source_canonical, target_canonical)}')
+
+    if problems:
         raise SmokeTestFailureException(
-            f'The following records were not migrated to provider {target_provider_id}: {missing_records}'
+            f'The following records did not survive migration to provider {target_provider_id} intact:\n  '
+            + '\n  '.join(problems)
         )
     print(f'Verified all {len(source_normalized)} migratable records now exist under provider {target_provider_id}')
+
+
+def _verify_provider_record_migrated(
+    *, source_records: list[dict], source_provider_id: str, target_records: list[dict], target_provider_id: str
+):
+    """Verify the top-level provider record survived a full migration intact.
+
+    The top-level record is rebuilt rather than moved, so it is excluded from the record-for-record
+    comparison above - which is exactly why fields have been able to disappear from it unnoticed (the
+    practitioner's military audit status and note, for instance). Everything on it has to come through a
+    full migration unchanged apart from the provider id, the corrected ssnLastFour, and the account state
+    the practitioner re-establishes when they register again.
+    """
+    source_provider_record = next(record for record in source_records if record['type'] == 'provider')
+    target_provider_record = next((record for record in target_records if record['type'] == 'provider'), None)
+    if target_provider_record is None:
+        raise SmokeTestFailureException(f'No top-level provider record was created for {target_provider_id}')
+
+    ignored_fields = (*_VOLATILE_RECORD_FIELDS, *_PROVIDER_ACCOUNT_STATE_FIELDS)
+
+    def _canonical(record: dict, provider_id: str) -> str:
+        scrubbed = {key: value for key, value in record.items() if key not in ignored_fields}
+        return json.dumps(scrubbed, sort_keys=True, default=str).replace(provider_id, '<PROVIDER_ID>')
+
+    source_canonical = _canonical(source_provider_record, source_provider_id)
+    target_canonical = _canonical(target_provider_record, target_provider_id)
+    if source_canonical != target_canonical:
+        raise SmokeTestFailureException(
+            f'The top-level provider record did not survive migration to {target_provider_id} intact: '
+            f'{_describe_record_differences(source_canonical, target_canonical)}'
+        )
+
+    # the account state is expected to be gone, and that expectation is worth asserting rather than
+    # merely ignoring: a full migration deletes the Cognito user, so a record that still looked registered
+    # would be its own bug
+    still_registered = [field for field in _PROVIDER_ACCOUNT_STATE_FIELDS if field in target_provider_record]
+    if still_registered:
+        raise SmokeTestFailureException(
+            f'The migrated provider record for {target_provider_id} still carries account state that a full '
+            f'migration should have left behind: {still_registered}'
+        )
+    print(f'Verified the top-level provider record migrated intact to provider {target_provider_id}')
 
 
 def _get_privilege_transaction_ids(records: list[dict]) -> set[str]:
@@ -315,6 +394,67 @@ def _verify_transactions_attributed_to_provider(*, compact: str, provider_id: st
             "WARNING: none of this provider's privilege transactions had settled records to check, so the "
             'transaction attribution check did not verify anything in this run'
         )
+
+
+def _set_provider_military_status(compact: str, provider_id: str, status: str, note: str):
+    """Stamp a military audit result onto a provider record.
+
+    The mock practitioner these partial-migration tests build has no military documentation of their own,
+    so the state a partial migration has to leave alone is written here directly. militaryStatus and
+    militaryStatusNote live only on the top-level provider record and are set by the military file upload
+    and audit flows; nothing about them is tied to Cognito, so setting them straight on the record is a
+    faithful stand-in for an audited practitioner.
+    """
+    dynamo_table = get_provider_user_dynamodb_table()
+    dynamo_table.update_item(
+        Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+        UpdateExpression='SET militaryStatus = :status, militaryStatusNote = :note',
+        ExpressionAttributeValues={':status': status, ':note': note},
+    )
+    print(f'Set militaryStatus={status} on provider {provider_id} for the partial migration test')
+
+
+def _verify_records_left_behind_are_untouched(
+    *, source_records: list[dict], target_records: list[dict], migrated_license_type: str
+):
+    """Verify a partial migration changed nothing belonging to the license that stayed.
+
+    This is the property that separates a partial migration from a full one: only the corrected license's
+    records may be touched. Everything else under the old provider id has to come out byte for byte
+    identical - same provider id, same values, same dateOfUpdate, because those records should not have
+    been written at all.
+
+    The top-level provider record is excluded: a partial migration deliberately rebuilds it from the
+    licenses that remain, so it is expected to change. It is checked separately.
+    """
+
+    def _keyed(records: list[dict]) -> dict[str, dict]:
+        return {
+            f'{record["type"]}: {record["sk"]}': record
+            for record in records
+            if record['type'] != 'provider' and record.get('licenseType') != migrated_license_type
+        }
+
+    expected_records = _keyed(source_records)
+    actual_records = _keyed(target_records)
+
+    problems = []
+    for label, expected_record in expected_records.items():
+        actual_record = actual_records.get(label)
+        if actual_record is None:
+            problems.append(f'{label}: no longer present under the old provider id')
+        elif actual_record != expected_record:
+            differences = _describe_record_differences(
+                json.dumps(expected_record, sort_keys=True, default=str),
+                json.dumps(actual_record, sort_keys=True, default=str),
+            )
+            problems.append(f'{label}: {differences}')
+    if problems:
+        raise SmokeTestFailureException(
+            'A partial migration modified records belonging to the license that stayed behind:\n  '
+            + '\n  '.join(problems)
+        )
+    print(f'Verified all {len(expected_records)} record(s) for the remaining license were left untouched')
 
 
 def _verify_license_ssn_last_four(*, records: list[dict], expected_ssn_last_four: str, license_type: str | None = None):
@@ -639,8 +779,9 @@ def test_full_ssn_migration_roundtrip():
     Step 1: Capture the test provider's baseline state (all DynamoDB records + all S3 objects).
     Step 2: Upload a fresh military affiliation document so there is a recent document to migrate.
     Step 3: Upload the provider's license with a corrected SSN and previousSSN set to their current mock SSN.
-    Step 4: Wait for the migration, then verify every record and S3 object moved to the new provider id,
-            and that the transactions the provider's privileges were purchased with are attributed to it.
+    Step 4: Wait for the migration, then verify every record and S3 object moved to the new provider id -
+            including the top-level provider record, field for field - and that the transactions the
+            provider's privileges were purchased with are attributed to it.
     Step 5: Migrate back to the original SSN (roundtrip) and verify everything - records, documents, and
             transaction attribution - returned to the original provider id and the intermediate provider id
             was cleaned up.
@@ -716,6 +857,12 @@ def test_full_ssn_migration_roundtrip():
             target_records=migrated_records,
             target_provider_id=migrated_provider_id,
         )
+        _verify_provider_record_migrated(
+            source_records=pre_migration_records,
+            source_provider_id=original_provider_id,
+            target_records=migrated_records,
+            target_provider_id=migrated_provider_id,
+        )
         if not any(
             record['type'] == 'providerUpdate' and record.get('updateType') == 'ssnCorrection'
             for record in migrated_records
@@ -753,6 +900,12 @@ def test_full_ssn_migration_roundtrip():
         last_known_provider_id = returned_provider_id
         returned_records = _get_provider_dynamo_records(compact, original_provider_id)
         _verify_all_records_migrated(
+            source_records=pre_migration_records,
+            source_provider_id=original_provider_id,
+            target_records=returned_records,
+            target_provider_id=original_provider_id,
+        )
+        _verify_provider_record_migrated(
             source_records=pre_migration_records,
             source_provider_id=original_provider_id,
             target_records=returned_records,
@@ -829,8 +982,9 @@ def test_partial_ssn_migration():
 
     Step 1: Upload OT + OTA licenses under the same mock SSN and wait for the provider to be created.
     Step 2: Re-upload the OT license with a corrected SSN and previousSSN set to the original mock SSN.
-    Step 3: Verify the OT license now lives under a new provider id with its own top-level provider record,
-            while the OTA license and provider record remain under the old provider id.
+    Step 3: Verify the OT license now lives under a new provider id with its own top-level provider record
+            and arrived intact, while the OTA license and provider record remain under the old provider id
+            completely untouched - including the person-level state a partial migration must not move.
     Step 4: Clean up all DynamoDB records for both provider ids.
     """
     test_staff_user_sub = create_test_staff_user(
@@ -871,6 +1025,14 @@ def test_partial_ssn_migration():
             ),
         )
 
+        # Give the practitioner an audited military status, so there is person-level provider state for the
+        # migration to preserve, then snapshot everything before the correction
+        _set_provider_military_status(
+            PARTIAL_MIGRATION_COMPACT, old_provider_id, 'approved', 'verified for the partial migration test'
+        )
+        pre_migration_records = _get_provider_dynamo_records(PARTIAL_MIGRATION_COMPACT, old_provider_id)
+        print(f'Captured {len(pre_migration_records)} pre-migration records under provider {old_provider_id}')
+
         # Step 2: correct the SSN on the OT license only
         _upload_license_records(
             client_headers,
@@ -909,6 +1071,21 @@ def test_partial_ssn_migration():
             expected_ssn_last_four=PARTIAL_MIGRATION_ORIGINAL_SSN[-4:],
             license_type=OTA_LICENSE_TYPE,
         )
+        # nothing belonging to the license that stayed may have been touched
+        _verify_records_left_behind_are_untouched(
+            source_records=pre_migration_records,
+            target_records=old_provider_records,
+            migrated_license_type=OT_LICENSE_TYPE,
+        )
+        # a partial migration leaves the practitioner in place on the old provider id: their person-level
+        # state stays with the records that back it, rather than following the corrected license
+        old_provider_record = next(record for record in old_provider_records if record['type'] == 'provider')
+        if old_provider_record.get('militaryStatus') != 'approved':
+            raise SmokeTestFailureException(
+                f'The old provider record lost its military status during a partial migration: '
+                f'militaryStatus={old_provider_record.get("militaryStatus")!r}, '
+                f'militaryStatusNote={old_provider_record.get("militaryStatusNote")!r}'
+            )
         print(f'Verified the OTA license and provider record remain under old provider {old_provider_id}')
 
         new_provider_records = _get_provider_dynamo_records(PARTIAL_MIGRATION_COMPACT, new_provider_id)
@@ -925,6 +1102,25 @@ def test_partial_ssn_migration():
             records=new_provider_records,
             expected_ssn_last_four=PARTIAL_MIGRATION_CORRECTED_SSN[-4:],
             license_type=OT_LICENSE_TYPE,
+        )
+        # the military affiliation records stay with the old provider on a partial migration, so a status
+        # carried across would have no supporting documentation behind it. This is a deliberate omission -
+        # assert it, so that changing it later is a decision rather than an accident
+        new_provider_record = next(record for record in new_provider_records if record['type'] == 'provider')
+        inherited_person_level_fields = [
+            field for field in ('militaryStatus', 'militaryStatusNote') if field in new_provider_record
+        ]
+        if inherited_person_level_fields:
+            raise SmokeTestFailureException(
+                f'The new provider record inherited person-level fields that a partial migration should '
+                f'leave with the old provider: {inherited_person_level_fields}'
+            )
+        # and the OT license's records must have arrived intact, not just present
+        _verify_all_records_migrated(
+            source_records=[record for record in pre_migration_records if record.get('licenseType') == OT_LICENSE_TYPE],
+            source_provider_id=old_provider_id,
+            target_records=new_provider_records,
+            target_provider_id=new_provider_id,
         )
         print(f'Verified the OT license and a new provider record exist under new provider {new_provider_id}')
         print('Partial migration smoke test passed.')

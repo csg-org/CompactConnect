@@ -43,7 +43,10 @@ from cc_common.data_model.schema.military_affiliation.record import MilitaryAffi
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
-from cc_common.data_model.schema.provider.record import PROVIDER_ACCOUNT_STATE_FIELDS
+from cc_common.data_model.schema.provider.record import (
+    PROVIDER_ACCOUNT_STATE_FIELDS,
+    PROVIDER_PERSON_LEVEL_FIELDS,
+)
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
     CCAmbiguousLicenseNumberException,
@@ -3653,13 +3656,11 @@ class DataClient:
         """
         merge_values = {}
         if full_migration and old_provider_data is not None:
+            old_provider_fields = old_provider_data.to_dict()
             merge_values = {
-                field: value
-                for field, value in (
-                    ('militaryStatus', old_provider_data.militaryStatus),
-                    ('militaryStatusNote', old_provider_data.militaryStatusNote),
-                )
-                if value is not None
+                field: old_provider_fields[field]
+                for field in sorted(PROVIDER_PERSON_LEVEL_FIELDS)
+                if old_provider_fields.get(field) is not None
             }
         if not merge_values and not migrated_records_are_encumbered:
             return None
