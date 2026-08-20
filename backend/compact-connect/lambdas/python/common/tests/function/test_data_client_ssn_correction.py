@@ -187,6 +187,65 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
             }
         )
 
+    def test_full_migration_carries_person_level_fields_onto_the_new_provider_record(self):
+        """Military status describes the practitioner, not the license. On a full migration the whole
+        practitioner moves - including the military affiliation records behind that status - so the
+        provider-level fields those flows maintain must move with them. Account state stays behind: the old
+        Cognito user is deleted and the practitioner has to register again, which is also what re-sets their
+        home jurisdiction selection.
+        """
+        self._put_full_old_provider_records()
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {
+                'militaryStatus': 'approved',
+                'militaryStatusNote': 'verified against submitted documentation',
+                'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            }
+        )
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        new_provider_record = next(
+            record for record in self._get_all_records_for_provider(NEW_PROVIDER_ID) if record['type'] == 'provider'
+        )
+        # the record must belong to the new provider id, not the one it was copied from
+        self.assertEqual(NEW_PROVIDER_ID, new_provider_record['providerId'])
+        self.assertEqual(f'{DEFAULT_COMPACT}#PROVIDER#{NEW_PROVIDER_ID}', new_provider_record['pk'])
+        self.assertEqual('approved', new_provider_record.get('militaryStatus'))
+        self.assertEqual('verified against submitted documentation', new_provider_record.get('militaryStatusNote'))
+        # the old account is torn down by a full migration, so its registration state must not follow -
+        # including the home jurisdiction selection, which registration sets and which gates eligibility
+        self.assertNotIn('compactConnectRegisteredEmailAddress', new_provider_record)
+        # the schema defaults an unset selection to 'unknown', which is what keeps the provider
+        # compact-ineligible until they register again
+        self.assertEqual('unknown', new_provider_record.get('currentHomeJurisdiction'))
+
+    def test_partial_migration_does_not_carry_person_level_fields_to_the_new_provider(self):
+        """The mirror of the full-migration case. A partial migration leaves the person-level records
+        (military affiliations, provider update history) with the old provider, so the new provider must not
+        claim a military status that has no affiliation records behind it.
+        """
+        self._put_full_old_provider_records()
+        self._put_records_associated_with_remaining_license()
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'militaryStatus': 'approved', 'militaryStatusNote': 'verified against submitted documentation'}
+        )
+
+        result = self._migrate()
+
+        self.assertFalse(result.full_migration)
+        new_provider_record = next(
+            record for record in self._get_all_records_for_provider(NEW_PROVIDER_ID) if record['type'] == 'provider'
+        )
+        self.assertNotIn('militaryStatus', new_provider_record)
+        self.assertNotIn('militaryStatusNote', new_provider_record)
+        # the old provider keeps them, along with the affiliation records that support them
+        old_provider_record = next(
+            record for record in self._get_all_records_for_provider(DEFAULT_PROVIDER_ID) if record['type'] == 'provider'
+        )
+        self.assertEqual('approved', old_provider_record.get('militaryStatus'))
+
     def test_partial_migration_moves_only_records_associated_with_target_license(self):
         """A partial migration must move ONLY the corrected license and its dependent records: the privileges
         purchased against it, and the adverse action / investigation / update history records of the license
@@ -394,6 +453,117 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         # creates one when none exists
         new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
         self.assertEqual(pre_existing_provider.serialize_to_database_record(), new_provider_record)
+
+    def test_military_status_carries_onto_an_existing_new_provider_record(self):
+        """Correcting a two-license practitioner takes two uploads: the first is a partial migration that
+        creates the new provider record from the license alone, the second is a full migration that finds
+        that record already present. The practitioner's military status has to survive the sequence, because
+        the second step deletes the old provider record that holds it.
+        """
+        self._put_full_old_provider_records()
+        self._put_records_associated_with_remaining_license()
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'militaryStatus': 'approved', 'militaryStatusNote': 'verified against submitted documentation'}
+        )
+
+        # first correction: a partial migration, which creates the new provider record with no military data
+        first_result = self._migrate()
+
+        self.assertFalse(first_result.full_migration)
+        self.assertNotIn('militaryStatus', self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0])
+
+        # second correction: the remaining license, so a full migration into the now-existing provider record
+        second_result = self._migrate(license_type=OTHER_LICENSE_TYPE)
+
+        self.assertTrue(second_result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertEqual('approved', new_provider_record.get('militaryStatus'))
+        self.assertEqual('verified against submitted documentation', new_provider_record.get('militaryStatusNote'))
+
+    def test_existing_new_provider_military_status_is_never_overwritten(self):
+        """The new provider id may already belong to a practitioner who has been audited in their own right.
+        Their status wins: the migration fills absent fields, it does not replace decided ones.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {
+                'providerId': NEW_PROVIDER_ID,
+                'militaryStatus': 'declined',
+                'militaryStatusNote': 'documentation expired',
+            }
+        )
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'militaryStatus': 'approved', 'militaryStatusNote': 'verified against submitted documentation'}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertEqual('declined', new_provider_record.get('militaryStatus'))
+        self.assertEqual('documentation expired', new_provider_record.get('militaryStatusNote'))
+
+    def test_existing_new_provider_record_untouched_when_there_is_no_military_status_to_carry(self):
+        """With nothing to merge, the pre-existing record must not be written to at all."""
+        pre_existing_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'providerId': NEW_PROVIDER_ID, 'licenseJurisdiction': 'ky', 'privilegeJurisdictions': set()}
+        )
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        self._migrate()
+
+        self.assertEqual(
+            pre_existing_provider.serialize_to_database_record(),
+            self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0],
+        )
+
+    def test_new_provider_record_is_encumbered_when_a_migrated_record_has_an_unlifted_adverse_action(self):
+        """The provider-level encumbrance flag gates privilege purchasing, and it is an aggregate the
+        migration has to establish for itself: the records arriving under the new provider id carry the
+        encumbrance, and no other flow will notice they moved.
+        """
+        self._put_full_old_provider_records()
+        self._put_records_associated_with_remaining_license()
+
+        result = self._migrate()
+
+        # a partial migration, so the new provider record is created from scratch
+        self.assertFalse(result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertEqual('encumbered', new_provider_record.get('encumberedStatus'))
+
+    def test_existing_new_provider_record_is_encumbered_by_a_migrated_unlifted_adverse_action(self):
+        """Same aggregate, but merged onto a provider record that already exists - the second half of a
+        two-step correction, where the created-from-scratch path never runs.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': NEW_PROVIDER_ID})
+        self._put_full_old_provider_records()
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertEqual('encumbered', new_provider_record.get('encumberedStatus'))
+
+    def test_lifted_adverse_actions_do_not_encumber_the_new_provider_record(self):
+        """A lifted encumbrance is not an encumbrance. Only unlifted adverse actions count."""
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            {
+                'actionAgainst': 'privilege',
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'effectiveLiftDate': date.fromisoformat('2024-10-01'),
+            }
+        )
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertNotEqual('encumbered', new_provider_record.get('encumberedStatus'))
 
     def test_migration_raises_when_new_provider_record_created_concurrently(self):
         """The absent-check for the new provider's top-level record and the Put that creates one are not
