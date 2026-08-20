@@ -660,6 +660,7 @@
         "scopeAttestTitle": "Alcance de la certificación de práctica",
         "scopeAttestLabel": "Haga clic aquí para leer y afirmar el alcance de la certificación de práctica.",
         "noDiscipline": "No disciplina",
+        "disciplineDisclaimer": "Para obtener más información sobre las medidas disciplinarias, visite el sitio web de la junta de licencias correspondiente en el estado donde se posee la licencia o privilegio.",
         "houseIcon": "Icono de la casa",
         "twoHomeStateErrorMessage": "Dos estados lo tienen incluido como residente. Actualice su información con esos estados para reflejar su estado de residencia actual.",
         "state": "Estado",

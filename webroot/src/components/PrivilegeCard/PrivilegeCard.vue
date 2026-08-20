@@ -105,7 +105,7 @@
                 <div class="info-item rr-block">{{privilegeId}}</div>
             </div>
             <div
-                v-if="isAppGroupModePrivilegePurchase || isCurrentUserPrivilegeAdmin"
+                v-if="shouldShowDiscipline"
                 class="info-item-container discipline-item"
             >
                 <div class="info-item-title">{{ $t('licensing.disciplineStatus') }}</div>

@@ -279,6 +279,10 @@ class LicenseCard extends mixins(MixinForm) {
         return content;
     }
 
+    get shouldShowDiscipline(): boolean {
+        return !this.isPublicSearch || this.isAppModeSocialWork;
+    }
+
     get adverseActions(): Array<AdverseAction> {
         return this.license?.adverseActions || [];
     }
