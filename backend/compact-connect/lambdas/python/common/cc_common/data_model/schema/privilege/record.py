@@ -66,6 +66,24 @@ class EncumbranceDetailsSchema(Schema):
     licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
 
 
+# Fields on a privilege record that CompactConnect owns rather than the practitioner's purchase. They are
+# set by board actions - encumbrances and investigations - and a purchase has no way to express them.
+#
+# A renewal rebuilds the whole privilege record from the purchase inputs, so these have to be carried
+# forward from the record being renewed or they are silently cleared, letting a practitioner drop an
+# encumbrance by repurchasing. See DataClient._generate_privilege_record. This mirrors
+# SYSTEM_OWNED_LICENSE_FIELDS, which solves the same problem for license re-uploads.
+#
+# homeJurisdictionChangeStatus and licenseDeactivatedStatus are deliberately absent: a renewal clears those
+# on purpose and records the fact in the update record's removedValues.
+SYSTEM_OWNED_PRIVILEGE_FIELDS = frozenset(
+    {
+        'encumberedStatus',
+        'investigationStatus',
+    }
+)
+
+
 @BaseRecordSchema.register_schema('privilege')
 class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     """

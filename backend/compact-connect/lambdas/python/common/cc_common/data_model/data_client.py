@@ -41,7 +41,10 @@ from cc_common.data_model.schema.military_affiliation.common import (
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+from cc_common.data_model.schema.privilege.record import (
+    SYSTEM_OWNED_PRIVILEGE_FIELDS,
+    PrivilegeUpdateRecordSchema,
+)
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.data_model.schema.provider.record import (
     PROVIDER_ACCOUNT_STATE_FIELDS,
@@ -540,10 +543,19 @@ class DataClient:
             logger.warning('License type abbreviation not found', exc_info=e)
             raise CCInvalidRequestException(f'Compact or license type not supported: {e}') from e
 
+        system_owned_values = {}
         if original_privilege:
             # Copy over the original issuance date and privilege id
             date_of_issuance = original_privilege.dateOfIssuance
             privilege_id = original_privilege.privilegeId
+            # The record below is built fresh from the purchase inputs, so anything the purchase cannot
+            # express has to be carried forward explicitly or the renewal drops it
+            original_privilege_data = original_privilege.to_dict()
+            system_owned_values = {
+                field: original_privilege_data[field]
+                for field in sorted(SYSTEM_OWNED_PRIVILEGE_FIELDS)
+                if original_privilege_data.get(field) is not None
+            }
         else:
             date_of_issuance = current_datetime
             # Claim a privilege number for this jurisdiction
@@ -570,6 +582,7 @@ class DataClient:
                 'attestations': attestations,
                 'privilegeId': privilege_id,
                 'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
+                **system_owned_values,
             }
         )
 

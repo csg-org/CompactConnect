@@ -454,6 +454,100 @@ class TestDataClient(TstFunction):
         )['Item']
         self.assertEqual({'ky', 'ne'}, provider['privilegeJurisdictions'])
 
+    def test_renewal_preserves_board_set_privilege_statuses(self):
+        """A renewal rewrites the whole privilege record from the purchase inputs. Encumbrance and
+        investigation status are set by board actions, not by a purchase, so they have to be carried
+        forward - otherwise repurchasing a privilege silently clears an encumbrance the board applied.
+        """
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        encumbered_privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            {'encumberedStatus': 'encumbered', 'investigationStatus': 'underInvestigation'}
+        )
+
+        self.config.data_client.create_provider_privileges(
+            compact='aslp',
+            provider_id=DEFAULT_PROVIDER_ID,
+            provider_record=self.config.data_client.get_provider_top_level_record(
+                compact='aslp', provider_id=DEFAULT_PROVIDER_ID
+            ),
+            jurisdiction_postal_abbreviations=[encumbered_privilege.jurisdiction],
+            license_expiration_date=date.fromisoformat('2026-04-04'),
+            compact_transaction_id='renewal_transaction_id',
+            existing_privileges_for_license=[encumbered_privilege],
+            license_type=encumbered_privilege.licenseType,
+            attestations=self.sample_privilege_attestations,
+        )
+
+        provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=DEFAULT_PROVIDER_ID
+        )
+        renewed_privilege = provider_user_records.get_specific_privilege_record(
+            jurisdiction=encumbered_privilege.jurisdiction,
+            license_abbreviation=encumbered_privilege.licenseTypeAbbreviation,
+        )
+
+        self.assertEqual('encumbered', renewed_privilege.encumberedStatus)
+        self.assertEqual('underInvestigation', renewed_privilege.investigationStatus)
+        # the renewal itself still happened
+        self.assertEqual('renewal_transaction_id', renewed_privilege.compactTransactionId)
+
+    def test_renewal_clears_deactivation_statuses(self):
+        """The other half of the renewal contract: a renewal reactivates the privilege, so the two reasons
+        it could have been deactivated are removed from the record and reported in the update record.
+
+        Covered here rather than only in the purchases suite because the renewed record is now built from
+        the record being renewed - preservation is the default, so the removals are the part that has to be
+        deliberate.
+        """
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        deactivated_privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            {
+                'administratorSetStatus': 'inactive',
+                'homeJurisdictionChangeStatus': 'inactive',
+                'licenseDeactivatedStatus': 'licenseDeactivated',
+            }
+        )
+
+        self.config.data_client.create_provider_privileges(
+            compact='aslp',
+            provider_id=DEFAULT_PROVIDER_ID,
+            provider_record=self.config.data_client.get_provider_top_level_record(
+                compact='aslp', provider_id=DEFAULT_PROVIDER_ID
+            ),
+            jurisdiction_postal_abbreviations=[deactivated_privilege.jurisdiction],
+            license_expiration_date=date.fromisoformat('2026-04-04'),
+            compact_transaction_id='renewal_transaction_id',
+            existing_privileges_for_license=[deactivated_privilege],
+            license_type=deactivated_privilege.licenseType,
+            attestations=self.sample_privilege_attestations,
+        )
+
+        provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=DEFAULT_PROVIDER_ID, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        renewed_privilege = provider_user_records.get_specific_privilege_record(
+            jurisdiction=deactivated_privilege.jurisdiction,
+            license_abbreviation=deactivated_privilege.licenseTypeAbbreviation,
+        )
+
+        renewed_privilege_data = renewed_privilege.to_dict()
+        self.assertNotIn('homeJurisdictionChangeStatus', renewed_privilege_data)
+        self.assertNotIn('licenseDeactivatedStatus', renewed_privilege_data)
+        self.assertEqual('active', renewed_privilege.administratorSetStatus)
+
+        # the update record must report exactly what was removed from the record
+        update_records = provider_user_records.get_update_records_for_privilege(
+            deactivated_privilege.jurisdiction, deactivated_privilege.licenseType
+        )
+        self.assertEqual(1, len(update_records))
+        self.assertEqual(['homeJurisdictionChangeStatus', 'licenseDeactivatedStatus'], update_records[0].removedValues)
+
     def test_data_client_create_privilege_record_invalid_license_type(self):
         from cc_common.data_model.data_client import DataClient
         from cc_common.exceptions import CCInvalidRequestException
