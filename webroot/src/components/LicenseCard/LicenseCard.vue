@@ -110,7 +110,7 @@
                 <div class="info-item-title">{{$t('licensing.licenseNumSymbol')}}</div>
                 <div class="info-item rr-block">{{licenseNumber}}</div>
             </div>
-            <div v-if="!isPublicSearch" class="info-item-container">
+            <div v-if="shouldShowDiscipline" class="info-item-container">
                 <div class="info-item-title">{{ $t('licensing.disciplineStatus') }}</div>
                 <div class="info-item">{{disciplineContent}}</div>
             </div>

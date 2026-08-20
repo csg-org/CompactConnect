@@ -211,6 +211,12 @@ class PrivilegeCard extends mixins(MixinForm) {
         return content;
     }
 
+    get shouldShowDiscipline(): boolean {
+        return this.$isAppGroupModePrivilegePurchase // JCC compacts public & staff
+            || this.$isAppModeSocialWork             // Social Work compact public & staff
+            || this.isCurrentUserPrivilegeAdmin;    // Any compact if staff user is admin of that state
+    }
+
     get adverseActions(): Array<AdverseAction> {
         return this.privilege?.adverseActions || [];
     }
