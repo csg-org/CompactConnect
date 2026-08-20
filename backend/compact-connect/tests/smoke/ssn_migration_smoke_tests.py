@@ -455,7 +455,7 @@ def _set_provider_military_status(compact: str, provider_id: str, status: str, n
 
 
 def _verify_records_left_behind_are_untouched(
-    *, source_records: list[dict], target_records: list[dict], migrated_license_type: str
+    *, source_records: list[dict], target_records: list[dict], provider_id: str, migrated_license_type: str
 ):
     """Verify a partial migration changed nothing belonging to the license that stayed.
 
@@ -470,7 +470,7 @@ def _verify_records_left_behind_are_untouched(
 
     def _keyed(records: list[dict]) -> dict[str, dict]:
         return {
-            _stable_record_key(record, ''): record
+            _stable_record_key(record, provider_id): record
             for record in records
             if record['type'] != 'provider' and record.get('licenseType') != migrated_license_type
         }
@@ -1159,6 +1159,7 @@ def test_partial_ssn_migration():
         _verify_records_left_behind_are_untouched(
             source_records=pre_migration_records,
             target_records=old_provider_records,
+            provider_id=old_provider_id,
             migrated_license_type=OT_LICENSE_TYPE,
         )
         # a partial migration leaves the practitioner in place on the old provider id: their person-level

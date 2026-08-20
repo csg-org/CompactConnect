@@ -3689,6 +3689,7 @@ class DataClient:
                 'Key': {'pk': {'S': record_key['pk']}, 'sk': {'S': record_key['sk']}},
                 'UpdateExpression': 'SET ' + ', '.join(set_expressions),
                 'ExpressionAttributeValues': expression_values,
+                'ConditionExpression': 'attribute_exists(pk)',
             }
         }
 

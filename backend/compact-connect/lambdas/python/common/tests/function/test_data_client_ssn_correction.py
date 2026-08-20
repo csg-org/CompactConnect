@@ -600,6 +600,34 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertEqual(1, len(new_provider_records))
         self.assertEqual(pre_existing_provider.serialize_to_database_record(), new_provider_records[0])
 
+    def test_migration_raises_when_new_provider_record_deleted_concurrently(self):
+        """The mirror of the create-branch race above: the existence check confirms the new provider's
+        top-level record is present, but the merge Update that follows is not atomic with that check. If a
+        concurrent write deletes the record in between, the merge must be conditioned on the record still
+        being present - otherwise DynamoDB's default UpdateItem behavior creates a new item from just the
+        SET clause, leaving a malformed provider record (missing providerId, compact, and everything else a
+        real record needs) rather than failing loudly for a retry to fix.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': NEW_PROVIDER_ID})
+        self._put_full_old_provider_records()
+
+        real_transact_write_items = self.config.dynamodb_client.transact_write_items
+
+        def _delete_new_provider_record_then_commit(**kwargs):
+            self.config.provider_table.delete_item(
+                Key={'pk': f'{DEFAULT_COMPACT}#PROVIDER#{NEW_PROVIDER_ID}', 'sk': f'{DEFAULT_COMPACT}#PROVIDER'}
+            )
+            return real_transact_write_items(**kwargs)
+
+        with patch.object(
+            self.config.dynamodb_client, 'transact_write_items', side_effect=_delete_new_provider_record_then_commit
+        ):
+            with self.assertRaises(CCInternalException):
+                self._migrate()
+
+        # the conditioned Update failed, so no stub record was recreated
+        self.assertEqual([], self._get_records_of_type(NEW_PROVIDER_ID, 'provider'))
+
     def test_no_op_when_old_provider_has_no_matching_license(self):
         self.test_data_generator.put_default_provider_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table({'licenseType': OTHER_LICENSE_TYPE})
