@@ -534,9 +534,9 @@ class TestIngest(TstFunction):
     def _get_all_records(self, provider_id: str) -> list[dict]:
         from boto3.dynamodb.conditions import Key
 
-        return self.config.provider_table.query(KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}'))[
-            'Items'
-        ]
+        return self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}'), ConsistentRead=True
+        )['Items']
 
     def _get_license_record(self, provider_id: str) -> dict:
         return next(record for record in self._get_all_records(provider_id) if record['type'] == 'license')
@@ -594,6 +594,11 @@ class TestIngest(TstFunction):
     def test_preserved_license_fields_are_not_reported_as_removed(self):
         """The update history must reflect what actually happened: these fields were carried forward, not
         removed, so they must not show up in the update record's removedValues.
+
+        The re-upload also changes an upload-owned field (phoneNumber), so this exercises an update record
+        that actually gets created - an unchanged re-upload creates none at all (see
+        test_unchanged_reupload_of_a_preserved_license_creates_no_update_record), which would make the
+        removedValues assertions below vacuously true.
         """
         from handlers.ingest import ingest_license_message
 
@@ -603,15 +608,17 @@ class TestIngest(TstFunction):
 
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
+        message['detail']['phoneNumber'] = '+13213214322'
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
         self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
 
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
-        for update_record in provider_user_records._license_update_records:  # noqa: SLF001
-            self.assertNotIn('encumberedStatus', update_record.to_dict().get('removedValues', []))
-            self.assertNotIn('investigationStatus', update_record.to_dict().get('removedValues', []))
+        self.assertEqual(1, len(provider_user_records._license_update_records))  # noqa: SLF001
+        update_record = provider_user_records._license_update_records[0]  # noqa: SLF001
+        self.assertNotIn('encumberedStatus', update_record.to_dict().get('removedValues', []))
+        self.assertNotIn('investigationStatus', update_record.to_dict().get('removedValues', []))
 
     def test_unchanged_reupload_of_a_preserved_license_creates_no_update_record(self):
         """A re-upload that changes nothing must not leave an empty update record in the practitioner's
