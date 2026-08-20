@@ -107,15 +107,6 @@ Conditions:
       - Ref: PublicAccessBlockConfiguration
 
 Resources:
-  # Service-linked role for Amazon OpenSearch Service to access VPC resources
-  # This role allows OpenSearch to create and manage ENIs in VPCs
-  # NOTE: If this role already exists in the account, remove this resource from the template
-  OpenSearchServiceLinkedRole:
-    Type: AWS::IAM::ServiceLinkedRole
-    Properties:
-      AWSServiceName: opensearchservice.amazonaws.com
-      Description: Service-linked role for Amazon OpenSearch Service VPC access
-
   FileAssetsBucketEncryptionKey:
     Type: AWS::KMS::Key
     Properties:

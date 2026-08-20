@@ -301,6 +301,8 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   - Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deploy account id and `us-east-1`, respectively.
 
 - To get the application stood up for the first time, manually use cdk to deploy the app into the environment account for each environment account (test, beta, and prod):
+  - `cd lambdas/nodejs` and run `yarn install --ignore-engines`
+  - `cd ../..`
   - While authenticated into the deploy account, synthesize the application:
     ```
     # For Test environment:
@@ -325,12 +327,8 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
     # For Prod environment (after deploying the beta app):
     cdk deploy --app . --no-rollback --require-approval never 'ProdBackendPsypact/Prod/*'
   - Restrict the environment account's bootstrap role access to the pipeline's cross-account role by deploying the
-    [custom bootstrap stack](#custom-bootstrap-stack).
-
-**Note on OpenSearch Service-Linked Role**: The custom bootstrap templates in this app include creation of a
-service-linked role for Amazon OpenSearch Service VPC access. This role can only exist once per AWS account. If the
-role already exists in the account (e.g., from previous OpenSearch usage), the bootstrap deployment will fail. In that
-case, simply remove the `OpenSearchServiceLinkedRole` resource from the template before running the bootstrap command.
+    [custom bootstrap stack](#custom-bootstrap-stack). Note that, if a new account needs to be setup/deployed to, you will 
+    need to undo this bootstrap so you can deploy from your CLI
 
 - Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
   See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html). Note that this must be
@@ -344,15 +342,15 @@ See backend/multi-account/backups/README for instructions on setting up the seco
 
 Once the pipelines are established with the above steps, deployments will be automatically handled:
 
-- Tags pushed with the pattern, `cc-test-*` will trigger the backend `test` pipeline to deploy
-- Tags pushed with the pattern, `cc-prod-*` will trigger the backend `beta` and `prod` pipelines to deploy
+- Tags pushed with the pattern, `psypact-test-*` will trigger the backend `test` pipeline to deploy
+- Tags pushed with the pattern, `psypact-prod-*` will trigger the backend `beta` and `prod` pipelines to deploy
 
 > *Note:* The frontend app has dependencies on the backend, in the form of parameters like
 > S3 bucket urls, cognito domains, etc. If those change, you will need to explicitly plan
 > the deploys so that the backend completes before the frontend starts to resolve the dependency.
 >
 > Currently, we include a [GitHub Action](../../.github/workflows/auto-tag-test-deployments.yml) that automatically
-> tags all pushed commits to `main` with a `cc-test-*` and `ui-test-*` tag. Because there is no coordination between
+> tags all pushed commits to `main` with a `psypact-test-*` and `ui-test-*` tag. Because there is no coordination between
 > pipelines for these, now independent, services, they go out in parallel to the `test` environment. If these
 > cross-app dependencies change, you will need to manually create an additional `ui-test-*` tag after the backend
 > deploy completes, to resolve the cross-app dependencies.
