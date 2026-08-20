@@ -186,7 +186,11 @@ class LicenseeSearch extends mixins(MixinForm) {
                 name: 'cuid',
                 label: computed(() => this.$t('licensing.cuid')),
                 labelInfo: computed(() => this.$t('licensing.cuidSearchMatch')),
-                validation: Joi.string().min(0).max(100).messages(this.joiMessages.string),
+                validation: Joi.string()
+                    .min(0)
+                    .pattern(/^[Ss][Ww][Cc]-[0-9]{4}-[1-9][0-9]*$/)
+                    .allow('')
+                    .messages(this.joiMessages.cuid),
                 value: this.searchParams.cuid || '',
                 enforceMax: true,
             }),

@@ -464,7 +464,8 @@
         "minNumber": "Must be greater than or equal to {min}",
         "maxNumber": "Must be less than or equal to {max}",
         "invalidDate": "Invalid date",
-        "invalidDateWithFormat": "Date must be of required format {format}"
+        "invalidDateWithFormat": "Date must be of required format {format}",
+        "invalidCuidFormat": "Must be in format SWC-9999-99..."
     },
     "serverErrors": {
         "networkError": "Network error",
@@ -636,7 +637,7 @@
         "licenseNumSymbol": "License #",
         "privilegeNumSymbol": "Privilege #",
         "cuid": "CUID",
-        "cuidSearchMatch": "CUID entry must be an exact match",
+        "cuidSearchMatch": "CUID entry must be an exact match. Ex: SWC-0000-10",
         "driversLicense": "Drivers License #",
         "militaryAffilitionDocs": "military affiliation documents",
         "selectLicense": "Select a license",
