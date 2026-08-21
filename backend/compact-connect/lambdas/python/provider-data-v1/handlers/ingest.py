@@ -429,8 +429,18 @@ def _perform_ssn_correction_migration(
             return
 
         if result.full_migration:
+            logger.info(
+                'SSN correction resulted in a full migration',
+                license_type=license_type,
+                new_provider_id=new_provider_id,
+            )
             metrics.add_metric(name=SSN_CORRECTION_FULL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
         else:
+            logger.info(
+                'SSN correction resulted in a partial migration',
+                license_type=license_type,
+                new_provider_id=new_provider_id,
+            )
             metrics.add_metric(name=SSN_CORRECTION_PARTIAL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
 
         if result.full_migration and result.old_provider_registered_email is not None:
