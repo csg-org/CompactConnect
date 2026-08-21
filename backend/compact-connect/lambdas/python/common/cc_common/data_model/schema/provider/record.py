@@ -35,19 +35,10 @@ from cc_common.data_model.update_tier_enum import UpdateTierEnum
 # them when an existing provider record is refreshed - see ProviderRecordUtility.populate_provider_record.
 PROVIDER_AGGREGATE_FIELDS = frozenset({'encumberedStatus'})
 
-# Fields describing the practitioner's CompactConnect *account* rather than the practitioner themselves:
-# their registration, an in-flight email change, and an in-flight account recovery. A full SSN-correction
-# migration deletes the old Cognito user and requires the practitioner to register again under the
-# corrected provider id, so none of this may follow them onto the new provider record.
-#
-# currentHomeJurisdiction belongs here rather than with the person-level fields: registration sets it
-# alongside the registered email address (see DataClient registration flow), and until it is set the
-# provider is calculated as compact-ineligible. Carrying it would leave a provider that cannot sign in
-# looking registered and eligible to purchase.
+
 # Fields describing the practitioner rather than their licenses or their account. They are maintained by
-# flows that have nothing to do with license uploads - the military file upload and audit flows - and
-# cannot be rebuilt from any record a migration moves, so a full SSN-correction migration has to carry
-# them onto the corrected provider id explicitly.
+# flows that have nothing to do with license uploads, such as the military file upload and audit flows,
+# so a full SSN-correction migration has to carry them onto the corrected provider id explicitly.
 #
 # A partial migration does not: the records that back these stay with the old provider, so a status
 # carried across would have no supporting documentation behind it.
@@ -58,7 +49,15 @@ PROVIDER_PERSON_LEVEL_FIELDS = frozenset(
     }
 )
 
-
+# Fields describing the practitioner's CompactConnect *account* rather than the practitioner themselves:
+# their registration, an in-flight email change, and an in-flight account recovery. A full SSN-correction
+# migration deletes the old Cognito user and requires the practitioner to register again under the
+# corrected provider id, so none of this may follow them onto the new provider record.
+#
+# currentHomeJurisdiction belongs here rather than with the person-level fields: registration sets it
+# alongside the registered email address (see DataClient registration flow), and until it is set the
+# provider is calculated as compact-ineligible. Carrying it would leave a provider that cannot sign in
+# looking registered and eligible to purchase.
 PROVIDER_ACCOUNT_STATE_FIELDS = frozenset(
     {
         'compactConnectRegisteredEmailAddress',

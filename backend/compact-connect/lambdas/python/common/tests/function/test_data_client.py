@@ -457,14 +457,18 @@ class TestDataClient(TstFunction):
     def test_renewal_preserves_board_set_privilege_statuses(self):
         """A renewal rewrites the whole privilege record from the purchase inputs. Encumbrance and
         investigation status are set by board actions, not by a purchase, so they have to be carried
-        forward - otherwise repurchasing a privilege silently clears an encumbrance the board applied.
+        forward, otherwise repurchasing a privilege silently clears those status fields.
+
+        For encumbrances, this is not an issue since a privilege can only be renewed if the practitioner
+        hasn't had any encumbrance for over two years. Practitioners can however renew a privilege even when
+        under investigation, so we need to ensure that status flag remains upon renewal.
         """
         from cc_common.data_model.provider_record_util import ProviderUserRecords
 
         self.test_data_generator.put_default_provider_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table()
         encumbered_privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
-            {'encumberedStatus': 'encumbered', 'investigationStatus': 'underInvestigation'}
+            {'encumberedStatus': 'unencumbered', 'investigationStatus': 'underInvestigation'}
         )
 
         self.config.data_client.create_provider_privileges(
@@ -489,18 +493,14 @@ class TestDataClient(TstFunction):
             license_abbreviation=encumbered_privilege.licenseTypeAbbreviation,
         )
 
-        self.assertEqual('encumbered', renewed_privilege.encumberedStatus)
+        self.assertEqual('unencumbered', renewed_privilege.encumberedStatus)
         self.assertEqual('underInvestigation', renewed_privilege.investigationStatus)
         # the renewal itself still happened
         self.assertEqual('renewal_transaction_id', renewed_privilege.compactTransactionId)
 
     def test_renewal_clears_deactivation_statuses(self):
-        """The other half of the renewal contract: a renewal reactivates the privilege, so the two reasons
+        """The other half of the renewal contract: a renewal reactivates the privilege, so the reasons
         it could have been deactivated are removed from the record and reported in the update record.
-
-        Covered here rather than only in the purchases suite because the renewed record is now built from
-        the record being renewed - preservation is the default, so the removals are the part that has to be
-        deliberate.
         """
         from cc_common.data_model.provider_record_util import ProviderUserRecords
 
