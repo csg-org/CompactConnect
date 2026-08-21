@@ -3,25 +3,24 @@
 ## Prerequisites
 
 - Backend API hosts and staff Cognito app exist (or are being added in parallel)
-- Cognito callback URL(s) will be registered for the new staff auth path
+- Cognito callback URLs for the new staff auth servers; and if practitioners are allowed to register, a URL for that as well
 - Choose an existing `AppGroupMode`:
   - `PRIVILEGE_PURCHASE` (JCC-style)
   - `MULTI_STATE` (cosmetology / social work–style)
-- One compact maps to one `AppModes` value
-- Staff Cognito is per AppMode; licensee Cognito is shared unless product requirements change
+- One new compact usually maps to one `AppModes` value
 
 ## Naming
 
 | Concept | Example | Notes |
 |---------|---------|--------|
-| `CompactType` value | `foo` | API / locale key (`compacts[].key`, license `compactKey`) |
-| `AppModes` value | `foo` | **Must** equal the auth callback path segment |
+| `CompactType` value | `socialwork` | API / locale key (`compacts[].key`, license `compactKey`) |
+| `AppModes` value | `socialwork` | **Must** equal the auth callback path segment |
 
 Auth callback path is built as:
 
 `/auth/callback/staff/{AppModes value}`
 
-Example: `AppModes.FOO = 'foo'` → `/auth/callback/staff/foo`
+Example: `AppModes.SOCIAL_WORK = 'socialwork'` → `/auth/callback/staff/socialwork`
 
 ## Already automatic
 
@@ -41,7 +40,7 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 
 **`src/app.config.ts`**
 
-- [ ] Add `AppModes.YOUR_MODE = 'yoursegment'`
+- [ ] Add `AppModes.YOUR_MODE = 'yourmode'`
 
 **`src/utils/compactConfig.ts`**
 
@@ -54,8 +53,9 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 
 **`.env` / `.env.example`**
 
-- [ ] Four API roots for the new mode: state, license, search, user
-- [ ] Staff Cognito auth domain + client id
+- [ ] Add the four API roots for the new mode: state, license, search, user
+- [ ] Add the Staff Cognito auth domain + client id
+- [ ] Add the Practitioner / Licensee Cognito auth domain + client id (if needed)
 
 **`src/plugins/EnvConfig/envConfig.plugin.ts`**
 

@@ -26,8 +26,6 @@ const buildCompactPermission = (compactType: CompactType | string): CompactPermi
     states: [],
 });
 
-// Seed permissions only — omit currentCompact so permission-based init() does not call
-// initFormInputs() (which needs $t and can race other MixinForm instances on the shared store).
 const seedPermissionBasedUser = (compactTypes: Array<CompactType | string>) => {
     store.commit(
         `user/${MutationTypes.STORE_UPDATE_USER}`,

@@ -75,18 +75,20 @@ describe('Compacts plugin', async () => {
         expect(getCompactConfig(null)).to.equal(null);
     });
     it('should successfully enable every compact outside of app production', async () => {
-        const enabledTypes = enabledCompactConfigs.value.map((compactConfig) => compactConfig.type);
-
-        expect(enabledTypes.length).to.equal(5);
+        expect(compactSetups[CompactType.ASLP].isEnabled()).to.equal(true);
+        expect(compactSetups[CompactType.OT].isEnabled()).to.equal(true);
+        expect(compactSetups[CompactType.COUNSELING].isEnabled()).to.equal(true);
+        expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(true);
+        expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(true);
     });
     it('should successfully gate compacts without prod infra to non-production environments', async () => {
         envConfig.isAppProduction = true;
 
-        expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(false);
-        expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(false);
         expect(compactSetups[CompactType.ASLP].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.OT].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.COUNSELING].isEnabled()).to.equal(true);
+        expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(false);
+        expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(false);
     });
     it('should successfully install the compact lists as global properties', async () => {
         const app = buildApp();
