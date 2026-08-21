@@ -412,7 +412,11 @@ def _perform_ssn_correction_migration(
     old Cognito user deletion and re-registration email follow here. A concurrency conflict inside the
     migration raises, letting SQS redeliver the message after the visibility timeout.
     """
-    with logger.append_context_keys(previous_provider_id=previous_provider_id):
+    with logger.append_context_keys(
+            previous_provider_id=previous_provider_id,
+            new_provider_id=new_provider_id,
+            license_type=license_type
+    ):
         logger.info('Performing SSN correction migration')
 
         result = config.data_client.migrate_provider_for_ssn_correction(
@@ -424,23 +428,17 @@ def _perform_ssn_correction_migration(
             new_ssn_last_four=new_ssn_last_four,
         )
         if not result.migration_performed:
-            logger.info('No records to migrate for previous provider id; proceeding with normal ingest')
+            logger.info(
+                'No records to migrate for previous provider id; proceeding with normal ingest',
+            )
             metrics.add_metric(name=SSN_CORRECTION_NO_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
             return
 
         if result.full_migration:
-            logger.info(
-                'SSN correction resulted in a full migration',
-                license_type=license_type,
-                new_provider_id=new_provider_id,
-            )
+            logger.info('SSN correction resulted in a full migration')
             metrics.add_metric(name=SSN_CORRECTION_FULL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
         else:
-            logger.info(
-                'SSN correction resulted in a partial migration',
-                license_type=license_type,
-                new_provider_id=new_provider_id,
-            )
+            logger.info('SSN correction resulted in a partial migration')
             metrics.add_metric(name=SSN_CORRECTION_PARTIAL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
 
         if result.full_migration and result.old_provider_registered_email is not None:
