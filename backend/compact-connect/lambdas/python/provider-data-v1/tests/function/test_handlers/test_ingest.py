@@ -1046,6 +1046,8 @@ class TestIngestSsnCorrection(TstFunction):
     NEW_PROVIDER_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
     NEW_SSN_LAST_FOUR = '6789'
     OLD_REGISTERED_EMAIL = 'old-provider@example.com'
+    # the license type on the corrected upload, from the event-bridge-message.json fixture
+    MIGRATED_LICENSE_TYPE = 'speech-language pathologist'
     # firstUploadDate tracks when a license was first uploaded; migration must carry it forward unchanged
     LICENSE_FIRST_UPLOAD_DATE = datetime.fromisoformat('2020-01-01T00:00:00+00:00')
 
@@ -1291,6 +1293,36 @@ class TestIngestSsnCorrection(TstFunction):
 
         mock_metrics.add_metric.assert_called_once_with(
             name='ssn-correction-partial-migration', unit=MetricUnit.Count, value=1
+        )
+
+    @patch('handlers.ingest.logger')
+    def test_partial_migration_log_identifies_both_provider_ids(self, mock_logger):
+        """A partial migration leaves two live provider ids behind, so its log line has to name both.
+
+        These fields are passed to logger.info explicitly rather than left to the surrounding context, so
+        asserting on the call is asserting on what the line actually carries.
+        """
+        self._put_old_provider_records(with_second_license=True)
+        self._run_ingest_with_previous_provider_id()
+
+        mock_logger.info.assert_any_call(
+            'SSN correction resulted in a partial migration',
+            previous_provider_id=self.OLD_PROVIDER_ID,
+            new_provider_id=self.NEW_PROVIDER_ID,
+            license_type=self.MIGRATED_LICENSE_TYPE,
+        )
+
+    @patch('handlers.ingest.logger')
+    def test_full_migration_log_identifies_both_provider_ids(self, mock_logger):
+        """The full migration branch carries the same identifiers."""
+        self._put_old_provider_records()
+        self._run_ingest_with_previous_provider_id()
+
+        mock_logger.info.assert_any_call(
+            'SSN correction resulted in a full migration',
+            previous_provider_id=self.OLD_PROVIDER_ID,
+            new_provider_id=self.NEW_PROVIDER_ID,
+            license_type=self.MIGRATED_LICENSE_TYPE,
         )
 
     @patch('handlers.ingest.metrics')

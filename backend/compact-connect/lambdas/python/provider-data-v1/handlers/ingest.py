@@ -412,12 +412,17 @@ def _perform_ssn_correction_migration(
     old Cognito user deletion and re-registration email follow here. A concurrency conflict inside the
     migration raises, letting SQS redeliver the message after the visibility timeout.
     """
-    with logger.append_context_keys(
-            previous_provider_id=previous_provider_id,
-            new_provider_id=new_provider_id,
-            license_type=license_type
-    ):
-        logger.info('Performing SSN correction migration')
+    # These three identifiers are passed to every log call below *in addition to* being set on the
+    # surrounding context, which is deliberate rather than redundant. A migration is the one operation that
+    # moves a practitioner's records between two provider ids, and reconstructing what happened afterwards
+    # in cloudwatch depends on being able to search these lines by either id.
+    migration_log_fields = {
+        'previous_provider_id': previous_provider_id,
+        'new_provider_id': new_provider_id,
+        'license_type': license_type,
+    }
+    with logger.append_context_keys(**migration_log_fields):
+        logger.info('Performing SSN correction migration', **migration_log_fields)
 
         result = config.data_client.migrate_provider_for_ssn_correction(
             compact=compact,
@@ -430,15 +435,16 @@ def _perform_ssn_correction_migration(
         if not result.migration_performed:
             logger.info(
                 'No records to migrate for previous provider id; proceeding with normal ingest',
+                **migration_log_fields,
             )
             metrics.add_metric(name=SSN_CORRECTION_NO_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
             return
 
         if result.full_migration:
-            logger.info('SSN correction resulted in a full migration')
+            logger.info('SSN correction resulted in a full migration', **migration_log_fields)
             metrics.add_metric(name=SSN_CORRECTION_FULL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
         else:
-            logger.info('SSN correction resulted in a partial migration')
+            logger.info('SSN correction resulted in a partial migration', **migration_log_fields)
             metrics.add_metric(name=SSN_CORRECTION_PARTIAL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
 
         if result.full_migration and result.old_provider_registered_email is not None:
