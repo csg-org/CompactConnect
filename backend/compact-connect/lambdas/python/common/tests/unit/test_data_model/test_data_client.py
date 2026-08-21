@@ -89,8 +89,15 @@ class TestCollectTransactionIds(TstLambdas):
         )
 
     def test_collects_the_previous_transaction_id_from_an_update_record(self):
-        """Only the `previous` snapshot is read. A renewal's own transaction id is written to the privilege
-        record in the same db transaction, so it is collected from there rather than from `updatedValues`.
+        """
+        When collecting transaction ids to determine all the transactions that need to be updated, we
+        start with the privilege record itself to get the most recent renewal transaction id, then walk back
+        through all privilege update records and chain together all the transaction ids from the 'previous'
+        snapshot object, ensuring that we walk all the way back to the transaction id of the original purchase.
+
+        This micro test specifically checks that the transaction id of the `previous` snapshot is read on the privilege
+        update record, and not the updatedValues, so we never accidentally break this chain for collecting all
+        transaction ids for a migration.
         """
         privilege_update = self.test_data_generator.generate_default_privilege_update(
             value_overrides={'updatedValues': {'compactTransactionId': 'tx-new'}},

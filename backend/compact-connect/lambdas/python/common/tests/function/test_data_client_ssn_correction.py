@@ -503,7 +503,7 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertEqual('declined', new_provider_record.get('militaryStatus'))
         self.assertEqual('documentation expired', new_provider_record.get('militaryStatusNote'))
 
-    def test_existing_new_provider_record_untouched_when_there_is_no_military_status_to_carry(self):
+    def test_existing_new_provider_record_untouched_when_there_is_no_military_status_fields_to_preserve(self):
         """With nothing to merge, the pre-existing record must not be written to at all."""
         pre_existing_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
             {'providerId': NEW_PROVIDER_ID, 'licenseJurisdiction': 'ky', 'privilegeJurisdictions': set()}
