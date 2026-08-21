@@ -357,7 +357,7 @@ class TestPrivilegeRecordFieldOwnership(TstLambdas):
 
     def test_every_privilege_field_a_purchase_cannot_supply_is_classified(self):
         from cc_common.data_model.schema.privilege.record import (
-            SYSTEM_OWNED_PRIVILEGE_FIELDS,
+            FIELDS_PRESERVED_ON_RENEWAL,
             PrivilegeRecordSchema,
         )
 
@@ -367,7 +367,7 @@ class TestPrivilegeRecordFieldOwnership(TstLambdas):
             - self.GENERATED_ON_WRITE
             - self.CALCULATED_ON_LOAD
             - self.CLEARED_ON_RENEWAL
-            - SYSTEM_OWNED_PRIVILEGE_FIELDS
+            - FIELDS_PRESERVED_ON_RENEWAL
         )
 
         self.assertEqual(
@@ -375,33 +375,34 @@ class TestPrivilegeRecordFieldOwnership(TstLambdas):
             unclassified,
             f'New privilege record field(s) {sorted(unclassified)} are not accounted for by a renewal, '
             'which rebuilds the record from the purchase inputs and will silently drop them. Decide which '
-            'they are and add them to the right place: SYSTEM_OWNED_PRIVILEGE_FIELDS (in '
-            'schema/privilege/record.py) if the system owns the value and it must survive a repurchase, or '
+            'they are and add them to the right place: FIELDS_PRESERVED_ON_RENEWAL (in '
+            'schema/privilege/record.py) if a purchase cannot express the value and it must survive a '
+            'repurchase, or '
             'one of the SET_BY_PURCHASE / GENERATED_ON_WRITE / CALCULATED_ON_LOAD / CLEARED_ON_RENEWAL sets '
             'in this test if the purchase supplies it, it is rebuilt on every write, or a renewal is meant '
             'to clear it.',
         )
 
-    def test_system_owned_fields_are_not_supplied_or_cleared_by_a_purchase(self):
+    def test_preserved_fields_are_not_supplied_or_cleared_by_a_purchase(self):
         """A preserved field that a purchase also sets would be frozen at its first value, and one a
         renewal is meant to clear cannot also be carried forward.
         """
-        from cc_common.data_model.schema.privilege.record import SYSTEM_OWNED_PRIVILEGE_FIELDS
+        from cc_common.data_model.schema.privilege.record import FIELDS_PRESERVED_ON_RENEWAL
 
-        self.assertEqual(set(), SYSTEM_OWNED_PRIVILEGE_FIELDS & self.SET_BY_PURCHASE)
-        self.assertEqual(set(), SYSTEM_OWNED_PRIVILEGE_FIELDS & self.CLEARED_ON_RENEWAL)
+        self.assertEqual(set(), FIELDS_PRESERVED_ON_RENEWAL & self.SET_BY_PURCHASE)
+        self.assertEqual(set(), FIELDS_PRESERVED_ON_RENEWAL & self.CLEARED_ON_RENEWAL)
 
     def test_classified_fields_all_exist_on_the_record(self):
         """A classification naming a field the schema does not have is dead weight, and usually a rename
         that was only half applied.
         """
         from cc_common.data_model.schema.privilege.record import (
-            SYSTEM_OWNED_PRIVILEGE_FIELDS,
+            FIELDS_PRESERVED_ON_RENEWAL,
             PrivilegeRecordSchema,
         )
 
         classified = (
-            SYSTEM_OWNED_PRIVILEGE_FIELDS
+            FIELDS_PRESERVED_ON_RENEWAL
             | self.SET_BY_PURCHASE
             | self.GENERATED_ON_WRITE
             | self.CALCULATED_ON_LOAD

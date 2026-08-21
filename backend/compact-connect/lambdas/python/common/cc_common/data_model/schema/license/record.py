@@ -35,8 +35,8 @@ from cc_common.data_model.schema.license.common import LicenseCommonSchema
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 
 # Fields on a license record that CompactConnect owns rather than the uploading state. They are set by
-# actions taken within the system (board encumbrances, investigations) or by the ingest process itself,
-# and there is no way for a state to express them in a license upload.
+# actions taken within the system (board encumbrances, investigations), and there is no way for a state
+# to express them in a license upload.
 #
 # A license upload writes the whole record, so the uploading state is authoritative for every field it can
 # send - omitting one removes it, which is intentional and recorded in the update record's removedValues.

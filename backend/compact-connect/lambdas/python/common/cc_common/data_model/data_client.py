@@ -42,7 +42,7 @@ from cc_common.data_model.schema.military_affiliation.common import (
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.record import (
-    SYSTEM_OWNED_PRIVILEGE_FIELDS,
+    FIELDS_PRESERVED_ON_RENEWAL,
     PrivilegeUpdateRecordSchema,
 )
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
@@ -543,7 +543,7 @@ class DataClient:
             logger.warning('License type abbreviation not found', exc_info=e)
             raise CCInvalidRequestException(f'Compact or license type not supported: {e}') from e
 
-        system_owned_values = {}
+        preserved_values = {}
         if original_privilege:
             # Copy over the original issuance date and privilege id
             date_of_issuance = original_privilege.dateOfIssuance
@@ -551,9 +551,9 @@ class DataClient:
             # The record below is built fresh from the purchase inputs, so anything the purchase cannot
             # express has to be carried forward explicitly or the renewal drops it
             original_privilege_data = original_privilege.to_dict()
-            system_owned_values = {
+            preserved_values = {
                 field: original_privilege_data[field]
-                for field in sorted(SYSTEM_OWNED_PRIVILEGE_FIELDS)
+                for field in sorted(FIELDS_PRESERVED_ON_RENEWAL)
                 if original_privilege_data.get(field) is not None
             }
         else:
@@ -582,7 +582,7 @@ class DataClient:
                 'attestations': attestations,
                 'privilegeId': privilege_id,
                 'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
-                **system_owned_values,
+                **preserved_values,
             }
         )
 

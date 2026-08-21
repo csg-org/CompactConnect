@@ -503,7 +503,7 @@ class TestLicenseRecordFieldOwnership(TstLambdas):
     Guards the contract behind SYSTEM_OWNED_LICENSE_FIELDS.
 
     A license upload writes the whole record, so any field the upload cannot supply is dropped unless the
-    ingest handler carries it forward.This test fails if a new field is added to the license record without
+    ingest handler carries it forward. This test fails if a new field is added to the license record without
     deciding which side of that line it falls on.
     """
 
