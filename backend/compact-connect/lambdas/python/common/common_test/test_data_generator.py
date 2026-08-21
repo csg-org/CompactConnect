@@ -775,6 +775,21 @@ class TestDataGenerator:
         return TransactionData.create_new(default_transaction)
 
     @staticmethod
+    def put_default_transaction_in_transaction_history_table(value_overrides: dict | None = None):
+        """
+        Creates a default settled transaction record and stores it in the transaction history table.
+
+        :param value_overrides: Optional dictionary to override default values
+        :return: The TransactionData instance that was stored
+        """
+        from cc_common.config import config
+
+        transaction = TestDataGenerator.generate_default_transaction(value_overrides)
+        config.transaction_history_table.put_item(Item=transaction.serialize_to_database_record())
+
+        return transaction
+
+    @staticmethod
     def put_compact_active_member_jurisdictions(
         compact: str = DEFAULT_COMPACT, postal_abbreviations: list[str] = None
     ) -> list[dict]:

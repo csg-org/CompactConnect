@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from aws_lambda_powertools.metrics import MetricUnit
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
-from common_test.test_constants import DEFAULT_PROVIDER_ID
+from common_test.test_constants import DEFAULT_COMPACT_TRANSACTION_ID, DEFAULT_PROVIDER_ID
 from moto import mock_aws
 
 from .. import TstFunction
@@ -531,6 +531,138 @@ class TestIngest(TstFunction):
         self.assertEqual(1, len(provider_user_records._license_update_records))  # noqa SLF001
         self.assertEqual(['emailAddress'], provider_user_records._license_update_records[0].removedValues)  # noqa SLF001
 
+    def _get_all_records(self, provider_id: str) -> list[dict]:
+        from boto3.dynamodb.conditions import Key
+
+        return self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}'), ConsistentRead=True
+        )['Items']
+
+    def _get_license_record(self, provider_id: str) -> dict:
+        return next(record for record in self._get_all_records(provider_id) if record['type'] == 'license')
+
+    def _reingest_default_license(self):
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+    def _set_license_field(self, provider_id: str, field: str, value: str):
+        """Set a field on the stored license record that a state cannot send in an upload."""
+        license_record = self._get_license_record(provider_id)
+        self.config.provider_table.update_item(
+            Key={'pk': license_record['pk'], 'sk': license_record['sk']},
+            UpdateExpression='SET #field = :value',
+            ExpressionAttributeNames={'#field': field},
+            ExpressionAttributeValues={':value': value},
+        )
+
+    def test_existing_license_encumbered_status_survives_a_reupload(self):
+        """A state's upload cannot express an encumbrance, so a routine re-upload must not clear one.
+
+        Dropping it would also flip the license's calculated status back to active and compact-eligible.
+        """
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        # a board encumbrance applied after the original upload
+        self._set_license_field(provider_id, 'encumberedStatus', 'encumbered')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+        self.assertEqual('encumbered', self._get_license_record(provider_id).get('encumberedStatus'))
+
+    def test_existing_license_investigation_status_survives_a_reupload(self):
+        """As with encumbrances, an investigation is a CompactConnect action a state cannot send."""
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        self._set_license_field(provider_id, 'investigationStatus', 'underInvestigation')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+        self.assertEqual('underInvestigation', self._get_license_record(provider_id).get('investigationStatus'))
+
+    def test_preserved_license_fields_are_not_reported_as_removed(self):
+        """The update history must reflect what actually happened: these fields were carried forward, not
+        removed, so they must not show up in the update record's removedValues.
+
+        The re-upload also changes an upload-owned field (phoneNumber), so this exercises an update record
+        that actually gets created - an unchanged re-upload creates none at all (see
+        test_unchanged_reupload_of_a_preserved_license_creates_no_update_record), which would make the
+        removedValues assertions below vacuously true.
+        """
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        self._set_license_field(provider_id, 'encumberedStatus', 'encumbered')
+        self._set_license_field(provider_id, 'investigationStatus', 'underInvestigation')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        message['detail']['phoneNumber'] = '+13213214322'
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        self.assertEqual(1, len(provider_user_records._license_update_records))  # noqa: SLF001
+        update_record = provider_user_records._license_update_records[0]  # noqa: SLF001
+        self.assertNotIn('encumberedStatus', update_record.to_dict().get('removedValues', []))
+        self.assertNotIn('investigationStatus', update_record.to_dict().get('removedValues', []))
+
+    def test_unchanged_reupload_of_a_preserved_license_creates_no_update_record(self):
+        """A re-upload that changes nothing must not leave an empty update record in the practitioner's
+        history. The calculated licenseStatus / compactEligibility differ between an encumbered record and
+        the freshly-loaded upload, but they are derived values rather than license data.
+        """
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        self._set_license_field(provider_id, 'encumberedStatus', 'encumbered')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
+
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        self.assertEqual([], provider_user_records._license_update_records)  # noqa: SLF001
+
+    def test_reupload_does_not_overwrite_the_provider_encumbrance_aggregate(self):
+        """The provider record's encumberedStatus aggregates every license AND privilege, and is maintained
+        by the encumbrance flows. A license upload must not push one license's value onto it - a provider
+        encumbered because of a privilege would otherwise be cleared by a routine roster upload.
+        """
+        provider_id = self._with_ingested_license()
+        # provider encumbered because of a privilege; the license itself was lifted earlier, so it carries
+        # the residual 'unencumbered' value
+        self._set_license_field(provider_id, 'encumberedStatus', 'unencumbered')
+        provider_record = next(record for record in self._get_all_records(provider_id) if record['type'] == 'provider')
+        self.config.provider_table.update_item(
+            Key={'pk': provider_record['pk'], 'sk': provider_record['sk']},
+            UpdateExpression='SET encumberedStatus = :value',
+            ExpressionAttributeValues={':value': 'encumbered'},
+        )
+
+        self._reingest_default_license()
+
+        updated_provider_record = next(
+            record for record in self._get_all_records(provider_id) if record['type'] == 'provider'
+        )
+        self.assertEqual('encumbered', updated_provider_record.get('encumberedStatus'))
+
     def test_existing_provider_added_email(self):
         from handlers.ingest import ingest_license_message
 
@@ -914,6 +1046,8 @@ class TestIngestSsnCorrection(TstFunction):
     NEW_PROVIDER_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
     NEW_SSN_LAST_FOUR = '6789'
     OLD_REGISTERED_EMAIL = 'old-provider@example.com'
+    # the license type on the corrected upload, from the event-bridge-message.json fixture
+    MIGRATED_LICENSE_TYPE = 'speech-language pathologist'
     # firstUploadDate tracks when a license was first uploaded; migration must carry it forward unchanged
     LICENSE_FIRST_UPLOAD_DATE = datetime.fromisoformat('2020-01-01T00:00:00+00:00')
 
@@ -1011,6 +1145,31 @@ class TestIngestSsnCorrection(TstFunction):
             provider_id=provider_id,
         )
         return json.loads(json.dumps(provider_user_records.generate_api_response_object(), cls=ResponseEncoder))
+
+    def _get_transaction_licensee_ids(self) -> dict[str, str]:
+        return {
+            record['transactionId']: record['licenseeId']
+            for record in self._transaction_history_table.scan()['Items']
+            if record['type'] == 'transaction'
+        }
+
+    def test_migration_repoints_transaction_records_at_the_new_provider_id(self):
+        """The practitioner's settled transactions must follow them to the corrected provider id, so the
+        transaction report can still resolve their name once the old provider partition is gone.
+        """
+        self._put_old_provider_records()
+        # the transaction the default privilege was purchased with, recorded against the old provider id
+        self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': DEFAULT_COMPACT_TRANSACTION_ID, 'licenseeId': self.OLD_PROVIDER_ID}
+        )
+
+        resp = self._run_ingest_with_previous_provider_id()
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+        self.assertEqual(
+            {DEFAULT_COMPACT_TRANSACTION_ID: self.NEW_PROVIDER_ID},
+            self._get_transaction_licensee_ids(),
+        )
 
     def test_full_migration_moves_records_under_new_provider_id(self):
         old_provider_record_items = self._put_old_provider_records()
@@ -1134,6 +1293,36 @@ class TestIngestSsnCorrection(TstFunction):
 
         mock_metrics.add_metric.assert_called_once_with(
             name='ssn-correction-partial-migration', unit=MetricUnit.Count, value=1
+        )
+
+    @patch('handlers.ingest.logger')
+    def test_partial_migration_log_identifies_both_provider_ids(self, mock_logger):
+        """A partial migration leaves two live provider ids behind, so its log line has to name both.
+
+        These fields are passed to logger.info explicitly rather than left to the surrounding context, so
+        asserting on the call is asserting on what the line actually carries.
+        """
+        self._put_old_provider_records(with_second_license=True)
+        self._run_ingest_with_previous_provider_id()
+
+        mock_logger.info.assert_any_call(
+            'SSN correction resulted in a partial migration',
+            previous_provider_id=self.OLD_PROVIDER_ID,
+            new_provider_id=self.NEW_PROVIDER_ID,
+            license_type=self.MIGRATED_LICENSE_TYPE,
+        )
+
+    @patch('handlers.ingest.logger')
+    def test_full_migration_log_identifies_both_provider_ids(self, mock_logger):
+        """The full migration branch carries the same identifiers."""
+        self._put_old_provider_records()
+        self._run_ingest_with_previous_provider_id()
+
+        mock_logger.info.assert_any_call(
+            'SSN correction resulted in a full migration',
+            previous_provider_id=self.OLD_PROVIDER_ID,
+            new_provider_id=self.NEW_PROVIDER_ID,
+            license_type=self.MIGRATED_LICENSE_TYPE,
         )
 
     @patch('handlers.ingest.metrics')

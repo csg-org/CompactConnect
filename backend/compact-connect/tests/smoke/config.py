@@ -49,6 +49,10 @@ class _Config:
         return boto3.resource('dynamodb').Table(os.environ['CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME'])
 
     @property
+    def transaction_history_dynamodb_table(self):
+        return boto3.resource('dynamodb').Table(os.environ['CC_TEST_TRANSACTION_HISTORY_DYNAMO_TABLE_NAME'])
+
+    @property
     def staff_users_dynamodb_table(self):
         return boto3.resource('dynamodb').Table(os.environ['CC_TEST_STAFF_USER_DYNAMO_TABLE_NAME'])
 

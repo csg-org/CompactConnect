@@ -1,12 +1,15 @@
 from datetime import UTC, datetime, timedelta
 
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Attr, Key
 
 from cc_common.config import _Config, logger
 from cc_common.data_model.schema.transaction import TransactionData
 from cc_common.data_model.schema.transaction.record import UnsettledTransactionRecordSchema
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
+# The record type of a settled transaction, as registered by TransactionRecordSchema. Distinguishes
+# settled transactions from the 'unsettled_transaction' records that share their compact/transactionId.
+SETTLED_TRANSACTION_RECORD_TYPE = 'transaction'
 
 
 class TransactionClient:
@@ -281,6 +284,80 @@ class TransactionClient:
             transaction.update({'lineItems': line_items})
 
         return transactions
+
+    def update_licensee_id_for_transactions(
+        self, *, compact: str, transaction_ids: set[str], new_licensee_id: str
+    ) -> int:
+        """
+        Re-point the licenseeId of the given transactions at a new provider id.
+
+        Used by the SSN-correction migration: a transaction records the provider id that was in place when
+        the privilege was purchased, and the transaction report resolves practitioner names from that field.
+        Without this, every transaction settled before a correction reports the practitioner as UNKNOWN.
+
+        Only settled 'transaction' records are written, since unsettled transactions do not have a licenseeId field.
+        Once it does settle, the settlement processing workflow resolves the licensee id from the privilege record,
+        which by then lives under the new provider id.
+
+        Writes are idempotent: a record already carrying the new licensee id is left alone, so a replay of a
+        retried migration is a no-op.
+
+        :param compact: The compact name
+        :param transaction_ids: The transaction ids to re-point
+        :param new_licensee_id: The provider id the transactions now belong to
+        :return: The number of transaction records updated
+        """
+        updated_count = 0
+        for transaction_id in sorted(transaction_ids):
+            response = self.config.transaction_history_table.query(
+                IndexName=self.config.transaction_history_transaction_id_gsi_name,
+                KeyConditionExpression=Key('transactionId').eq(transaction_id) & Key('compact').eq(compact),
+                # the index is not sparse: the unsettled record written at purchase time carries the same
+                # transaction id and compact, and has no licenseeId to update
+                FilterExpression=Attr('type').eq(SETTLED_TRANSACTION_RECORD_TYPE),
+            )
+            settled_records = response.get('Items', [])
+            if not settled_records:
+                logger.warning(
+                    'No settled transaction record found for transaction id; skipping licensee id update',
+                    compact=compact,
+                    transaction_id=transaction_id,
+                )
+                continue
+
+            for record in settled_records:
+                if record.get('licenseeId') == new_licensee_id:
+                    logger.info(
+                        'Transaction is already attributed to the new provider id; skipping update',
+                        compact=compact,
+                        transaction_id=transaction_id,
+                        licensee_id=new_licensee_id,
+                    )
+                    continue
+                logger.info(
+                    'Re-pointing transaction to the new provider id',
+                    compact=compact,
+                    transaction_id=transaction_id,
+                    previous_licensee_id=record.get('licenseeId'),
+                    new_licensee_id=new_licensee_id,
+                )
+                # Only the licenseeId is written. The transaction itself did not change, only which provider
+                # record it is attributed to, so dateOfUpdate, which tracks when the settlement data was written,
+                # is left as it was.
+                self.config.transaction_history_table.update_item(
+                    Key={'pk': record['pk'], 'sk': record['sk']},
+                    UpdateExpression='SET licenseeId = :licenseeId',
+                    ExpressionAttributeValues={':licenseeId': new_licensee_id},
+                )
+                updated_count += 1
+
+        logger.info(
+            'Updated licensee id on transaction records',
+            compact=compact,
+            requested_transaction_ids=len(transaction_ids),
+            updated_records=updated_count,
+        )
+        return updated_count
 
     def store_unsettled_transaction(self, compact: str, transaction_id: str, transaction_date: str) -> None:
         """

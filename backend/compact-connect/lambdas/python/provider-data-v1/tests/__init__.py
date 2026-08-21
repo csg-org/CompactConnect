@@ -21,6 +21,8 @@ class TstLambdas(TestCase):
                 'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
                 'SSN_TABLE_NAME': 'ssn-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
+                'TRANSACTION_HISTORY_TABLE_NAME': 'transaction-history-table',
+                'TRANSACTION_HISTORY_TRANSACTION_ID_GSI_NAME': 'transactionIdGSI',
                 'ENVIRONMENT_NAME': 'test',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'FAM_GIV_INDEX_NAME': 'famGiv',

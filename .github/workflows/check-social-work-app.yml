@@ -25,9 +25,8 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Upgrade pip
-        # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
-        # Held below 26.2, which drops pip._internal.utils.compat.stdlib_pkgs and breaks pip-sync.
-        run: pip install --upgrade 'pip>=26.1,<26.2'
+        # Runner image ships pip 25.3; Upgrade to 26.2+ for the fixes to CVE-2026-3219 and PYSEC-2026-3721.
+        run: pip install --upgrade 'pip>=26.2'
 
       - name: Install dev dependencies
         run: "pip install -r backend/social-work-app/requirements-dev.txt"
@@ -87,9 +86,8 @@ jobs:
           python-version: '3.14'
 
       - name: Upgrade pip
-        # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
-        # Held below 26.2, which drops pip._internal.utils.compat.stdlib_pkgs and breaks pip-sync.
-        run: pip install --upgrade 'pip>=26.1,<26.2'
+        # Runner image ships pip 25.3; Upgrade to 26.2+ for the fixes to CVE-2026-3219 and PYSEC-2026-3721.
+        run: pip install --upgrade 'pip>=26.2'
 
       # Setup Node
       - name: Setup Node

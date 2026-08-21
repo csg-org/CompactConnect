@@ -430,3 +430,153 @@ class TestTransactionClient(TstFunction):
         third_call = mock_table.query.call_args_list[2]
         third_condition_values = third_call.kwargs['KeyConditionExpression']._values  # noqa: SLF001
         self.assertIn(f'COMPACT#{compact}#TRANSACTIONS#MONTH#2023-12', third_condition_values)
+
+
+STORED_AT = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+UPDATED_AT = datetime.fromisoformat('2024-11-09T12:00:00+00:00')
+NEW_LICENSEE_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', STORED_AT)
+class TestUpdateLicenseeIdForTransactions(TstFunction):
+    """Tests for re-pointing a transaction's licenseeId after an SSN-correction migration."""
+
+    def _store_transaction(self, transaction_id: str, compact: str = 'aslp'):
+        return self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': transaction_id, 'compact': compact}
+        )
+
+    def _get_all_records(self) -> list[dict]:
+        return self._transaction_history_table.scan()['Items']
+
+    def _get_settled_record(self, transaction_id: str) -> dict:
+        records = [
+            record
+            for record in self._get_all_records()
+            if record['type'] == 'transaction' and record['transactionId'] == transaction_id
+        ]
+        self.assertEqual(1, len(records), f'Expected exactly one settled record for {transaction_id}')
+        return records[0]
+
+    def _update(self, transaction_ids: set[str], compact: str = 'aslp', new_licensee_id: str = NEW_LICENSEE_ID):
+        with patch('cc_common.config._Config.current_standard_datetime', UPDATED_AT):
+            return self.config.transaction_client.update_licensee_id_for_transactions(
+                compact=compact,
+                transaction_ids=transaction_ids,
+                new_licensee_id=new_licensee_id,
+            )
+
+    def test_transaction_id_index_returns_stored_transaction(self):
+        """The transaction id index locates a stored transaction by its id and compact."""
+        from boto3.dynamodb.conditions import Key
+
+        self._store_transaction('123')
+
+        response = self.config.transaction_history_table.query(
+            IndexName=self.config.transaction_history_transaction_id_gsi_name,
+            KeyConditionExpression=Key('transactionId').eq('123') & Key('compact').eq('aslp'),
+        )
+
+        self.assertEqual(1, len(response['Items']))
+        self.assertEqual('123', response['Items'][0]['transactionId'])
+
+    def test_rewrites_licensee_id(self):
+        self._store_transaction('123')
+
+        updated_count = self._update({'123'})
+
+        self.assertEqual(1, updated_count)
+        self.assertEqual(NEW_LICENSEE_ID, self._get_settled_record('123')['licenseeId'])
+
+    def test_leaves_every_other_attribute_untouched(self):
+        self._store_transaction('123')
+        original_record = self._get_settled_record('123')
+
+        self._update({'123'})
+
+        expected_record = {**original_record, 'licenseeId': NEW_LICENSEE_ID}
+        self.assertEqual(expected_record, self._get_settled_record('123'))
+
+    def test_updates_several_transactions_in_one_call(self):
+        self._store_transaction('123')
+        self._store_transaction('456')
+        self._store_transaction('789')
+
+        updated_count = self._update({'123', '456', '789'})
+
+        self.assertEqual(3, updated_count)
+        for transaction_id in ('123', '456', '789'):
+            self.assertEqual(NEW_LICENSEE_ID, self._get_settled_record(transaction_id)['licenseeId'])
+
+    def test_does_not_touch_a_transaction_in_another_compact(self):
+        self._store_transaction('123', compact='aslp')
+        self._store_transaction('123', compact='octp')
+        octp_licensee_id = [record for record in self._get_all_records() if record['compact'] == 'octp'][0][
+            'licenseeId'
+        ]
+
+        updated_count = self._update({'123'}, compact='aslp')
+
+        self.assertEqual(1, updated_count)
+        records_by_compact = {record['compact']: record for record in self._get_all_records()}
+        self.assertEqual(NEW_LICENSEE_ID, records_by_compact['aslp']['licenseeId'])
+        self.assertEqual(octp_licensee_id, records_by_compact['octp']['licenseeId'])
+
+    def test_does_not_touch_the_unsettled_record_for_the_same_transaction_id(self):
+        self._store_transaction('123')
+        self.config.transaction_client.store_unsettled_transaction(
+            compact='aslp', transaction_id='123', transaction_date=STORED_AT.isoformat()
+        )
+        unsettled_record = next(
+            record for record in self._get_all_records() if record['type'] == 'unsettled_transaction'
+        )
+
+        updated_count = self._update({'123'})
+
+        self.assertEqual(1, updated_count)
+        self.assertEqual(NEW_LICENSEE_ID, self._get_settled_record('123')['licenseeId'])
+        # the unsettled record has no licenseeId at all, and must not gain one
+        self.assertEqual(
+            unsettled_record,
+            next(record for record in self._get_all_records() if record['type'] == 'unsettled_transaction'),
+        )
+
+    def test_unmatched_transaction_id_warns_and_does_not_block_the_others(self):
+        self._store_transaction('123')
+
+        with patch('cc_common.data_model.transaction_client.logger') as mock_logger:
+            updated_count = self._update({'123', 'not-settled-yet'})
+
+        self.assertEqual(1, updated_count)
+        self.assertEqual(NEW_LICENSEE_ID, self._get_settled_record('123')['licenseeId'])
+        mock_logger.warning.assert_called_once()
+        # an unsettled purchase is an expected state, not an error - the ingest handler alarms on ERROR logs
+        mock_logger.error.assert_not_called()
+
+    def test_second_call_is_a_no_op(self):
+        self._store_transaction('123')
+        self._update({'123'})
+
+        with patch(
+            'cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-10T12:00:00+00:00')
+        ):
+            updated_count = self.config.transaction_client.update_licensee_id_for_transactions(
+                compact='aslp',
+                transaction_ids={'123'},
+                new_licensee_id=NEW_LICENSEE_ID,
+            )
+
+        self.assertEqual(0, updated_count)
+
+    def test_empty_transaction_ids_makes_no_calls(self):
+        with patch('cc_common.config._Config.transaction_history_table') as mock_table:
+            updated_count = self.config.transaction_client.update_licensee_id_for_transactions(
+                compact='aslp',
+                transaction_ids=set(),
+                new_licensee_id=NEW_LICENSEE_ID,
+            )
+
+        self.assertEqual(0, updated_count)
+        mock_table.query.assert_not_called()
+        mock_table.update_item.assert_not_called()

@@ -17,6 +17,9 @@ NEW_SSN_LAST_FOUR = '6789'
 # aslp compact license type that is not the default 'speech-language pathologist'
 OTHER_LICENSE_TYPE = 'audiologist'
 OTHER_LICENSE_TYPE_ABBREVIATION = 'aud'
+# payment transaction ids other than the generator default, which the default privilege carries
+OTHER_LICENSE_TRANSACTION_ID = '9876543210'
+RENEWAL_TRANSACTION_ID = '5555555555'
 
 
 @mock_aws
@@ -72,6 +75,18 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         )
         self.test_data_generator.put_default_military_affiliation_in_provider_table()
         self.test_data_generator.put_default_provider_update_record_in_provider_table()
+        # the settled transaction the default privilege was purchased with, recorded against the old provider
+        self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': DEFAULT_COMPACT_TRANSACTION_ID, 'licenseeId': DEFAULT_PROVIDER_ID}
+        )
+
+    def _get_transaction_licensee_ids(self) -> dict[str, str]:
+        """Map every settled transaction in the history table to the provider id it is attributed to."""
+        return {
+            record['transactionId']: record['licenseeId']
+            for record in self._transaction_history_table.scan()['Items']
+            if record['type'] == 'transaction'
+        }
 
     def test_full_migration_moves_all_records_and_empties_old_partition(self):
         self._put_full_old_provider_records()
@@ -171,6 +186,65 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
                 'investigationId': '44444444-4444-4444-4444-444444444444',
             }
         )
+
+    def test_full_migration_carries_person_level_fields_onto_the_new_provider_record(self):
+        """Military status describes the practitioner, not the license. On a full migration the whole
+        practitioner moves - including the military affiliation records behind that status - so the
+        provider-level fields those flows maintain must move with them. Account state stays behind: the old
+        Cognito user is deleted and the practitioner has to register again, which is also what re-sets their
+        home jurisdiction selection.
+        """
+        self._put_full_old_provider_records()
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {
+                'militaryStatus': 'approved',
+                'militaryStatusNote': 'verified against submitted documentation',
+                'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            }
+        )
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        new_provider_record = next(
+            record for record in self._get_all_records_for_provider(NEW_PROVIDER_ID) if record['type'] == 'provider'
+        )
+        # the record must belong to the new provider id, not the one it was copied from
+        self.assertEqual(NEW_PROVIDER_ID, new_provider_record['providerId'])
+        self.assertEqual(f'{DEFAULT_COMPACT}#PROVIDER#{NEW_PROVIDER_ID}', new_provider_record['pk'])
+        self.assertEqual('approved', new_provider_record.get('militaryStatus'))
+        self.assertEqual('verified against submitted documentation', new_provider_record.get('militaryStatusNote'))
+        # the old account is torn down by a full migration, so its registration state must not follow -
+        # including the home jurisdiction selection, which registration sets and which gates eligibility
+        self.assertNotIn('compactConnectRegisteredEmailAddress', new_provider_record)
+        # the schema defaults an unset selection to 'unknown', which is what keeps the provider
+        # compact-ineligible until they register again
+        self.assertEqual('unknown', new_provider_record.get('currentHomeJurisdiction'))
+
+    def test_partial_migration_does_not_carry_person_level_fields_to_the_new_provider(self):
+        """The mirror of the full-migration case. A partial migration leaves the person-level records
+        (military affiliations, provider update history) with the old provider, so the new provider must not
+        claim a military status that has no affiliation records behind it.
+        """
+        self._put_full_old_provider_records()
+        self._put_records_associated_with_remaining_license()
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'militaryStatus': 'approved', 'militaryStatusNote': 'verified against submitted documentation'}
+        )
+
+        result = self._migrate()
+
+        self.assertFalse(result.full_migration)
+        new_provider_record = next(
+            record for record in self._get_all_records_for_provider(NEW_PROVIDER_ID) if record['type'] == 'provider'
+        )
+        self.assertNotIn('militaryStatus', new_provider_record)
+        self.assertNotIn('militaryStatusNote', new_provider_record)
+        # the old provider keeps them, along with the affiliation records that support them
+        old_provider_record = next(
+            record for record in self._get_all_records_for_provider(DEFAULT_PROVIDER_ID) if record['type'] == 'provider'
+        )
+        self.assertEqual('approved', old_provider_record.get('militaryStatus'))
 
     def test_partial_migration_moves_only_records_associated_with_target_license(self):
         """A partial migration must move ONLY the corrected license and its dependent records: the privileges
@@ -380,6 +454,117 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
         self.assertEqual(pre_existing_provider.serialize_to_database_record(), new_provider_record)
 
+    def test_military_status_carries_onto_an_existing_new_provider_record(self):
+        """Correcting a two-license practitioner takes two uploads: the first is a partial migration that
+        creates the new provider record from the license alone, the second is a full migration that finds
+        that record already present. The practitioner's military status has to survive the sequence, because
+        the second step deletes the old provider record that holds it.
+        """
+        self._put_full_old_provider_records()
+        self._put_records_associated_with_remaining_license()
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'militaryStatus': 'approved', 'militaryStatusNote': 'verified against submitted documentation'}
+        )
+
+        # first correction: a partial migration, which creates the new provider record with no military data
+        first_result = self._migrate()
+
+        self.assertFalse(first_result.full_migration)
+        self.assertNotIn('militaryStatus', self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0])
+
+        # second correction: the remaining license, so a full migration into the now-existing provider record
+        second_result = self._migrate(license_type=OTHER_LICENSE_TYPE)
+
+        self.assertTrue(second_result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertEqual('approved', new_provider_record.get('militaryStatus'))
+        self.assertEqual('verified against submitted documentation', new_provider_record.get('militaryStatusNote'))
+
+    def test_existing_new_provider_military_status_is_never_overwritten(self):
+        """The new provider id may already belong to a practitioner who has been audited in their own right.
+        Their status wins: the migration fills absent fields, it does not replace decided ones.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {
+                'providerId': NEW_PROVIDER_ID,
+                'militaryStatus': 'declined',
+                'militaryStatusNote': 'documentation expired',
+            }
+        )
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'militaryStatus': 'approved', 'militaryStatusNote': 'verified against submitted documentation'}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertEqual('declined', new_provider_record.get('militaryStatus'))
+        self.assertEqual('documentation expired', new_provider_record.get('militaryStatusNote'))
+
+    def test_existing_new_provider_record_untouched_when_there_is_no_military_status_fields_to_preserve(self):
+        """With nothing to merge, the pre-existing record must not be written to at all."""
+        pre_existing_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'providerId': NEW_PROVIDER_ID, 'licenseJurisdiction': 'ky', 'privilegeJurisdictions': set()}
+        )
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        self._migrate()
+
+        self.assertEqual(
+            pre_existing_provider.serialize_to_database_record(),
+            self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0],
+        )
+
+    def test_new_provider_record_is_encumbered_when_a_migrated_record_has_an_unlifted_adverse_action(self):
+        """The provider-level encumbrance flag gates privilege purchasing, and it is an aggregate the
+        migration has to establish for itself: the records arriving under the new provider id carry the
+        encumbrance, and no other flow will notice they moved.
+        """
+        self._put_full_old_provider_records()
+        self._put_records_associated_with_remaining_license()
+
+        result = self._migrate()
+
+        # a partial migration, so the new provider record is created from scratch
+        self.assertFalse(result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertEqual('encumbered', new_provider_record.get('encumberedStatus'))
+
+    def test_existing_new_provider_record_is_encumbered_by_a_migrated_unlifted_adverse_action(self):
+        """Same aggregate, but merged onto a provider record that already exists - the second half of a
+        two-step correction, where the created-from-scratch path never runs.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': NEW_PROVIDER_ID})
+        self._put_full_old_provider_records()
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertEqual('encumbered', new_provider_record.get('encumberedStatus'))
+
+    def test_lifted_adverse_actions_do_not_encumber_the_new_provider_record(self):
+        """A lifted encumbrance is not an encumbrance. Only unlifted adverse actions count."""
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            {
+                'actionAgainst': 'privilege',
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'effectiveLiftDate': date.fromisoformat('2024-10-01'),
+            }
+        )
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
+        self.assertNotEqual('encumbered', new_provider_record.get('encumberedStatus'))
+
     def test_migration_raises_when_new_provider_record_created_concurrently(self):
         """The absent-check for the new provider's top-level record and the Put that creates one are not
         atomic with each other. If a concurrent write creates that record in between, the Put must be
@@ -414,6 +599,34 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         new_provider_records = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')
         self.assertEqual(1, len(new_provider_records))
         self.assertEqual(pre_existing_provider.serialize_to_database_record(), new_provider_records[0])
+
+    def test_migration_raises_when_new_provider_record_deleted_concurrently(self):
+        """The mirror of the create-branch race above: the existence check confirms the new provider's
+        top-level record is present, but the merge Update that follows is not atomic with that check. If a
+        concurrent write deletes the record in between, the merge must be conditioned on the record still
+        being present - otherwise DynamoDB's default UpdateItem behavior creates a new item from just the
+        SET clause, leaving a malformed provider record (missing providerId, compact, and everything else a
+        real record needs) rather than failing loudly for a retry to fix.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': NEW_PROVIDER_ID})
+        self._put_full_old_provider_records()
+
+        real_transact_write_items = self.config.dynamodb_client.transact_write_items
+
+        def _delete_new_provider_record_then_commit(**kwargs):
+            self.config.provider_table.delete_item(
+                Key={'pk': f'{DEFAULT_COMPACT}#PROVIDER#{NEW_PROVIDER_ID}', 'sk': f'{DEFAULT_COMPACT}#PROVIDER'}
+            )
+            return real_transact_write_items(**kwargs)
+
+        with patch.object(
+            self.config.dynamodb_client, 'transact_write_items', side_effect=_delete_new_provider_record_then_commit
+        ):
+            with self.assertRaises(CCInternalException):
+                self._migrate()
+
+        # the conditioned Update failed, so no stub record was recreated
+        self.assertEqual([], self._get_records_of_type(NEW_PROVIDER_ID, 'provider'))
 
     def test_no_op_when_old_provider_has_no_matching_license(self):
         self.test_data_generator.put_default_provider_record_in_provider_table()
@@ -758,3 +971,124 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertTrue(result.full_migration)
         self.assertEqual(DEFAULT_REGISTERED_EMAIL_ADDRESS, result.old_provider_registered_email)
         self.assertEqual([], self._get_all_records_for_provider(DEFAULT_PROVIDER_ID))
+
+    def test_full_migration_repoints_the_transaction_to_the_new_provider(self):
+        """The transaction a migrated privilege was purchased with must follow the practitioner, so the
+        transaction report can still resolve their name after the old provider partition is gone.
+        """
+        self._put_full_old_provider_records()
+
+        result = self._migrate()
+
+        self.assertTrue(result.full_migration)
+        self.assertEqual({DEFAULT_COMPACT_TRANSACTION_ID: NEW_PROVIDER_ID}, self._get_transaction_licensee_ids())
+
+    def test_partial_migration_repoints_only_the_corrected_licenses_transactions(self):
+        """A transaction belonging to a privilege that stays with the old provider must keep pointing at the
+        old provider id - it is still correct for that purchase.
+        """
+        self._put_full_old_provider_records()
+        # a second license of another type, whose privilege was purchased with its own transaction
+        self.test_data_generator.put_default_license_record_in_provider_table({'licenseType': OTHER_LICENSE_TYPE})
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            {'licenseType': OTHER_LICENSE_TYPE, 'compactTransactionId': OTHER_LICENSE_TRANSACTION_ID}
+        )
+        self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': OTHER_LICENSE_TRANSACTION_ID, 'licenseeId': DEFAULT_PROVIDER_ID}
+        )
+
+        result = self._migrate()
+
+        self.assertFalse(result.full_migration)
+        self.assertEqual(
+            {
+                DEFAULT_COMPACT_TRANSACTION_ID: NEW_PROVIDER_ID,
+                OTHER_LICENSE_TRANSACTION_ID: DEFAULT_PROVIDER_ID,
+            },
+            self._get_transaction_licensee_ids(),
+        )
+
+    def test_repoints_a_transaction_reachable_only_through_privilege_update_history(self):
+        """A renewed privilege carries only its most recent transaction id; the earlier purchase survives on
+        the privilege update record, and its transaction must be re-pointed too.
+        """
+        self._put_full_old_provider_records()
+        # renew the privilege: it now carries a newer transaction id, while the update record's `previous`
+        # still references the original purchase
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            {'compactTransactionId': RENEWAL_TRANSACTION_ID}
+        )
+        self.test_data_generator.put_default_transaction_in_transaction_history_table(
+            {'transactionId': RENEWAL_TRANSACTION_ID, 'licenseeId': DEFAULT_PROVIDER_ID}
+        )
+
+        self._migrate()
+
+        self.assertEqual(
+            {
+                DEFAULT_COMPACT_TRANSACTION_ID: NEW_PROVIDER_ID,
+                RENEWAL_TRANSACTION_ID: NEW_PROVIDER_ID,
+            },
+            self._get_transaction_licensee_ids(),
+        )
+
+    def test_transactions_are_repointed_before_the_migration_commits(self):
+        """The transaction update must happen before the commit that flips the idempotency guard, so a
+        failure retries the whole migration rather than stranding the transactions.
+        """
+        self._put_full_old_provider_records()
+
+        with patch.object(
+            self.config.dynamodb_client,
+            'transact_write_items',
+            side_effect=RuntimeError('simulated failure committing the migration'),
+        ):
+            with self.assertRaises(Exception):  # noqa: B017 the migration wraps the failure
+                self._migrate()
+
+        # the migration did not commit, but the transaction was already re-pointed
+        self.assertEqual(1, len(self._get_records_of_type(DEFAULT_PROVIDER_ID, 'license')))
+        self.assertEqual({DEFAULT_COMPACT_TRANSACTION_ID: NEW_PROVIDER_ID}, self._get_transaction_licensee_ids())
+
+        # the replay completes the migration and leaves the transaction correctly attributed
+        result = self._migrate()
+
+        self.assertTrue(result.migration_performed)
+        self.assertEqual({DEFAULT_COMPACT_TRANSACTION_ID: NEW_PROVIDER_ID}, self._get_transaction_licensee_ids())
+
+    def test_migration_with_no_privileges_makes_no_transaction_history_calls(self):
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        with patch('cc_common.config._Config.transaction_client') as mock_transaction_client:
+            result = self._migrate()
+
+        self.assertTrue(result.migration_performed)
+        mock_transaction_client.update_licensee_id_for_transactions.assert_not_called()
+
+    def test_unsettled_transaction_does_not_fail_the_migration(self):
+        """A privilege purchased but not yet settled has no transaction record to re-point. That is an
+        expected state, not an error - the ingest handler alarms on any ERROR log line.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.config.transaction_client.store_unsettled_transaction(
+            compact=DEFAULT_COMPACT,
+            transaction_id=DEFAULT_COMPACT_TRANSACTION_ID,
+            transaction_date='2024-11-08T20:00:00+00:00',
+        )
+
+        with patch('cc_common.data_model.transaction_client.logger') as mock_logger:
+            result = self._migrate()
+
+        self.assertTrue(result.migration_performed)
+        self.assertEqual({}, self._get_transaction_licensee_ids())
+        mock_logger.warning.assert_called_once()
+        mock_logger.error.assert_not_called()
+        # the unsettled record must not have gained a licenseeId
+        unsettled_records = [
+            record for record in self._transaction_history_table.scan()['Items'] if record['type'] != 'transaction'
+        ]
+        self.assertEqual(1, len(unsettled_records))
+        self.assertNotIn('licenseeId', unsettled_records[0])

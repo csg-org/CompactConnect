@@ -232,8 +232,20 @@ class logger_inject_kwargs:  # noqa: N801 invalid-name
         def wrapped(*args, **kwargs):
             if not self.arg_names:
                 raise ValueError('No argument names provided to logger_inject_kwargs')
-            with self.logger.append_context_keys(**{k: kwargs.get(k) for k in self.arg_names}):
-                return fn(*args, **kwargs)
+            injected_keys = {k: kwargs.get(k) for k in self.arg_names}
+            # append_context_keys removes every key it set when it exits, including keys the caller had
+            # already set under the same name. Nearly every decorated method injects names a caller is
+            # likely to be using itself - 'compact' and 'provider_id' above all - so without putting those
+            # back, returning from one of these methods silently strips the caller's context and leaves the
+            # rest of its logs unsearchable by those keys.
+            current_keys = self.logger.get_current_keys()
+            displaced_keys = {k: current_keys[k] for k in injected_keys if k in current_keys}
+            try:
+                with self.logger.append_context_keys(**injected_keys):
+                    return fn(*args, **kwargs)
+            finally:
+                if displaced_keys:
+                    self.logger.append_keys(**displaced_keys)
 
         return wrapped
 

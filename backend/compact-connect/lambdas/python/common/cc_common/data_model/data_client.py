@@ -41,8 +41,15 @@ from cc_common.data_model.schema.military_affiliation.common import (
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+from cc_common.data_model.schema.privilege.record import (
+    FIELDS_PRESERVED_ON_RENEWAL,
+    PrivilegeUpdateRecordSchema,
+)
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
+from cc_common.data_model.schema.provider.record import (
+    PROVIDER_ACCOUNT_STATE_FIELDS,
+    PROVIDER_PERSON_LEVEL_FIELDS,
+)
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
     CCAmbiguousLicenseNumberException,
@@ -536,10 +543,19 @@ class DataClient:
             logger.warning('License type abbreviation not found', exc_info=e)
             raise CCInvalidRequestException(f'Compact or license type not supported: {e}') from e
 
+        preserved_values = {}
         if original_privilege:
             # Copy over the original issuance date and privilege id
             date_of_issuance = original_privilege.dateOfIssuance
             privilege_id = original_privilege.privilegeId
+            # The record below is built fresh from the purchase inputs, so anything the purchase cannot
+            # express has to be carried forward explicitly or the renewal drops it
+            original_privilege_data = original_privilege.to_dict()
+            preserved_values = {
+                field: original_privilege_data[field]
+                for field in sorted(FIELDS_PRESERVED_ON_RENEWAL)
+                if original_privilege_data.get(field) is not None
+            }
         else:
             date_of_issuance = current_datetime
             # Claim a privilege number for this jurisdiction
@@ -566,6 +582,7 @@ class DataClient:
                 'attestations': attestations,
                 'privilegeId': privilege_id,
                 'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
+                **preserved_values,
             }
         )
 
@@ -3157,23 +3174,25 @@ class DataClient:
                 rekeyed_privileges.append(rekeyed_record)
             create_transaction_items.append(self._build_put_transaction_item(rekeyed_record))
 
-        # Create a top-level provider record for the new provider only if it does not already have one; a
-        # pre-existing record is never modified. The existence check and this Put are not atomic with each
-        # other, so the Put is conditioned on the record still being absent: if a concurrent write (e.g. a
+        # Create a top-level provider record for the new provider only if it does not already have one. If the record
+        # does exist and we are performing a full migration, we perform an UPDATE with provider relevant fields such
+        # as military status.
+        #
+        # The existence check and this Put are not atomic with each other, so the Put is conditioned on the
+        # record still being absent: if a concurrent write (e.g. a
         # different migration into the same new provider id) creates one in between, this Put fails instead of
         # silently clobbering it, and the transaction raises for SQS retry to re-read the now-current state.
-        new_provider_record = self._build_new_provider_record_if_absent(
+        new_provider_record_item = self._build_new_provider_record_transaction_item(
             compact=compact,
             new_provider_id=new_provider_id,
             rekeyed_target_license=rekeyed_target_license,
             rekeyed_privileges=rekeyed_privileges,
+            old_provider_data=old_top_level_provider_data,
+            full_migration=full_migration,
+            migrated_records_are_encumbered=self._migrated_records_are_encumbered(records_to_move),
         )
-        if new_provider_record is not None:
-            create_transaction_items.append(
-                self._build_put_transaction_item(
-                    new_provider_record, condition={'ConditionExpression': 'attribute_not_exists(pk)'}
-                )
-            )
+        if new_provider_record_item is not None:
+            create_transaction_items.append(new_provider_record_item)
 
         # deletes: the moved records on the old provider, except the target license and the top-level provider
         # record (both handled in the final group).
@@ -3221,6 +3240,26 @@ class DataClient:
                 new_provider_id=new_provider_id,
             )
 
+        # Re-point the practitioner's payment transactions at the new provider id, for the same replay-safety
+        # reason as the document move above: the commit below is the point at which the idempotency guard
+        # flips, so a failure before it retries the whole migration (and these writes are idempotent), while
+        # anything left until after it would never be retried at all. This runs on partial migrations too -
+        # the privileges purchased against the corrected license move in both cases.
+        #
+        # The ordering accepts a transient inconsistency: if the commit below fails, these transactions
+        # already point at new_provider_id while the provider records are still under previous_provider_id,
+        # so a report generated in that window renders the practitioner as UNKNOWN - briefly, the same
+        # symptom this re-pointing exists to remove. The SQS retry closes it by completing the migration.
+        payment_transaction_ids = self._collect_payment_transaction_ids(records_to_move)
+        if payment_transaction_ids:
+            self.config.transaction_client.update_licensee_id_for_transactions(
+                compact=compact,
+                transaction_ids=payment_transaction_ids,
+                new_licensee_id=new_provider_id,
+            )
+        else:
+            logger.info('No payment transactions are associated with the migrated records')
+
         all_transaction_items = [
             *create_transaction_items,
             *delete_transaction_items,
@@ -3249,11 +3288,56 @@ class DataClient:
             migration_performed=True,
             full_migration=full_migration,
             old_provider_registered_email=(
-                old_top_level_provider_data.to_dict().get('compactConnectRegisteredEmailAddress')
-                if full_migration
-                else None
+                old_top_level_provider_data.compactConnectRegisteredEmailAddress if full_migration else None
             ),
         )
+
+    @staticmethod
+    def _migrated_records_are_encumbered(records_to_move: list[CCDataClass]) -> bool:
+        """
+        Whether the records arriving under the new provider id carry an active encumbrance.
+
+        Read from the adverse action records rather than the encumberedStatus flags on the license and
+        privilege records: the flags are a denormalized summary that a license re-upload has historically
+        been able to drop, while an adverse action with no effectiveLiftDate is the encumbrance itself.
+        """
+        return any(
+            record.type == ProviderRecordType.ADVERSE_ACTION and record.effectiveLiftDate is None
+            for record in records_to_move
+        )
+
+    @staticmethod
+    def _collect_payment_transaction_ids(records: list[CCDataClass]) -> set[str]:
+        """
+        Collect every payment transaction id referenced by the privilege records being migrated.
+
+        A privilege record carries the transaction id of its most recent purchase or renewal; the earlier
+        ones survive only on the privilege update history records, each of which snapshots the privilege as
+        it was before that update. The current record plus those snapshots cover the practitioner's full
+        purchase history for the privileges that are moving.
+        """
+        transaction_ids = set()
+        for record in records:
+            if record.type == ProviderRecordType.PRIVILEGE:
+                # compactTransactionId is optional on the privilege record, so this reads through the dict
+                # rather than the data class property, which raises when the field is absent
+                transaction_id = record.to_dict().get('compactTransactionId')
+                if transaction_id:
+                    transaction_ids.add(transaction_id)
+                else:
+                    logger.error(
+                        'Migrated privilege record has no compactTransactionId; its transaction cannot be '
+                        're-pointed to the new provider id',
+                        compact=record.compact,
+                        provider_id=record.providerId,
+                        jurisdiction=record.jurisdiction,
+                        license_type=record.licenseType,
+                    )
+            elif record.type == ProviderRecordType.PRIVILEGE_UPDATE:
+                # Using the `previous` snapshot we can collect all transaction ids from previous renewals and
+                # walk back to the transaction id of the original purchase.
+                transaction_ids.add(record.previous['compactTransactionId'])
+        return transaction_ids
 
     @staticmethod
     def _provider_record_key(record: CCDataClass) -> dict[str, str]:
@@ -3494,27 +3578,133 @@ class DataClient:
             privilege_records=[privilege_data.to_dict() for privilege_data in remaining_privileges],
         )
 
-    def _build_new_provider_record_if_absent(
+    def _build_new_provider_record_transaction_item(
         self,
         *,
         compact: str,
         new_provider_id: str,
         rekeyed_target_license: LicenseData,
         rekeyed_privileges: list[PrivilegeData],
-    ) -> ProviderData | None:
+        old_provider_data: ProviderData | None,
+        full_migration: bool,
+        migrated_records_are_encumbered: bool,
+    ) -> dict | None:
         """
         Build a top-level provider record for the new provider from the migrated license/privileges, or return
         None if the new provider already has one (a pre-existing record is never modified).
+
+        On a full migration the entire practitioner moves, including the person-level records behind their
+        military status, so the old provider record seeds the new one, carrying the provider-level fields
+        that no license can supply (military status and note, and the encumbrance aggregate). The corrected
+        license then overwrites everything it is authoritative for, including the provider id. Account
+        state is left behind: a full migration deletes the old Cognito user, so the new provider must start
+        unregistered, which includes its home jurisdiction selection, since registration sets that.
+
+        A partial migration carries none of it, matching how the person-level records themselves are
+        handled: they stay with the old provider, so a military status on the new provider would have no
+        supporting affiliation records behind it.
         """
         try:
-            self.get_provider_top_level_record(compact=compact, provider_id=new_provider_id)
-            return None
+            existing_new_provider_record = self.get_provider_top_level_record(
+                compact=compact, provider_id=new_provider_id
+            )
         except CCNotFoundException:
-            return ProviderRecordUtility.populate_provider_record(
-                current_provider_record=None,
+            seed_record = None
+            if full_migration and old_provider_data is not None:
+                seed_record = ProviderData.create_new(
+                    {
+                        key: value
+                        for key, value in old_provider_data.to_dict().items()
+                        if key not in PROVIDER_ACCOUNT_STATE_FIELDS
+                    }
+                )
+            new_provider_record = ProviderRecordUtility.populate_provider_record(
+                current_provider_record=seed_record,
                 license_record=rekeyed_target_license.to_dict(),
                 privilege_records=[privilege_data.to_dict() for privilege_data in rekeyed_privileges],
             )
+            if migrated_records_are_encumbered:
+                new_provider_record.update({'encumberedStatus': LicenseEncumberedStatusEnum.ENCUMBERED})
+            return self._build_put_transaction_item(
+                new_provider_record, condition={'ConditionExpression': 'attribute_not_exists(pk)'}
+            )
+
+        return self._build_existing_provider_merge_item(
+            existing_new_provider_record=existing_new_provider_record,
+            old_provider_data=old_provider_data,
+            full_migration=full_migration,
+            migrated_records_are_encumbered=migrated_records_are_encumbered,
+        )
+
+    def _build_existing_provider_merge_item(
+        self,
+        *,
+        existing_new_provider_record: ProviderData,
+        old_provider_data: ProviderData | None,
+        full_migration: bool,
+        migrated_records_are_encumbered: bool,
+    ) -> dict | None:
+        """
+        Merge the old provider's person-level fields into a provider record that already exists, or return
+        None when there is nothing to merge.
+
+        A practitioner with two licenses is corrected in two uploads: the first is a partial migration that
+        creates the new provider record, the second a full migration that finds it already there and deletes
+        the old provider record. Without this, the military status the reviewer decided is lost at that
+        second step - it lives only on the top-level record and cannot be rebuilt from the migrated
+        affiliation records.
+
+        Each field is written with `if_not_exists`, so this can only fill gaps: a provider who was audited in
+        their own right under the new provider id keeps their own status. The write is idempotent, so an SQS
+        replay of the migration re-applies it harmlessly.
+
+        Person-level fields move only on a full migration, matching the records that back them: a partial
+        migration leaves the military affiliation records with the old provider, so a status carried without
+        them would have no supporting documentation behind it. The encumbrance flag is not person-level and
+        is not gated that way - it follows the records that actually moved, on either kind of migration, and
+        is only ever escalated. Clearing it stays the job of the encumbrance lift sweep, which is the only
+        code that can see every record the practitioner still holds.
+        """
+        merge_values = {}
+        if full_migration and old_provider_data is not None:
+            old_provider_fields = old_provider_data.to_dict()
+            merge_values = {
+                field: old_provider_fields[field]
+                for field in sorted(PROVIDER_PERSON_LEVEL_FIELDS)
+                if old_provider_fields.get(field) is not None
+            }
+        if not merge_values and not migrated_records_are_encumbered:
+            return None
+
+        record_key = self._provider_record_key(existing_new_provider_record)
+        # providerDateOfUpdate backs a GSI and is normally derived from dateOfUpdate when a record is
+        # dumped through its schema. This write bypasses the schema, so both are set together to keep the
+        # index consistent with the record.
+        now = config.current_standard_datetime.isoformat()
+        set_expressions = [f'{field} = if_not_exists({field}, :{field})' for field in merge_values]
+        expression_values = {f':{field}': {'S': value} for field, value in merge_values.items()}
+        if migrated_records_are_encumbered:
+            # written unconditionally rather than with if_not_exists: escalating to encumbered is always
+            # correct here, and a record already reading encumbered is unchanged by it
+            set_expressions.append('encumberedStatus = :encumberedStatus')
+            expression_values[':encumberedStatus'] = {'S': LicenseEncumberedStatusEnum.ENCUMBERED}
+        set_expressions.extend(['dateOfUpdate = :dateOfUpdate', 'providerDateOfUpdate = :dateOfUpdate'])
+        expression_values[':dateOfUpdate'] = {'S': now}
+
+        logger.info(
+            'Merging fields onto the existing new provider record',
+            person_level_fields=sorted(merge_values),
+            setting_encumbered=migrated_records_are_encumbered,
+        )
+        return {
+            'Update': {
+                'TableName': self.config.provider_table_name,
+                'Key': {'pk': {'S': record_key['pk']}, 'sk': {'S': record_key['sk']}},
+                'UpdateExpression': 'SET ' + ', '.join(set_expressions),
+                'ExpressionAttributeValues': expression_values,
+                'ConditionExpression': 'attribute_exists(pk)',
+            }
+        }
 
     def _execute_batched_transactions(self, transaction_items: list[dict]) -> None:
         """

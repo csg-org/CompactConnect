@@ -26,6 +26,12 @@ from cc_common.data_model.schema.fields import (
 )
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 
+# Fields on the top-level provider record that aggregate across every license AND privilege the
+# practitioner holds. They are maintained by the encumbrance flows, which set them when any record is
+# encumbered and clear them only once nothing is. A single license's value must never be copied over
+# them when an existing provider record is refreshed - see ProviderRecordUtility.populate_provider_record.
+PROVIDER_AGGREGATE_FIELDS = frozenset({'encumberedStatus'})
+
 
 @BaseRecordSchema.register_schema('provider')
 class ProviderRecordSchema(BaseRecordSchema):

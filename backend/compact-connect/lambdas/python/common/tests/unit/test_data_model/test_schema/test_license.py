@@ -496,3 +496,71 @@ class TestLicenseGeneralResponseSchemaExpirationCheck(TstLambdas):
         result = LicenseGeneralResponseSchema().load(license_data)
 
         self.assertEqual('inactive', result['licenseStatus'])
+
+
+class TestLicenseRecordFieldOwnership(TstLambdas):
+    """
+    Guards the contract behind SYSTEM_OWNED_LICENSE_FIELDS.
+
+    A license upload writes the whole record, so any field the upload cannot supply is dropped unless the
+    ingest handler carries it forward. This test fails if a new field is added to the license record without
+    deciding which side of that line it falls on.
+    """
+
+    # Regenerated from other fields by LicenseRecordSchema's pre_dump hooks on every write, and dropped
+    # from the loaded record by its post_load hook - so there is never anything to preserve.
+    GENERATED_ON_WRITE = {
+        'pk',
+        'sk',
+        'licenseGSIPK',
+        'licenseGSISK',
+        'licenseUploadDateGSIPK',
+        'licenseUploadDateGSISK',
+    }
+    # Stamped fresh by BaseRecordSchema on every write.
+    STAMPED_ON_WRITE = {'type', 'dateOfUpdate'}
+    # Calculated when a record is loaded and stripped again before it is written, so they are never stored.
+    CALCULATED_ON_LOAD = {'licenseStatus', 'compactEligibility'}
+
+    def test_every_field_the_upload_cannot_supply_is_accounted_for(self):
+        from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
+        from cc_common.data_model.schema.license.record import (
+            SYSTEM_OWNED_LICENSE_FIELDS,
+            LicenseRecordSchema,
+        )
+
+        not_suppliable_by_upload = set(LicenseRecordSchema().fields) - set(LicenseIngestSchema().fields)
+        unaccounted_for = (
+            not_suppliable_by_upload
+            - self.GENERATED_ON_WRITE
+            - self.STAMPED_ON_WRITE
+            - self.CALCULATED_ON_LOAD
+            - SYSTEM_OWNED_LICENSE_FIELDS
+        )
+
+        self.assertEqual(
+            set(),
+            unaccounted_for,
+            f'New license record field(s) {sorted(unaccounted_for)} cannot be supplied by a license upload, '
+            'so a routine re-upload will silently drop them. Decide which they are and add them to the right '
+            'place: SYSTEM_OWNED_LICENSE_FIELDS (in schema/license/record.py) if the system owns the value '
+            'and it must survive an upload, or one of the GENERATED_ON_WRITE / STAMPED_ON_WRITE / '
+            'CALCULATED_ON_LOAD sets in this test if the field is rebuilt or discarded on every write.',
+        )
+
+    def test_no_preserved_field_can_be_supplied_by_an_upload(self):
+        """A preserved field that a state can also send would be frozen at its first value forever, since
+        the carry-forward would overwrite whatever the upload provided.
+        """
+        from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
+        from cc_common.data_model.schema.license.record import SYSTEM_OWNED_LICENSE_FIELDS
+
+        uploadable_but_preserved = SYSTEM_OWNED_LICENSE_FIELDS & set(LicenseIngestSchema().fields)
+
+        self.assertEqual(
+            set(),
+            uploadable_but_preserved,
+            f'{sorted(uploadable_but_preserved)} can be supplied by a license upload, so preserving it would '
+            'pin it at its existing value and prevent a state from ever changing it. Remove it from '
+            'SYSTEM_OWNED_LICENSE_FIELDS.',
+        )

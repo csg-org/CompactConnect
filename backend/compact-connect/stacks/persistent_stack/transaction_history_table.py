@@ -5,6 +5,7 @@ from aws_cdk.aws_dynamodb import (
     AttributeType,
     BillingMode,
     PointInTimeRecoverySpecification,
+    ProjectionType,
     Table,
     TableEncryption,
 )
@@ -42,6 +43,21 @@ class TransactionHistoryTable(Table):
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
             **kwargs,
+        )
+
+        self.transaction_id_gsi_name = 'transactionIdGSI'
+
+        # Looks a transaction up by the id the payment processor assigned it, which the base table's
+        # month / settlement-time keying cannot do. The SSN-correction migration uses this to re-point a
+        # transaction's licenseeId at the practitioner's new provider id. The full projection leaves the
+        # index usable as the general by-id entry point to this table, since transaction records are not
+        # searchable anywhere else in the system. The compact sort key keeps an id from ever resolving
+        # across compacts.
+        self.add_global_secondary_index(
+            index_name=self.transaction_id_gsi_name,
+            partition_key=Attribute(name='transactionId', type=AttributeType.STRING),
+            sort_key=Attribute(name='compact', type=AttributeType.STRING),
+            projection_type=ProjectionType.ALL,
         )
 
         # Set up backup plan
