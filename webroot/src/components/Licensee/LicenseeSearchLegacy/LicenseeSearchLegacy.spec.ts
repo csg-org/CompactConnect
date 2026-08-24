@@ -6,15 +6,30 @@
 //
 
 import { nextTick } from 'vue';
-import { expect } from 'chai';
+import chaiMatchPattern from 'chai-match-pattern';
+import chai from 'chai';
 import { mountShallow, mountFull } from '@tests/helpers/setup';
 import LicenseeSearch from '@components/Licensee/LicenseeSearchLegacy/LicenseeSearchLegacy.vue';
+import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { AppModes } from '@/app.config';
 import store from '@store/index';
+
+chai.use(chaiMatchPattern);
+
+const { expect } = chai;
+const populateSearchFields = (formData) => {
+    formData.firstName.value = 'Test';
+    formData.lastName.value = 'User';
+    formData.state.value = 'co';
+    formData.licenseNumber.value = 'ABC123';
+    formData.licenseType.value = 'licensed clinical social worker';
+    formData.cuid.value = 'SWC-9999-9';
+};
 
 describe('LicenseeSearch component', async () => {
     afterEach(async () => {
         await store.dispatch('setAppMode', AppModes.JCC);
+        await store.dispatch('user/setCurrentCompact', null);
     });
 
     it('should mount the component', async () => {
@@ -97,5 +112,160 @@ describe('LicenseeSearch component', async () => {
 
         expect(error.exists()).to.equal(true);
         expect(error.text()).to.equal(wrapper.vm.$t('inputErrors.invalidCuidFormat'));
+    });
+    it('should successfully emit searchParams for JCC staff search', async () => {
+        await store.dispatch('setAppMode', AppModes.JCC);
+
+        let emittedSearchParams;
+        const wrapper = await mountShallow(LicenseeSearch, {
+            props: {
+                onSearchParams: (searchParams) => {
+                    emittedSearchParams = searchParams;
+                },
+            },
+        });
+        const { formData } = wrapper.vm;
+
+        populateSearchFields(formData);
+        await wrapper.vm.handleSubmit();
+
+        expect(emittedSearchParams).to.matchPattern({
+            compact: undefined,
+            firstName: 'Test',
+            lastName: 'User',
+            state: 'co',
+        });
+    });
+    it('should successfully emit searchParams for JCC public search', async () => {
+        await store.dispatch('setAppMode', AppModes.JCC);
+        await store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.ASLP }));
+
+        let emittedSearchParams;
+        const wrapper = await mountShallow(LicenseeSearch, {
+            props: {
+                isPublicSearch: true,
+                onSearchParams: (searchParams) => {
+                    emittedSearchParams = searchParams;
+                },
+            },
+        });
+        const { formData } = wrapper.vm;
+
+        populateSearchFields(formData);
+        formData.compact.value = CompactType.ASLP;
+        await wrapper.vm.handleSubmit();
+
+        expect(emittedSearchParams).to.matchPattern({
+            compact: CompactType.ASLP,
+            firstName: 'Test',
+            lastName: 'User',
+            state: 'co',
+        });
+    });
+    it('should successfully emit searchParams for cosmetology staff search', async () => {
+        await store.dispatch('setAppMode', AppModes.COSMETOLOGY);
+
+        let emittedSearchParams;
+        const wrapper = await mountShallow(LicenseeSearch, {
+            props: {
+                onSearchParams: (searchParams) => {
+                    emittedSearchParams = searchParams;
+                },
+            },
+        });
+        const { formData } = wrapper.vm;
+
+        populateSearchFields(formData);
+        await wrapper.vm.handleSubmit();
+
+        expect(emittedSearchParams).to.matchPattern({
+            compact: undefined,
+            firstName: 'Test',
+            lastName: 'User',
+            state: 'co',
+            licenseNumber: 'ABC123',
+        });
+    });
+    it('should successfully emit searchParams for cosmetology public search', async () => {
+        await store.dispatch('setAppMode', AppModes.COSMETOLOGY);
+        await store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.COSMETOLOGY }));
+
+        let emittedSearchParams;
+        const wrapper = await mountShallow(LicenseeSearch, {
+            props: {
+                isPublicSearch: true,
+                onSearchParams: (searchParams) => {
+                    emittedSearchParams = searchParams;
+                },
+            },
+        });
+        const { formData } = wrapper.vm;
+
+        populateSearchFields(formData);
+        formData.compact.value = CompactType.COSMETOLOGY;
+        await wrapper.vm.handleSubmit();
+
+        expect(emittedSearchParams).to.matchPattern({
+            compact: CompactType.COSMETOLOGY,
+            firstName: 'Test',
+            lastName: 'User',
+            state: 'co',
+            licenseNumber: 'ABC123',
+        });
+    });
+    it('should successfully emit searchParams for social work staff search', async () => {
+        await store.dispatch('setAppMode', AppModes.SOCIAL_WORK);
+
+        let emittedSearchParams;
+        const wrapper = await mountShallow(LicenseeSearch, {
+            props: {
+                onSearchParams: (searchParams) => {
+                    emittedSearchParams = searchParams;
+                },
+            },
+        });
+        const { formData } = wrapper.vm;
+
+        populateSearchFields(formData);
+        await wrapper.vm.handleSubmit();
+
+        expect(emittedSearchParams).to.matchPattern({
+            compact: undefined,
+            firstName: 'Test',
+            lastName: 'User',
+            state: 'co',
+            licenseNumber: 'ABC123',
+            licenseType: 'licensed clinical social worker',
+            cuid: 'SWC-9999-9',
+        });
+    });
+    it('should successfully emit searchParams for social work public search', async () => {
+        await store.dispatch('setAppMode', AppModes.SOCIAL_WORK);
+        await store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.SOCIAL_WORK }));
+
+        let emittedSearchParams;
+        const wrapper = await mountShallow(LicenseeSearch, {
+            props: {
+                isPublicSearch: true,
+                onSearchParams: (searchParams) => {
+                    emittedSearchParams = searchParams;
+                },
+            },
+        });
+        const { formData } = wrapper.vm;
+
+        populateSearchFields(formData);
+        formData.compact.value = CompactType.SOCIAL_WORK;
+        await wrapper.vm.handleSubmit();
+
+        expect(emittedSearchParams).to.matchPattern({
+            compact: CompactType.SOCIAL_WORK,
+            firstName: 'Test',
+            lastName: 'User',
+            state: 'co',
+            licenseNumber: 'ABC123',
+            licenseType: 'licensed clinical social worker',
+            cuid: 'SWC-9999-9',
+        });
     });
 });
