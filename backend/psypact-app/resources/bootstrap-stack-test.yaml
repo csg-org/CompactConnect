@@ -618,6 +618,8 @@ Resources:
               - es:*
               # Amazon EventBridge Pipes
               - pipes:*
+              # Amazon RDS
+              - rds:*
               # Amazon Route 53
               - route53:*
               # Amazon S3
@@ -693,6 +695,9 @@ Resources:
               # General describe operations needed by CDK
               - ec2:DescribeAvailabilityZones
               - ec2:DescribeNetworkInterfaces
+              # Describe operations needed by the RDS resource handlers
+              - ec2:DescribeAccountAttributes
+              - ec2:DescribeInternetGateways
             Resource: "*"
           # Explicitly deny EC2 instance operations
           - Sid: DenyEc2InstanceOperations
