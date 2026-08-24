@@ -8,21 +8,21 @@ attrs==25.4.0
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.282
+aws-cdk-asset-awscli-v1==2.2.292
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.2
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==54.2.0
+aws-cdk-cloud-assembly-schema==54.20.0
     # via aws-cdk-lib
-aws-cdk-lib==2.258.0
+aws-cdk-lib==2.265.0
     # via -r requirements.in
 cattrs==25.3.0
     # via jsii
-constructs==10.6.0
+constructs==10.8.1
     # via
     #   -r requirements.in
     #   aws-cdk-lib
-jsii==1.135.0
+jsii==1.139.0
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6
@@ -43,11 +43,7 @@ six==1.17.0
     # via python-dateutil
 typeguard==2.13.3
     # via
-    #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6
-    #   aws-cdk-cloud-assembly-schema
-    #   aws-cdk-lib
-    #   constructs
     #   jsii
 typing-extensions==4.15.0
     # via
