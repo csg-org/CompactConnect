@@ -361,44 +361,71 @@ Once the pipelines are established with the above steps, deployments will be aut
 
 The psypact backend application creates SSM parameters containing frontend configuration values (Cognito domains, API endpoints, etc.) that the frontend application needs during deployment. Since the frontend deploys from a different AWS account (the pipeline/deployment account), these SSM parameters must be **manually copied** to the frontend account whenever they are created **or updated**.
 
-> **Note:** If you do not have access to the frontend/pipeline account, coordinate with a JCC AWS administrator who has access to perform the copy operation. You can provide them with the parameter value from Step 1 below.
+There are **two** parameters to copy, and the frontend deployment fails unless both are present:
+
+| Parameter | Created by | Contains |
+| --- | --- | --- |
+| `/app/psypact/deployment/persistent-stack/frontend_app_configuration` | Persistent stack | Staff Cognito domain and client id, UI/API/search API domain names, bulk uploads and provider users bucket names |
+| `/app/psypact/deployment/provider-users-stack/frontend_app_configuration` | Provider users stack | Provider (licensee) Cognito domain and client id |
+
+Repeat the process below for each parameter.
+
+> **Note:** If you do not have access to the frontend/pipeline account, coordinate with a JCC AWS administrator who has access to perform the copy operation. You can provide them with the parameter values from Step 1 below.
 
 ### Synchronization Process
 
-**Step 1: Get the parameter value from the psypact account**
+**Step 1: Get the parameter values from the psypact account**
 
 ```bash
-# Authenticate your cli credentials for the respective cosmetology account
+# Authenticate your cli credentials for the respective psypact account
 
-# Get the parameter value
-VALUE=$(aws ssm get-parameter \
+# Get the persistent stack parameter value
+PERSISTENT_VALUE=$(aws ssm get-parameter \
   --name /app/psypact/deployment/persistent-stack/frontend_app_configuration \
+  --query 'Parameter.Value' \
+  --output text \
+  --profile <your psypact account profile>)
+
+# Get the provider users stack parameter value
+PROVIDER_USERS_VALUE=$(aws ssm get-parameter \
+  --name /app/psypact/deployment/provider-users-stack/frontend_app_configuration \
   --query 'Parameter.Value' \
   --output text \
   --profile <your psypact account profile>)
 ```
 
-**Step 2: Copy the parameter to the frontend/pipeline account**
+**Step 2: Copy the parameters to the frontend/pipeline account**
 
 ```bash
 # Set your cli credentials to the respective frontend account
-# Create/update the parameter in the frontend account
+# Create/update the parameters in the frontend account
 aws ssm put-parameter \
   --name /app/psypact/deployment/persistent-stack/frontend_app_configuration \
-  --value "$VALUE" \
+  --value "$PERSISTENT_VALUE" \
+  --type String \
+  --overwrite \
+  --profile <your JCC account profile>
+
+aws ssm put-parameter \
+  --name /app/psypact/deployment/provider-users-stack/frontend_app_configuration \
+  --value "$PROVIDER_USERS_VALUE" \
   --type String \
   --overwrite \
   --profile <your JCC account profile>
 ```
 
-If you do not have access to the frontend account, provide the `$VALUE` from Step 1 to a JCC AWS administrator who can perform this step on your behalf.
+If you do not have access to the frontend account, provide both values from Step 1 to a JCC AWS administrator who can perform this step on your behalf.
 
-**Step 3: Verify the copy**
+**Step 3: Verify the copies**
 
 ```bash
-# Verify the parameter exists in the frontend account
+# Verify both parameters exist in the frontend account
 aws ssm get-parameter \
   --name /app/psypact/deployment/persistent-stack/frontend_app_configuration \
+  --profile <your JCC account profile>
+
+aws ssm get-parameter \
+  --name /app/psypact/deployment/provider-users-stack/frontend_app_configuration \
   --profile <your JCC account profile>
 ```
 
