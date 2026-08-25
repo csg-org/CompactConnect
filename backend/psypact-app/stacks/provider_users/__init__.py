@@ -103,9 +103,12 @@ class ProviderUsersStack(AppStack):
         Creates and stores provider user pool configuration in SSM Parameter Store
         for use in the frontend deployment stack.
         """
-        from common_constructs.frontend_app_config_utility import ProviderUsersStackFrontendAppConfigUtility
+        from common_constructs.frontend_app_config_utility import (
+            AppId,
+            ProviderUsersStackFrontendAppConfigUtility,
+        )
 
-        provider_app_config = ProviderUsersStackFrontendAppConfigUtility()
+        provider_app_config = ProviderUsersStackFrontendAppConfigUtility(app_id=AppId.PSYPACT)
 
         auth_domain_name = ''
         if self.persistent_stack.hosted_zone:

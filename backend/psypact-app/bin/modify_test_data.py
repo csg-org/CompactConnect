@@ -20,8 +20,8 @@ Usage:
     # Creates: modified-input-file.csv
 
 Example:
-    bin/modify_test_data.py aslp-al-mock-data.csv
-    # Creates: modified-aslp-al-mock-data.csv
+    bin/modify_test_data.py psypact-al-mock-data.csv
+    # Creates: modified-psypact-al-mock-data.csv
 """
 
 import sys

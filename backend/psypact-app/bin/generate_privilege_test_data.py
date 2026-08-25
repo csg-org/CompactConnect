@@ -5,10 +5,10 @@ Script to generate test privilege purchase data for test environments.
 It creates privilege records directly in the database to simulate recent privilege purchases.
 
 Run from 'backend/compact-connect' like:
-bin/generate_privilege_test_data.py --compact aslp --home-state oh --privilege-state ne --count 10
+bin/generate_privilege_test_data.py --compact psypact --home-state oh --privilege-state ne --count 10
 
 To only create privileges for licenses uploaded after a specific date:
-bin/generate_privilege_test_data.py --compact aslp --home-state oh --privilege-state ne --count 10 \
+bin/generate_privilege_test_data.py --compact psypact --home-state oh --privilege-state ne --count 10 \
     --license-uploaded-after "2028-01-15T10:30:00Z"
 """
 

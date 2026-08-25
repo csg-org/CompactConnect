@@ -11,6 +11,7 @@ from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.frontend_app_config_utility import (
     COGNITO_AUTH_DOMAIN_SUFFIX,
+    AppId,
     PersistentStackFrontendAppConfigUtility,
 )
 from common_constructs.nodejs_function import NodejsFunction
@@ -500,7 +501,7 @@ class PersistentStack(AppStack):
             front-ends so that these dependencies are properly resolved.
         """
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
-        frontend_app_config = PersistentStackFrontendAppConfigUtility()
+        frontend_app_config = PersistentStackFrontendAppConfigUtility(app_id=AppId.PSYPACT)
 
         # Add staff user pool Cognito configuration
         auth_domain_name = ''

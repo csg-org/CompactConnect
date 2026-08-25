@@ -49,11 +49,6 @@ from cc_common.feature_flag_client import is_feature_enabled, FeatureFlagContext
 if is_feature_enabled('my-feature-flag-name'):
     # run feature gated code if enabled
 
-# With targeting context
-context = FeatureFlagContext(
-    user_id='user-123',
-    custom_attributes={'compact': 'aslp', 'licenseType': 'slp'}
-)
 if is_feature_enabled('my-feature-flag-name', context=context):
     # run feature gated code if enabled
 ```
@@ -98,9 +93,9 @@ class FeatureFlagStack(AppStack):
         # All flags share the same custom resource provider defined above
         self.example_flag = FeatureFlagResource(
             self,
-            'ExampleFlag',
+            'PsypactExampleFlag',
             provider=self.provider,  # Shared provider
-            flag_name='example-flag',
+            flag_name='psypact-example-flag',
             # This causes the flag to automatically be set to enabled for every environment in the list
             auto_enable_envs=[
                 FeatureFlagEnvironmentName.TEST,
@@ -109,15 +104,15 @@ class FeatureFlagStack(AppStack):
                 FeatureFlagEnvironmentName.SANDBOX,
             ],
             # Note that flags are not updated once set and must be manually updated through the console
-            custom_attributes={'compact': ['aslp']},
+            custom_attributes={'compact': ['psypact']},
             environment_name=environment_name,
         )
 
         self.license_ssn_correction_migration_flag = FeatureFlagResource(
             self,
-            'LicenseSsnCorrectionMigrationFlag',
+            'PsypactLicenseSsnCorrectionMigrationFlag',
             provider=self.provider,  # Shared provider
-            flag_name='license-ssn-correction-migration-flag',
+            flag_name='psypact-license-ssn-correction-migration-flag',
             # Automatically enable for every environment
             auto_enable_envs=[
                 FeatureFlagEnvironmentName.TEST,
@@ -132,9 +127,9 @@ class FeatureFlagStack(AppStack):
         # StatSig console if a problem shows up after release.
         self.license_upload_without_ssn_flag = FeatureFlagResource(
             self,
-            'LicenseUploadWithoutSsnFlag',
+            'PsypactLicenseUploadWithoutSsnFlag',
             provider=self.provider,  # Shared provider
-            flag_name='license-upload-without-ssn-flag',
+            flag_name='psypact-license-upload-without-ssn-flag',
             # Automatically enable for every environment
             auto_enable_envs=[
                 FeatureFlagEnvironmentName.TEST,
