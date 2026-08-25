@@ -21,10 +21,14 @@ asks the developer to check two inboxes before continuing:
 
 That check can still fail through no fault of this test, though: all of a jurisdiction's admins are
 notified in a single combined send (one email, several recipients), and SES can reject the whole send if
-any one recipient is not a real, deliverable, or verified address - not just the offending one. If
+any one recipient is not a verified identity. If
 STAFF_USER_INACTIVITY_SMOKE_JURISDICTION already has another staff admin in that environment with a bad
 address, the email will fail to send. Pick a jurisdiction with no other staff users in the environment
 you are running against, and change the constant below if needed.
+
+This is a property of the SES sandbox, which testing accounts are in (see the SES notes in README.md).
+Production accounts have sandbox access removed, so there an undeliverable address bounces on its own
+rather than failing the send for everyone else on it.
 
 WARNING - Only run this test against testing environments. Invoking the handler runs it against every
 staff user in the compact, not just the test user. The day-of invocation is a sweep, so any other staff
