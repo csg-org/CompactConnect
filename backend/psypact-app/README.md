@@ -273,6 +273,8 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   SSM Parameter in your Deploy account. Replace `<environment>` with the target environment. For example, to set up for
   the test environment: `bin/put_ssm_context.sh test`.
   For example, to set up for the test environment: `bin/put_ssm_context.sh test`.
+  - Note - you'll need to add a prefix to the `app_name` value if you are deploying your environments across multiple AWS 
+  organizations, to prevent domain name conflicts, which are built from `app_name`.
 - Optional: If a Slack integration is desired for operational support, have someone with permission to install Slack
   apps in your workspace and Admin access to each of the Test, Beta, Prod, and Deploy accounts log into each AWS account
   and go to the Chatbot service. Select 'Slack' under the **Configure a chat client** box and click **Configure

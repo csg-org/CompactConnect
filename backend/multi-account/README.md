@@ -238,7 +238,7 @@ This policy prevents power users from:
 ### Deploy the pipeline stacks
 Before bootstrapping the application accounts, you must deploy the pipeline stacks to create the cross-account roles that the bootstrap templates reference:
 
-- Navigate to the `backend/compact-connect` directory
+- Navigate to the project-specific directory, ex. `backend/compact-connect` or  `backend/psypact-app`
 - Configure your CLI to use the Deploy account
 - Follow the pipeline deployment instructions in the [CompactConnect README](../compact-connect/README.md#first-deploy-to-the-production-environment) to deploy:
   - TestBackendPipelineStack and TestFrontendPipelineStack
