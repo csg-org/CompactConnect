@@ -105,7 +105,8 @@ class TestResolveAdminRecipients(TstLambdas):
         user = build_staff_user(compact_actions={READ_PRIVATE})
         deactivated_compact_admin = build_staff_user(compact_actions={ADMIN}, status=StaffUserStatus.INACTIVE.value)
 
-        recipients = self._resolve(user, build_directory([user, deactivated_compact_admin]))
+        with self.assertLogs() as logs:
+            recipients = self._resolve(user, build_directory([user, deactivated_compact_admin]))
 
         self.assertEqual(set(), recipients)
         self.assertTrue(
