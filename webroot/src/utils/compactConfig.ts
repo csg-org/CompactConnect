@@ -41,7 +41,7 @@ export const compactSetups: Record<CompactType, CompactSetup> = {
     [CompactType.COSMETOLOGY]: {
         type: CompactType.COSMETOLOGY,
         appMode: AppModes.COSMETOLOGY,
-        isEnabled: () => !envConfig.isAppProduction, // @NOTE: No Prod infra yet
+        isEnabled: () => true,
     },
     [CompactType.SOCIAL_WORK]: {
         type: CompactType.SOCIAL_WORK,
