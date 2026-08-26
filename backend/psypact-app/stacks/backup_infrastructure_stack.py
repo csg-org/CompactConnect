@@ -188,7 +188,7 @@ class BackupInfrastructureStack(NestedStack):
             encryption_key=self.local_backup_key,
             removal_policy=self.removal_policy,
             # note the changeable_for field is not set, so this lock is set under governance mode
-            lock_configuration=LockConfiguration(min_retention=Duration.days(180)),
+            lock_configuration=LockConfiguration(min_retention=Duration.days(90)),
             access_policy=PolicyDocument(
                 statements=[
                     PolicyStatement(
@@ -224,7 +224,7 @@ class BackupInfrastructureStack(NestedStack):
             encryption_key=self.local_ssn_backup_key,
             removal_policy=self.removal_policy,
             # note the changeable_for field is not set, so this lock is set under governance mode
-            lock_configuration=LockConfiguration(min_retention=Duration.days(180)),
+            lock_configuration=LockConfiguration(min_retention=Duration.days(90)),
             access_policy=PolicyDocument(
                 statements=[
                     PolicyStatement(
