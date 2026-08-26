@@ -1541,6 +1541,7 @@ export const users = {
     items: [
         {
             userId: '10',
+            status: 'active',
             attributes: {
                 givenName: 'Miles',
                 familyName: 'Bennet-Dyson',
@@ -1716,6 +1717,7 @@ export const users = {
         },
         {
             userId: '11',
+            status: 'pending',
             attributes: {
                 givenName: 'John',
                 familyName: 'Conner',
@@ -1759,6 +1761,7 @@ export const users = {
         },
         {
             userId: '12',
+            status: '',
             attributes: {
                 givenName: 'Sarah',
                 familyName: 'Conner',

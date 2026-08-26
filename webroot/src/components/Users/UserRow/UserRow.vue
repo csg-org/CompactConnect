@@ -59,6 +59,22 @@
                 }"></span>
             </div>
             <div
+                class="cell email"
+                :class="{ 'is-sort-enabled': isSortOptionEnabled('email') }"
+                @click="isSortOptionEnabled('email') && handleSortSelect('email')"
+                @keyup.enter="isSortOptionEnabled('email') && handleSortSelect('email')"
+                :tabindex="(isHeaderRow && isSortOptionEnabled('email')) ? 0 : -1"
+                :role="(isHeaderRow) ? 'columnheader' : 'cell'"
+            >
+                <span v-if="$matches.phone.only" class="cell-title">{{ $t('common.emailAddress') }}:</span>
+                <span class="cell-value email">{{ accountEmail || item.accountEmail }}</span>
+                <span v-if="isSortOptionEnabled('email')" class="sort-icon" :class="{
+                    'is-selected': isSortOptionSelected('email'),
+                    'asc': isSortOptionAscending('email'),
+                    'desc': isSortOptionDescending('email'),
+                }"></span>
+            </div>
+            <div
                 class="cell permissions"
                 :class="{ 'is-sort-enabled': isSortOptionEnabled('permissions') }"
                 @click="isSortOptionEnabled('permissions') && handleSortSelect('permissions')"
