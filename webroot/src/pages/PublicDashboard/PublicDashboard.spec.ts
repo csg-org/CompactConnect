@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 8/12/2024.
 //
 
-import { mountShallow } from '@tests/helpers/setup';
+import { mountFull, mountShallow } from '@tests/helpers/setup';
 import PublicDashboard from '@pages/PublicDashboard/PublicDashboard.vue';
 import { AppModes } from '@/app.config';
 import { AuthTypes, getCognitoConfig, getHostedLoginUri } from '@utils/auth';
@@ -63,15 +63,17 @@ describe('PublicDashboard page', async () => {
         await nextTick();
         await flushPromises();
 
+        const loginUri = component.staffLoginUri(AppModes.JCC);
+
         expect(component.csrfState).to.be.a('string').with.length.above(0);
         expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
-        expect(component.hostedLoginUriStaff).to.contain('/login');
-        expect(component.hostedLoginUriStaff).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
-        expect(component.hostedLoginUriStaff).to.contain(`&state=${component.csrfState}`);
-        expect(component.hostedLoginUriStaff).to.contain(`&code_challenge=${component.pkceChallenge}`);
-        expect(component.hostedLoginUriStaff).to.contain('&code_challenge_method=S256');
-        expect(component.hostedLoginUriStaff).to.contain('&response_type=code');
-        expect(component.hostedLoginUriStaff).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fjcc');
+        expect(loginUri).to.contain('/login');
+        expect(loginUri).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(loginUri).to.contain(`&state=${component.csrfState}`);
+        expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(loginUri).to.contain('&code_challenge_method=S256');
+        expect(loginUri).to.contain('&response_type=code');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fjcc');
     });
     it('should get correct hosted login uri config for staff (cosmetology)', async () => {
         const wrapper = await mountShallow(PublicDashboard);
@@ -80,15 +82,17 @@ describe('PublicDashboard page', async () => {
         await nextTick();
         await flushPromises();
 
+        const loginUri = component.staffLoginUri(AppModes.COSMETOLOGY);
+
         expect(component.csrfState).to.be.a('string').with.length.above(0);
         expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
-        expect(component.hostedLoginUriStaffCosmo).to.contain('/login');
-        expect(component.hostedLoginUriStaffCosmo).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
-        expect(component.hostedLoginUriStaffCosmo).to.contain(`&state=${component.csrfState}`);
-        expect(component.hostedLoginUriStaffCosmo).to.contain(`&code_challenge=${component.pkceChallenge}`);
-        expect(component.hostedLoginUriStaffCosmo).to.contain('&code_challenge_method=S256');
-        expect(component.hostedLoginUriStaffCosmo).to.contain('&response_type=code');
-        expect(component.hostedLoginUriStaffCosmo).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fcosmo');
+        expect(loginUri).to.contain('/login');
+        expect(loginUri).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(loginUri).to.contain(`&state=${component.csrfState}`);
+        expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(loginUri).to.contain('&code_challenge_method=S256');
+        expect(loginUri).to.contain('&response_type=code');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fcosmo');
     });
     it('should get correct hosted login uri config for staff (social work)', async () => {
         const wrapper = await mountShallow(PublicDashboard);
@@ -97,15 +101,33 @@ describe('PublicDashboard page', async () => {
         await nextTick();
         await flushPromises();
 
+        const loginUri = component.staffLoginUri(AppModes.SOCIAL_WORK);
+
         expect(component.csrfState).to.be.a('string').with.length.above(0);
         expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
-        expect(component.hostedLoginUriStaffSw).to.contain('/login');
-        expect(component.hostedLoginUriStaffSw).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
-        expect(component.hostedLoginUriStaffSw).to.contain(`&state=${component.csrfState}`);
-        expect(component.hostedLoginUriStaffSw).to.contain(`&code_challenge=${component.pkceChallenge}`);
-        expect(component.hostedLoginUriStaffSw).to.contain('&code_challenge_method=S256');
-        expect(component.hostedLoginUriStaffSw).to.contain('&response_type=code');
-        expect(component.hostedLoginUriStaffSw).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fsocialwork');
+        expect(loginUri).to.contain('/login');
+        expect(loginUri).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(loginUri).to.contain(`&state=${component.csrfState}`);
+        expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(loginUri).to.contain('&code_challenge_method=S256');
+        expect(loginUri).to.contain('&response_type=code');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fsocialwork');
+    });
+    it('should successfully render one staff login link per enabled compact', async () => {
+        const wrapper = await mountFull(PublicDashboard);
+        const component = wrapper.vm;
+
+        await nextTick();
+        await flushPromises();
+
+        const compactLinks = wrapper.findAll('.staff-compacts .login-link');
+        const enabledCompacts = component.$compactsEnabled;
+
+        expect(enabledCompacts.length).to.be.above(0);
+        expect(compactLinks.length).to.equal(enabledCompacts.length);
+        compactLinks.forEach((compactLink, index) => {
+            expect(compactLink.text()).to.equal(component.getCompactDisplay(enabledCompacts[index]));
+        });
     });
     it('should get correct hosted login uri config for licensee (jcc)', async () => {
         const wrapper = await mountShallow(PublicDashboard);

@@ -57,14 +57,6 @@ export default class PublicLicensingDetail extends Vue {
         return this.$store.state.user;
     }
 
-    get isAppModeSocialWork(): boolean {
-        return this.$store.getters.isAppModeSocialWork;
-    }
-
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get compact(): string {
         const defaultCompactType = this.userStore.currentCompact?.type;
 
@@ -92,6 +84,10 @@ export default class PublicLicensingDetail extends Vue {
 
     get licenseeNameDisplay(): string {
         return this.licensee?.nameDisplay() || '';
+    }
+
+    get licenseeCuidDisplay(): string {
+        return this.licensee?.cuid || '';
     }
 
     get licenseeHomeStateDisplay(): string {
@@ -134,9 +130,9 @@ export default class PublicLicensingDetail extends Vue {
     }
 
     get disciplineDisclaimer(): string {
-        const { licenseeDiscipline, isAppModeSocialWork } = this;
+        const { licenseeDiscipline, $isAppModeSocialWork } = this;
 
-        return (licenseeDiscipline.length && isAppModeSocialWork) ? this.$t('licensing.disciplineDisclaimer') : '';
+        return (licenseeDiscipline.length && $isAppModeSocialWork) ? this.$t('licensing.disciplineDisclaimer') : '';
     }
 
     //

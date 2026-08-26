@@ -8,6 +8,7 @@
 import { createApp } from 'vue';
 import envConfig from '@plugins/EnvConfig/envConfig.plugin';
 import statsig, { initStatsig } from '@plugins/Statsig/statsig.plugin';
+import compacts from '@plugins/Compacts/compacts.plugin';
 import router from '@router/index';
 import store from '@store/index';
 import api from '@plugins/API/api.plugin';
@@ -69,6 +70,7 @@ import './registerServiceWorker';
     app.use(store);
     app.use(i18n);
     app.use(api);
+    app.use(compacts);
     app.use(vClickOutside);
     app.use(VueResponsiveness, {
         phone: 0,

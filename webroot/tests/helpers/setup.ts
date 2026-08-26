@@ -13,6 +13,7 @@ import { DataApi } from '@network/mocks/mock.data.api';
 import mockStore from '@tests/mocks/mockStore';
 import mockEnvConfig from '@tests/mocks/mockEnvConfig';
 import { getStatsigClientMock } from '@plugins/Statsig/statsig.plugin';
+import compactsPlugin from '@plugins/Compacts/compacts.plugin';
 import { relativeTimeFormats } from '@/app.config';
 import { VueResponsiveness } from 'vue-responsiveness';
 import i18n from '@/i18n';
@@ -222,6 +223,7 @@ const mountShallow = async (component, mountConfig: any = {}) => {
                     xLargeDesktop: 2400,
                 }],
                 i18n,
+                compactsPlugin,
             ],
             mocks: {
                 $envConfig: mockEnvConfig,
@@ -272,6 +274,7 @@ const mountFull = async (component, mountConfig: any = {}) => {
                     xLargeDesktop: 2400,
                 }],
                 i18n,
+                compactsPlugin,
             ],
             mocks: {
                 $envConfig: mockEnvConfig,

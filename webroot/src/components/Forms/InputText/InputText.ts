@@ -11,10 +11,14 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import MixinInput from '@components/Forms/_mixins/input.mixin';
+import InputLabel from '@components/Forms/InputLabel/InputLabel.vue';
 
 @Component({
     name: 'InputText',
-    emits: [ 'emitInputRef' ]
+    components: {
+        InputLabel,
+    },
+    emits: [ 'emitInputRef' ],
 })
 class InputText extends mixins(MixinInput) {
     //

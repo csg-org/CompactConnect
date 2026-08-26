@@ -56,10 +56,22 @@
                     @blur="customValidateLastName(true)"
                 />
             </div>
-            <div v-if="isAppGroupModeMultiState" class="search-form-row">
+            <div v-if="$isAppGroupModeMultiState" class="search-form-row">
                 <InputText
                     :formInput="formData.licenseNumber"
                     class="search-input license-number-input"
+                />
+            </div>
+            <div v-if="$isAppModeSocialWork" class="search-form-row">
+                <InputSelect
+                    :formInput="formData.licenseType"
+                    class="search-input license-type-input"
+                />
+            </div>
+            <div v-if="$isAppModeSocialWork" class="search-form-row">
+                <InputText
+                    :formInput="formData.cuid"
+                    class="search-input cuid-input"
                 />
             </div>
             <div class="search-form-row">

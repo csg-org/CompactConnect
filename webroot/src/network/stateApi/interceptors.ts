@@ -4,9 +4,8 @@
 //
 //  Created by InspiringApps on 6/18/24.
 //
-import { AppModes } from '@/app.config';
 import { authStorage, tokens } from '@utils/auth';
-import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { getApiBaseUrl } from '@network/apiUrls';
 
 // ============================================================================
 // =                           REQUEST INTERCEPTORS                           =
@@ -19,17 +18,15 @@ import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 export const requestSuccess = (store) => async (requestConfig) => {
     const authToken = authStorage.getItem(tokens.staff.AUTH_TOKEN);
     const authTokenType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
-    const appMode = store?.state?.appMode;
+    const baseURL = getApiBaseUrl(store?.state?.appMode, 'state');
     const { headers } = requestConfig;
 
     // Add auth token
     headers.Authorization = `${authTokenType} ${authToken}`;
 
     // Update base url for different compacts / app modes
-    if (appMode === AppModes.COSMETOLOGY) {
-        requestConfig.baseURL = envConfig.apiUrlStateCosmo;
-    } else if (appMode === AppModes.SOCIAL_WORK) {
-        requestConfig.baseURL = envConfig.apiUrlStateSw;
+    if (baseURL) {
+        requestConfig.baseURL = baseURL;
     }
 
     return requestConfig;

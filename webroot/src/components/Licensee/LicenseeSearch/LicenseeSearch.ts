@@ -102,21 +102,13 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get isAppGroupModePrivilegePurchase(): boolean {
-        return this.$store.getters.isAppGroupModePrivilegePurchase;
-    }
-
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
     }
 
     get compactOptions(): Array<{ value: string, name: string | ComputedRef }> {
-        const options = this.$tm('compacts').map((compact) => ({
-            value: compact.key,
+        const options: Array<{ value: string, name: string | ComputedRef }> = this.$compactsEnabled.map((compact) => ({
+            value: compact.type,
             name: compact.name,
         }));
 
@@ -381,13 +373,13 @@ class LicenseeSearch extends mixins(MixinForm) {
             ];
 
             // Per compact search props
-            if (this.isAppGroupModePrivilegePurchase) {
+            if (this.$isAppGroupModePrivilegePurchase) {
                 allowedSearchProps.push('privilegeState');
                 allowedSearchProps.push('privilegePurchaseStartDate');
                 allowedSearchProps.push('privilegePurchaseEndDate');
                 allowedSearchProps.push('militaryStatus');
                 allowedSearchProps.push('npi');
-            } else if (this.isAppGroupModeMultiState) {
+            } else if (this.$isAppGroupModeMultiState) {
                 allowedSearchProps.push('licenseNumber');
                 allowedSearchProps.push('dob');
             }
@@ -427,14 +419,14 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.encumberStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.encumberEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
 
-        if (this.isAppGroupModePrivilegePurchase) {
+        if (this.$isAppGroupModePrivilegePurchase) {
             this.formData.privilegeState.value = 'co';
             this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
             this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
             this.formData.militaryStatus.value = 'approved';
             this.formData.investigationStatus.value = 'underInvestigation';
             this.formData.npi.value = 'ABC123';
-        } else if (this.isAppGroupModeMultiState) {
+        } else if (this.$isAppGroupModeMultiState) {
             this.formData.licenseNumber.value = 'ABC123';
             this.formData.dob.value = moment('1970-01-01').format('YYYY-MM-DD');
         }

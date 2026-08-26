@@ -85,10 +85,6 @@ class LicenseeList extends Vue {
         return this.$store.state.license;
     }
 
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get licenseStoreRecordCount(): number {
         return this.licenseStore.model?.length || 0;
     }
@@ -232,7 +228,7 @@ class LicenseeList extends Vue {
     }
 
     get listDescriptionText(): string {
-        return (this.isAppGroupModeMultiState)
+        return (this.$isAppGroupModeMultiState)
             ? this.$t('licensing.licensingListDescriptionMultiState')
             : this.$t('licensing.licensingListDescription');
     }
@@ -252,7 +248,7 @@ class LicenseeList extends Vue {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
-            ...(this.isAppGroupModeMultiState
+            ...(this.$isAppGroupModeMultiState
                 ? { ...cosmetologySpecificColumns }
                 : {
                     privilegeStatesDisplay: () => this.$t('licensing.privileges'),

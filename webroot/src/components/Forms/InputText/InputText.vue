@@ -14,21 +14,7 @@
             'has-error': !!formInput.errorMessage
         }"
     >
-        <label
-            v-if="!formInput.shouldHideLabel"
-            :for="formInput.id"
-        >
-            <div>
-                {{ formInput.label }}
-                <span v-if="isRequired" class="required-indicator">*</span>
-            </div>
-            <div
-                v-if="formInput.labelSubtext"
-                v-html="formInput.labelSubtext"
-                class="input-label-subtext"
-            >
-            </div>
-        </label>
+        <InputLabel :formInput="formInput" :isRequired="isRequired"/>
         <input
             type="text"
             :id="formInput.id"

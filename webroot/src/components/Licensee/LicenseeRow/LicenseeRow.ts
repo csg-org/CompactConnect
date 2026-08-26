@@ -42,14 +42,6 @@ class LicenseeRow extends Vue {
         return this.$store.state.sorting;
     }
 
-    get isAppGroupModePrivilegePurchase(): boolean {
-        return this.$store.getters.isAppGroupModePrivilegePurchase;
-    }
-
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get sortingStoreOption(): any {
         return this.sortingStore.sortingMap[this.listId]?.option;
     }

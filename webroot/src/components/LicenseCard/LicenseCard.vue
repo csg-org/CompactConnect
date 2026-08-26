@@ -80,7 +80,7 @@
         </div>
         <div class="license-heading-row">
             <div class="license-type-abbrev">
-                <template v-if="isAppModeSocialWork">{{ licenseTypeDisplay }}</template>
+                <template v-if="$isAppModeSocialWork">{{ licenseTypeDisplay }}</template>
                 <template v-else>{{ licenseTypeAbbrev }}</template>
             </div>
             <div
@@ -91,7 +91,7 @@
                 {{statusDescriptionDisplay}}
             </div>
         </div>
-        <div v-if="isAppGroupModeMultiState" class="license-scope-container">
+        <div v-if="$isAppGroupModeMultiState" class="license-scope-container">
             <div v-if="licenseScopeDisplay" class="license-scope" :class="{
                     'single-state': isLicenseScopeSingleState,
                     'multi-state': isLicenseScopeMultiState,

@@ -448,7 +448,8 @@
         "minNumber": "Debe ser mayor o igual a {min}",
         "maxNumber": "Debe ser menor o igual a {max}",
         "invalidDate": "Fecha no válida",
-        "invalidDateWithFormat": "Fecha debe estar en el formato requerido {format}"
+        "invalidDateWithFormat": "Fecha debe estar en el formato requerido {format}",
+        "invalidCuidFormat": "Debe estar en formato SWC-9999-99..."
     },
     "serverErrors": {
         "networkError": "Error de red",
@@ -603,6 +604,8 @@
         "licenseDetails": "Detalles de la licencia",
         "licenseNumSymbol": "Licencia #",
         "privilegeNumSymbol": "Privilegio #",
+        "cuid": "CUID",
+        "cuidSearchMatch": "La entrada CUID debe coincidir exactamente. Ejemplo: SWC-0000-10",
         "licenseIcon": "Icono de licencia",
         "privilegeIcon": "Icono de Privilegio",
         "privilegeExpirationIcon": "Icono de reloj",
@@ -622,6 +625,7 @@
         "purchaseFormErrorMessage": "Por favor, corrija los errores del formulario que se muestran en rojo.",
         "licenseTypeSearch": "Tipo de profesión",
         "licenseType": "Tipo de licencia",
+        "category": "Categoría",
         "adverseActions": "Acciones adversas",
         "status": "Estado",
         "deselectState": "Deseleccionar estado",
@@ -841,19 +845,19 @@
                 "abbrev": "esth"
             },
             {
-                "name": "Trabajador social clínico con licencia",
+                "name": "Clínico",
                 "key": "licensed clinical social worker",
                 "compactKey": "socw",
                 "abbrev": "lcsw"
             },
             {
-                "name": "Trabajador social titulado con maestría",
+                "name": "Maestría",
                 "key": "licensed master social worker",
                 "compactKey": "socw",
                 "abbrev": "lmsw"
             },
             {
-                "name": "Trabajador social titulado con licencia",
+                "name": "Licenciatura",
                 "key": "licensed bachelors social worker",
                 "compactKey": "socw",
                 "abbrev": "lbsw"

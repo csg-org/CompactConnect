@@ -12,7 +12,9 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { reactive, computed, nextTick } from 'vue';
+import {
+    reactive, computed, ComputedRef, nextTick
+} from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -30,6 +32,8 @@ export interface LicenseSearchLegacy {
     lastName?: string;
     state?: string;
     licenseNumber?: string;
+    licenseType?: string;
+    cuid?: string;
 }
 
 @Component({
@@ -65,27 +69,15 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get isAppModeJcc(): boolean {
-        return this.$store.getters.isAppModeJcc;
-    }
-
-    get isAppGroupModeMultiState(): boolean {
-        return this.$store.getters.isAppGroupModeMultiState;
-    }
-
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
     }
 
     get compactOptions(): Array<any> {
-        let options = this.$tm('compacts').map((compact) => ({
-            value: compact.key,
+        const options: Array<any> = this.$compactsEnabled.map((compact) => ({
+            value: compact.type,
             name: compact.name,
         }));
-
-        if (this.$envConfig.isAppProduction) { // @NOTE: Hide compacts that have no Prod infra
-            options = options.filter((option) => !['cosm', 'socw'].includes(option.value));
-        }
 
         options.unshift({
             value: '',
@@ -118,6 +110,22 @@ class LicenseeSearch extends mixins(MixinForm) {
         compactMemberStates.unshift(defaultSelectOption);
 
         return compactMemberStates;
+    }
+
+    get licenseTypeOptions(): Array<{ value: string, name: string | ComputedRef }> {
+        const { compactType } = this;
+        const compactLicenseTypes = this.$tm('licensing.licenseTypes')
+            ?.filter((licenseType) => licenseType.compactKey === compactType)
+            .map((licenseType) => ({ value: licenseType.key, name: licenseType.name })) || [];
+        const defaultSelectOption: { value: string, name: string | ComputedRef } = { value: '', name: '' };
+
+        if (compactLicenseTypes.length) {
+            defaultSelectOption.name = computed(() => this.$t('common.selectOption'));
+        }
+
+        compactLicenseTypes.unshift(defaultSelectOption);
+
+        return compactLicenseTypes;
     }
 
     get isMockPopulateEnabled(): boolean {
@@ -162,6 +170,29 @@ class LicenseeSearch extends mixins(MixinForm) {
                 placeholder: '',
                 validation: Joi.string().min(0).max(100).messages(this.joiMessages.string),
                 value: this.searchParams.licenseNumber || '',
+                enforceMax: true,
+            }),
+            licenseType: new FormInput({
+                id: 'license-type',
+                name: 'license-type',
+                label: computed(() => ((this.compactType === CompactType.SOCIAL_WORK)
+                    ? this.$t('licensing.category')
+                    : this.$t('licensing.licenseType'))),
+                valueOptions: this.licenseTypeOptions,
+                value: this.searchParams.licenseType || '',
+            }),
+            cuid: new FormInput({
+                id: 'cuid',
+                name: 'cuid',
+                label: computed(() => this.$t('licensing.cuid')),
+                labelInfo: computed(() => this.$t('licensing.cuidSearchMatch')),
+                placeholder: 'SWC-9999-99...',
+                validation: Joi.string()
+                    .min(0)
+                    .pattern(/^[Ss][Ww][Cc]-[0-9]{4}-[1-9][0-9]*$/)
+                    .allow('')
+                    .messages(this.joiMessages.cuid),
+                value: this.searchParams.cuid || '',
                 enforceMax: true,
             }),
             submit: new FormInput({
@@ -211,8 +242,12 @@ class LicenseeSearch extends mixins(MixinForm) {
             ];
 
             // Per compact search props
-            if (this.isAppGroupModeMultiState) {
+            if (this.$isAppGroupModeMultiState) {
                 allowedSearchProps.push('licenseNumber');
+            }
+            if (this.$isAppModeSocialWork) {
+                allowedSearchProps.push('licenseType');
+                allowedSearchProps.push('cuid');
             }
 
             allowedSearchProps.forEach((searchProp) => { searchProps[searchProp] = this.formValues[searchProp]; });
@@ -227,7 +262,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         const { firstName, lastName } = this.formData;
         const shouldSkip = (asTouched) ? false : !lastName.isTouched;
 
-        if (this.isAppModeJcc) { // Currently only JCC requires this check
+        if (this.$isAppModeJcc) { // Currently only JCC requires this check
             if (!shouldSkip && firstName.value && !lastName.value) {
                 lastName.isValid = false;
                 lastName.errorMessage = this.$t('inputErrors.lastNameRequired');
@@ -250,6 +285,8 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.lastName.value = '';
         this.formData.state.value = '';
         this.formData.licenseNumber.value = '';
+        this.formData.licenseType.value = '';
+        this.formData.cuid.value = '';
         this.isFormLoading = false;
         this.isFormSuccessful = false;
         this.isFormError = false;
@@ -258,8 +295,8 @@ class LicenseeSearch extends mixins(MixinForm) {
     }
 
     async mockPopulate(): Promise<void> {
-        if (this.enableCompactSelect) {
-            this.formData.compact.value = (this.isAppModeJcc)
+        if (this.enableCompactSelect && !this.formData.compact.value) {
+            this.formData.compact.value = (this.$isAppModeJcc)
                 ? CompactType.OT
                 : this.formData.compact.valueOptions[1];
 
@@ -270,8 +307,12 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.lastName.value = 'User';
         this.formData.state.value = 'co';
 
-        if (this.isAppGroupModeMultiState) {
+        if (this.$isAppGroupModeMultiState) {
             this.formData.licenseNumber.value = 'ABC123';
+        }
+        if (this.$isAppModeSocialWork) {
+            this.formData.licenseType.value = 'licensed clinical social worker';
+            this.formData.cuid.value = 'SwC-8879-1510662364862837507201851701209841388880384284903247330';
         }
 
         this.validateAll({ asTouched: true });
@@ -284,6 +325,10 @@ class LicenseeSearch extends mixins(MixinForm) {
     //
     // Watch
     //
+    @Watch('compactType') updateCompactInputs() {
+        this.formData.licenseType.valueOptions = this.licenseTypeOptions;
+    }
+
     @Watch('compactStates') updateStateInput() {
         this.formData.state.valueOptions = this.stateOptions;
     }

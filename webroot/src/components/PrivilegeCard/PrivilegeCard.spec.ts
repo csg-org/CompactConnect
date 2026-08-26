@@ -8,7 +8,8 @@
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import PrivilegeCard from '@components/PrivilegeCard/PrivilegeCard.vue';
-import { AppModes, getEncumberConfigPrivilege } from '@/app.config';
+import { AppModes } from '@/app.config';
+import { getEncumberConfigPrivilege } from '@utils/compactConfig';
 
 describe('PrivilegeCard component', async () => {
     it('should mount the component', async () => {

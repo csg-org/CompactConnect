@@ -98,8 +98,8 @@ describe('Logout page', async () => {
         expect(logEventStub.firstCall.args[1]).to.equal(1);
         expect(logEventStub.firstCall.args[2]).to.matchPattern({
             authType: AuthTypes.STAFF,
-            appMode: component.appMode,
-            appGroupMode: component.appGroupMode,
+            appMode: component.$appMode,
+            appGroupMode: component.$appGroupMode,
             errorName: 'Error',
             errorCode: undefined,
             httpStatus: undefined,

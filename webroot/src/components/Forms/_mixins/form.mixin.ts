@@ -119,6 +119,13 @@ class MixinForm extends Vue {
                 'string.base': this.$t('inputErrors.invalidDateWithFormat', { format }),
                 'string.pattern.base': this.$t('inputErrors.invalidDateWithFormat', { format }),
             }),
+            cuid: {
+                'string.empty': this.$t('inputErrors.required'),
+                'string.min': this.$t('inputErrors.minLength', { min: '{#limit}' }),
+                'string.max': this.$t('inputErrors.maxLength', { max: '{#limit}' }),
+                'string.length': this.$t('inputErrors.exactLength', { length: '{#limit}' }),
+                'string.pattern.base': this.$t('inputErrors.invalidCuidFormat'),
+            },
         };
 
         return messages;

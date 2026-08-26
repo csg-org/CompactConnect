@@ -5,7 +5,6 @@
 //  Created by InspiringApps on 10/2/2024.
 //
 
-import { compacts as compactsConfig } from '@/app.config';
 import {
     Component,
     mixins,
@@ -62,26 +61,26 @@ class CompactSelector extends mixins(MixinForm) {
         return this.user?.permissions || [];
     }
 
-    get allCompacts(): Array<Compact> {
-        const compactTypes = Object.keys(compactsConfig) as Array<CompactType>;
-        const compacts = compactTypes.map((compactType) => new Compact({ type: compactType }));
-
-        return compacts;
-    }
-
     get compactOptions(): Array<CompactOption> {
-        const options: Array<CompactOption> = [];
+        let options: Array<CompactOption> = [];
 
         if (this.isPermissionBased) {
-            this.userPermissions.forEach((permission: CompactPermission) => {
-                const { compact } = permission;
+            options = this.userPermissions
+                .filter((permission: CompactPermission) => {
+                    const compactType = permission.compact.type as CompactType | null | undefined;
 
-                options.push({ value: (compact.type as unknown as string), name: compact.name() });
-            });
+                    return Boolean(compactType)
+                        && this.$compactsEnabled.some((enabledCompact) => enabledCompact.type === compactType);
+                })
+                .map((permission: CompactPermission) => ({
+                    value: (permission.compact.type as unknown as string),
+                    name: permission.compact.name(),
+                }));
         } else {
-            this.allCompacts.forEach((compact) => {
-                options.push({ value: (compact.type as unknown as string), name: compact.name() });
-            });
+            options = this.$compactsEnabled.map((compact) => ({
+                value: compact.type,
+                name: compact.name,
+            }));
         }
 
         return options;

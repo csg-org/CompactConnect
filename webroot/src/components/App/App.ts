@@ -12,7 +12,8 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { RouteRecordName } from 'vue-router';
-import { AppModes, relativeTimeFormats } from '@/app.config';
+import { relativeTimeFormats } from '@/app.config';
+import { getAppModeForCompact } from '@utils/compactConfig';
 import {
     authStorage,
     AuthTypes,
@@ -113,18 +114,10 @@ class App extends Vue {
     }
 
     setAppModeFromCompact(compact: CompactType | null): void {
-        let { appMode } = this.globalStore;
+        const { appMode } = this.globalStore;
 
         if (!appMode) {
-            if (compact === CompactType.COSMETOLOGY) {
-                appMode = AppModes.COSMETOLOGY;
-            } else if (compact === CompactType.SOCIAL_WORK) {
-                appMode = AppModes.SOCIAL_WORK;
-            } else {
-                appMode = AppModes.JCC;
-            }
-
-            this.$store.dispatch('setAppMode', appMode);
+            this.$store.dispatch('setAppMode', getAppModeForCompact(compact));
         }
     }
 

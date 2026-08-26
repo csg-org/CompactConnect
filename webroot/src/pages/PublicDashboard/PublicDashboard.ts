@@ -23,6 +23,7 @@ import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';
 import StaffUserIcon from '@components/Icons/StaffUser/StaffUser.vue';
 import LicenseeUserIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import { CompactConfig } from '@plugins/Compacts/compacts.plugin';
 import { CompactType } from '@models/Compact/Compact.model';
 
 @Component({
@@ -58,10 +59,6 @@ export default class DashboardPublic extends Vue {
     //
     // Computed
     //
-    get appMode(): AppModes {
-        return this.$store.state.appMode;
-    }
-
     get bypassQuery(): string {
         const bypass: string = (this.$route.query?.bypass as string) || '';
 
@@ -78,36 +75,6 @@ export default class DashboardPublic extends Vue {
         return (this.shouldRemoteLogout) ? '/logout' : '/login';
     }
 
-    get hostedLoginUriStaff(): string {
-        return getHostedLoginUri(
-            AppModes.JCC,
-            AuthTypes.STAFF,
-            this.hostedLoginUriPath,
-            this.csrfState,
-            this.pkceChallenge
-        );
-    }
-
-    get hostedLoginUriStaffCosmo(): string {
-        return getHostedLoginUri(
-            AppModes.COSMETOLOGY,
-            AuthTypes.STAFF,
-            this.hostedLoginUriPath,
-            this.csrfState,
-            this.pkceChallenge
-        );
-    }
-
-    get hostedLoginUriStaffSw(): string {
-        return getHostedLoginUri(
-            AppModes.SOCIAL_WORK,
-            AuthTypes.STAFF,
-            this.hostedLoginUriPath,
-            this.csrfState,
-            this.pkceChallenge
-        );
-    }
-
     get hostedLoginUriLicensee(): string {
         return getHostedLoginUri(
             AppModes.JCC,
@@ -116,10 +83,6 @@ export default class DashboardPublic extends Vue {
             this.csrfState,
             this.pkceChallenge
         );
-    }
-
-    get compactTypes(): typeof CompactType {
-        return CompactType;
     }
 
     get isUsingMockApi(): boolean {
@@ -132,13 +95,13 @@ export default class DashboardPublic extends Vue {
     bypassRedirect(): void {
         switch (this.bypassQuery) {
         case 'login-staff':
-            this.bypassToStaffLogin();
+            this.bypassToStaffLogin(AppModes.JCC);
             break;
         case 'login-staff-cosmo':
-            this.bypassToStaffLoginCosmo();
+            this.bypassToStaffLogin(AppModes.COSMETOLOGY);
             break;
         case 'login-staff-sw':
-            this.bypassToStaffLoginSw();
+            this.bypassToStaffLogin(AppModes.SOCIAL_WORK);
             break;
         case 'login-practitioner':
             this.bypassToLicenseeLogin();
@@ -151,39 +114,25 @@ export default class DashboardPublic extends Vue {
         }
     }
 
-    bypassToStaffLogin(compactType?: CompactType): void {
-        if (this.isUsingMockApi) {
-            if (compactType) {
-                this.setGotoCompact(compactType);
-            }
-            this.mockStaffLogin(AppModes.JCC);
-        } else {
-            this.$store.dispatch('startLoading');
-            window.location.replace(this.hostedLoginUriStaff);
-        }
+    staffLoginUri(appMode: AppModes): string {
+        return getHostedLoginUri(
+            appMode,
+            AuthTypes.STAFF,
+            this.hostedLoginUriPath,
+            this.csrfState,
+            this.pkceChallenge
+        );
     }
 
-    bypassToStaffLoginCosmo(compactType?: CompactType): void {
+    bypassToStaffLogin(appMode: AppModes, compactType?: CompactType): void {
         if (this.isUsingMockApi) {
             if (compactType) {
                 this.setGotoCompact(compactType);
             }
-            this.mockStaffLogin(AppModes.COSMETOLOGY);
+            this.mockStaffLogin(appMode);
         } else {
             this.$store.dispatch('startLoading');
-            window.location.replace(this.hostedLoginUriStaffCosmo);
-        }
-    }
-
-    bypassToStaffLoginSw(compactType?: CompactType): void {
-        if (this.isUsingMockApi) {
-            if (compactType) {
-                this.setGotoCompact(compactType);
-            }
-            this.mockStaffLogin(AppModes.SOCIAL_WORK);
-        } else {
-            this.$store.dispatch('startLoading');
-            window.location.replace(this.hostedLoginUriStaffSw);
+            window.location.replace(this.staffLoginUri(appMode));
         }
     }
 
@@ -209,21 +158,15 @@ export default class DashboardPublic extends Vue {
         });
     }
 
-    getCompactDisplay(compactType: CompactType): string {
-        const compacts = this.$tm('compacts') || [];
-        const selectedCompact = compacts.find((compact) => compact?.key === compactType);
+    getCompactDisplay(compact: CompactConfig): string {
         const shouldAddAbbrev = [
             CompactType.ASLP,
             CompactType.OT,
-        ].includes(compactType);
-        let compactDisplay = '';
+        ].includes(compact.type);
+        let compactDisplay = compact.name || '';
 
-        if (selectedCompact) {
-            compactDisplay += selectedCompact.name;
-
-            if (shouldAddAbbrev && selectedCompact.abbrev) {
-                compactDisplay += ` (${selectedCompact.abbrev})`;
-            }
+        if (shouldAddAbbrev && compact.abbrev) {
+            compactDisplay += ` (${compact.abbrev})`;
         }
 
         return compactDisplay.trim();

@@ -63,7 +63,7 @@
             }"></span>
         </div>
         <div
-            v-if="isAppGroupModePrivilegePurchase"
+            v-if="$isAppGroupModePrivilegePurchase"
             class="cell practicing-locations"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('practicingLocations') }"
             @click="isSortOptionEnabled('practicingLocations') && handleSortSelect('practicingLocations')"
@@ -80,7 +80,24 @@
             }"></span>
         </div>
         <div
-            v-if="isAppGroupModeMultiState"
+            v-if="$isAppModeSocialWork && (isPublicSearch || item.isPublicSearch)"
+            class="cell license-type"
+            :class="{ 'is-sort-enabled': isSortOptionEnabled('licenseType') }"
+            @click="isSortOptionEnabled('licenseType') && handleSortSelect('licenseType')"
+            @keyup.enter="isSortOptionEnabled('licenseType') && handleSortSelect('licenseType')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('licenseType')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
+        >
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.category') }}:</span>
+            {{ item.licenseTypeName() }}
+            <span v-if="isSortOptionEnabled('licenseType')" class="sort-icon" :class="{
+                'is-selected': isSortOptionSelected('licenseType'),
+                'asc': isSortOptionAscending('licenseType'),
+                'desc': isSortOptionDescending('licenseType'),
+            }"></span>
+        </div>
+        <div
+            v-if="$isAppGroupModeMultiState"
             class="cell license-number"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('licenseNumber') }"
             @click="isSortOptionEnabled('licenseNumber') && handleSortSelect('licenseNumber')"
@@ -98,7 +115,7 @@
             }"></span>
         </div>
         <div
-            v-if="isAppGroupModeMultiState && (isPublicSearch || item.isPublicSearch)"
+            v-if="$isAppGroupModeMultiState && (isPublicSearch || item.isPublicSearch)"
             class="cell license-eligibility"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('licenseEligibility') }"
             @click="isSortOptionEnabled('licenseEligibility') && handleSortSelect('licenseEligibility')"

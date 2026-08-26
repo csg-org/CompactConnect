@@ -10,6 +10,8 @@ import chai from 'chai';
 import { mountShallow, mountFull } from '@tests/helpers/setup';
 import LicenseeList from '@components/Licensee/LicenseeListLegacy/LicenseeListLegacy.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
+import { AppModes } from '@/app.config';
+import store from '@store/index';
 import sinon from 'sinon';
 
 chai.use(chaiMatchPattern);
@@ -17,12 +19,25 @@ chai.use(chaiMatchPattern);
 const { expect } = chai;
 const lastKey = 'lastKey';
 const prevLastKey = 'prevLastKey';
+const allSearchParams = {
+    firstName: 'firstName',
+    lastName: 'lastName',
+    state: 'co',
+    licenseNumber: 'ABC123',
+    licenseType: 'licensed clinical social worker',
+    cuid: 'SWC-9999-9',
+};
 const populateComponentStorePagingKeys = (component) => {
     component.$store.dispatch('license/setStoreLicenseeLastKey', lastKey);
     component.$store.dispatch('license/setStoreLicenseePrevLastKey', prevLastKey);
 };
 
 describe('LicenseeList component', async () => {
+    afterEach(async () => {
+        await store.dispatch('setAppMode', AppModes.JCC);
+        await store.dispatch('license/resetStoreSearch');
+    });
+
     it('should mount the component', async () => {
         const wrapper = await mountShallow(LicenseeList);
 
@@ -137,5 +152,75 @@ describe('LicenseeList component', async () => {
             licenseeLastName: testParams.lastName,
             '...': '',
         });
+    });
+    it('should successfully fetch data with expected search params (all params, social work)', async () => {
+        const wrapper = await mountShallow(LicenseeList);
+        const component = wrapper.vm;
+
+        await component.$store.dispatch('setAppMode', AppModes.SOCIAL_WORK);
+        await component.$store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.SOCIAL_WORK }));
+        await component.$store.dispatch('license/setStoreSearch', allSearchParams);
+
+        const requestConfig = await component.fetchListData();
+
+        expect(requestConfig).to.matchPattern({
+            compact: CompactType.SOCIAL_WORK,
+            jurisdiction: allSearchParams.state,
+            licenseeFirstName: allSearchParams.firstName,
+            licenseeLastName: allSearchParams.lastName,
+            licenseNumber: allSearchParams.licenseNumber,
+            licenseType: allSearchParams.licenseType,
+            cuid: allSearchParams.cuid,
+            '...': '',
+        });
+    });
+    it('should successfully fetch data with expected search params (all params, cosmetology)', async () => {
+        const wrapper = await mountShallow(LicenseeList);
+        const component = wrapper.vm;
+
+        await component.$store.dispatch('setAppMode', AppModes.COSMETOLOGY);
+        await component.$store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.COSMETOLOGY }));
+        await component.$store.dispatch('license/setStoreSearch', allSearchParams);
+
+        const requestConfig = await component.fetchListData();
+
+        expect(requestConfig).to.matchPattern({
+            compact: CompactType.COSMETOLOGY,
+            jurisdiction: allSearchParams.state,
+            licenseeFirstName: allSearchParams.firstName,
+            licenseeLastName: allSearchParams.lastName,
+            licenseNumber: allSearchParams.licenseNumber,
+            licenseType: undefined,
+            cuid: undefined,
+            '...': '',
+        });
+    });
+    it('should successfully display license number, license type, and CUID in the search tag', async () => {
+        const wrapper = await mountShallow(LicenseeList);
+        const component = wrapper.vm;
+
+        await component.$store.dispatch('license/setStoreSearch', {
+            firstName: 'Test',
+            lastName: 'User',
+            state: 'co',
+            licenseNumber: allSearchParams.licenseNumber,
+            licenseType: allSearchParams.licenseType,
+            cuid: allSearchParams.cuid,
+        });
+
+        expect(component.searchDisplayLicenseNumber).to.equal(
+            `${component.$t('licensing.licenseNumSymbol')}: ${allSearchParams.licenseNumber}`
+        );
+        expect(component.searchDisplayLicenseType).to.equal('Clinical');
+        expect(component.searchDisplayCuid).to.equal(
+            `${component.$t('licensing.cuid')}: ${allSearchParams.cuid}`
+        );
+        expect(component.searchDisplayAll).to.equal([
+            'Test User',
+            'Colorado',
+            component.searchDisplayLicenseNumber,
+            component.searchDisplayLicenseType,
+            component.searchDisplayCuid,
+        ].join(', '));
     });
 });

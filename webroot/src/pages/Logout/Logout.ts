@@ -6,7 +6,6 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import { AppModes } from '@/app.config';
 import {
     authStorage,
     tokens,
@@ -14,6 +13,7 @@ import {
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
+    getCognitoConfig,
     revokeCognitoRefreshToken
 } from '@utils/auth';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
@@ -35,14 +35,6 @@ export default class Logout extends Vue {
     //
     // Computed
     //
-    get appMode(): AppModes {
-        return this.$store.state.appMode;
-    }
-
-    get appGroupMode() {
-        return this.$store.state.appGroupMode;
-    }
-
     get userStore() {
         return this.$store.state.user;
     }
@@ -52,35 +44,15 @@ export default class Logout extends Vue {
     }
 
     get hostedLogoutUriStaff(): string {
-        const {
-            domain,
-            cognitoAuthDomainStaff,
-            cognitoClientIdStaff,
-            cognitoAuthDomainStaffCosmo,
-            cognitoClientIdStaffCosmo,
-            cognitoAuthDomainStaffSw,
-            cognitoClientIdStaffSw
-        } = this.$envConfig;
-        let cognitoAuthDomain = cognitoAuthDomainStaff;
-        let cognitoClientId = cognitoClientIdStaff;
-
-        // Adjust cognito params based on app mode
-        if (this.appMode === AppModes.COSMETOLOGY) {
-            cognitoAuthDomain = cognitoAuthDomainStaffCosmo;
-            cognitoClientId = cognitoClientIdStaffCosmo;
-        } else if (this.appMode === AppModes.SOCIAL_WORK) {
-            cognitoAuthDomain = cognitoAuthDomainStaffSw;
-            cognitoClientId = cognitoClientIdStaffSw;
-        }
-
-        // Create the logout URI
+        const { domain } = this.$envConfig;
+        const { clientId, authDomain } = getCognitoConfig(this.$appMode, AuthTypes.STAFF);
         const logoutLink = encodeURIComponent(`${(domain as string)}/Logout`);
         const logoutUriQuery = [
-            `?client_id=${cognitoClientId}`,
+            `?client_id=${clientId}`,
             `&logout_uri=${logoutLink}`
         ].join('');
         const idpPath = '/logout';
-        const logoutUri = `${cognitoAuthDomain}${idpPath}${logoutUriQuery}`;
+        const logoutUri = `${authDomain}${idpPath}${logoutUriQuery}`;
 
         return logoutUri;
     }
@@ -92,13 +64,13 @@ export default class Logout extends Vue {
     }
 
     get hostedLogoutUriLicensee(): string {
-        const { cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
+        const { clientId, authDomain } = getCognitoConfig(this.$appMode, AuthTypes.LICENSEE);
         const logoutUriQuery = [
-            `?client_id=${cognitoClientIdLicensee}`,
+            `?client_id=${clientId}`,
             `&logout_uri=${encodeURIComponent(this.loginURL)}`
         ].join('');
         const idpPath = '/logout';
-        const logoutUri = `${cognitoAuthDomainLicensee}${idpPath}${logoutUriQuery}`;
+        const logoutUri = `${authDomain}${idpPath}${logoutUriQuery}`;
 
         return logoutUri;
     }
@@ -133,12 +105,12 @@ export default class Logout extends Vue {
     }
 
     async revokeTokens(authType: AuthTypes): Promise<void> {
-        await revokeCognitoRefreshToken(this.appMode, authType).catch((err) => Promise.resolve().then(() => {
+        await revokeCognitoRefreshToken(this.$appMode, authType).catch((err) => Promise.resolve().then(() => {
             // https://console.statsig.com/3KcYv8LC2YCc1vsTkVi3Fb/metrics/metrics_catalog/Cognito%20Token%20Revocation%20Failure/event_count_custom?unitType=overall
             this.$analytics.logEvent('cognito_token_revoke_failed', 1, {
                 authType,
-                appMode: this.appMode,
-                appGroupMode: this.appGroupMode,
+                appMode: this.$appMode,
+                appGroupMode: this.$appGroupMode,
                 errorName: err?.name,
                 errorCode: err?.code,
                 httpStatus: err?.response?.status,

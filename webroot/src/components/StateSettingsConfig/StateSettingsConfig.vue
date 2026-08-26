@@ -15,11 +15,11 @@
         <form v-else class="state-config-form" @submit.prevent="handleSubmit(false)">
             <div class="state-config-form-container">
                 <!-- Privilege fees -->
-                <h2 v-if="isAppGroupModePrivilegePurchase" class="form-section-title fees">
+                <h2 v-if="$isAppGroupModePrivilegePurchase" class="form-section-title fees">
                     {{ $t('compact.privilegeFees') }}
                 </h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                <template v-if="isAppGroupModePrivilegePurchase">
+                <template v-if="$isAppGroupModePrivilegePurchase">
                     <InputText
                         v-for="(formInput) in feeInputs"
                         :key="formInput.id"
@@ -30,16 +30,16 @@
                     />
                 </template>
                 <!-- Jurisprudence -->
-                <h2 v-if="isAppGroupModePrivilegePurchase" class="form-section-title jurisprudence">
+                <h2 v-if="$isAppGroupModePrivilegePurchase" class="form-section-title jurisprudence">
                     {{ $t('compact.jurisprudence') }}
                 </h2>
                 <InputRadioGroup
-                    v-if="isAppGroupModePrivilegePurchase"
+                    v-if="$isAppGroupModePrivilegePurchase"
                     :formInput="formData.isJurisprudenceExamRequired"
                     class="form-row"
                 />
                 <InputText
-                    v-if="isAppGroupModePrivilegePurchase"
+                    v-if="$isAppGroupModePrivilegePurchase"
                     :formInput="formData.jurisprudenceInfoLink"
                     class="form-row jurisprudence-info-link"
                 />
@@ -48,7 +48,7 @@
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
                 <InputEmailList
-                    v-if="isAppGroupModePrivilegePurchase"
+                    v-if="$isAppGroupModePrivilegePurchase"
                     :formInput="formData.summaryReportNotificationEmails"
                 />
                 <button

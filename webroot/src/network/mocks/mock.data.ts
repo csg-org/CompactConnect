@@ -596,6 +596,7 @@ export const licensees = {
             dateOfBirth: '1967-08-22',
             birthMonthDay: '1967-08-22',
             ssnLastFour: '7777',
+            cuid: 'SWC-5122-9193666441870158440122579252169899203244419470545948771',
             militaryAffiliations: [
                 {
                     affiliationType: 'militaryMember',
@@ -740,6 +741,7 @@ export const licensees = {
             dateOfBirth: '1990-08-29',
             birthMonthDay: '1990-08-29',
             ssnLastFour: '1111',
+            cuid: 'SWC-5122-9193666441870158440122579252169899203244419470545948772',
             militaryAffiliations: [
                 {
                     affiliationType: 'militaryMember',
@@ -1273,6 +1275,7 @@ export const licensees = {
             dateOfBirth: '1975-01-01',
             birthMonthDay: '1975-01-01',
             ssnLastFour: '2222',
+            cuid: 'SWC-5122-9193666441870158440122579252169899203244419470545948773',
             militaryAffiliations: [],
             militaryStatus: 'notApplicable',
             militaryStatusNote: '',
@@ -1351,6 +1354,7 @@ export const licensees = {
             dateOfBirth: '1965-01-01',
             birthMonthDay: '1965-01-01',
             ssnLastFour: '3333',
+            cuid: 'SWC-5122-9193666441870158440122579252169899203244419470545948774',
             militaryAffiliations: [],
             militaryStatus: 'notApplicable',
             militaryStatusNote: '',
@@ -1429,6 +1433,7 @@ export const licensees = {
             dateOfBirth: '1990-08-29',
             birthMonthDay: '1990-08-29',
             ssnLastFour: '4444',
+            cuid: 'SWC-5122-9193666441870158440122579252169899203244419470545948775',
             militaryAffiliations: [],
             militaryStatus: 'notApplicable',
             militaryStatusNote: '',
@@ -1642,6 +1647,39 @@ export const users = {
                     },
                 },
                 cosm: {
+                    actions: {
+                        admin: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                    },
+                },
+                socw: {
                     actions: {
                         admin: true,
                         readPrivate: true,

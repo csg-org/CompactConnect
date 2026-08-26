@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 8/27/2024.
 //
 
+import { CompactType } from '@utils/compactConfig';
 import { deleteUndefinedProperties } from '@models/_helpers';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@models/State/State.model';
@@ -13,13 +14,8 @@ import { CompactFeeConfig } from '@models/CompactFeeConfig/CompactFeeConfig.mode
 // ========================================================
 // =                       Interface                      =
 // ========================================================
-export enum CompactType {
-    ASLP = 'aslp',
-    OT = 'octp',
-    COUNSELING = 'coun',
-    COSMETOLOGY = 'cosm',
-    SOCIAL_WORK = 'socw',
-}
+// @NOTE: CompactType is defined in compactConfig to keep the compact table free of model imports; re-exported here for existing consumers
+export { CompactType };
 
 export interface PaymentProcessorConfig {
     apiLoginId: string;

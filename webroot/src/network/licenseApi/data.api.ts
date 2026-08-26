@@ -26,6 +26,8 @@ export interface RequestParamsInterfaceLocal {
     licenseeFirstName?: string;
     licenseeLastName?: string;
     licenseNumber?: string;
+    licenseType?: string;
+    cuid?: string;
     pageSize?: number;
     pageNumber?: number;
     lastKey?: string;
@@ -52,6 +54,8 @@ export interface RequestParamsInterfaceRemote {
         givenName?: string,
         familyName?: string,
         licenseNumber?: string,
+        licenseType?: string,
+        cuid?: string,
     },
 }
 
@@ -119,12 +123,16 @@ export class LicenseDataApi implements DataApiInterface {
             licenseeFirstName,
             licenseeLastName,
             licenseNumber,
+            licenseType,
+            cuid,
             pageSize,
             lastKey,
             sortBy,
             sortDirection,
         } = params;
-        const hasSearchTerms = Boolean(licenseeId || licenseeFirstName || licenseeLastName || licenseNumber);
+        const hasSearchTerms = Boolean(
+            licenseeId || licenseeFirstName || licenseeLastName || licenseNumber || licenseType || cuid
+        );
         const requestParams: RequestParamsInterfaceRemote = { query: {}};
 
         if (jurisdiction) {
@@ -143,6 +151,12 @@ export class LicenseDataApi implements DataApiInterface {
             }
             if (licenseNumber) {
                 requestParams.query.licenseNumber = licenseNumber;
+            }
+            if (licenseType) {
+                requestParams.query.licenseType = licenseType;
+            }
+            if (cuid) {
+                requestParams.query.cuid = cuid;
             }
         }
 
