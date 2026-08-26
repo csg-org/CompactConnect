@@ -204,6 +204,7 @@
             <div v-if="$matches.desktop.min" class="cell expand-collapse"></div>
             <div class="cell first-name"></div>
             <div class="cell last-name"></div>
+            <div class="cell email"></div>
             <div class="cell permissions" role="cell">
                 <div class="permissions-label">Permission details</div>
                 <ul class="permissions-full good-wrap">
