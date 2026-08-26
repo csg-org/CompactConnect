@@ -447,6 +447,9 @@ class StaffUsersLambdas:
             'cognito-idp:AdminResetUserPassword',
             'cognito-idp:AdminSetUserPassword',
             'cognito-idp:AdminCreateUser',
+            # A user deactivated for inactivity is disabled in Cognito, so re-inviting them has to
+            # re-enable them or the invitation is useless
+            'cognito-idp:AdminEnableUser',
         )
 
         NagSuppressions.add_resource_suppressions_by_path(

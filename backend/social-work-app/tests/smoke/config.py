@@ -76,6 +76,10 @@ class _Config:
     def smoke_test_notification_email(self):
         return os.environ['CC_TEST_SMOKE_TEST_NOTIFICATION_EMAIL']
 
+    @property
+    def staff_user_inactivity_lambda_name(self):
+        return os.environ['CC_TEST_STAFF_USER_INACTIVITY_LAMBDA_NAME']
+
     @cached_property
     def cognito_client(self):
         return boto3.client('cognito-idp')

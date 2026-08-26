@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815  invalid-name
 from marshmallow import Schema, post_dump, post_load, pre_dump
-from marshmallow.fields import UUID, Dict, Nested, String
+from marshmallow.fields import UUID, AwareDateTime, Dict, Nested, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
@@ -49,6 +49,9 @@ class UserRecordSchema(BaseRecordSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     permissions = Nested(CompactPermissionsRecordSchema(), required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([status.value for status in StaffUserStatus]))
+    # Set by the pre-token-generation hook on every successful access token generation. Absent for users who
+    # have not signed in
+    lastLoginAt = AwareDateTime(required=False, allow_none=False)
 
     # Generated fields
     famGiv = String(required=True, allow_none=False)

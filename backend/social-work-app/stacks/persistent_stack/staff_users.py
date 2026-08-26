@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 
 from aws_cdk import Duration
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_cognito import (
     ClientAttributes,
     LambdaVersion,
@@ -13,6 +15,7 @@ from aws_cdk.aws_cognito import (
     UserPoolOperation,
 )
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_logs import FilterPattern, MetricFilter
 from cdk_nag import NagSuppressions
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
@@ -124,7 +127,7 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         compacts = self.node.get_context('compacts')
         jurisdictions = self.node.get_context('jurisdictions')
 
-        scope_customization_handler = PythonFunction(
+        self.scope_customization_handler = PythonFunction(
             self,
             'ScopeCustomizationHandler',
             description='Auth scope customization handler',
@@ -140,10 +143,37 @@ class StaffUsers(UserPool, ResourceScopeMixin):
                 **stack.common_env_vars,
             },
         )
-        self.user_table.grant_read_write_data(scope_customization_handler)
+        self.user_table.grant_read_write_data(self.scope_customization_handler)
+
+        # This handler swallows its own errors so that a failure cannot block authentication, which means
+        # a broken scope calculation or an unrecorded login would otherwise be invisible. The ERROR logs it
+        # writes instead are the only signal, so we alarm on them.
+        scope_customization_error_metric = MetricFilter(
+            self,
+            'ScopeCustomizationHandlerErrorLogMetric',
+            log_group=self.scope_customization_handler.log_group,
+            metric_namespace='CompactConnect/StaffUsers',
+            metric_name='ScopeCustomizationHandlerErrors',
+            filter_pattern=FilterPattern.string_value(json_field='$.level', comparison='=', value='ERROR'),
+            metric_value='1',
+            default_value=0,
+        )
+
+        Alarm(
+            self,
+            'ScopeCustomizationHandlerErrorLogAlarm',
+            metric=scope_customization_error_metric.metric(statistic='Sum'),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'The Scope Customization Lambda logged an ERROR level message. Investigate the logs '
+            f'for the {self.scope_customization_handler.function_name} lambda to determine the cause.',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        ).add_alarm_action(SnsAction(stack.alarm_topic))
 
         NagSuppressions.add_resource_suppressions(
-            scope_customization_handler.role,
+            self.scope_customization_handler.role,
             apply_to_children=True,
             suppressions=[
                 {
@@ -157,7 +187,7 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         )
         self.add_trigger(
             UserPoolOperation.PRE_TOKEN_GENERATION_CONFIG,
-            scope_customization_handler,
+            self.scope_customization_handler,
             lambda_version=LambdaVersion.V2_0,
         )
 

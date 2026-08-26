@@ -66,3 +66,43 @@ class TestEmailServiceClient(TstLambdas):
                 }
             ),
         )
+
+    def test_send_staff_user_inactivity_notification_email_invokes_lambda_with_expected_parameters(self):
+        from datetime import date
+
+        from cc_common.email_service_client import StaffUserInactivityNotificationTemplateVariables
+
+        mock_lambda_client = MagicMock()
+        test_model = self._generate_test_model(mock_lambda_client)
+
+        test_model.send_staff_user_inactivity_notification_email(
+            compact=TEST_COMPACT,
+            recipient_emails=['jane@example.com', 'admin@example.com'],
+            template_variables=StaffUserInactivityNotificationTemplateVariables(
+                staff_user_first_name='Jane',
+                staff_user_last_name='Smith',
+                staff_user_email='jane@example.com',
+                deactivation_date=date(2026, 9, 14),
+                inactivity_period_days=60,
+            ),
+        )
+
+        mock_lambda_client.invoke.assert_called_once_with(
+            FunctionName='test-lambda-name',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(
+                {
+                    'compact': TEST_COMPACT,
+                    'template': 'staffUserInactivityNotification',
+                    'recipientType': 'SPECIFIC',
+                    'specificEmails': ['jane@example.com', 'admin@example.com'],
+                    'templateVariables': {
+                        'staffUserFirstName': 'Jane',
+                        'staffUserLastName': 'Smith',
+                        'staffUserEmail': 'jane@example.com',
+                        'deactivationDate': '2026-09-14',
+                        'inactivityPeriodDays': 60,
+                    },
+                }
+            ),
+        )

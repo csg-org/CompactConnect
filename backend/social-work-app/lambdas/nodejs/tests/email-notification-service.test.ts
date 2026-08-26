@@ -1168,4 +1168,58 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Missing required template variables for home jurisdiction change notification template.');
         });
     });
+
+    describe('Staff User Inactivity Notification', () => {
+        const SAMPLE_STAFF_USER_INACTIVITY_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'staffUserInactivityNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'socw',
+            specificEmails: ['jane@example.com'],
+            templateVariables: {
+                staffUserFirstName: 'Jane',
+                staffUserLastName: 'Smith',
+                staffUserEmail: 'jane@example.com',
+                deactivationDate: '2026-09-14',
+                inactivityPeriodDays: 60
+            }
+        };
+
+        it('should successfully send staff user inactivity notification email', async () => {
+            mockDynamoDBClient.on(GetItemCommand).resolves({ Item: SAMPLE_COMPACT_CONFIGURATION });
+
+            const response = await lambda.handler(
+                SAMPLE_STAFF_USER_INACTIVITY_NOTIFICATION_EVENT,
+                {} as any
+            );
+
+            expect(response).toEqual({ message: 'Email message sent' });
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['jane@example.com']
+                }
+            });
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_STAFF_USER_INACTIVITY_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for staffUserInactivityNotification template.');
+        });
+
+        it('should throw error when no recipients are provided', async () => {
+            const eventWithNoRecipients: EmailNotificationEvent = {
+                ...SAMPLE_STAFF_USER_INACTIVITY_NOTIFICATION_EVENT,
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithNoRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients found for staff user inactivity notification email');
+        });
+    });
 });

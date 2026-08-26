@@ -15,6 +15,7 @@ from stacks.persistent_stack import PersistentStack
 from stacks.reporting_stack import ReportingStack
 from stacks.search_api_stack import SearchApiStack
 from stacks.search_persistent_stack import SearchPersistentStack
+from stacks.staff_user_inactivity_stack import StaffUserInactivityStack
 from stacks.state_api_stack import StateApiStack
 from stacks.state_auth import StateAuthStack
 from stacks.vpc_stack import VpcStack
@@ -171,6 +172,19 @@ class BackendStage(Stage):
                 environment_name=environment_name,
                 standard_tags=standard_tags,
                 persistent_stack=self.persistent_stack,
+            )
+
+            # This job emails staff users before deactivating them, so it must not run in an
+            # environment that cannot send email because it does not have a hosted zone.
+            self.staff_user_inactivity_stack = StaffUserInactivityStack(
+                self,
+                'StaffUserInactivityStack',
+                env=environment,
+                environment_context=environment_context,
+                environment_name=environment_name,
+                standard_tags=standard_tags,
+                persistent_stack=self.persistent_stack,
+                event_state_stack=self.event_state_stack,
             )
 
         # Disaster recovery workflows for DynamoDB tables

@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from enum import StrEnum
 from secrets import token_hex
 
@@ -8,6 +8,7 @@ from botocore.exceptions import ClientError
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.common import StaffUserStatus
+from cc_common.data_model.schema.user import StaffUserData
 from cc_common.data_model.schema.user.record import (
     CompactPermissionsRecordSchema,
     UserAttributesRecordSchema,
@@ -93,6 +94,96 @@ class UserClient:
             **({'FilterExpression': filter_expression} if filter_expression is not None else {}),
             **dynamo_pagination,
         )
+
+    def deactivate_user(self, *, user_id: str) -> None:
+        """Deactivate a staff user for inactivity.
+
+        Disables the Cognito user so they can no longer obtain a token, and marks every one of their
+        compact records inactive so the rest of the system reflects that.
+
+        :param str user_id: The user to deactivate
+        """
+        logger.info('Deactivating staff user', user_id=user_id)
+
+        # Disable in Cognito first. If this succeeds but the record updates below do not, the user is
+        # locked out while still showing active, and the next day's scheduled day-of run retries the
+        # DynamoDB update alone (the inactivity tracker records each step separately, so it knows this
+        # one didn't succeed). The reverse order would leave a user marked inactive who can still sign
+        # in - and the pre-token hook would then flip them straight back to active.
+        self.config.cognito_client.admin_disable_user(UserPoolId=self.config.user_pool_id, Username=user_id)
+
+        # A user only ever has a handful of compact records, all in one partition, so a single query
+        # is enough. We update each record by its own keys rather than rebuilding them.
+        user_records = self.config.users_table.query(KeyConditionExpression=Key('pk').eq(f'USER#{user_id}')).get(
+            'Items', []
+        )
+        date_of_update = self.config.current_standard_datetime.isoformat()
+        for record in user_records:
+            self.config.users_table.update_item(
+                Key={'pk': record['pk'], 'sk': record['sk']},
+                UpdateExpression='SET #status = :status, dateOfUpdate = :dateOfUpdate',
+                ExpressionAttributeNames={'#status': 'status'},
+                ExpressionAttributeValues={
+                    ':status': StaffUserStatus.INACTIVE.value,
+                    ':dateOfUpdate': date_of_update,
+                },
+            )
+
+    def iterate_all_users_in_compact(self, *, compact: str) -> Generator[StaffUserData, None, None]:
+        """Yield every staff user in a compact, transparently following LastEvaluatedKey.
+
+        Distinct from get_users_sorted_by_family_name, which returns a single API-facing page. This is
+        for batch work that has to consider every user in the compact.
+
+        :param str compact: The compact to iterate over
+        """
+        logger.info('Iterating over all staff users in compact', compact=compact)
+
+        pagination = {}
+        while True:
+            response = self.config.users_table.query(
+                IndexName=self.config.fam_giv_index_name,
+                Select='ALL_ATTRIBUTES',
+                KeyConditionExpression=Key('sk').eq(f'COMPACT#{compact}'),
+                **pagination,
+            )
+            for item in response.get('Items', []):
+                yield StaffUserData.from_database_record(item)
+
+            last_key = response.get('LastEvaluatedKey')
+            if last_key is None:
+                break
+            pagination = {'ExclusiveStartKey': last_key}
+
+    def record_user_login(self, *, user_id: str, compacts: Iterable[str]) -> None:
+        """Mark the user active and stamp lastLoginAt on each of the user's compact records.
+
+        Called from the pre-token-generation hook on every successful access token generation.
+
+        :param str user_id: The user that just signed in
+        :param Iterable[str] compacts: The compacts the user has records in
+        """
+        logger.info('Recording staff user login', user_id=user_id)
+
+        last_login_at = self.config.current_standard_datetime.isoformat()
+        for compact in compacts:
+            try:
+                self.config.users_table.update_item(
+                    Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
+                    UpdateExpression='SET #status = :status, lastLoginAt = :lastLoginAt',
+                    # Without this, an update against a missing record would create a stub record that has
+                    # none of the fields a user record requires
+                    ConditionExpression=Attr('pk').exists(),
+                    ExpressionAttributeNames={'#status': 'status'},
+                    ExpressionAttributeValues={
+                        ':status': StaffUserStatus.ACTIVE.value,
+                        ':lastLoginAt': last_login_at,
+                    },
+                )
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                    raise CCNotFoundException('User not found for compact') from e
+                raise
 
     def update_user_permissions(
         self,
@@ -191,7 +282,8 @@ class UserClient:
                 expression_attribute_values[f':{jurisdiction}AddActions'] = actions
 
         if update_expression_parts:
-            update_expression = 'ADD ' + ', '.join(update_expression_parts)
+            update_expression = 'ADD ' + ', '.join(update_expression_parts) + ' SET dateOfUpdate = :dateOfUpdate'
+            expression_attribute_values[':dateOfUpdate'] = self.config.current_standard_datetime.isoformat()
 
             try:
                 return self.config.users_table.update_item(
@@ -238,7 +330,8 @@ class UserClient:
                 expression_attribute_values[f':{jurisdiction}DeleteActions'] = actions
 
         if update_expression_parts:
-            update_expression = 'DELETE ' + ', '.join(update_expression_parts)
+            update_expression = 'DELETE ' + ', '.join(update_expression_parts) + ' SET dateOfUpdate = :dateOfUpdate'
+            expression_attribute_values[':dateOfUpdate'] = self.config.current_standard_datetime.isoformat()
 
             return self.config.users_table.update_item(
                 Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
@@ -275,6 +368,9 @@ class UserClient:
             update_expression_parts.append(f'attributes.#{attr_name} = :{attr_name}')
             expression_attribute_names[f'#{attr_name}'] = attr_name
             expression_attribute_values[f':{attr_name}'] = attr_value
+
+        update_expression_parts.append('dateOfUpdate = :dateOfUpdate')
+        expression_attribute_values[':dateOfUpdate'] = self.config.current_standard_datetime.isoformat()
 
         update_expression = 'SET ' + ', '.join(update_expression_parts)
 
@@ -401,6 +497,15 @@ class UserClient:
                 UserPoolId=self.config.user_pool_id,
                 Username=email,
             )
+
+            # A user deactivated for inactivity is disabled in Cognito. Re-enable them before resending
+            # the invite, or the invitation arrives but they still cannot sign in.
+            if not user_data.get('Enabled', True):
+                logger.info('Re-enabling disabled user before reinvite')
+                self.config.cognito_client.admin_enable_user(
+                    UserPoolId=self.config.user_pool_id,
+                    Username=email,
+                )
 
             # If they're in CONFIRMED state, we need to reset their password first
             if user_data['UserStatus'] in (UserStatus.CONFIRMED, UserStatus.RESET_REQUIRED):

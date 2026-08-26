@@ -348,6 +348,24 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.newJurisdiction
             );
             break;
+        case 'staffUserInactivityNotification':
+            if (!event.templateVariables?.staffUserFirstName
+                || !event.templateVariables?.staffUserLastName
+                || !event.templateVariables?.staffUserEmail
+                || !event.templateVariables?.deactivationDate
+                || !event.templateVariables?.inactivityPeriodDays) {
+                throw new Error('Missing required template variables for staffUserInactivityNotification template.');
+            }
+            await this.emailService.sendStaffUserInactivityNotificationEmail(
+                event.compact,
+                event.specificEmails || [],
+                event.templateVariables.staffUserFirstName,
+                event.templateVariables.staffUserLastName,
+                event.templateVariables.staffUserEmail,
+                event.templateVariables.deactivationDate,
+                event.templateVariables.inactivityPeriodDays
+            );
+            break;
         default:
             logger.info('Unsupported email template provided', { template: event.template });
             throw new Error(`Unsupported email template: ${event.template}`);

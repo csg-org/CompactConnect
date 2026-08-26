@@ -1,11 +1,17 @@
 import json
+from datetime import datetime
+from unittest.mock import patch
 
 from moto import mock_aws
 
 from .. import TstFunction
 
+# Frozen "now" for the whole class, so writes that refresh dateOfUpdate land on an assertable value
+MOCK_DATETIME = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', MOCK_DATETIME)
 class TestPatchUser(TstFunction):
     def _when_testing_with_valid_jurisdiction(self, compact: str):
         # load oh jurisdiction for provided compact to pass the jurisdiction validation
@@ -35,7 +41,8 @@ class TestPatchUser(TstFunction):
         self.assertEqual(
             {
                 'attributes': {'email': 'justin@example.org', 'familyName': 'Williams', 'givenName': 'Justin'},
-                'dateOfUpdate': '2024-09-12T23:59:59+00:00',
+                # Refreshed by the patch, so no longer the fixture's original value
+                'dateOfUpdate': MOCK_DATETIME.isoformat(),
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'socw': {
@@ -96,9 +103,6 @@ class TestPatchUser(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         user = json.loads(resp['body'])
 
-        # Don't compare the dateOfUpdate in comparison, since its value is dynamic
-        del user['dateOfUpdate']
-
         self.assertEqual(
             {
                 'attributes': {
@@ -106,6 +110,8 @@ class TestPatchUser(TstFunction):
                     'familyName': 'User',
                     'givenName': 'Test',
                 },
+                # Refreshed by the patch, so no longer the seeded record's original value
+                'dateOfUpdate': MOCK_DATETIME.isoformat(),
                 'permissions': {
                     'socw': {
                         'actions': {'read': True},
@@ -155,12 +161,12 @@ class TestPatchUser(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         user = json.loads(resp['body'])
 
-        # Drop backend-generated fields from comparison
+        # userId is backend-generated, so it cannot be compared against the request body
         del user['userId']
-        del user['dateOfUpdate']
 
-        # Add status to the comparison
+        # Add the fields the response carries that the request body does not
         api_user['status'] = StaffUserStatus.INACTIVE.value
+        api_user['dateOfUpdate'] = MOCK_DATETIME.isoformat()
 
         self.assertEqual(api_user, user)
 
@@ -198,12 +204,12 @@ class TestPatchUser(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         user = json.loads(resp['body'])
 
-        # Drop backend-generated fields from comparison
+        # userId is backend-generated, so it cannot be compared against the request body
         del user['userId']
-        del user['dateOfUpdate']
 
-        # Add status to the comparison
+        # Add the fields the response carries that the request body does not
         api_user['status'] = StaffUserStatus.INACTIVE.value
+        api_user['dateOfUpdate'] = MOCK_DATETIME.isoformat()
 
         api_user['permissions'] = {'socw': {'jurisdictions': {}}}
         self.assertEqual(api_user, user)
@@ -305,7 +311,8 @@ class TestPatchUser(TstFunction):
         self.assertEqual(
             {
                 'attributes': {'email': 'justin@example.org', 'familyName': 'Williams', 'givenName': 'Justin'},
-                'dateOfUpdate': '2024-09-12T23:59:59+00:00',
+                # Refreshed by the patch, so no longer the fixture's original value
+                'dateOfUpdate': MOCK_DATETIME.isoformat(),
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'socw': {

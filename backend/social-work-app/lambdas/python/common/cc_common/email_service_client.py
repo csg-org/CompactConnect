@@ -51,6 +51,19 @@ class HomeJurisdictionChangeNotificationTemplateVariables:
     provider_id: UUID
 
 
+@dataclass
+class StaffUserInactivityNotificationTemplateVariables:
+    """
+    Template variables for staff user inactivity deactivation notification emails.
+    """
+
+    staff_user_first_name: str
+    staff_user_last_name: str
+    staff_user_email: str
+    deactivation_date: date
+    inactivity_period_days: int
+
+
 class JurisdictionNotificationMethod(Protocol):
     """Protocol for Jurisdiction encumbrance notification methods."""
 
@@ -412,6 +425,38 @@ class EmailServiceClient:
                 'previousJurisdiction': template_variables.former_jurisdiction,
                 'newJurisdiction': template_variables.current_jurisdiction,
                 'licenseType': template_variables.license_type,
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_staff_user_inactivity_notification_email(
+        self,
+        *,
+        compact: str,
+        recipient_emails: list[str],
+        template_variables: StaffUserInactivityNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a notification that a staff user's account is scheduled for inactivity deactivation.
+
+        The body is worded in the third person so the same email serves the staff user and their administrators.
+
+        :param compact: Compact name
+        :param recipient_emails: The addresses to send this notification to
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'template': 'staffUserInactivityNotification',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': recipient_emails,
+            'templateVariables': {
+                'staffUserFirstName': template_variables.staff_user_first_name,
+                'staffUserLastName': template_variables.staff_user_last_name,
+                'staffUserEmail': template_variables.staff_user_email,
+                'deactivationDate': template_variables.deactivation_date.isoformat(),
+                'inactivityPeriodDays': template_variables.inactivity_period_days,
             },
         }
         return self._invoke_lambda(payload)
