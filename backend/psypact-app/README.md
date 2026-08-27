@@ -575,6 +575,43 @@ environment as well, should you choose to deploy one.
 > prove that we own it. This is necessary to create auth subdomains for the user pools. We have been pointing the A record
 > at the ip of compactconnect.org, which can be obtained by running the command `dig compactconnect.org +short`
 
+### Setting up psypactportal.org
+
+PSYPACT uses its own dedicated domain, `psypactportal.org`, rather than a subdomain of `compactconnect.org`. Unlike the
+other compact apps, this domain is registered with a third-party registrar (GoDaddy), not Route53, so its setup has an
+extra, one-time step to delegate the domain itself into AWS before the pattern above (production hosted zone delegating
+NS authority down to beta/test subdomain zones) can be applied.
+
+1) **Create the production hosted zone.** In the CSG production AWS account, create a new public hosted zone named
+   `psypactportal.org` (Console: Route53 → Hosted zones → Create hosted zone → Domain name: `psypactportal.org`,
+   Type: Public hosted zone; CLI: `aws route53 create-hosted-zone --name psypactportal.org --caller-reference
+   psypactportal-prod-$(date +%s)`).
+2) **Delegate the domain from GoDaddy.** Because the domain is registered at GoDaddy, `psypactportal.org` will not
+   resolve anywhere until GoDaddy is told to use Route53's name servers for it. Open the hosted zone you just created
+   and copy the four values from its auto-created NS record (or run `aws route53 get-hosted-zone --id <hosted-zone-id>`).
+   Send those four values to whoever manages the domain at GoDaddy, and have them go to
+   **Domain Settings → Nameservers → Change → "I'll use my own nameservers"** and enter the four values there.
+   > [!WARNING]
+   > This must be done under **Nameservers**, not GoDaddy's DNS records editor. Adding NS records in the records
+   > editor does not delegate the domain — GoDaddy remains authoritative and nothing will resolve to the new zone.
+   > Also confirm DNSSEC is not enabled on the domain before this change; if it is, disable it first, or the domain
+   > will fail to resolve until the DS records are reconciled.
+
+   Before moving on, confirm the delegation has propagated with `dig psypactportal.org NS +short` — it should return
+   the same four Route53 name servers.
+3) **Create the beta and test hosted zones** in their respective AWS accounts, as subdomains of the production zone:
+   `beta.psypactportal.org` in the Beta account, and `test.psypactportal.org` in the Test account.
+4) **Delegate NS authority from production to each subdomain zone**, following the same procedure described above for
+   `test.compactconnect.org`: copy the NS record values from each new subdomain zone, then create a matching NS
+   record back in the production `psypactportal.org` zone (Record name: `beta.psypactportal.org` /
+   `test.psypactportal.org`, Type: `NS`, Value: the four subdomain name servers).
+5) **Add the base-domain A record** described in the warning above to each of the three zones (`psypactportal.org`,
+   `beta.psypactportal.org`, `test.psypactportal.org`) if one does not already exist.
+6) **Update each environment's context.** Set `domain_name` to `psypactportal.org` for prod, `beta.psypactportal.org`
+   for beta, and `test.psypactportal.org` for test. If the client's UI should resolve somewhere other than the default
+   `app.<domain_name>` (e.g. the bare `psypactportal.org` domain), set `ui_domain_name_override` per environment as
+   well — see [`ui_domain_name_override`](#ui_domain_name_override) above.
+
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
 
