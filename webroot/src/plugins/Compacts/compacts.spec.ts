@@ -87,7 +87,7 @@ describe('Compacts plugin', async () => {
         expect(compactSetups[CompactType.ASLP].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.OT].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.COUNSELING].isEnabled()).to.equal(true);
-        expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(false);
+        expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(false);
     });
     it('should successfully install the compact lists as global properties', async () => {

@@ -80,14 +80,13 @@ describe('compactConfig utils', () => {
         expect(compactSetups[CompactType.ASLP].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.OT].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.COUNSELING].isEnabled()).to.equal(true);
-    });
-    it('should successfully gate cosm and socw to non-production environments', () => {
         expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(true);
+    });
+    it('should successfully gate socw to non-production environments', () => {
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(true);
 
         envConfig.isAppProduction = true;
 
-        expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(false);
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(false);
     });
     it('should successfully return license encumber config per app mode', () => {
