@@ -95,7 +95,7 @@
     "nyc": "^15.1.0",
     "replace-in-file": "^5.0.2",
     "sharp": "0.35.3",
-    "sinon": "^21.1.2",
+    "sinon": "^22.1.0",
     "style-resources-loader": "^1.5.0",
     "stylelint": "^17.14.1",
     "stylelint-config-rational-order": "^0.1.2",
