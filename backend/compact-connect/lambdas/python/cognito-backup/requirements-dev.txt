@@ -6,7 +6,7 @@
 #
 aws-lambda-powertools==3.34.0
     # via -r requirements-dev.in
-boto3==1.43.72
+boto3==1.43.75
     # via
     #   -r requirements-dev.in
     #   moto
