@@ -143,7 +143,7 @@ Because accounts are matched on SSN, simply changing the SSN in your state's sys
 
 A correction moves **one license record at a time**, identified by the jurisdiction, license type, and license scope of the row you upload with the `previousSSN` field. A practitioner's single-state and multi-state licenses are separate records in CompactConnect, so correcting both means submitting a corrected row/request for each.
 
-> **⚠️ Complete every correction for a practitioner before submitting an ordinary upload for them.** An ordinary upload submitted partway through a multi-row correction can cause the practitioner to be assigned a **new** Compact Unique Identifier (CUID), permanently retiring the one they had. Nothing is lost or corrupted, but any previously published CUID for that practitioner stops resolving. Corrections themselves never assign a CUID, so a practitioner mid-correction may briefly have none &mdash; and while they have none they will not appear in public search. Submitting an ordinary upload for them once all corrections are complete resolves this.
+> **⚠️ Complete every correction for a practitioner before submitting an ordinary upload for them.** An ordinary upload submitted partway through a multi-row correction can cause the practitioner to be assigned a **new** Compact Unique Identifier (CUID), permanently retiring the one they had. Nothing is lost or corrupted, but any previously published CUID for that practitioner stops resolving. SSN corrections themselves never assign a CUID, so a practitioner mid-correction may briefly have none &mdash; and while they have none they will not appear in public search. Submitting an ordinary upload for them once all corrections are complete resolves this.
 
 
 
