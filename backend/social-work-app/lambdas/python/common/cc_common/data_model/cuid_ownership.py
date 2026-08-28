@@ -1,12 +1,9 @@
 """
 Which practitioner record keeps the Compact Unique Identifier when an SSN correction moves a license.
 
-This module is specific to the social work compact. Cosmetology has no CUID, so its port of the
-SSN-correction migration omits this file entirely and never calls into it.
-
-The rule agreed with the compact: the CUID stays with the set of license records that were uploaded first
-and thereby caused it to be generated. If that set moves because of an SSN correction, the CUID moves with
-it. Because a correction moves one license record at a time, and a CUID is earned by a matching
+When correcting/migrating license records to a corrected SSN, the CUID stays with the set of license records that were
+uploaded first and thereby caused it to be generated. If that set moves because of an SSN correction, the CUID moves
+with it. Because a correction moves one license record at a time, and a CUID is earned by a matching
 single-state/multi-state *pair*, applying that rule means simulating both sides of the move and asking
 which one holds the older qualifying pair.
 """
