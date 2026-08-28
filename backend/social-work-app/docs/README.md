@@ -63,6 +63,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | middleName | Provider's middle name (optional) | String (max 100 chars) | Robert |
 | phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) (must include country code, no spaces or dashes) | +12025550123 |
 | suffix | Provider's name suffix (optional) | String (max 100 chars) | Jr. |
+| previousSSN | The incorrect Social Security Number previously uploaded for this license (optional). **This field is a last resort** for cases where a state has already uploaded incorrect SSN information, and should be avoided whenever possible &mdash; see [Can we upload the same licenses multiple times? What if their information changes?](#can-we-upload-the-same-licenses-multiple-times-what-if-their-information-changes) before using it. Provide it alongside the corrected `ssn` to fix a license record uploaded under the wrong SSN: the system moves that license record, and its adverse actions, investigations, and history, over to the practitioner associated with the corrected SSN. May only be provided together with `ssn`. | Format: XXX-XX-XXXX | 123-45-6789 |
 #### Example CSV
 ```csv
 dateOfIssuance,licenseNumber,dateOfBirth,licenseType,licenseScope,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
@@ -136,7 +137,15 @@ Because accounts are matched on SSN, simply changing the SSN in your state's sys
 
 > **⚠️ Verify SSNs before you upload.** The SSN is the sole identifier CompactConnect uses to match a license to a practitioner's account, and every downstream consequence of an upload (account creation, privilege eligibility, public lookup, etc.) follows from it. Uploading an incorrect SSN is not a low-risk mistake to leave unaddressed, as it silently creates or attaches records to the wrong account, fragmenting the practitioner's licensure history and leaving privileges tied to whichever account was in place at the time they were purchased.
 
-**If your state has uploaded a license with an incorrect SSN, contact CSG support.**
+**If your state has uploaded a license with an incorrect SSN, contact CSG support before using the `previousSSN` field.** Depending on how far the error has propagated (e.g. whether actions have been taken against the license under the incorrect SSN, such as encumbrances or investigations), there may be alternative options for CSG support to help revert or correct the erroneous upload without migrating any records. The `previousSSN` field (see the field table above) should be treated as a **last resort**, used only when no alternative remediation is possible.
+
+#### Correcting an SSN with `previousSSN`
+
+A correction moves **one license record at a time** &mdash; the one identified by the jurisdiction, license type, and license scope of the row you upload. A practitioner's single-state and multi-state licenses are separate records, so correcting both means submitting a corrected row for each. This is deliberate: a state that mistyped the SSN on only one of the two rows can correct just that one.
+
+While only one of a pair has been corrected, the two licenses sit under different practitioners. CompactConnect will report the missing single-state license back to you exactly as it would for any unpaired multi-state upload; that notification is expected, and it resolves when you correct the remaining row. Correcting the single-state row before the multi-state row avoids it entirely.
+
+> **⚠️ Complete every correction for a practitioner before submitting an ordinary upload for them.** An ordinary upload submitted partway through a multi-row correction can cause the practitioner to be assigned a **new** Compact Unique Identifier (CUID), permanently retiring the one they had. Nothing is lost or corrupted, but any previously published CUID for that practitioner stops resolving. Corrections themselves never assign a CUID, so a practitioner mid-correction may briefly have none &mdash; and while they have none they will not appear in public search. Submitting an ordinary upload for them once all corrections are complete resolves this.
 
 
 
