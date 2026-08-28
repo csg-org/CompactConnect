@@ -74,16 +74,19 @@ def preprocess_license_ingest(message: dict):
     This reduces the attack surface by ensuring full SSNs don't reach the event bus.
 
     For each message:
-    1. Extract the SSN
+    1. Extract the SSN (and previousSSN, if the upload is an SSN correction)
     2. Get or create the provider ID using the SSN
     3. Replace the full SSN with just the last 4 digits
-    4. Send the modified message to the event bus
+    4. If a previousSSN resolves to a different provider id, forward that id as previousProviderId
+    5. Send the modified message to the event bus
     """
 
     # Extract necessary fields
     compact = message['compact']
     jurisdiction = message['jurisdiction']
     ssn = message.pop('ssn')  # Remove SSN from the detail
+    # Remove previousSSN (if present) from the detail; it must never reach the event bus
+    previous_ssn = message.pop('previousSSN', None)
 
     with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction):
         try:
@@ -93,8 +96,16 @@ def preprocess_license_ingest(message: dict):
 
             # Add the last 4 digits of SSN to the detail
             message['ssnLastFour'] = ssn[-4:]
-            # delete the ssn value from memory so it can be cleaned up as soon as we are done with it
+
+            previous_provider_id = _resolve_previous_provider_id(
+                compact=compact, ssn=ssn, previous_ssn=previous_ssn, provider_id=provider_id
+            )
+            if previous_provider_id is not None:
+                message['previousProviderId'] = previous_provider_id
+
+            # delete the ssn values from memory so they can be cleaned up as soon as we are done with them
             del ssn
+            del previous_ssn
 
             # Send the sanitized license data to the event bus
             with logger.append_context_keys(provider_id=provider_id):
@@ -132,6 +143,31 @@ def preprocess_license_ingest(message: dict):
             )
             # raise the exception so SQS will retry the message again
             raise e
+
+
+def _resolve_previous_provider_id(*, compact: str, ssn: str, previous_ssn: str | None, provider_id: str) -> str | None:
+    """
+    Resolve an SSN correction's previousSSN to the provider id whose records need migrating.
+
+    The ingest handler has no SSN access, so this is the only place the previous SSN can be turned into
+    something it can act on. If the previous SSN was never uploaded, this creates a mapping that simply
+    resolves to a provider with no records, which the ingest handler treats as a no-op.
+
+    :return: The provider id to migrate records from, or None when this upload is not a correction
+    """
+    if previous_ssn is None or previous_ssn == ssn:
+        return None
+
+    previous_provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=previous_ssn)
+    if previous_provider_id == provider_id:
+        return None
+
+    logger.info(
+        'SSN correction detected; forwarding previous provider id',
+        new_provider_id=provider_id,
+        previous_provider_id=previous_provider_id,
+    )
+    return previous_provider_id
 
 
 @sqs_handler

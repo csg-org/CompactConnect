@@ -5,6 +5,7 @@ from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 
 from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 from moto import mock_aws
 
 from .. import TstFunction
@@ -652,6 +653,84 @@ class TestIngest(TstFunction):
         provider_id = provider['providerId']
         # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
         self.assertIsNotNone(provider_id)
+
+    def _preprocess_with_ssns(self, ssn, previous_ssn=None):
+        """Run the preprocessor over one message and return the detail it published to the event bus."""
+        from handlers import ingest as ingest_handler
+        from handlers.ingest import preprocess_license_ingest
+
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            message = json.load(f)
+        message['ssn'] = ssn
+        if previous_ssn is not None:
+            message['previousSSN'] = previous_ssn
+
+        mock_put_events = MagicMock(return_value={'FailedEntryCount': 0, 'Entries': [{'EventId': 'evt-1'}]})
+        # Patch the EventBridge client bound on this lambda's config (setUp replaces the global singleton each test).
+        with patch.object(ingest_handler.config.events_client, 'put_events', mock_put_events):
+            event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+            resp = preprocess_license_ingest(event, self.mock_context)
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+        entries = mock_put_events.call_args.kwargs['Entries']
+        self.assertEqual(1, len(entries))
+        self.assertEqual('license.ingest', entries[0]['DetailType'])
+        return json.loads(entries[0]['Detail'])
+
+    def _provider_id_for_ssn(self, ssn):
+        return self._ssn_table.get_item(Key={'pk': f'socw#SSN#{ssn}', 'sk': f'socw#SSN#{ssn}'})['Item']['providerId']
+
+    def test_preprocess_forwards_previous_provider_id_for_a_correction(self):
+        """A previousSSN resolving to a different provider is what routes the migration downstream."""
+        detail = self._preprocess_with_ssns('123-12-1234', previous_ssn='123-12-9876')
+
+        self.assertEqual(self._provider_id_for_ssn('123-12-9876'), detail['previousProviderId'])
+        self.assertEqual(self._provider_id_for_ssn('123-12-1234'), detail['providerId'])
+
+    def test_preprocess_omits_previous_provider_id_when_the_ssn_is_unchanged(self):
+        """A previousSSN equal to the ssn is not a correction and must not trigger a migration."""
+        detail = self._preprocess_with_ssns('123-12-1234', previous_ssn='123-12-1234')
+
+        self.assertNotIn('previousProviderId', detail)
+
+    def test_preprocess_never_publishes_either_ssn_to_the_event_bus(self):
+        """
+        Asserted over the whole serialized detail rather than by key, so a full SSN cannot slip through
+        under some other field name.
+        """
+        detail = self._preprocess_with_ssns('123-12-1234', previous_ssn='123-12-9876')
+
+        serialized = json.dumps(detail)
+        self.assertNotIn('123-12-1234', serialized)
+        self.assertNotIn('123-12-9876', serialized)
+        self.assertNotIn('previousSSN', detail)
+        self.assertEqual('1234', detail['ssnLastFour'], 'only the last four of the corrected ssn survives')
+
+    def test_preprocess_returns_batch_item_failure_if_the_previous_ssn_cannot_be_resolved(self):
+        """
+        A correction whose previous SSN cannot be resolved must not be published as an ordinary upload -
+        it would silently skip the migration. It has to fail so SQS redelivers it.
+        """
+        from handlers import ingest as ingest_handler
+        from handlers.ingest import preprocess_license_ingest
+
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            message = json.load(f)
+        message['ssn'] = '123-12-1234'
+        message['previousSSN'] = '123-12-9876'
+
+        real_get_or_create = ingest_handler.config.data_client.get_or_create_provider_id
+
+        def _fail_on_the_previous_ssn(*, compact, ssn):
+            if ssn == '123-12-9876':
+                raise ClientError({'Error': {'Code': 'InternalServerError'}}, 'PutItem')
+            return real_get_or_create(compact=compact, ssn=ssn)
+
+        with patch.object(ingest_handler.config.data_client, 'get_or_create_provider_id', _fail_on_the_previous_ssn):
+            event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+            resp = preprocess_license_ingest(event, self.mock_context)
+
+        self.assertEqual({'batchItemFailures': [{'itemIdentifier': '123'}]}, resp)
 
     def test_preprocess_license_returns_batch_item_failure_if_error_occurs(self):
         from handlers.ingest import preprocess_license_ingest
