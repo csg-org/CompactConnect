@@ -2640,3 +2640,175 @@ class TestCuidGeneration(TstFunction):
         ]
         self.assertEqual(1, len(name_change_updates), 'Expected one update record for the name change')
         self.assertEqual(assigned_cuid, name_change_updates[0].previous['publicCompactIdentifier'])
+
+
+@mock_aws
+class TestIngestSsnCorrection(TstFunction):
+    """
+    The ingest handler's half of an SSN correction: performing the migration the preprocessor routed, and
+    suppressing CUID assignment on any upload that carries a correction.
+    """
+
+    OLD_PROVIDER_ID = 'd4e5f6a7-b8c9-40d1-a2e3-f4a5b6c7d8e9'
+    LCSW = 'licensed clinical social worker'
+    LMSW = 'licensed master social worker'
+
+    def _ingest(self, *, previous_provider_id=None, license_scope='single-state', license_type=None):
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        message['detail']['licenseScope'] = license_scope
+        if license_type is not None:
+            message['detail']['licenseType'] = license_type
+        if previous_provider_id is not None:
+            message['detail']['previousProviderId'] = previous_provider_id
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        return ingest_license_message(event, self.mock_context), message['detail']['providerId']
+
+    def _put_license(self, provider_id, jurisdiction, license_type, scope, **extra):
+        return self.test_data_generator.put_default_license_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'jurisdiction': jurisdiction,
+                'licenseType': license_type,
+                'licenseScope': scope,
+                'licenseNumber': f'{jurisdiction}-{license_type[:8]}-{scope}',
+                **extra,
+            }
+        )
+
+    def _records_for(self, provider_id):
+        return self._provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}'),
+            ConsistentRead=True,
+        )['Items']
+
+    def _provider_record(self, provider_id):
+        return next((r for r in self._records_for(provider_id) if r['type'] == 'provider'), None)
+
+    def test_migrates_the_old_provider_then_writes_the_corrected_license(self):
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': self.OLD_PROVIDER_ID})
+        self._put_license(self.OLD_PROVIDER_ID, 'oh', self.LCSW, 'single-state', givenName='Mistyped')
+
+        resp, new_provider_id = self._ingest(previous_provider_id=self.OLD_PROVIDER_ID)
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+        self.assertEqual([], self._records_for(self.OLD_PROVIDER_ID), 'the old partition must be emptied')
+        migrated = self._records_for(new_provider_id)
+        self.assertIn('license', {record['type'] for record in migrated})
+        self.assertIn('providerUpdate', {record['type'] for record in migrated})
+
+    def test_previous_provider_id_is_never_persisted_on_the_license(self):
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': self.OLD_PROVIDER_ID})
+        self._put_license(self.OLD_PROVIDER_ID, 'oh', self.LCSW, 'single-state')
+
+        _, new_provider_id = self._ingest(previous_provider_id=self.OLD_PROVIDER_ID)
+
+        for record in self._records_for(new_provider_id):
+            self.assertNotIn('previousProviderId', record)
+
+    def test_a_previous_provider_id_equal_to_the_provider_id_performs_no_migration(self):
+        _, new_provider_id = self._ingest()
+        migrated_before = len(self._records_for(new_provider_id))
+
+        resp, _ = self._ingest(previous_provider_id=new_provider_id)
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+        self.assertFalse(
+            any(
+                record['type'] == 'providerUpdate' and record['updateType'] == 'ssnCorrection'
+                for record in self._records_for(new_provider_id)
+            ),
+            'no migration means no ssnCorrection audit record',
+        )
+        self.assertGreaterEqual(len(self._records_for(new_provider_id)), migrated_before)
+
+    def test_a_failing_migration_surfaces_for_sqs_retry(self):
+        from handlers import ingest as ingest_handler
+
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': self.OLD_PROVIDER_ID})
+        self._put_license(self.OLD_PROVIDER_ID, 'oh', self.LCSW, 'single-state')
+
+        with patch.object(
+            ingest_handler.config.data_client,
+            'migrate_provider_for_ssn_correction',
+            side_effect=RuntimeError('migration exploded'),
+        ):
+            resp, _ = self._ingest(previous_provider_id=self.OLD_PROVIDER_ID)
+
+        self.assertEqual({'batchItemFailures': [{'itemIdentifier': '123'}]}, resp)
+
+    # ---- CUID suppression ------------------------------------------------------------------------
+
+    def test_a_correction_upload_never_mints_a_cuid(self):
+        """
+        The corrected provider holds a qualifying pair once this license lands, which would ordinarily mint
+        a CUID. A correction must not, or it would displace the identifier the correction is preserving.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': self.OLD_PROVIDER_ID})
+        self._put_license(self.OLD_PROVIDER_ID, 'oh', self.LCSW, 'single-state')
+
+        # The corrected provider already holds the matching multi-state license
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            new_provider_id = json.load(f)['detail']['providerId']
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': new_provider_id})
+        self._put_license(new_provider_id, 'oh', self.LCSW, 'multi-state')
+
+        self._ingest(previous_provider_id=self.OLD_PROVIDER_ID, license_scope='single-state')
+
+        self.assertNotIn('publicCompactIdentifier', self._provider_record(new_provider_id))
+
+    def test_suppression_survives_a_replayed_correction(self):
+        """
+        The regression guard for keying suppression on previousProviderId rather than on whether the
+        migration did any work. On a resend the migration reports nothing performed, and gating on that
+        would mint the CUID the correction exists to preserve.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': self.OLD_PROVIDER_ID})
+        self._put_license(self.OLD_PROVIDER_ID, 'oh', self.LCSW, 'single-state')
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            new_provider_id = json.load(f)['detail']['providerId']
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': new_provider_id})
+        self._put_license(new_provider_id, 'oh', self.LCSW, 'multi-state')
+
+        self._ingest(previous_provider_id=self.OLD_PROVIDER_ID)
+
+        # The first correction emptied the old partition, so the resend below genuinely takes the
+        # no-migration path. Without this the test could pass while never exercising a replay at all.
+        self.assertEqual([], self._records_for(self.OLD_PROVIDER_ID))
+
+        self._ingest(previous_provider_id=self.OLD_PROVIDER_ID)
+
+        self.assertNotIn('publicCompactIdentifier', self._provider_record(new_provider_id))
+
+    def test_an_unresolvable_previous_ssn_still_writes_the_license_but_mints_no_cuid(self):
+        """
+        Nothing migrates, but the row is still a correction upload, so the license is written normally and
+        CUID assignment stays suppressed. Under-minting is recoverable; over-minting is not.
+        """
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            new_provider_id = json.load(f)['detail']['providerId']
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': new_provider_id})
+        self._put_license(new_provider_id, 'oh', self.LCSW, 'multi-state')
+
+        # previousProviderId points at a provider with no records at all
+        resp, _ = self._ingest(previous_provider_id=self.OLD_PROVIDER_ID)
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+        licenses = [record for record in self._records_for(new_provider_id) if record['type'] == 'license']
+        self.assertEqual(2, len(licenses), 'the corrected license is still written')
+        self.assertNotIn('publicCompactIdentifier', self._provider_record(new_provider_id))
+
+    def test_an_ordinary_upload_still_mints_a_cuid(self):
+        """The suppression must be scoped to corrections, not applied to every upload."""
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            new_provider_id = json.load(f)['detail']['providerId']
+        self.test_data_generator.put_default_provider_record_in_provider_table({'providerId': new_provider_id})
+        self._put_license(new_provider_id, 'oh', self.LCSW, 'multi-state')
+
+        self._ingest(license_scope='single-state')
+
+        self.assertIn('publicCompactIdentifier', self._provider_record(new_provider_id))

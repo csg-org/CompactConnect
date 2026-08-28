@@ -2,8 +2,9 @@ import json
 import secrets
 from copy import deepcopy
 
+from aws_lambda_powertools.metrics import MetricUnit
 from boto3.dynamodb.types import TypeSerializer
-from cc_common.config import config, logger
+from cc_common.config import config, logger, metrics
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema import LicenseRecordSchema
 from cc_common.data_model.schema.common import (
@@ -54,6 +55,17 @@ PROVIDER_UPDATE_TRACKED_FIELDS = {
     'dateOfBirth',
     'publicCompactIdentifier',
 }
+
+# Custom metrics tracking how often states rely on the previousSSN last-resort correction feature, split by
+# whether the correction fully migrated the practitioner (old provider had no other licenses), only partially
+# migrated them (other licenses remained on the old provider id), or found nothing to migrate (a previousSSN
+# that was never uploaded, or an already-migrated replay). Each is alarmed on separately in the CDK stack.
+SSN_CORRECTION_FULL_MIGRATION_METRIC = 'ssn-correction-full-migration'
+SSN_CORRECTION_PARTIAL_MIGRATION_METRIC = 'ssn-correction-partial-migration'
+SSN_CORRECTION_NO_MIGRATION_METRIC = 'ssn-correction-no-migration'
+# A public identifier stopped resolving because the record holding it was deleted without the identifier
+# being carried across. Rare and externally visible, so it is alarmed on in its own right.
+SSN_CORRECTION_RETIRED_CUID_METRIC = 'ssn-correction-retired-cuid'
 
 MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE = (
     'Multi-state license uploaded as compact eligible but the associated single-state license '
@@ -170,6 +182,66 @@ def _resolve_previous_provider_id(*, compact: str, ssn: str, previous_ssn: str |
     return previous_provider_id
 
 
+def _perform_ssn_correction_migration(
+    *,
+    compact: str,
+    previous_provider_id: str,
+    new_provider_id: str,
+    jurisdiction: str,
+    license_type: str,
+    license_scope: str,
+    new_ssn_last_four: str,
+):
+    """
+    Orchestrate the migration of a practitioner's records after a state corrected the SSN on a license
+    upload, and record what happened as custom metrics.
+
+    A concurrency conflict inside the migration raises, letting SQS redeliver the message after the
+    visibility timeout.
+    """
+    # These identifiers are passed to every log call below *in addition to* being set on the surrounding
+    # context, which is deliberate rather than redundant. A migration is the one operation that moves a
+    # practitioner's records between two provider ids, and reconstructing what happened afterwards in
+    # cloudwatch depends on being able to search these lines by either id.
+    migration_log_fields = {
+        'previous_provider_id': previous_provider_id,
+        'new_provider_id': new_provider_id,
+        'license_type': license_type,
+        'license_scope': license_scope,
+    }
+    with logger.append_context_keys(**migration_log_fields):
+        logger.info('Performing SSN correction migration', **migration_log_fields)
+
+        result = config.data_client.migrate_provider_for_ssn_correction(
+            compact=compact,
+            previous_provider_id=previous_provider_id,
+            new_provider_id=new_provider_id,
+            jurisdiction=jurisdiction,
+            license_type=license_type,
+            license_scope=license_scope,
+            new_ssn_last_four=new_ssn_last_four,
+        )
+
+        if result.retired_cuid is not None:
+            # Externally visible: a public identifier just stopped resolving.
+            metrics.add_metric(name=SSN_CORRECTION_RETIRED_CUID_METRIC, unit=MetricUnit.Count, value=1)
+
+        if not result.migration_performed:
+            logger.info(
+                'No records to migrate for previous provider id; proceeding with normal ingest',
+                **migration_log_fields,
+            )
+            metrics.add_metric(name=SSN_CORRECTION_NO_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
+            return
+
+        if result.full_migration:
+            logger.info('SSN correction resulted in a full migration', **migration_log_fields)
+            metrics.add_metric(name=SSN_CORRECTION_FULL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
+        else:
+            logger.info('SSN correction resulted in a partial migration', **migration_log_fields)
+            metrics.add_metric(name=SSN_CORRECTION_PARTIAL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
+
+
 @sqs_handler
 def ingest_license_message(message: dict):
     """For each message, validate the license data and persist it in the database"""
@@ -185,10 +257,28 @@ def ingest_license_message(message: dict):
     jurisdiction = license_ingest_message['jurisdiction']
     provider_id = license_ingest_message['providerId']
     license_scope = license_ingest_message['licenseScope']
+    # Transient migration routing data set by the preprocessor for SSN corrections; must never be persisted.
+    # Its mere presence marks this upload as a correction, which suppresses CUID assignment below.
+    previous_provider_id = license_ingest_message.pop('previousProviderId', None)
 
     with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction, license_scope=license_scope):
         with logger.append_context_keys(provider_id=provider_id):
             logger.info('Ingesting license data')
+
+            if previous_provider_id is not None and previous_provider_id != provider_id:
+                # The state corrected this practitioner's SSN: move the records uploaded under the
+                # incorrect SSN's provider id over to this one before the normal license write below.
+                # This runs before the provider records are read, so everything that follows sees the
+                # migrated state.
+                _perform_ssn_correction_migration(
+                    compact=compact,
+                    previous_provider_id=str(previous_provider_id),
+                    new_provider_id=str(provider_id),
+                    jurisdiction=jurisdiction,
+                    license_type=license_ingest_message['licenseType'],
+                    license_scope=license_scope,
+                    new_ssn_last_four=license_ingest_message['ssnLastFour'],
+                )
 
             # Start preparing our db transactions
             data_events = []
@@ -300,10 +390,20 @@ def ingest_license_message(message: dict):
             # This must be resolved independently of the provider-record Put decision below: the license that
             # completes a single-state/multi-state pairing frequently loses that decision (multi-state is always
             # preferred), which would otherwise silently skip CUID assignment.
-            new_public_compact_identifier = _resolve_public_compact_identifier(
-                compact=compact,
-                current_provider_record=current_provider_record,
-                known_licenses=known_licenses,
+            # An upload carrying a correction never mints a CUID. Gated on previousProviderId being
+            # present rather than on whether the migration actually moved anything: a state can resend the
+            # same correction, and on the resend the idempotency guard reports no migration performed while
+            # the corrected record now holds a qualifying pair. Minting there would lock in a new CUID that
+            # the ownership rule then protects, permanently retiring the original. Over-minting is
+            # irreversible; under-minting is fixed by the practitioner's next ordinary upload.
+            new_public_compact_identifier = (
+                None
+                if previous_provider_id is not None
+                else _resolve_public_compact_identifier(
+                    compact=compact,
+                    current_provider_record=current_provider_record,
+                    known_licenses=known_licenses,
+                )
             )
 
             # Determine if this upload triggers a home jurisdiction change.

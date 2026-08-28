@@ -77,6 +77,8 @@ class IngestStack(AppStack):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
+        self._add_ssn_correction_alarms(ingest_handler, persistent_stack)
+
         processor = QueuedLambdaProcessor(
             self,
             'V1Ingest',
@@ -117,3 +119,70 @@ class IngestStack(AppStack):
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+
+    # Each outcome of the previousSSN correction feature, and what an operator should do about it. The
+    # feature deletes records and can retire a public identifier, and nothing gates it, so these alarms are
+    # the only signal that it ran.
+    SSN_CORRECTION_ALARMS = (
+        (
+            'FullMigration',
+            'ssn-correction-full-migration',
+            'A state has used the previousSSN field to fully migrate a practitioner record within the last '
+            '24 hours. This is a last-resort correction feature and should be rare; investigate with the '
+            'reporting state to confirm the correction was warranted and to help prevent recurring upload '
+            'errors.',
+        ),
+        (
+            'PartialMigration',
+            'ssn-correction-partial-migration',
+            'A state has used the previousSSN field to partially migrate a practitioner record within the '
+            'last 24 hours. This is a last-resort correction feature and should be rare; investigate with '
+            'the reporting state to confirm the correction was warranted and to help prevent recurring '
+            'upload errors.',
+        ),
+        (
+            'NoMigration',
+            'ssn-correction-no-migration',
+            'A state uploaded a previousSSN that resulted in no migration within the last 24 hours (e.g. '
+            'the previous SSN had no matching license records, or the correction had already been '
+            'applied). Investigate with the reporting state to confirm the previousSSN value was correct '
+            'and to help prevent recurring upload errors.',
+        ),
+        (
+            'RetiredCuid',
+            'ssn-correction-retired-cuid',
+            'A previousSSN correction retired a practitioner Compact Unique Identifier within the last 24 '
+            'hours: the record holding it was deleted without the identifier being carried across, so that '
+            'CUID no longer resolves in public search. Check the ssnCorrection audit record for the '
+            'retired value in case someone presents it.',
+        ),
+    )
+
+    def _add_ssn_correction_alarms(self, ingest_handler: PythonFunction, persistent_stack: ps.PersistentStack):
+        """
+        Alarm on every outcome of the previousSSN correction feature (see
+        handlers/ingest.py::_perform_ssn_correction_migration).
+
+        Each metric/alarm pair uses a 24-hour period with a threshold of 1, so devops support sees at most
+        one notification per category per day this feature is used, regardless of how many corrections
+        occurred that day.
+        """
+        for construct_id_prefix, metric_name, alarm_description in self.SSN_CORRECTION_ALARMS:
+            Alarm(
+                ingest_handler,
+                f'SsnCorrection{construct_id_prefix}Alarm',
+                metric=Metric(
+                    namespace='compact-connect',
+                    metric_name=metric_name,
+                    # Must match the namespace and service the powertools Metrics instance in
+                    # cc_common.config publishes under, or the alarm never leaves INSUFFICIENT_DATA.
+                    dimensions_map={'service': 'common'},
+                    statistic=Stats.SUM,
+                    period=Duration.days(1),
+                ),
+                threshold=1,
+                evaluation_periods=1,
+                comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+                treat_missing_data=TreatMissingData.NOT_BREACHING,
+                alarm_description=alarm_description,
+            ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
