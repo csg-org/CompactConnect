@@ -11,10 +11,14 @@ CUID is earned by a matching single-state/multi-state *pair*, that rule is appli
    assigned one by the ordinary rule on a subsequent upload.
 3. Otherwise the CUID follows whichever licenses were uploaded first: if the license being corrected predates
    everything left on the old record, it takes the identifier with it, and the old record is assigned a fresh one on
-   its next ordinary upload.
+   its next qualifying upload.
+4. If something older stayed behind, the identifier only stays with it while the old record still holds a qualifying
+   pair. Once it does not, nothing there could have earned the identifier, so it moves to the corrected practitioner
+   rather than being stranded.
 
-The practical effect of check 3 is that a state which accidentally attached licenses to an existing practitioner does
-not strip that practitioner of the identifier their own, older licenses earned.
+The practical effect of checks 3 and 4 together is that a state which accidentally attached licenses to an existing
+practitioner does not strip that practitioner of the identifier their own, older licenses earned - while a
+practitioner whose only qualifying licenses are the ones being corrected does not lose it either.
 """
 
 from datetime import datetime
@@ -80,9 +84,19 @@ def resolve_cuid_ownership(
         logger.info('Corrected license predates everything remaining; moving the CUID to the corrected provider')
         return CuidOwnership.MOVE
 
-    # Something older stayed behind, so the identifier stays with it. This is the branch that protects a
-    # practitioner who had licenses accidentally attached to their record: the newer, mistakenly-attached
-    # licenses leave without taking the CUID their own older licenses earned.
+    old_provider_still_qualifies = ProviderRecordUtility.has_paired_single_and_multi_state_license(
+        [license_data.to_dict() for license_data in old_remaining_licenses]
+    )
+    if not old_provider_still_qualifies:
+        # Something older stayed behind, but it is no longer a qualifying pair, so nothing on the old record
+        # could have earned the identifier. Leaving it there would strand it on a practitioner who does not
+        # qualify while the corrected practitioner, who does, has none.
+        logger.info('Old provider no longer qualifies for a CUID; moving it to the corrected provider')
+        return CuidOwnership.MOVE
+
+    # An older qualifying pair stayed behind, so the identifier stays with it. This is the branch that
+    # protects a practitioner who had licenses accidentally attached to their record: the newer,
+    # mistakenly-attached licenses leave without taking the CUID their own older licenses earned.
     return CuidOwnership.KEEP
 
 

@@ -329,6 +329,28 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertNotIn('publicCompactIdentifier', self._provider_record(OLD_PROVIDER_ID))
         self.assertEqual(A_CUID, self._provider_record(NEW_PROVIDER_ID)['publicCompactIdentifier'])
 
+    def test_cuid_moves_when_what_stayed_behind_no_longer_qualifies(self):
+        """
+        Check 4, the no branch. A state mistyped an SSN and attached a full pair to a practitioner who held
+        only a lone license; that pair is what earned the CUID. Correcting it away leaves nothing on the
+        old record that could have earned the identifier, so it follows the licenses that did.
+        """
+        self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
+        # The practitioner's own license - older, but on its own it never qualified
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2015, 1, 1, tzinfo=UTC))
+        # The mistakenly-attached pair, which is what minted the CUID
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'single-state', first_upload=datetime(2020, 1, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state', first_upload=datetime(2020, 2, 1, tzinfo=UTC))
+        # The single-state half has already been corrected across
+        self._put_provider(NEW_PROVIDER_ID, givenName='Corrected')
+        self._put_license(NEW_PROVIDER_ID, 'ky', LMSW, 'single-state', first_upload=datetime(2020, 1, 1, tzinfo=UTC))
+
+        result = self._migrate(jurisdiction='ky', license_type=LMSW, license_scope='multi-state')
+
+        self.assertTrue(result.cuid_moved)
+        self.assertNotIn('publicCompactIdentifier', self._provider_record(OLD_PROVIDER_ID))
+        self.assertEqual(A_CUID, self._provider_record(NEW_PROVIDER_ID)['publicCompactIdentifier'])
+
     def test_cuid_stays_when_something_older_remains_on_the_old_provider(self):
         """
         Check 3, the no branch. The corrected record does qualify once this license lands, but older

@@ -118,9 +118,9 @@ class TestResolveCuidOwnership(TstLambdas):
 
         self.assertEqual(CuidOwnership.MOVE, decision)
 
-    def test_keeps_when_something_older_stays_behind(self):
+    def test_keeps_when_an_older_qualifying_pair_stays_behind(self):
         """
-        Check 3, the no branch. This is the case of licenses accidentally attached to an existing
+        Check 4, the yes branch. This is the case of licenses accidentally attached to an existing
         practitioner: the newer, mistakenly-attached licenses leave without taking the identifier that
         practitioner's own older licenses earned.
         """
@@ -136,6 +136,26 @@ class TestResolveCuidOwnership(TstLambdas):
 
         self.assertEqual(CuidOwnership.KEEP, decision)
 
+    def test_moves_when_what_stayed_behind_no_longer_qualifies(self):
+        """
+        Check 4, the no branch. Something older remains, so check 3 does not move the identifier, but that
+        remainder is not a qualifying pair - nothing left on the old record could have earned it. Leaving
+        it there would strand it on a practitioner who does not qualify while the corrected practitioner,
+        who does, has none.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('ky', LMSW, 'multi-state', datetime(2020, 2, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            migrating=migrating,
+            # Older than the migrating license, but a lone license rather than a pair
+            old_remaining=[_license('oh', LCSW, 'single-state', datetime(2015, 1, 1, tzinfo=UTC))],
+            new_post=[migrating, _license('ky', LMSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.MOVE, decision)
+
     def test_compares_against_the_oldest_remaining_license(self):
         """
         'Before any of the remaining licenses' means before all of them. A single older license left
@@ -147,10 +167,9 @@ class TestResolveCuidOwnership(TstLambdas):
 
         decision = self._resolve(
             migrating=migrating,
-            old_remaining=[
-                _license('ky', LMSW, 'single-state', datetime(2015, 1, 1, tzinfo=UTC)),
-                _license('ne', LCSW, 'multi-state', datetime(2020, 1, 1, tzinfo=UTC)),
-            ],
+            # A qualifying pair, so check 4 does not fire and the comparison in check 3 is what decides.
+            # Its newer half postdates the migrating license; its older half is what must be compared against.
+            old_remaining=_pair('ky', LMSW, datetime(2015, 1, 1, tzinfo=UTC), datetime(2020, 1, 1, tzinfo=UTC)),
             new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2017, 1, 1, tzinfo=UTC))],
         )
 
