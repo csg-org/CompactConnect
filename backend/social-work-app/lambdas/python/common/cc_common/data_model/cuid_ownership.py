@@ -2,23 +2,27 @@
 Which practitioner record keeps the Compact Unique Identifier when an SSN correction moves a license.
 
 When correcting/migrating license records to a corrected SSN, the CUID stays with the set of license records that were
-uploaded first and thereby caused it to be generated. If that set moves because of an SSN correction, the CUID moves
-with it. Because a correction moves one license record at a time, and a CUID is earned by a matching
-single-state/multi-state *pair*, applying that rule means simulating both sides of the move and asking
-which one holds the older qualifying pair.
+uploaded first and thereby caused it to be generated. Because a correction moves one license record at a time, and a
+CUID is earned by a matching single-state/multi-state *pair*, that rule is applied as three checks in order:
+
+1. If the corrected practitioner already has a CUID, it is never overwritten. The old record's identifier is retired
+   if and when that record is emptied.
+2. If the corrected practitioner does not qualify for a CUID even with this license added, nothing moves. They are
+   assigned one by the ordinary rule on a subsequent upload.
+3. Otherwise the CUID follows whichever licenses were uploaded first: if the license being corrected predates
+   everything left on the old record, it takes the identifier with it, and the old record is assigned a fresh one on
+   its next ordinary upload.
+
+The practical effect of check 3 is that a state which accidentally attached licenses to an existing practitioner does
+not strip that practitioner of the identifier their own, older licenses earned.
 """
 
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import StrEnum
 
 from cc_common.config import logger
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
-from cc_common.data_model.schema.common import LicenseScopeEnum
 from cc_common.data_model.schema.license import LicenseData
-
-# A pair whose licenses predate the firstUploadDate field has no date to compare. It is genuinely the
-# oldest thing we know about, so it sorts first rather than being dropped from the comparison.
-_UNDATED = datetime.min.replace(tzinfo=UTC)
 
 
 class CuidOwnership(StrEnum):
@@ -34,6 +38,7 @@ def resolve_cuid_ownership(
     *,
     old_provider_cuid: str | None,
     new_provider_cuid: str | None,
+    migrating_license: LicenseData,
     old_remaining_licenses: list[LicenseData],
     new_post_migration_licenses: list[LicenseData],
 ) -> CuidOwnership:
@@ -45,6 +50,7 @@ def resolve_cuid_ownership(
 
     :param old_provider_cuid: The CUID currently on the old provider record, if any
     :param new_provider_cuid: The CUID currently on the corrected provider record, if any
+    :param migrating_license: The license record this correction is moving
     :param old_remaining_licenses: The old provider's licenses with the migrating license removed
     :param new_post_migration_licenses: The corrected provider's licenses with the migrating license added
     :return: KEEP to leave the CUID where it is, MOVE to transfer it to the corrected record
@@ -60,58 +66,44 @@ def resolve_cuid_ownership(
         logger.info('Corrected provider already has a CUID; leaving both in place')
         return CuidOwnership.KEEP
 
-    old_still_qualifies = ProviderRecordUtility.has_paired_single_and_multi_state_license(
-        [license_data.to_dict() for license_data in old_remaining_licenses]
+    new_provider_qualifies = ProviderRecordUtility.has_paired_single_and_multi_state_license(
+        [license_data.to_dict() for license_data in new_post_migration_licenses]
     )
-    if not old_still_qualifies:
-        # The licenses that earned the CUID are leaving, so it goes with them. The corrected record may not
-        # hold a qualifying pair yet; the later correction of the departing license's mate finds the CUID
-        # already there and leaves it alone.
-        logger.info('Old provider no longer qualifies for a CUID; moving it to the corrected provider')
-        return CuidOwnership.MOVE
-
-    new_earliest_pair = _earliest_pair_completion(new_post_migration_licenses)
-    if new_earliest_pair is None:
-        # The destination does not hold a qualifying pair even with this license added, and the old record
-        # still does. Nothing has changed hands that would justify moving the identifier.
+    if not new_provider_qualifies:
+        # The corrected practitioner holds no matching single-state/multi-state pair even with this license
+        # added, so there is nothing for a CUID to attach to yet. The ordinary assignment rule gives them
+        # one once a subsequent upload completes a pair.
+        logger.info('Corrected provider does not qualify for a CUID; leaving the identifier in place')
         return CuidOwnership.KEEP
 
-    old_earliest_pair = _earliest_pair_completion(old_remaining_licenses)
-    if new_earliest_pair < old_earliest_pair:
-        logger.info(
-            'Corrected provider holds the older qualifying pair; moving the CUID to it',
-            corrected_pair_completed=new_earliest_pair.isoformat(),
-            old_pair_completed=old_earliest_pair.isoformat(),
-        )
+    if _license_predates_all(migrating_license, old_remaining_licenses):
+        logger.info('Corrected license predates everything remaining; moving the CUID to the corrected provider')
         return CuidOwnership.MOVE
 
-    # Ties included: leave a working public identifier undisturbed unless there is a reason to move it.
+    # Something older stayed behind, so the identifier stays with it. This is the branch that protects a
+    # practitioner who had licenses accidentally attached to their record: the newer, mistakenly-attached
+    # licenses leave without taking the CUID their own older licenses earned.
     return CuidOwnership.KEEP
 
 
-def _earliest_pair_completion(licenses: list[LicenseData]) -> datetime | None:
+def _license_predates_all(migrating_license: LicenseData, old_remaining_licenses: list[LicenseData]) -> bool:
     """
-    When the oldest qualifying pair among these licenses came into existence.
+    Whether the license being corrected was uploaded before everything left on the old record.
 
-    A pair exists only once both of its licenses have been uploaded, so it completes at the *later* of its
-    two members' firstUploadDate values. Comparing each pair's earliest upload instead would credit a pair
-    for a date at which it did not yet qualify for anything.
+    With no licenses remaining this is vacuously true, which is also the outcome we want: the old record is
+    being emptied, so leaving the identifier on it would only retire it.
 
-    :return: The completion time of the oldest pair, or None if these licenses hold no pair at all
+    firstUploadDate is read directly rather than defensively. Every license carries one from the moment it
+    is ingested, so an absent value means something is wrong upstream, and failing loudly here is far
+    better than silently mis-assigning a public identifier that can never be reassigned.
     """
-    uploads_by_identity: dict[tuple[str, str], dict[str, datetime]] = {}
-    for license_data in licenses:
-        license_dict = license_data.to_dict()
-        identity = (license_dict['jurisdiction'], license_dict['licenseType'])
-        uploads_by_identity.setdefault(identity, {})[license_dict['licenseScope']] = license_dict.get(
-            'firstUploadDate', _UNDATED
-        )
+    if not old_remaining_licenses:
+        return True
 
-    single_state = LicenseScopeEnum.SINGLE_STATE.value
-    multi_state = LicenseScopeEnum.MULTI_STATE.value
-    completions = [
-        max(scopes[single_state], scopes[multi_state])
-        for scopes in uploads_by_identity.values()
-        if single_state in scopes and multi_state in scopes
-    ]
-    return min(completions) if completions else None
+    return _first_upload_date(migrating_license) < min(
+        _first_upload_date(license_data) for license_data in old_remaining_licenses
+    )
+
+
+def _first_upload_date(license_data: LicenseData) -> datetime:
+    return license_data.to_dict()['firstUploadDate']

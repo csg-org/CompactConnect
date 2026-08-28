@@ -280,23 +280,48 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
 
     # ---- CUID ownership -------------------------------------------------------------------------
 
-    def test_cuid_moves_when_the_old_provider_no_longer_qualifies(self):
-        """Question 2: the licenses that earned it are leaving, so it goes with them."""
+    def test_cuid_stays_put_when_the_corrected_provider_does_not_qualify(self):
+        """
+        Check 2. Qualification of the *destination* is what gates the move, not whether the old record
+        still qualifies itself. Here neither side holds a pair, so the identifier does not move even
+        though the old record no longer has anything that could have earned it.
+        """
+        self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2015, 1, 1, tzinfo=UTC))
+        # A lone remaining license, so the old record does not qualify either
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state', first_upload=datetime(2019, 1, 1, tzinfo=UTC))
+
+        result = self._migrate()
+
+        self.assertFalse(result.cuid_moved)
+        self.assertEqual(A_CUID, self._provider_record(OLD_PROVIDER_ID)['publicCompactIdentifier'])
+        self.assertNotIn('publicCompactIdentifier', self._provider_record(NEW_PROVIDER_ID))
+
+    def test_a_full_migration_retires_the_cuid_when_the_corrected_provider_does_not_qualify(self):
+        """
+        The old record is deleted while still holding the identifier, so that identifier stops resolving
+        in public search. Reported back to the caller so it can be alarmed on - nothing else records that
+        the CUID ever existed.
+        """
         self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
         self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
 
         result = self._migrate()
 
-        self.assertTrue(result.cuid_moved)
-        self.assertIsNone(result.retired_cuid)
-        self.assertEqual(A_CUID, self._provider_record(NEW_PROVIDER_ID)['publicCompactIdentifier'])
+        self.assertTrue(result.full_migration)
+        self.assertFalse(result.cuid_moved)
+        self.assertEqual(A_CUID, result.retired_cuid)
+        self.assertNotIn('publicCompactIdentifier', self._provider_record(NEW_PROVIDER_ID))
 
     def test_cuid_is_removed_from_a_surviving_old_provider_when_it_moves(self):
         """The old record is rewritten in full on a partial migration, so removal is omitting the field."""
         self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
-        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2015, 1, 1, tzinfo=UTC))
-        # A lone remaining license does not qualify, so the CUID must leave
+        # The migrating license predates everything remaining, and completes a pair on the corrected record
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2011, 1, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'single-state', first_upload=datetime(2018, 1, 1, tzinfo=UTC))
         self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state', first_upload=datetime(2019, 1, 1, tzinfo=UTC))
+        self._put_provider(NEW_PROVIDER_ID, givenName='Corrected')
+        self._put_license(NEW_PROVIDER_ID, 'oh', LCSW, 'multi-state', first_upload=datetime(2012, 1, 1, tzinfo=UTC))
 
         result = self._migrate()
 
@@ -304,13 +329,23 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertNotIn('publicCompactIdentifier', self._provider_record(OLD_PROVIDER_ID))
         self.assertEqual(A_CUID, self._provider_record(NEW_PROVIDER_ID)['publicCompactIdentifier'])
 
-    def test_cuid_stays_when_the_old_provider_keeps_the_older_pair(self):
+    def test_cuid_stays_when_something_older_remains_on_the_old_provider(self):
+        """
+        Check 3, the no branch. The corrected record does qualify once this license lands, but older
+        licenses stayed behind, so the identifier stays with them. This is the shape of a state
+        accidentally attaching newer licenses to an existing practitioner's record.
+        """
         self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
-        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2020, 1, 1, tzinfo=UTC))
-        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'single-state', first_upload=datetime(2015, 1, 1, tzinfo=UTC))
-        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state', first_upload=datetime(2015, 2, 1, tzinfo=UTC))
+        # The mistakenly-attached license, newer than what the practitioner already held
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state', first_upload=datetime(2020, 2, 1, tzinfo=UTC))
+        # The practitioner's own, older pair - what actually earned the CUID
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2015, 1, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state', first_upload=datetime(2015, 2, 1, tzinfo=UTC))
+        # The corrected practitioner already holds the mate, so this correction completes a pair for them
+        self._put_provider(NEW_PROVIDER_ID, givenName='Corrected')
+        self._put_license(NEW_PROVIDER_ID, 'ky', LMSW, 'single-state', first_upload=datetime(2020, 1, 1, tzinfo=UTC))
 
-        result = self._migrate()
+        result = self._migrate(jurisdiction='ky', license_type=LMSW, license_scope='multi-state')
 
         self.assertFalse(result.cuid_moved)
         self.assertEqual(A_CUID, self._provider_record(OLD_PROVIDER_ID)['publicCompactIdentifier'])
