@@ -2282,9 +2282,10 @@ class TestProviderUserRecordsSsnCorrectionSelectors(TstLambdas):
     """
     Selectors used by the SSN-correction migration to decide which records move with a corrected license.
 
-    A license is identified by jurisdiction, license type and scope, but a correction is scoped to
-    jurisdiction and license type only: the single-state and multi-state licenses of one type are a
-    validated pair, so moving one without the other would break that pairing on both providers.
+    A correction is scoped to a single license record - jurisdiction, license type, AND scope - because a
+    state may legitimately need to correct only one scope's row, the other having been uploaded under the
+    correct SSN all along. The single-state and multi-state licenses of one type must therefore never be
+    bundled by these selectors.
     """
 
     LCSW = 'licensed clinical social worker'
@@ -2352,37 +2353,43 @@ class TestProviderUserRecordsSsnCorrectionSelectors(TstLambdas):
         records.append(TestDataGenerator.generate_default_provider_update().serialize_to_database_record())
         return records
 
-    def test_returns_both_scopes_of_the_corrected_license_type(self):
+    def test_returns_only_the_requested_scope(self):
         from cc_common.data_model.provider_record_util import ProviderUserRecords
 
         records = ProviderUserRecords(self._records_for_full_practitioner())
 
-        associated = records.get_records_associated_with_license('oh', self.LCSW)
+        associated = records.get_records_associated_with_license('oh', self.LCSW, 'single-state')
 
         licenses = [record for record in associated if record.type == 'license']
-        self.assertEqual(
-            {'single-state', 'multi-state'},
-            {record.licenseScope for record in licenses},
-            'both scopes of the corrected license type must move together',
-        )
-        self.assertEqual(2, len(licenses))
+        self.assertEqual(1, len(licenses))
+        self.assertEqual('single-state', licenses[0].licenseScope)
+        for record in associated:
+            self.assertEqual(
+                'single-state',
+                record.licenseScope,
+                'the multi-state row may have been uploaded under the correct SSN all along, so nothing '
+                'of the other scope may be selected',
+            )
 
-    def test_returns_dependent_records_for_both_scopes(self):
+    def test_returns_dependent_records_for_the_selected_license(self):
+        """The closed multi-state investigation in the fixture proves closed history moves too."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
 
         records = ProviderUserRecords(self._records_for_full_practitioner())
 
-        associated = records.get_records_associated_with_license('oh', self.LCSW)
+        counts_by_scope = {}
+        for scope in ('single-state', 'multi-state'):
+            counts = {}
+            for record in records.get_records_associated_with_license('oh', self.LCSW, scope):
+                counts[record.type] = counts.get(record.type, 0) + 1
+            counts_by_scope[scope] = counts
 
-        counts = {}
-        for record in associated:
-            counts[record.type] = counts.get(record.type, 0) + 1
-
+        expected = {'license': 1, 'adverseAction': 1, 'investigation': 1, 'licenseUpdate': 1}
         self.assertEqual(
-            {'license': 2, 'adverseAction': 2, 'investigation': 2, 'licenseUpdate': 2},
-            counts,
-            'the license, its adverse actions, its investigations (including closed) and its update '
-            'history must all move, for both scopes',
+            {'single-state': expected, 'multi-state': expected},
+            counts_by_scope,
+            'each scope selects its own license, adverse actions, investigations (including closed) and '
+            'update history, and nothing of its mate',
         )
 
     def test_excludes_records_for_other_jurisdictions_and_license_types(self):
@@ -2390,7 +2397,7 @@ class TestProviderUserRecordsSsnCorrectionSelectors(TstLambdas):
 
         records = ProviderUserRecords(self._records_for_full_practitioner())
 
-        associated = records.get_records_associated_with_license('oh', self.LCSW)
+        associated = records.get_records_associated_with_license('oh', self.LCSW, 'single-state')
 
         for record in associated:
             self.assertEqual('oh', record.jurisdiction)
@@ -2401,8 +2408,12 @@ class TestProviderUserRecordsSsnCorrectionSelectors(TstLambdas):
 
         records = ProviderUserRecords(self._records_for_full_practitioner())
 
-        self.assertEqual([], records.get_records_associated_with_license('ne', self.LCSW))
-        self.assertEqual([], records.get_records_associated_with_license('oh', 'licensed social worker'))
+        # wrong jurisdiction, wrong license type, and a scope the provider holds no license for
+        self.assertEqual([], records.get_records_associated_with_license('ne', self.LCSW, 'single-state'))
+        self.assertEqual(
+            [], records.get_records_associated_with_license('oh', 'licensed social worker', 'single-state')
+        )
+        self.assertEqual([], records.get_records_associated_with_license('oh', self.LMSW, 'multi-state'))
 
     def test_person_level_records_are_the_provider_update_history(self):
         """

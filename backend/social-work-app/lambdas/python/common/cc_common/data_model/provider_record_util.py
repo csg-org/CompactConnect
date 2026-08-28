@@ -796,34 +796,40 @@ class ProviderUserRecords:
             and (filter_condition is None or filter_condition(record))
         ]
 
-    def get_records_associated_with_license(self, jurisdiction: str, license_type: str) -> list[CCDataClass]:
+    def get_records_associated_with_license(
+        self, jurisdiction: str, license_type: str, license_scope: str
+    ) -> list[CCDataClass]:
         """
-        Get every record belonging to the given jurisdiction and license type: the license records themselves
-        and their adverse action, investigation, and update history records.
+        Get the single license record identified by jurisdiction, license type, and scope, along with every
+        record that hangs off it: its adverse actions, its investigations, and its update history.
 
-        Deliberately scoped to jurisdiction and license type rather than to a single license, so that the
-        single-state and multi-state licenses of one type are always selected together. They are a validated
-        pair - a multi-state license with no matching single-state license reports a validation error back to
-        the uploading state - so a caller that moved one without the other would break that pairing on both
-        the source and the destination.
+        Scoped to one license record rather than to the license type as a whole, because a state may
+        legitimately need to correct the SSN on just one scope's row - the other scope's row may have been
+        uploaded under the correct SSN all along. While a single-state/multi-state pair is split across two
+        providers mid-correction, the ingest pairing checks report the missing mate back to the uploading
+        state, prompting them to correct the remaining row.
 
-        Returns an empty list if this provider has no license of the given jurisdiction/license type.
+        Returns an empty list if this provider has no license matching all three identifiers.
 
         :param jurisdiction: The jurisdiction of the license
         :param license_type: The license type (full name, not abbreviation)
-        :return: The license records and all of their dependent records
+        :param license_scope: The license scope (single-state or multi-state)
+        :return: The license record and all of its dependent records
         """
-        license_records = self.get_license_records(
-            filter_condition=lambda license_data: (
-                license_data.jurisdiction == jurisdiction and license_data.licenseType == license_type
-            )
+        license_record = next(
+            (
+                record
+                for record in self._license_records
+                if record.jurisdiction == jurisdiction
+                and record.licenseType == license_type
+                and record.licenseScope == license_scope
+            ),
+            None,
         )
+        if license_record is None:
+            return []
 
-        associated_records: list[CCDataClass] = []
-        for license_record in license_records:
-            associated_records.append(license_record)
-            associated_records.extend(self._get_dependent_records_for_license(license_record))
-        return associated_records
+        return [license_record, *self._get_dependent_records_for_license(license_record)]
 
     def _get_dependent_records_for_license(self, license_record: LicenseData) -> list[CCDataClass]:
         """
