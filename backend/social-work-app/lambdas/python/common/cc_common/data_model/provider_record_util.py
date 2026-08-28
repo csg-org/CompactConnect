@@ -8,6 +8,7 @@ from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
+    CCDataClass,
     CompactEligibilityStatus,
     InvestigationStatusEnum,
     LicenseScopeEnum,
@@ -794,6 +795,71 @@ class ProviderUserRecords:
             and record.licenseScope == license_scope
             and (filter_condition is None or filter_condition(record))
         ]
+
+    def get_records_associated_with_license(self, jurisdiction: str, license_type: str) -> list[CCDataClass]:
+        """
+        Get every record belonging to the given jurisdiction and license type: the license records themselves
+        and their adverse action, investigation, and update history records.
+
+        Deliberately scoped to jurisdiction and license type rather than to a single license, so that the
+        single-state and multi-state licenses of one type are always selected together. They are a validated
+        pair - a multi-state license with no matching single-state license reports a validation error back to
+        the uploading state - so a caller that moved one without the other would break that pairing on both
+        the source and the destination.
+
+        Returns an empty list if this provider has no license of the given jurisdiction/license type.
+
+        :param jurisdiction: The jurisdiction of the license
+        :param license_type: The license type (full name, not abbreviation)
+        :return: The license records and all of their dependent records
+        """
+        license_records = self.get_license_records(
+            filter_condition=lambda license_data: (
+                license_data.jurisdiction == jurisdiction and license_data.licenseType == license_type
+            )
+        )
+
+        associated_records: list[CCDataClass] = []
+        for license_record in license_records:
+            associated_records.append(license_record)
+            associated_records.extend(self._get_dependent_records_for_license(license_record))
+        return associated_records
+
+    def _get_dependent_records_for_license(self, license_record: LicenseData) -> list[CCDataClass]:
+        """
+        Get the records that hang off a single license: its adverse actions, its investigations, and its
+        update history.
+
+        Closed investigations are included along with open ones, because a migration moves a license's whole
+        history rather than just its currently-active records.
+        """
+        return [
+            *self.get_adverse_action_records_for_license(
+                license_record.jurisdiction,
+                license_record.licenseTypeAbbreviation,
+                license_record.licenseScope,
+            ),
+            *self.get_investigation_records_for_license(
+                license_record.jurisdiction,
+                license_record.licenseTypeAbbreviation,
+                license_record.licenseScope,
+                include_closed=True,
+            ),
+            *self.get_update_records_for_license(
+                license_record.jurisdiction,
+                license_record.licenseType,
+                license_record.licenseScope,
+            ),
+        ]
+
+    def get_person_level_records(self) -> list[CCDataClass]:
+        """
+        Get the records tied to the person rather than to any particular license.
+
+        In this compact that is the provider update history alone - there are no military affiliation
+        records here.
+        """
+        return [*self._provider_update_records]
 
     def generate_api_response_object(self, is_public_response: bool = False) -> dict:
         """

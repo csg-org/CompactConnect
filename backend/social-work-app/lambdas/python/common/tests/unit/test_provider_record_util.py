@@ -1,5 +1,5 @@
 # ruff: noqa: SLF001 private-member
-from datetime import date
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
 from tests import TstLambdas
@@ -2276,3 +2276,144 @@ class TestPopulateProviderRecordAggregateFields(TstLambdas):
         )
 
         self.assertEqual('encumbered', provider_record.to_dict()['encumberedStatus'])
+
+
+class TestProviderUserRecordsSsnCorrectionSelectors(TstLambdas):
+    """
+    Selectors used by the SSN-correction migration to decide which records move with a corrected license.
+
+    A license is identified by jurisdiction, license type and scope, but a correction is scoped to
+    jurisdiction and license type only: the single-state and multi-state licenses of one type are a
+    validated pair, so moving one without the other would break that pairing on both providers.
+    """
+
+    LCSW = 'licensed clinical social worker'
+    LMSW = 'licensed master social worker'
+
+    def _records_for_full_practitioner(self):
+        """Build a provider holding an LCSW pair in OH, an LMSW single-state in OH, and an LCSW pair in KY."""
+        from common_test.test_data_generator import TestDataGenerator
+
+        records = [TestDataGenerator.generate_default_provider().serialize_to_database_record()]
+
+        for overrides in [
+            *_license_pair_overrides('oh', self.LCSW),
+            *_license_pair_overrides('ky', self.LCSW),
+            {'jurisdiction': 'oh', 'licenseType': self.LMSW, 'licenseScope': 'single-state'},
+        ]:
+            records.append(TestDataGenerator.generate_default_license(overrides).serialize_to_database_record())
+
+        # An adverse action and an investigation against each scope of the OH LCSW license, plus a closed
+        # investigation, which must move as well - the migration takes a license's whole history.
+        for scope in ('single-state', 'multi-state'):
+            records.append(
+                TestDataGenerator.generate_default_adverse_action(
+                    {
+                        'jurisdiction': 'oh',
+                        'licenseType': self.LCSW,
+                        'licenseTypeAbbreviation': 'lcsw',
+                        'licenseScope': scope,
+                        'actionAgainst': 'license',
+                    }
+                ).serialize_to_database_record()
+            )
+            investigation_overrides = {
+                'jurisdiction': 'oh',
+                'licenseType': self.LCSW,
+                'licenseTypeAbbreviation': 'lcsw',
+                'licenseScope': scope,
+                'investigationAgainst': 'license',
+            }
+            # Close the multi-state one, so the fixture covers a closed investigation as well as an open one
+            if scope == 'multi-state':
+                investigation_overrides['closeDate'] = datetime(2025, 1, 1, tzinfo=UTC)
+            records.append(
+                TestDataGenerator.generate_default_investigation(investigation_overrides).serialize_to_database_record()
+            )
+            records.append(
+                TestDataGenerator.generate_default_license_update(
+                    {'jurisdiction': 'oh', 'licenseType': self.LCSW, 'licenseScope': scope}
+                ).serialize_to_database_record()
+            )
+
+        # An adverse action on the KY license, which must NOT move when OH is corrected
+        records.append(
+            TestDataGenerator.generate_default_adverse_action(
+                {
+                    'jurisdiction': 'ky',
+                    'licenseType': self.LCSW,
+                    'licenseTypeAbbreviation': 'lcsw',
+                    'licenseScope': 'single-state',
+                    'actionAgainst': 'license',
+                }
+            ).serialize_to_database_record()
+        )
+
+        records.append(TestDataGenerator.generate_default_provider_update().serialize_to_database_record())
+        return records
+
+    def test_returns_both_scopes_of_the_corrected_license_type(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        associated = records.get_records_associated_with_license('oh', self.LCSW)
+
+        licenses = [record for record in associated if record.type == 'license']
+        self.assertEqual(
+            {'single-state', 'multi-state'},
+            {record.licenseScope for record in licenses},
+            'both scopes of the corrected license type must move together',
+        )
+        self.assertEqual(2, len(licenses))
+
+    def test_returns_dependent_records_for_both_scopes(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        associated = records.get_records_associated_with_license('oh', self.LCSW)
+
+        counts = {}
+        for record in associated:
+            counts[record.type] = counts.get(record.type, 0) + 1
+
+        self.assertEqual(
+            {'license': 2, 'adverseAction': 2, 'investigation': 2, 'licenseUpdate': 2},
+            counts,
+            'the license, its adverse actions, its investigations (including closed) and its update '
+            'history must all move, for both scopes',
+        )
+
+    def test_excludes_records_for_other_jurisdictions_and_license_types(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        associated = records.get_records_associated_with_license('oh', self.LCSW)
+
+        for record in associated:
+            self.assertEqual('oh', record.jurisdiction)
+            self.assertEqual(self.LCSW, record.licenseType)
+
+    def test_returns_empty_when_no_license_matches(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        self.assertEqual([], records.get_records_associated_with_license('ne', self.LCSW))
+        self.assertEqual([], records.get_records_associated_with_license('oh', 'licensed social worker'))
+
+    def test_person_level_records_are_the_provider_update_history(self):
+        """
+        Person-level records follow the practitioner rather than any one license. This compact has no
+        military affiliation records, so the provider update history is all that qualifies.
+        """
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        person_level = records.get_person_level_records()
+
+        self.assertEqual(1, len(person_level))
+        self.assertEqual('providerUpdate', person_level[0].type)
