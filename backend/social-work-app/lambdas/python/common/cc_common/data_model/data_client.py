@@ -1560,7 +1560,11 @@ class DataClient:
             create_transaction_items.append(self._build_put_transaction_item(rekeyed_record))
 
         cuid_decision = self._resolve_ssn_correction_cuid_ownership(
-            existing_new_provider_record_cuid=compact,
+            existing_new_provider_record_cuid=(
+                existing_new_provider_record.to_dict().get('publicCompactIdentifier')
+                if existing_new_provider_record is not None
+                else None
+            ),
             licenses_on_new_provider_record=new_practitioner_existing_licenses,
             old_provider_data=old_top_level_provider_data,
             old_provider_records=old_provider_records,
