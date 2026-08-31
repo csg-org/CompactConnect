@@ -11,14 +11,14 @@ no -> proceed to question 2
 2. Does the new practitioner qualify for a CUID as a result of the correction?
 no -> move record over, do not move CUID
 yes -> proceed to question 3
-3. Were the licenses that are being corrected uploaded before any of the remaining licenses?
+3. Does the original practitioner still qualify for a CUID?
+no -> move CUID over with license records
+yes -> proceed to question 4
+4. Were the licenses that are being corrected uploaded before any of the remaining licenses?
 yes -> move the CUID over to the corrected practitioner record, remove CUID from the original record.
 A new CUID will be generated for the original practitioner when a state performs another qualifying
 license upload for one of the remaining licenses.
-no -> proceed to question 4
-4. Does the original practitioner still qualify for a CUID?
-no -> move CUID over with license records
-yes -> move over the license records, but do not move the CUID and do not generate a new one. The new practitioner
+no -> move over the license records, but do not move the CUID and do not generate a new one. The new practitioner
 record will be created without a CUID. For states that accidentally added license records to an existing practitioner,
 a new CUID will be generated when the state performs a subsequent upload for those licenses after the SSN has been
 corrected for them.
@@ -83,18 +83,19 @@ def resolve_cuid_ownership(
         logger.info('Corrected provider does not qualify for a CUID; leaving the identifier in place')
         return CuidOwnership.KEEP
 
-    if _corrected_licenses_uploaded_first(new_post_migration_licenses, old_remaining_licenses):
-        logger.info("Corrected practitioner's licenses started first; moving the CUID to the corrected provider")
-        return CuidOwnership.MOVE
-
     old_provider_still_qualifies = ProviderRecordUtility.has_paired_single_and_multi_state_license(
         [license_data.to_dict() for license_data in old_remaining_licenses]
     )
-    if not old_provider_still_qualifies:
+
+    if not old_provider_still_qualifies and new_provider_qualifies:
         # Something older stayed behind, but it is no longer a qualifying pair, so nothing on the old record
         # could have earned the identifier. Leaving it there would strand it on a practitioner who does not
         # qualify while the corrected practitioner, who does, has none.
         logger.info('Old provider no longer qualifies for a CUID; moving it to the corrected provider')
+        return CuidOwnership.MOVE
+
+    if _corrected_licenses_uploaded_first(new_post_migration_licenses, old_remaining_licenses):
+        logger.info("Corrected practitioner's licenses started first; moving the CUID to the corrected provider")
         return CuidOwnership.MOVE
 
     # An older qualifying pair stayed behind, so the identifier stays with it. This is the branch that
