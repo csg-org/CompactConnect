@@ -1497,6 +1497,22 @@ class DataClient:
             logger.info('Previous provider id has no records; nothing to migrate')
             return SsnCorrectionMigrationResult(migration_performed=False)
 
+
+        try:
+            new_provider_records = self.get_provider_user_records(
+                compact=compact,
+                provider_id=new_provider_id,
+                consistent_read=True,
+            )
+            existing_new_provider_record = new_provider_records.get_provider_record()
+            new_existing_licenses = new_provider_records.get_license_records()
+            logger.info('provider id for corrected SSN found with records.')
+        except CCNotFoundException:
+            # no records exist under the corrected SSN yet
+            logger.info('provider id for corrected SSN currently has no records.')
+            existing_new_provider_record = None
+            new_existing_licenses = []
+
         # Idempotency guard: if the targeted license is not on the old provider, it was either never there or
         # a previous run already migrated it
         records_to_move = old_provider_records.get_records_associated_with_license(
@@ -1543,9 +1559,9 @@ class DataClient:
                 rekeyed_target_license = rekeyed_record
             create_transaction_items.append(self._build_put_transaction_item(rekeyed_record))
 
-        cuid_decision, existing_new_provider_record = self._resolve_ssn_correction_cuid_ownership(
-            compact=compact,
-            new_provider_id=new_provider_id,
+        cuid_decision = self._resolve_ssn_correction_cuid_ownership(
+            existing_new_provider_record_cuid=compact,
+            licenses_on_new_provider_record=new_existing_licenses,
             old_provider_data=old_top_level_provider_data,
             old_provider_records=old_provider_records,
             target_license=target_license,
@@ -1644,13 +1660,13 @@ class DataClient:
     def _resolve_ssn_correction_cuid_ownership(
         self,
         *,
-        compact: str,
-        new_provider_id: str,
+        existing_new_provider_record_cuid: str | None,
+        licenses_on_new_provider_record: list[LicenseData],
         old_provider_data: ProviderData,
         old_provider_records: ProviderUserRecords,
         target_license: LicenseData,
         rekeyed_target_license: LicenseData,
-    ) -> tuple[CuidOwnership, ProviderData | None]:
+    ) -> CuidOwnership:
         """
         Apply the agreed CUID ownership rule to this migration.
 
@@ -1662,32 +1678,15 @@ class DataClient:
 
         :return: The ownership decision, and the corrected provider's existing top-level record if it has one
         """
-        try:
-            new_provider_records = self.get_provider_user_records(
-                compact=compact,
-                provider_id=new_provider_id,
-                consistent_read=True,
-            )
-            existing_new_provider_record = new_provider_records.get_provider_record()
-            new_existing_licenses = new_provider_records.get_license_records()
-        except CCNotFoundException:
-            existing_new_provider_record = None
-            new_existing_licenses = []
-
         old_remaining_licenses = [
             record for record in old_provider_records.get_license_records() if record is not target_license
         ]
-        decision = resolve_cuid_ownership(
+        return resolve_cuid_ownership(
             old_provider_cuid=old_provider_data.to_dict().get('publicCompactIdentifier'),
-            new_provider_cuid=(
-                existing_new_provider_record.to_dict().get('publicCompactIdentifier')
-                if existing_new_provider_record is not None
-                else None
-            ),
+            new_provider_cuid=existing_new_provider_record_cuid,
             old_remaining_licenses=old_remaining_licenses,
-            new_post_migration_licenses=[*new_existing_licenses, rekeyed_target_license],
+            new_post_migration_licenses=[*licenses_on_new_provider_record, rekeyed_target_license],
         )
-        return decision, existing_new_provider_record
 
     @staticmethod
     def _migrated_records_are_encumbered(records_to_move: list[CCDataClass]) -> bool:
