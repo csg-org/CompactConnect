@@ -32,6 +32,7 @@ from cc_common.data_model.schema.common import (
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
+from cc_common.data_model.schema.provider.record import PROVIDER_UPDATE_TRACKED_FIELDS
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
     CCAmbiguousLicenseNumberException,
@@ -1570,9 +1571,10 @@ class DataClient:
             if record is not target_license
         ]
 
-        # final: exactly three items - the ssnCorrection provider-update record, the conditioned deletion
-        # (full migration) or repopulation (partial migration) of the old top-level provider record (the
-        # concurrency fence), and the target license delete.
+        # final: the ssnCorrection provider-update record, the conditioned deletion (full migration) or
+        # repopulation (partial migration) of the old top-level provider record (the concurrency fence), the
+        # target license delete, and - when a surviving old provider loses its CUID - the history record of
+        # that loss. Four items at most, so it always commits as one transaction.
         ssn_correction_update = ProviderUpdateData.create_new(
             {
                 'type': ProviderRecordType.PROVIDER_UPDATE,
@@ -1586,7 +1588,7 @@ class DataClient:
         )
         final_transaction_items = [
             self._build_put_transaction_item(ssn_correction_update),
-            self._build_conditioned_old_provider_transaction_item(
+            *self._build_old_provider_transaction_items(
                 old_provider_data=old_top_level_provider_data,
                 old_provider_records=old_provider_records,
                 full_migration=full_migration,
@@ -1611,8 +1613,8 @@ class DataClient:
             self._execute_batched_transactions(all_transaction_items)
         else:
             # Large migration: the operations cannot fit in a single atomic transaction, so run them as
-            # replay-safe phases. The final group is a single atomic transaction (3 items) that can never
-            # split across a batch boundary, so the old provider record and target license are always torn
+            # replay-safe phases. The final group is a single atomic transaction (at most 4 items) that can
+            # never split across a batch boundary, so the old provider record and target license are torn
             # down together. The fence's dateOfUpdate condition failing raises for SQS retry; the retry
             # re-reads current state and takes the now-correct branch.
             self._log_ssn_migration_transaction_items('create', create_transaction_items)
@@ -1739,7 +1741,7 @@ class DataClient:
             record_data.update(extra_updates)
         return type(record).create_new(record_data)
 
-    def _build_conditioned_old_provider_transaction_item(
+    def _build_old_provider_transaction_items(
         self,
         *,
         old_provider_data: ProviderData,
@@ -1749,26 +1751,36 @@ class DataClient:
         license_type: str,
         license_scope: str,
         remove_cuid: bool,
-    ) -> dict:
+    ) -> list[dict]:
         """
-        Build the write against the old top-level provider record: a delete on a full migration, or a
-        repopulation from the remaining licenses on a partial migration. Either way the write is conditioned
-        on the dateOfUpdate read at the start of the migration, so concurrent migrations of the same old
-        provider serialize via SQS retry instead of both reading the same stale state.
+        Build the writes against the old top-level provider record.
+
+        Always includes the record's own write: a delete on a full migration, or a repopulation from the
+        remaining licenses on a partial one. Either way that write is conditioned on the dateOfUpdate read at
+        the start of the migration, so concurrent migrations of the same old provider serialize via SQS retry
+        instead of both reading the same stale state.
+
+        A surviving provider that loses its CUID also gets a providerUpdate record, so the identifier it used
+        to hold stays answerable from its own partition - see _build_cuid_removal_history_item.
         """
         condition = {
             'ConditionExpression': 'attribute_exists(pk) AND dateOfUpdate = :dateOfUpdate',
             'ExpressionAttributeValues': {':dateOfUpdate': {'S': old_provider_data.dateOfUpdate.isoformat()}},
         }
         if full_migration:
+            # The whole partition is going away, so a history record written here would be orphaned. The
+            # identifier stays recoverable from the ssnCorrection record under the corrected provider id,
+            # whose `previous` snapshot is a copy of this record.
             old_provider_key = self._provider_record_key(old_provider_data)
-            return {
-                'Delete': {
-                    'TableName': self.config.provider_table_name,
-                    'Key': {'pk': {'S': old_provider_key['pk']}, 'sk': {'S': old_provider_key['sk']}},
-                    **condition,
+            return [
+                {
+                    'Delete': {
+                        'TableName': self.config.provider_table_name,
+                        'Key': {'pk': {'S': old_provider_key['pk']}, 'sk': {'S': old_provider_key['sk']}},
+                        **condition,
+                    }
                 }
-            }
+            ]
 
         repopulated_old_provider = self._repopulate_provider_record_from_remaining_records(
             old_provider_data=old_provider_data,
@@ -1778,7 +1790,52 @@ class DataClient:
             migrated_license_scope=license_scope,
             remove_cuid=remove_cuid,
         )
-        return self._build_put_transaction_item(repopulated_old_provider, condition)
+        transaction_items = [self._build_put_transaction_item(repopulated_old_provider, condition)]
+        if remove_cuid:
+            transaction_items.append(
+                self._build_cuid_removal_history_item(
+                    old_provider_data=old_provider_data,
+                    repopulated_old_provider=repopulated_old_provider,
+                )
+            )
+        return transaction_items
+
+    def _build_cuid_removal_history_item(
+        self, *, old_provider_data: ProviderData, repopulated_old_provider: ProviderData
+    ) -> dict:
+        """
+        Record, under the OLD provider id, that this correction took its CUID away.
+
+        Without this the removal is silent: the repopulation rewrites the top-level record in full, so the
+        identifier simply stops being there, and the only surviving copy lives under the corrected provider
+        id - reachable solely by scanning ssnCorrection records for one whose `previous` names this provider.
+        That is not a lookup support staff would think to perform, so 'what was this provider's CUID before
+        the correction?' becomes unanswerable from the partition they are actually looking at.
+
+        The rest of the repopulation's changes are reported alongside it, so this reads as a truthful history
+        record of the write rather than a marker for one field.
+        """
+        old_fields = old_provider_data.to_dict()
+        repopulated_fields = repopulated_old_provider.to_dict()
+        updated_values = {
+            field: repopulated_fields[field]
+            for field in PROVIDER_UPDATE_TRACKED_FIELDS
+            if field in repopulated_fields and repopulated_fields.get(field) != old_fields.get(field)
+        }
+        history_record = ProviderUpdateData.create_new(
+            {
+                'type': ProviderRecordType.PROVIDER_UPDATE,
+                'updateType': UpdateCategory.SSN_CORRECTION,
+                'providerId': old_provider_data.providerId,
+                'compact': old_provider_data.compact,
+                'previous': old_fields,
+                'createDate': config.current_standard_datetime,
+                'updatedValues': updated_values,
+                'removedValues': ['publicCompactIdentifier'],
+            }
+        )
+        logger.info('Recording the CUID removal on the old provider record')
+        return self._build_put_transaction_item(history_record)
 
     @staticmethod
     def _repopulate_provider_record_from_remaining_records(

@@ -32,6 +32,27 @@ from cc_common.data_model.update_tier_enum import UpdateTierEnum
 # them when an existing provider record is refreshed - see ProviderRecordUtility.populate_provider_record.
 PROVIDER_AGGREGATE_FIELDS = frozenset({'encumberedStatus'})
 
+# Fields tracked on the provider update "previous" snapshot (ProviderUpdatePreviousRecordSchema), and so the
+# fields a providerUpdate record reports as changed. Calculated/derived fields (licenseStatus,
+# compactEligibility, birthMonthDay, status) are excluded: they follow from the tracked values rather than
+# being changes in their own right.
+PROVIDER_UPDATE_TRACKED_FIELDS = frozenset(
+    {
+        'licenseJurisdiction',
+        'jurisdictionUploadedLicenseStatus',
+        'jurisdictionUploadedCompactEligibility',
+        'encumberedStatus',
+        'ssnLastFour',
+        'givenName',
+        'middleName',
+        'familyName',
+        'suffix',
+        'dateOfExpiration',
+        'dateOfBirth',
+        'publicCompactIdentifier',
+    }
+)
+
 
 @BaseRecordSchema.register_schema('provider')
 class ProviderRecordSchema(BaseRecordSchema):

@@ -232,20 +232,20 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state')
 
         client = DataClient(self.config)
-        real_build = client._build_conditioned_old_provider_transaction_item  # noqa: SLF001
+        real_build = client._build_old_provider_transaction_items  # noqa: SLF001
 
         def _build_with_interleaved_write(**kwargs):
-            item = real_build(**kwargs)
+            items = real_build(**kwargs)
             # Simulate a competing writer touching the old provider record after we read it. The new
             # dateOfUpdate is what the fence detects, so it has to actually differ from the one we read.
             self.test_data_generator.put_default_provider_record_in_provider_table(
                 {'providerId': OLD_PROVIDER_ID, 'givenName': 'Concurrent'},
                 date_of_update_override='2025-01-01T00:00:00+00:00',
             )
-            return item
+            return items
 
         with (
-            patch.object(client, '_build_conditioned_old_provider_transaction_item', _build_with_interleaved_write),
+            patch.object(client, '_build_old_provider_transaction_items', _build_with_interleaved_write),
             self.assertRaises(CCInternalException),
         ):
             client.migrate_provider_for_ssn_correction(
@@ -350,6 +350,59 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertTrue(result.cuid_moved)
         self.assertNotIn('publicCompactIdentifier', self._provider_record(OLD_PROVIDER_ID))
         self.assertEqual(A_CUID, self._provider_record(NEW_PROVIDER_ID)['publicCompactIdentifier'])
+
+    def test_a_surviving_old_provider_keeps_a_history_record_of_the_cuid_it_lost(self):
+        """
+        A support developer holding the OLD provider id must be able to answer 'what was this provider's
+        CUID before the correction?'. When the identifier moves away from a provider that survives, its
+        record is rewritten without it, so without a history record under that provider id the old value is
+        reachable only from the other partition - which is not a lookup anyone would think to do.
+        """
+        self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2011, 1, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'single-state', first_upload=datetime(2018, 1, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state', first_upload=datetime(2019, 1, 1, tzinfo=UTC))
+        self._put_provider(NEW_PROVIDER_ID, givenName='Corrected')
+        self._put_license(NEW_PROVIDER_ID, 'oh', LCSW, 'multi-state', first_upload=datetime(2012, 1, 1, tzinfo=UTC))
+
+        result = self._migrate()
+
+        self.assertTrue(result.cuid_moved)
+        self.assertFalse(result.full_migration, 'the old provider must survive for this record to have a home')
+
+        old_records = self._records_for(OLD_PROVIDER_ID)
+        history_records = [
+            record
+            for record in old_records
+            if record['type'] == 'providerUpdate' and record['updateType'] == 'ssnCorrection'
+        ]
+        self.assertEqual(1, len(history_records), 'the old provider needs exactly one record of the loss')
+        self.assertEqual(
+            A_CUID,
+            history_records[0]['previous']['publicCompactIdentifier'],
+            'the lost identifier has to be readable from the old provider partition alone',
+        )
+        self.assertIn('publicCompactIdentifier', history_records[0].get('removedValues', []))
+
+    def test_no_cuid_history_record_when_the_identifier_did_not_move(self):
+        """A record of a loss that did not happen would be worse than none at all."""
+        self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
+        # The corrected record will not qualify, so the identifier stays where it is
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2015, 1, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'single-state', first_upload=datetime(2018, 1, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state', first_upload=datetime(2019, 1, 1, tzinfo=UTC))
+
+        result = self._migrate()
+
+        self.assertFalse(result.cuid_moved)
+        self.assertEqual(
+            [],
+            [
+                record
+                for record in self._records_for(OLD_PROVIDER_ID)
+                if record['type'] == 'providerUpdate' and record['updateType'] == 'ssnCorrection'
+            ],
+        )
 
     def test_cuid_stays_when_something_older_remains_on_the_old_provider(self):
         """

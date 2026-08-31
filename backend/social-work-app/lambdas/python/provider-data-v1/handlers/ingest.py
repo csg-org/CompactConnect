@@ -19,7 +19,7 @@ from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import SYSTEM_OWNED_LICENSE_FIELDS, LicenseUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData
-from cc_common.data_model.schema.provider.record import ProviderUpdateRecordSchema
+from cc_common.data_model.schema.provider.record import PROVIDER_UPDATE_TRACKED_FIELDS, ProviderUpdateRecordSchema
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
@@ -39,22 +39,6 @@ license_update_schema = LicenseUpdateRecordSchema()
 NON_LICENSE_DATA_KEYS = SYSTEM_OWNED_LICENSE_FIELDS | {'dateOfUpdate', 'licenseStatus', 'compactEligibility'}
 provider_update_schema = ProviderUpdateRecordSchema()
 
-# Fields tracked on the provider update "previous" snapshot (ProviderUpdatePreviousRecordSchema).
-# Calculated/derived fields (licenseStatus, compactEligibility, birthMonthDay, status) are excluded.
-PROVIDER_UPDATE_TRACKED_FIELDS = {
-    'licenseJurisdiction',
-    'jurisdictionUploadedLicenseStatus',
-    'jurisdictionUploadedCompactEligibility',
-    'encumberedStatus',
-    'ssnLastFour',
-    'givenName',
-    'middleName',
-    'familyName',
-    'suffix',
-    'dateOfExpiration',
-    'dateOfBirth',
-    'publicCompactIdentifier',
-}
 
 # Custom metrics tracking how often states rely on the previousSSN last-resort correction feature, split by
 # whether the correction fully migrated the practitioner (old provider had no other licenses), only partially
