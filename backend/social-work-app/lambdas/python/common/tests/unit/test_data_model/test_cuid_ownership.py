@@ -228,33 +228,36 @@ class TestResolveCuidOwnership(TstLambdas):
 
         self.assertEqual(CuidOwnership.MOVE, decision)
 
-    def test_a_pair_split_across_both_records_counts_as_the_corrected_records(self):
+    def test_a_split_pair_waits_until_it_is_whole_before_taking_the_cuid(self):
         """
         Mid-correction a set can straddle both records: its single-state license has already been moved
-        across while its multi-state license is still waiting its turn. If that set is the one that earned
-        the CUID, it belongs to the corrected record - the remaining corrections will finish bringing it
-        over, so the identifier should travel with it rather than wait behind.
+        across while its multi-state license is still waiting its turn. A half-migrated set is not yet a
+        pair on either record, so neither side can claim to have earned the CUID with it, and the identifier
+        stays where it is.
+
+        That is a deferral rather than a decision: the correction that brings the rest of the set across
+        makes it whole on the corrected record, and the identifier follows then. Asserting both steps here
+        is what shows the deferral does not strand it.
         """
         from cc_common.data_model.cuid_ownership import CuidOwnership
 
-        # The oh set completed first (2011) and is half migrated
-        already_migrated = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
-        still_behind = _license('oh', LCSW, 'multi-state', datetime(2011, 1, 1, tzinfo=UTC))
+        # The oh set completed first, in 2011, and is what earned the CUID
+        oh_single_state = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
+        oh_multi_state = _license('oh', LCSW, 'multi-state', datetime(2011, 1, 1, tzinfo=UTC))
+        corrected_own_pair = _pair('az', LCSW, datetime(2020, 1, 1, tzinfo=UTC), datetime(2021, 1, 1, tzinfo=UTC))
+        retained_own_pair = _pair('ky', LMSW, datetime(2018, 1, 1, tzinfo=UTC), datetime(2019, 1, 1, tzinfo=UTC))
 
-        decision = self._resolve(
-            migrating=_license('az', LCSW, 'multi-state', datetime(2021, 1, 1, tzinfo=UTC)),
-            # the old record keeps a pair of its own, so check 3 does not fire and check 4 decides
-            old_remaining=[
-                still_behind,
-                *_pair('ky', LMSW, datetime(2018, 1, 1, tzinfo=UTC), datetime(2019, 1, 1, tzinfo=UTC)),
-            ],
-            new_post=[
-                already_migrated,
-                *_pair('az', LCSW, datetime(2020, 1, 1, tzinfo=UTC), datetime(2021, 1, 1, tzinfo=UTC)),
-            ],
+        while_split = self._resolve(
+            old_remaining=[oh_multi_state, *retained_own_pair],
+            new_post=[oh_single_state, *corrected_own_pair],
         )
+        self.assertEqual(CuidOwnership.KEEP, while_split)
 
-        self.assertEqual(CuidOwnership.MOVE, decision)
+        once_whole = self._resolve(
+            old_remaining=list(retained_own_pair),
+            new_post=[oh_single_state, oh_multi_state, *corrected_own_pair],
+        )
+        self.assertEqual(CuidOwnership.MOVE, once_whole)
 
     def test_moves_when_nothing_remains_on_the_old_record(self):
         """

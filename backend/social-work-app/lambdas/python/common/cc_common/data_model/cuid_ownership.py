@@ -111,17 +111,17 @@ def _corrected_licenses_uploaded_first(
     """
     Whether the licenses now on the corrected record are the ones that earned the CUID.
 
-    Both practitioners qualify for a CUID by the time this is asked, so the question is which of them got
-    there first. A CUID is minted the moment a matching single-state/multi-state pair is complete, which is
-    the LATER of that pair's two uploads - so the set that earned it is the one whose completion date is
-    earliest, and whichever record now holds that set is where the identifier belongs.
+    Both records qualify for a CUID by the time this is asked, so the question is which of them got there
+    first. A CUID is minted the moment a matching single-state/multi-state pair is complete, so each side is
+    dated by its own earliest pair completion and the earlier one wins.
 
     Note that a set's two dates are not interchangeable: a set can be the first to file a license and the
-    last to become a pair. Only its completion date decides, which is why this compares maxima within a set
-    and minima across sets rather than combining the dates in any other way.
+    last to become a pair. Only its completion date decides, which is why this takes a maximum within each
+    set and a minimum across them.
 
-    A pair split across the two records counts as the corrected record's: a correction moves one license at
-    a time, so a half-migrated set is one the remaining corrections will finish bringing across.
+    A set split across the two records is not yet a pair on either, so it counts for neither and the
+    identifier simply stays put. That is a deferral, not a loss: the correction that brings the rest of the
+    set across makes it whole on the corrected record, and the identifier follows then.
 
     With no licenses remaining this is vacuously true, which is also the outcome we want: the old record is
     being emptied, so leaving the identifier on it would only retire it.
@@ -133,31 +133,25 @@ def _corrected_licenses_uploaded_first(
     if not old_remaining_licenses:
         return True
 
+    corrected_completion = _earliest_pair_completion(new_post_migration_licenses)
+    remaining_completion = _earliest_pair_completion(old_remaining_licenses)
+    return corrected_completion < remaining_completion
+
+
+def _earliest_pair_completion(licenses: list[LicenseData]) -> datetime:
+    """
+    When these licenses first held a matching pair, which is when they would have earned a CUID.
+
+    Raises if they hold no pair at all. Callers must establish that they do - resolve_cuid_ownership only
+    reaches this once both records have been confirmed to qualify, by the two checks immediately above it.
+    """
     uploads_by_set: dict[tuple[str, str], dict[str, datetime]] = {}
-    set_is_on_corrected_record: dict[tuple[str, str], bool] = {}
-    for licenses, is_on_corrected_record in (
-        (new_post_migration_licenses, True),
-        (old_remaining_licenses, False),
-    ):
-        for license_data in licenses:
-            # A pair is per jurisdiction and license type, so that is what identifies a set here
-            license_set = (license_data.jurisdiction, license_data.licenseType)
-            uploads_by_set.setdefault(license_set, {})[license_data.licenseScope] = license_data.firstUploadDate
-            set_is_on_corrected_record[license_set] = (
-                set_is_on_corrected_record.get(license_set, False) or is_on_corrected_record
-            )
+    for license_data in licenses:
+        license_set = (license_data.jurisdiction, license_data.licenseType)
+        uploads_by_set.setdefault(license_set, {})[license_data.licenseScope] = license_data.firstUploadDate
 
-    completion_dates = {
-        license_set: max(scope_uploads.values())
-        for license_set, scope_uploads in uploads_by_set.items()
+    return min(
+        max(scope_uploads.values())
+        for scope_uploads in uploads_by_set.values()
         if {LicenseScopeEnum.SINGLE_STATE.value, LicenseScopeEnum.MULTI_STATE.value}.issubset(scope_uploads)
-    }
-    if not completion_dates:
-        # Unreachable in practice: this is only consulted once both records hold a qualifying pair. Treated
-        # as 'not the corrected record's' so an unforeseen shape leaves the identifier where it already is
-        # rather than moving it somewhere it may not belong.
-        logger.error('No completed license pair found while attributing the CUID; leaving it in place')
-        return False
-
-    first_completed_set = min(completion_dates, key=completion_dates.get)
-    return set_is_on_corrected_record[first_completed_set]
+    )
