@@ -817,3 +817,161 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertEqual(60, migrated['licenseUpdate'])
         self.assertEqual(1, migrated['license'])
         self.assertEqual(1, migrated['provider'])
+
+    # ---- privilege records --------------------------------------------------------------------
+
+    def _put_privilege_records(self, provider_id, privilege_jurisdiction, license_type, abbreviation, home):
+        """A privilege encumbrance and an open investigation, created while `home` was the home jurisdiction.
+
+        Both record types are forced to single-state scope for privileges by their schemas, regardless of
+        the multi-state license the privilege was generated from.
+        """
+        self._put_adverse_action(
+            provider_id,
+            privilege_jurisdiction,
+            license_type,
+            abbreviation,
+            'single-state',
+            actionAgainst='privilege',
+            homeJurisdictionAtTimeOfCreation=home,
+            adverseActionId=uuid4(),
+        )
+        self._put_investigation(
+            provider_id,
+            privilege_jurisdiction,
+            license_type,
+            abbreviation,
+            'single-state',
+            investigationAgainst='privilege',
+            homeJurisdictionAtTimeOfCreation=home,
+            investigationId=uuid4(),
+        )
+
+    def _privilege_record_counts(self, provider_id):
+        records = self._records_for(provider_id)
+        return {
+            'adverseAction': len(
+                [r for r in records if r['type'] == 'adverseAction' and r.get('actionAgainst') == 'privilege']
+            ),
+            'investigation': len(
+                [r for r in records if r['type'] == 'investigation' and r.get('investigationAgainst') == 'privilege']
+            ),
+        }
+
+    def test_privilege_records_move_when_the_home_multi_state_license_is_corrected(self):
+        """
+        The multi-state license a privilege was generated from is leaving, so the encumbrance and
+        investigation recorded against that privilege go with it.
+        """
+        self._put_provider(OLD_PROVIDER_ID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state')
+        self._put_privilege_records(OLD_PROVIDER_ID, 'ne', LCSW, 'lcsw', home='oh')
+
+        self._migrate(jurisdiction='oh', license_type=LCSW, license_scope='multi-state')
+
+        self.assertEqual({'adverseAction': 1, 'investigation': 1}, self._privilege_record_counts(NEW_PROVIDER_ID))
+        self.assertEqual({'adverseAction': 0, 'investigation': 0}, self._privilege_record_counts(OLD_PROVIDER_ID))
+
+    def test_privilege_records_wait_for_the_multi_state_license_when_single_state_is_corrected_first(self):
+        """
+        Two steps, and the ordering-independence proof. A single-state correction never carries privilege
+        records; the multi-state correction that follows does. A third license keeps both steps partial, so
+        neither is masked by the full-migration rule that moves everything regardless.
+        """
+        self._put_provider(OLD_PROVIDER_ID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state')
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state')
+        self._put_privilege_records(OLD_PROVIDER_ID, 'ne', LCSW, 'lcsw', home='oh')
+
+        self._migrate(jurisdiction='oh', license_type=LCSW, license_scope='single-state')
+
+        self.assertEqual(
+            {'adverseAction': 1, 'investigation': 1},
+            self._privilege_record_counts(OLD_PROVIDER_ID),
+            'a single-state correction must not carry privilege records',
+        )
+        self.assertEqual({'adverseAction': 0, 'investigation': 0}, self._privilege_record_counts(NEW_PROVIDER_ID))
+
+        self._migrate(jurisdiction='oh', license_type=LCSW, license_scope='multi-state')
+
+        self.assertEqual({'adverseAction': 1, 'investigation': 1}, self._privilege_record_counts(NEW_PROVIDER_ID))
+        self.assertEqual({'adverseAction': 0, 'investigation': 0}, self._privilege_record_counts(OLD_PROVIDER_ID))
+
+    def test_privilege_records_do_not_move_with_a_multi_state_license_they_were_not_created_under(self):
+        """
+        Two paired multi-state licenses of the same type. The privilege records name OH as their home, so
+        correcting the KY license leaves them where they are.
+        """
+        self._put_provider(OLD_PROVIDER_ID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state')
+        self._put_license(OLD_PROVIDER_ID, 'ky', LCSW, 'single-state')
+        self._put_license(OLD_PROVIDER_ID, 'ky', LCSW, 'multi-state')
+        self._put_privilege_records(OLD_PROVIDER_ID, 'ne', LCSW, 'lcsw', home='oh')
+
+        self._migrate(jurisdiction='ky', license_type=LCSW, license_scope='multi-state')
+
+        self.assertEqual({'adverseAction': 1, 'investigation': 1}, self._privilege_record_counts(OLD_PROVIDER_ID))
+        self.assertEqual({'adverseAction': 0, 'investigation': 0}, self._privilege_record_counts(NEW_PROVIDER_ID))
+
+    def test_privilege_records_of_another_license_type_are_not_moved(self):
+        """
+        Both license types are homed in OH, so jurisdiction alone cannot tell them apart - only the license
+        type abbreviation can. Without that half of the filter, an implementation that moves every privilege
+        record still passes every other test here.
+        """
+        self._put_provider(OLD_PROVIDER_ID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state')
+        self._put_license(OLD_PROVIDER_ID, 'oh', LMSW, 'single-state')
+        self._put_license(OLD_PROVIDER_ID, 'oh', LMSW, 'multi-state')
+        self._put_privilege_records(OLD_PROVIDER_ID, 'ne', LCSW, 'lcsw', home='oh')
+        self._put_privilege_records(OLD_PROVIDER_ID, 'ne', LMSW, 'lmsw', home='oh')
+
+        self._migrate(jurisdiction='oh', license_type=LCSW, license_scope='multi-state')
+
+        moved = [r for r in self._records_for(NEW_PROVIDER_ID) if r.get('licenseTypeAbbreviation') == 'lcsw']
+        left = [r for r in self._records_for(OLD_PROVIDER_ID) if r.get('licenseTypeAbbreviation') == 'lmsw']
+        self.assertEqual({'adverseAction': 1, 'investigation': 1}, self._privilege_record_counts(NEW_PROVIDER_ID))
+        self.assertEqual({'adverseAction': 1, 'investigation': 1}, self._privilege_record_counts(OLD_PROVIDER_ID))
+        self.assertTrue(moved, "the corrected license type's privilege records must have moved")
+        self.assertTrue(left, "the other license type's privilege records must have stayed")
+
+    def test_full_migration_moves_privilege_records_even_when_the_license_is_not_their_home(self):
+        """
+        The old partition is being deleted, so nothing may be left behind - selectivity only matters while
+        the old practitioner survives. Here the privilege records name a different home jurisdiction
+        entirely, and an unpaired multi-state license is not a home license at all, yet both records move.
+
+        This is also the regression guard on the orphan check: before privilege records were selected at
+        all, this shape aborted the whole migration with CCInternalException.
+        """
+        self._put_provider(OLD_PROVIDER_ID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state')
+        self._put_privilege_records(OLD_PROVIDER_ID, 'ne', LCSW, 'lcsw', home='ky')
+
+        result = self._migrate(jurisdiction='oh', license_type=LCSW, license_scope='multi-state')
+
+        self.assertTrue(result.full_migration)
+        self.assertEqual([], self._records_for(OLD_PROVIDER_ID), 'the old partition must be emptied')
+        self.assertEqual({'adverseAction': 1, 'investigation': 1}, self._privilege_record_counts(NEW_PROVIDER_ID))
+
+    def test_full_migration_moves_records_the_license_selector_would_not_have_matched(self):
+        """
+        Proves the full-migration path is genuinely everything, rather than the license selector's results
+        plus person-level records. A license adverse action for a license type no longer present would be
+        matched by no selector, and must still come across.
+        """
+        self._put_provider(OLD_PROVIDER_ID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state')
+        # belongs to a license type this practitioner no longer holds a record for
+        self._put_adverse_action(OLD_PROVIDER_ID, 'ky', LMSW, 'lmsw', 'single-state', adverseActionId=uuid4())
+
+        result = self._migrate(jurisdiction='oh', license_type=LCSW, license_scope='multi-state')
+
+        self.assertTrue(result.full_migration)
+        self.assertEqual([], self._records_for(OLD_PROVIDER_ID))
+        orphan_types = [r for r in self._records_for(NEW_PROVIDER_ID) if r.get('licenseTypeAbbreviation') == 'lmsw']
+        self.assertEqual(1, len(orphan_types), 'the unmatched adverse action must have moved with everything else')

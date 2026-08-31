@@ -2415,20 +2415,6 @@ class TestProviderUserRecordsSsnCorrectionSelectors(TstLambdas):
         )
         self.assertEqual([], records.get_records_associated_with_license('oh', self.LMSW, 'multi-state'))
 
-    def test_person_level_records_are_the_provider_update_history(self):
-        """
-        Person-level records follow the practitioner rather than any one license. This compact has no
-        military affiliation records, so the provider update history is all that qualifies.
-        """
-        from cc_common.data_model.provider_record_util import ProviderUserRecords
-
-        records = ProviderUserRecords(self._records_for_full_practitioner())
-
-        person_level = records.get_person_level_records()
-
-        self.assertEqual(1, len(person_level))
-        self.assertEqual('providerUpdate', person_level[0].type)
-
 
 class TestHomeJurisdictionForLicenseType(TstLambdas):
     """

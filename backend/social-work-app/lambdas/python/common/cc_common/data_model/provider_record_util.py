@@ -10,6 +10,7 @@ from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CCDataClass,
     CompactEligibilityStatus,
+    InvestigationAgainstEnum,
     InvestigationStatusEnum,
     LicenseScopeEnum,
     UpdateCategory,
@@ -849,7 +850,19 @@ class ProviderUserRecords:
         if license_record is None:
             return []
 
-        return [license_record, *self._get_dependent_records_for_license(license_record)]
+        associated_records = [license_record, *self._get_dependent_records_for_license(license_record)]
+
+        # Privileges are generated from the home multi-state license, so their records travel with it. A
+        # single-state license never generates privileges, and a multi-state license only owns the records
+        # that name its jurisdiction as the home they were created under.
+        if license_record.licenseScope == LicenseScopeEnum.MULTI_STATE.value:
+            associated_records.extend(
+                self.get_privilege_records_created_under_home_license(
+                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                )
+            )
+
+        return associated_records
 
     def _get_dependent_records_for_license(self, license_record: LicenseData) -> list[CCDataClass]:
         """
@@ -878,14 +891,55 @@ class ProviderUserRecords:
             ),
         ]
 
-    def get_person_level_records(self) -> list[CCDataClass]:
+    def get_privilege_records_created_under_home_license(
+        self, home_jurisdiction: str, license_type_abbreviation: str
+    ) -> list[CCDataClass]:
         """
-        Get the records tied to the person rather than to any particular license.
+        Every adverse action and investigation recorded against a privilege that was generated from the
+        given home multi-state license.
 
-        In this compact that is the provider update history alone - there are no military affiliation
-        records here.
+        Privilege records name the privilege's own jurisdiction, never the home license's, so
+        homeJurisdictionAtTimeOfCreation is the only thing tying them back to the license that produced
+        them. Both halves of the filter matter: a practitioner can hold two license types homed in the same
+        jurisdiction, and jurisdiction alone would not separate them.
+
+        Closed investigations are included alongside open ones, because a migration moves a license's whole
+        history rather than only its currently-active records.
         """
-        return [*self._provider_update_records]
+        return [
+            *[
+                record
+                for record in self._adverse_action_records
+                if record.actionAgainst == AdverseActionAgainstEnum.PRIVILEGE
+                and record.homeJurisdictionAtTimeOfCreation == home_jurisdiction
+                and record.licenseTypeAbbreviation == license_type_abbreviation
+            ],
+            *[
+                record
+                for record in self._investigation_records
+                if record.investigationAgainst == InvestigationAgainstEnum.PRIVILEGE
+                and record.homeJurisdictionAtTimeOfCreation == home_jurisdiction
+                and record.licenseTypeAbbreviation == license_type_abbreviation
+            ],
+        ]
+
+    def get_all_records_except_the_provider_record(self) -> list[CCDataClass]:
+        """
+        Every record in this partition that a migration can move, which is everything but the top-level
+        provider record - that one is deleted directly by the migration's final transaction.
+
+        Used for a full migration, where the partition is about to be deleted and selectivity would only
+        risk orphaning something. Note this returns every record this class could categorise: a record type
+        it does not recognise is logged as a warning at construction and retained in no collection, which is
+        exactly what the migration's orphan guard exists to catch.
+        """
+        return [
+            *self._license_records,
+            *self._adverse_action_records,
+            *self._investigation_records,
+            *self._provider_update_records,
+            *self._license_update_records,
+        ]
 
     def generate_api_response_object(self, is_public_response: bool = False) -> dict:
         """

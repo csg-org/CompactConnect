@@ -1554,10 +1554,11 @@ class DataClient:
         # provider (everything moves, and the old provider is deleted), as opposed to a partial migration
         full_migration = len(old_provider_records.get_license_records()) == 1
 
-        # Person-level records follow the practitioner only on a full migration; on a partial migration they
-        # stay with the old provider, which still represents them for their remaining licenses
-        person_level_records = old_provider_records.get_person_level_records() if full_migration else []
-        records_to_move = [*records_to_move, *person_level_records]
+        if full_migration:
+            # The old partition is about to be deleted, so everything in it moves. Selecting only what the
+            # corrected license depends on is meaningful while the old practitioner survives; here it would
+            # only risk orphaning whatever the selectors do not recognise, so the whole partition goes.
+            records_to_move = old_provider_records.get_all_records_except_the_provider_record()
 
         if full_migration:
             # A full migration deletes the old provider's top-level record, so every record in the old
