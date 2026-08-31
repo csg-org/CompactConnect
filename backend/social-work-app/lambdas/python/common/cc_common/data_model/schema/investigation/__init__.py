@@ -112,6 +112,14 @@ class InvestigationData(CCDataClass):
         self._data['licenseScope'] = value
 
     @property
+    def homeJurisdictionAtTimeOfCreation(self) -> str:
+        return self._data['homeJurisdictionAtTimeOfCreation']
+
+    @homeJurisdictionAtTimeOfCreation.setter
+    def homeJurisdictionAtTimeOfCreation(self, value: str) -> None:
+        self._data['homeJurisdictionAtTimeOfCreation'] = value
+
+    @property
     def investigationAgainst(self) -> str:
         return self._data['investigationAgainst']
 

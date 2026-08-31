@@ -167,6 +167,32 @@ class DataClient:
         return cuid_count
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def get_home_jurisdiction_for_license_type(self, *, compact: str, provider_id: str, license_type: str) -> str:
+        """
+        The practitioner's home jurisdiction for a license type, stamped onto adverse action and
+        investigation records as homeJurisdictionAtTimeOfCreation.
+
+        Privileges are generated from the home multi-state license of their license type, so recording that
+        license's jurisdiction is what lets an SSN correction later move a privilege's records with the
+        license that produced them. It is recorded rather than recomputed at migration time because a
+        practitioner's home jurisdiction can change afterwards.
+
+        Falls back to the provider record's licenseJurisdiction when the license type has no paired
+        multi-state license, which is reachable for an encumbrance against an unpaired license. That case
+        generates no privileges, so the value is informational rather than load-bearing.
+        """
+        provider_records = self.get_provider_user_records(compact=compact, provider_id=provider_id)
+        home_jurisdiction = provider_records.get_home_jurisdiction_for_license_type(license_type)
+        if home_jurisdiction is not None:
+            return home_jurisdiction
+
+        logger.info(
+            'License type has no paired multi-state license; using the provider record home jurisdiction',
+            license_type=license_type,
+        )
+        return provider_records.get_provider_record().licenseJurisdiction
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
     def get_ssn_by_provider_id(self, *, compact: str, provider_id: str) -> str:
         logger.info('Getting ssn by provider id', compact=compact, provider_id=provider_id)
         resp = self.config.ssn_table.query(
@@ -1496,7 +1522,6 @@ class DataClient:
             # The previousSSN resolved to a provider id with no records (e.g. it was never actually uploaded)
             logger.info('Previous provider id has no records; nothing to migrate')
             return SsnCorrectionMigrationResult(migration_performed=False)
-
 
         try:
             new_provider_records = self.get_provider_user_records(

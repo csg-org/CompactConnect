@@ -647,6 +647,26 @@ class ProviderUserRecords:
 
         return multi_state_licenses_with_matching_single_state_license
 
+    def get_home_jurisdiction_for_license_type(self, license_type: str) -> str | None:
+        """
+        The jurisdiction of the home multi-state license for this license type, which is the license any
+        privilege of that type is generated from.
+
+        Resolved per license type rather than from the provider record's single licenseJurisdiction,
+        because a practitioner can hold a home license in one state for one license type and another state
+        for a different one.
+
+        :return: The home jurisdiction, or None if this license type has no paired multi-state license
+        """
+        return next(
+            (
+                license_data.jurisdiction
+                for license_data in self._find_multi_state_home_licenses_with_matching_single_state_licenses()
+                if license_data.licenseType == license_type
+            ),
+            None,
+        )
+
     def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
         """
         Generate privilege dicts at runtime for each eligible home multi-state license type this provider holds.

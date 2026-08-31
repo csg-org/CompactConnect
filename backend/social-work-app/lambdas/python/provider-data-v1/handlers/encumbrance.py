@@ -114,6 +114,11 @@ def _generate_adverse_action_for_record_type(
 
     adverse_action.licenseTypeAbbreviation = license_type.abbreviation
     adverse_action.licenseType = license_type.name
+    # Recorded now rather than recomputed during an SSN correction: privileges are generated from the home
+    # multi-state license of this license type, and a practitioner's home jurisdiction can change later.
+    adverse_action.homeJurisdictionAtTimeOfCreation = config.data_client.get_home_jurisdiction_for_license_type(
+        compact=compact, provider_id=provider_id, license_type=license_type.name
+    )
     adverse_action.licenseScope = license_scope
     adverse_action.actionAgainst = adverse_action_against_record_type
     adverse_action.encumbranceType = EncumbranceType(adverse_action_post_body['encumbranceType'])

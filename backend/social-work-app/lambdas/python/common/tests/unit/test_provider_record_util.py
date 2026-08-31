@@ -2428,3 +2428,66 @@ class TestProviderUserRecordsSsnCorrectionSelectors(TstLambdas):
 
         self.assertEqual(1, len(person_level))
         self.assertEqual('providerUpdate', person_level[0].type)
+
+
+class TestHomeJurisdictionForLicenseType(TstLambdas):
+    """
+    Resolving the home jurisdiction a privilege is generated from, which is what an adverse action or
+    investigation records at creation so an SSN correction can later route it.
+    """
+
+    LCSW = 'licensed clinical social worker'
+    LMSW = 'licensed master social worker'
+
+    def _records(self, license_overrides, provider_overrides=None):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from common_test.test_data_generator import TestDataGenerator
+
+        provider = TestDataGenerator.generate_default_provider(provider_overrides)
+        records = [provider.serialize_to_database_record()]
+        for overrides in license_overrides:
+            records.append(TestDataGenerator.generate_default_license(overrides).serialize_to_database_record())
+        return ProviderUserRecords(records)
+
+    def test_returns_the_jurisdiction_of_the_paired_multi_state_license(self):
+        records = self._records(_license_pair_overrides('ky', self.LCSW))
+
+        self.assertEqual('ky', records.get_home_jurisdiction_for_license_type(self.LCSW))
+
+    def test_resolves_per_license_type_not_per_provider(self):
+        """
+        The decisive case. A practitioner can hold a home license in one state for one license type and
+        another state for a different type, while the provider record carries a single licenseJurisdiction.
+        Resolving from the provider record would stamp the wrong jurisdiction on one of the two.
+        """
+        records = self._records(
+            [
+                *_license_pair_overrides('oh', self.LCSW),
+                *_license_pair_overrides('ky', self.LMSW),
+            ],
+            provider_overrides={'licenseJurisdiction': 'oh'},
+        )
+
+        self.assertEqual('oh', records.get_home_jurisdiction_for_license_type(self.LCSW))
+        self.assertEqual('ky', records.get_home_jurisdiction_for_license_type(self.LMSW))
+
+    def test_returns_none_when_the_license_type_has_no_paired_multi_state_license(self):
+        """An unpaired license generates no privileges, so it has no home jurisdiction to speak of."""
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        records = self._records(
+            [{'jurisdiction': 'oh', 'licenseType': self.LCSW, 'licenseScope': LicenseScopeEnum.SINGLE_STATE}]
+        )
+
+        self.assertIsNone(records.get_home_jurisdiction_for_license_type(self.LCSW))
+
+    def test_prefers_the_most_recently_renewed_paired_multi_state_license(self):
+        """Matches how generate_privileges_for_provider picks the home license."""
+        records = self._records(
+            [
+                *_license_pair_overrides('oh', self.LCSW, multi_extra={'dateOfRenewal': date(2020, 1, 1)}),
+                *_license_pair_overrides('ky', self.LCSW, multi_extra={'dateOfRenewal': date(2024, 1, 1)}),
+            ]
+        )
+
+        self.assertEqual('ky', records.get_home_jurisdiction_for_license_type(self.LCSW))
