@@ -3,23 +3,29 @@ Which practitioner record keeps the Compact Unique Identifier when an SSN correc
 
 When correcting/migrating license records to a corrected SSN, the CUID stays with the set of license records that were
 uploaded first and thereby caused it to be generated. Because a correction moves one license record at a time, and a
-CUID is earned by a matching single-state/multi-state *pair*, that rule is applied as three checks in order:
+CUID is earned by a matching single-state/multi-state *pair*, that rule is applied as four questions in order:
 
-1. If the corrected practitioner already has a CUID, it is never overwritten. The old record's identifier is retired
-   if and when that record is emptied.
-2. If the corrected practitioner does not qualify for a CUID even with this license added, nothing moves. They are
-   assigned one by the ordinary rule on a subsequent upload.
-3. Otherwise the CUID follows whichever practitioner's licenses were uploaded first: if the corrected record's
-   licenses began before anything left on the old record, it takes the identifier, and the old record is assigned a
-   fresh one on its next qualifying upload. The comparison is across both whole sets - a correction moves one license
-   at a time, so the one moving last can be the newest of them all while its set is still the older one.
-4. If something older stayed behind, the identifier only stays with it while the old record still holds a qualifying
-   pair. Once it does not, nothing there could have earned the identifier, so it moves to the corrected practitioner
-   rather than being stranded.
+1. Is there an existing practitioner record under the corrected SSN with a CUID already assigned?
+yes -> move the license over, do not overwrite the existing CUID
+no -> proceed to question 2
+2. Does the new practitioner qualify for a CUID as a result of the correction?
+no -> move record over, do not move CUID
+yes -> proceed to question 3
+3. Were the licenses that are being corrected uploaded before any of the remaining licenses?
+yes -> move the CUID over to the corrected practitioner record, remove CUID from the original record.
+A new CUID will be generated for the original practitioner when a state performs another qualifying
+license upload for one of the remaining licenses.
+no -> proceed to question 4
+4. Does the original practitioner still qualify for a CUID?
+no -> move CUID over with license records
+yes -> move over the license records, but do not move the CUID and do not generate a new one. The new practitioner
+record will be created without a CUID. For states that accidentally added license records to an existing practitioner,
+a new CUID will be generated when the state performs a subsequent upload for those licenses after the SSN has been
+corrected for them.
 
 The practical effect of checks 3 and 4 together is that a state which accidentally attached licenses to an existing
-practitioner does not strip that practitioner of the identifier their own, older licenses earned - while a
-practitioner whose only qualifying licenses are the ones being corrected does not lose it either.
+practitioner does not strip that practitioner of the identifier their own, while a practitioner whose only qualifying
+licenses are the ones being corrected does not lose it either.
 """
 
 from datetime import datetime
@@ -49,9 +55,6 @@ def resolve_cuid_ownership(
     """
     Decide whether the old provider's CUID travels with the license being corrected.
 
-    Pure decision logic - it performs no reads or writes, so every branch is unit-testable. The caller is
-    responsible for building the two simulated license sets and for carrying out the decision.
-
     :param old_provider_cuid: The CUID currently on the old provider record, if any
     :param new_provider_cuid: The CUID currently on the corrected provider record, if any
     :param old_remaining_licenses: The old provider's licenses with the migrating license removed
@@ -61,12 +64,13 @@ def resolve_cuid_ownership(
     if old_provider_cuid is None:
         # Nothing to move. Whether the corrected record earns one is the ordinary assignment rule's
         # business, not this function's.
+        logger.info('Original provider does not have a CUID. Nothing to migrate.')
         return CuidOwnership.KEEP
 
     if new_provider_cuid is not None:
         # A CUID is write-once and the corrected record already has one, earned against records that were
         # correctly keyed all along. The old record's is retired when that record is emptied.
-        logger.info('Corrected provider already has a CUID; leaving both in place')
+        logger.info('Corrected provider already has a CUID. Leaving both in place')
         return CuidOwnership.KEEP
 
     new_provider_qualifies = ProviderRecordUtility.has_paired_single_and_multi_state_license(
