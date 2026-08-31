@@ -112,21 +112,30 @@ Expect long runtimes (up to ~15 minutes) due to SQS batching windows during lice
 ### SSN Migration Smoke Tests (`ssn_migration_smoke_tests.py`)
 
 This test validates the SSN-correction migration (the optional `previousSSN` license upload field), and in
-particular what happens to a practitioner's Compact Unique Identifier (CUID) across a correction:
+particular what happens to a practitioner's Compact Unique Identifier (CUID) across a correction. The
+practitioner holds a license pair in **two** states, and only the first state's licenses are corrected -
+which is what keeps the original provider record alive to be checked after the identifier leaves it:
 
-1. Uploads a matching single-state and multi-state **LCSW** license to **OH** under one incorrect SSN
-   (SsnMigration CuidSmokeTest / SSN `999-66-6666`) and waits for a CUID to be assigned
-2. Corrects the **single-state** license only, and asserts the CUID stays on the original provider record -
-   the corrected practitioner holds one license at that point and does not qualify for one yet
-3. Corrects the **multi-state** license, completing the pair under the corrected SSN, and asserts the
-   original CUID moved across unchanged rather than a new one being minted
-4. Asserts the original partition is emptied and every record arrived intact, with an `ssnCorrection` audit
-   record under the corrected provider id
+1. Builds an **OH** LBSW pair, then an **AZ** LBSW pair, for one practitioner under one incorrect SSN
+   (SsnMigration CuidSmokeTest / SSN `999-66-6666`). OH goes first, so its pair is the one that earns the CUID
+2. Corrects the OH **single-state** license, and asserts the CUID stays on the original record, is not minted
+   on the corrected one, and that only the corrected provider has an `ssnCorrection` record so far
+3. Corrects the OH **multi-state** license, and asserts the original CUID moved across unchanged rather than
+   a new one being minted, and is no longer on the original record
+4. Asserts **both** providers now carry an `ssnCorrection` record - the corrected one for each migration, and
+   the original one recording the CUID it lost, with the old value in `previous` and
+   `publicCompactIdentifier` in `removedValues`
+5. Asserts the AZ pair was never touched (still on the original provider, still the original `ssnLastFour`)
+   and the OH records arrived intact
 
-A correction moves one license record at a time, which is why correcting this practitioner takes two
-uploads. Expect long runtimes (up to ~15 minutes per wait) due to SQS batching windows during license
-ingest. Both provider partitions are cleaned up automatically, including on failure; the SSN table records
-are left in place by design, and the fixed mock SSNs mean reruns reuse the same mappings.
+Expect a **long** runtime. A practitioner's single-state license must be fully ingested before their
+multi-state license is uploaded (see [Upload order](../../docs/README.md)), so building the two pairs takes
+four sequential upload/ingest cycles before the two corrections begin - six waits in total, each of which can
+take several minutes because of the SQS batching windows. Both provider partitions are cleaned up
+automatically, including on failure; the SSN table records are left in place by design, and the fixed mock
+SSNs mean reruns reuse the same mappings.
+
+Requires **OH** and **AZ** to be live jurisdictions in the target environment, with LBSW recognized in each.
 
 ## Special Test Requirements
 
