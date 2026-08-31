@@ -79,6 +79,13 @@ FAMILY_NAME = 'CuidSmokeTest'
 ORIGINAL_SSN = '999-66-6666'
 CORRECTED_SSN = '999-66-6677'
 
+# The jurisdiction the practitioner holds a privilege in. Privileges are generated for every live
+# jurisdiction that recognises the license type, except the home jurisdiction - which for an OH-homed LBSW
+# leaves AZ, since CO does not recognise this license type. It coincides with RETAINED_JURISDICTION for
+# that reason rather than by design, and is named separately because it is chosen on different grounds.
+PRIVILEGE_JURISDICTION = 'az'
+LICENSE_TYPE_ABBREVIATION = 'lbsw'
+
 TEST_STAFF_USER_EMAIL = 'testStaffUserSocwSsnMigration@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-ssn-migration-smoke-client'
 
@@ -135,6 +142,76 @@ def _upload_license(client_id: str, client_secret: str, jurisdiction: str, licen
             f'Failed to POST {jurisdiction}/{license_record["licenseScope"]} license. Response: {post_response.json()}'
         )
     print(f'Uploaded {jurisdiction}/{license_record["licenseScope"]} license')
+
+
+def _encumber_and_investigate_a_privilege(staff_headers: dict, provider_id: str):
+    """Place an encumbrance and open an investigation against the practitioner's privilege.
+
+    Called while the corrected state's pair is the practitioner's ONLY pair, so the home jurisdiction
+    stamped onto both records is unambiguously that state. Doing it before the second state's licenses land
+    is what makes the assertions below deterministic: the home license for a license type is the most
+    recently renewed pair of that type, and both of this practitioner's pairs share a license type.
+    """
+    base = (
+        f'{config.api_base_url}/v1/compacts/{COMPACT}/providers/{provider_id}'
+        f'/privileges/jurisdiction/{PRIVILEGE_JURISDICTION}/licenseType/{LICENSE_TYPE_ABBREVIATION}'
+    )
+
+    encumbrance_response = requests.post(
+        f'{base}/encumbrance',
+        headers=staff_headers,
+        json={
+            'encumbranceEffectiveDate': '2024-01-15',
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
+        },
+        timeout=30,
+    )
+    if encumbrance_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to encumber the privilege. Response: {encumbrance_response.json()}')
+
+    investigation_response = requests.post(f'{base}/investigation', headers=staff_headers, json={}, timeout=30)
+    if investigation_response.status_code != 200:
+        raise SmokeTestFailureException(
+            f'Failed to open a privilege investigation. Response: {investigation_response.json()}'
+        )
+
+    print(f'Encumbered and opened an investigation against the {PRIVILEGE_JURISDICTION} privilege')
+
+
+def _privilege_records(records: list[dict]) -> list[dict]:
+    """The adverse action and investigation records recorded against a privilege, rather than a license."""
+    return [
+        record
+        for record in records
+        if record.get('actionAgainst') == 'privilege' or record.get('investigationAgainst') == 'privilege'
+    ]
+
+
+def _verify_privilege_records_are_on(records: list[dict], provider_id: str, description: str):
+    if len(_privilege_records(records)) != 2:
+        raise SmokeTestFailureException(
+            f'Expected the privilege encumbrance and investigation to be on {description} '
+            f'(provider {provider_id}); found {len(_privilege_records(records))} privilege record(s). These '
+            f'belong to the multi-state license that generated the privilege and must travel with it.'
+        )
+    for record in _privilege_records(records):
+        if record.get('homeJurisdictionAtTimeOfCreation') != CORRECTED_JURISDICTION:
+            raise SmokeTestFailureException(
+                f'A privilege record carries homeJurisdictionAtTimeOfCreation '
+                f'{record.get("homeJurisdictionAtTimeOfCreation")!r}, expected {CORRECTED_JURISDICTION!r}. '
+                f'That field is what routes it during a correction.'
+            )
+    print(f'Verified both privilege records are on {description}')
+
+
+def _verify_no_privilege_records_on(records: list[dict], provider_id: str, description: str):
+    if _privilege_records(records):
+        raise SmokeTestFailureException(
+            f'Found {len(_privilege_records(records))} privilege record(s) on {description} '
+            f'(provider {provider_id}); expected none.'
+        )
+    print(f'Verified no privilege records on {description}')
 
 
 def _wait_until(description: str, predicate: Callable, max_wait_seconds: int = _MIGRATION_WAIT_SECONDS):
@@ -381,6 +458,14 @@ def _build_both_pairs_under_the_incorrect_ssn(client_id: str, client_secret: str
     cuid = _cuid(records)
     print(f'Practitioner {provider_id} was assigned CUID {cuid} by the {CORRECTED_JURISDICTION} pair')
 
+    # Encumber and investigate the privilege now, while this is the practitioner's only pair, so the home
+    # jurisdiction recorded on both is unambiguously the state whose licenses get corrected below
+    _encumber_and_investigate_a_privilege(staff_headers, provider_id)
+    _wait_until(
+        'the privilege encumbrance and investigation to be recorded',
+        lambda: len(_privilege_records(get_all_provider_database_records(COMPACT, provider_id))) == 2,
+    )
+
     _upload_license(
         client_id,
         client_secret,
@@ -540,6 +625,13 @@ def test_ssn_correction_migrates_cuid_with_the_final_license(client_id: str, cli
             original_cuid=original_cuid,
             original_provider_id=original_provider_id,
         )
+        # A single-state license never generates privileges, so its correction must leave these behind
+        _verify_privilege_records_are_on(
+            after_first_original, original_provider_id, 'the original practitioner after the first correction'
+        )
+        _verify_no_privilege_records_on(
+            after_first_corrected, corrected_provider_id, 'the corrected practitioner after the first correction'
+        )
         _verify_license_ssn_last_four(records=after_first_corrected, expected_ssn_last_four=CORRECTED_SSN[-4:])
         # everything still on the original record was untouched, so it keeps the original last four
         _verify_license_ssn_last_four(records=after_first_original, expected_ssn_last_four=ORIGINAL_SSN[-4:])
@@ -593,6 +685,13 @@ def test_ssn_correction_migrates_cuid_with_the_final_license(client_id: str, cli
             original_provider_id=original_provider_id,
         )
 
+        # The multi-state license that generated the privilege has moved, so its records go with it
+        _verify_privilege_records_are_on(
+            final_corrected_records, corrected_provider_id, 'the corrected practitioner after the final correction'
+        )
+        _verify_no_privilege_records_on(
+            final_original_records, original_provider_id, 'the original practitioner after the final correction'
+        )
         _verify_license_ssn_last_four(records=final_corrected_records, expected_ssn_last_four=CORRECTED_SSN[-4:])
         # the retained state's licenses were never part of a correction, so they keep the original last four
         _verify_license_ssn_last_four(

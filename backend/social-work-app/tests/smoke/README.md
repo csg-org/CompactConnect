@@ -116,8 +116,10 @@ particular what happens to a practitioner's Compact Unique Identifier (CUID) acr
 practitioner holds a license pair in **two** states, and only the first state's licenses are corrected -
 which is what keeps the original provider record alive to be checked after the identifier leaves it:
 
-1. Builds an **OH** LBSW pair, then an **AZ** LBSW pair, for one practitioner under one incorrect SSN
-   (SsnMigration CuidSmokeTest / SSN `999-66-6666`). OH goes first, so its pair is the one that earns the CUID
+1. Builds an **OH** LBSW pair for one practitioner under one incorrect SSN (SsnMigration CuidSmokeTest /
+   SSN `999-66-6666`), then encumbers and opens an investigation against their **AZ** privilege while OH is
+   still their only pair - so both records record OH as the home jurisdiction they were created under.
+   Then builds an **AZ** LBSW pair. OH goes first, so its pair is the one that earns the CUID
 2. Corrects the OH **single-state** license, and asserts the CUID stays on the original record, is not minted
    on the corrected one, and that only the corrected provider has an `ssnCorrection` record so far
 3. Corrects the OH **multi-state** license, and asserts the original CUID moved across unchanged rather than
@@ -127,6 +129,9 @@ which is what keeps the original provider record alive to be checked after the i
    `publicCompactIdentifier` in `removedValues`
 5. Asserts the AZ pair was never touched (still on the original provider, still the original `ssnLastFour`)
    and the OH records arrived intact
+6. Asserts the privilege encumbrance and investigation stayed behind through the single-state correction -
+   a single-state license generates no privileges - and travelled with the multi-state license that did
+   generate them
 
 Expect a **long** runtime. A practitioner's single-state license must be fully ingested before their
 multi-state license is uploaded (see [Upload order](../../docs/README.md)), so building the two pairs takes
