@@ -16,15 +16,15 @@ aws-cdk-cloud-assembly-schema==54.20.0
     # via aws-cdk-lib
 aws-cdk-lib==2.265.0
     # via
-    #   -r requirements.in
+    #   -r control-tower/requirements.in
     #   cdk-nag
 cattrs==25.3.0
     # via jsii
-cdk-nag==2.38.2
-    # via -r requirements.in
+cdk-nag==3.0.2
+    # via -r control-tower/requirements.in
 constructs==10.8.1
     # via
-    #   -r requirements.in
+    #   -r control-tower/requirements.in
     #   aws-cdk-lib
     #   cdk-nag
 jsii==1.139.0
@@ -51,7 +51,6 @@ six==1.17.0
 typeguard==2.13.3
     # via
     #   aws-cdk-asset-node-proxy-agent-v6
-    #   cdk-nag
     #   jsii
 typing-extensions==4.15.0
     # via
