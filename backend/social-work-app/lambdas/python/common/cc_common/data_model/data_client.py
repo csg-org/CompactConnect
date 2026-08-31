@@ -1505,13 +1505,13 @@ class DataClient:
                 consistent_read=True,
             )
             existing_new_provider_record = new_provider_records.get_provider_record()
-            new_existing_licenses = new_provider_records.get_license_records()
+            new_practitioner_existing_licenses = new_provider_records.get_license_records()
             logger.info('provider id for corrected SSN found with records.')
         except CCNotFoundException:
             # no records exist under the corrected SSN yet
             logger.info('provider id for corrected SSN currently has no records.')
             existing_new_provider_record = None
-            new_existing_licenses = []
+            new_practitioner_existing_licenses = []
 
         # Idempotency guard: if the targeted license is not on the old provider, it was either never there or
         # a previous run already migrated it
@@ -1561,7 +1561,7 @@ class DataClient:
 
         cuid_decision = self._resolve_ssn_correction_cuid_ownership(
             existing_new_provider_record_cuid=compact,
-            licenses_on_new_provider_record=new_existing_licenses,
+            licenses_on_new_provider_record=new_practitioner_existing_licenses,
             old_provider_data=old_top_level_provider_data,
             old_provider_records=old_provider_records,
             target_license=target_license,
