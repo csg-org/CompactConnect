@@ -247,25 +247,36 @@ class ProviderUserRecords:
         self._provider_records: list[ProviderData] = []
         self._provider_update_records: list[ProviderUpdateData] = []
         self._license_update_records: list[LicenseUpdateData] = []
+        # Every record above, in one list, so callers that need the whole partition rather than a particular
+        # category do not have to enumerate the categories and cannot fall behind as new ones are added
+        self._all_typed_records: list[CCDataClass] = []
 
         # Convert records once during initialization (skip privilege/privilegeUpdate; no longer stored)
         for record in provider_records:
             record_type = record.get('type')
             if record_type == ProviderRecordType.LICENSE:
-                self._license_records.append(LicenseData.from_database_record(record))
+                typed_record = LicenseData.from_database_record(record)
+                self._license_records.append(typed_record)
             elif record_type == ProviderRecordType.ADVERSE_ACTION:
-                self._adverse_action_records.append(AdverseActionData.from_database_record(record))
+                typed_record = AdverseActionData.from_database_record(record)
+                self._adverse_action_records.append(typed_record)
             elif record_type == ProviderRecordType.INVESTIGATION:
-                self._investigation_records.append(InvestigationData.from_database_record(record))
+                typed_record = InvestigationData.from_database_record(record)
+                self._investigation_records.append(typed_record)
             elif record_type == ProviderRecordType.PROVIDER:
-                self._provider_records.append(ProviderData.from_database_record(record))
+                typed_record = ProviderData.from_database_record(record)
+                self._provider_records.append(typed_record)
             elif record_type == ProviderRecordType.PROVIDER_UPDATE:
-                self._provider_update_records.append(ProviderUpdateData.from_database_record(record))
+                typed_record = ProviderUpdateData.from_database_record(record)
+                self._provider_update_records.append(typed_record)
             elif record_type == ProviderRecordType.LICENSE_UPDATE:
-                self._license_update_records.append(LicenseUpdateData.from_database_record(record))
+                typed_record = LicenseUpdateData.from_database_record(record)
+                self._license_update_records.append(typed_record)
             else:
                 # log the warning, but continue with initialization
                 logger.warning('Unrecognized record type found.', record_type=record_type)
+                continue
+            self._all_typed_records.append(typed_record)
 
     def get_specific_license_record(
         self, jurisdiction: str, license_abbreviation: str, license_scope: str
@@ -929,17 +940,15 @@ class ProviderUserRecords:
         provider record - that one is deleted directly by the migration's final transaction.
 
         Used for a full migration, where the partition is about to be deleted and selectivity would only
-        risk orphaning something. Note this returns every record this class could categorise: a record type
-        it does not recognise is logged as a warning at construction and retained in no collection, which is
-        exactly what the migration's orphan guard exists to catch.
+        risk orphaning something. Excluding by type rather than listing the categories to include means a
+        record type added to this class in future is migrated by default, instead of being silently left
+        behind until someone remembers to add it here.
+
+        A record type this class does not recognise at all is still not returned - it is logged as a warning
+        at construction and retained in no collection - which is exactly what the migration's orphan guard
+        exists to catch.
         """
-        return [
-            *self._license_records,
-            *self._adverse_action_records,
-            *self._investigation_records,
-            *self._provider_update_records,
-            *self._license_update_records,
-        ]
+        return [record for record in self._all_typed_records if record.type != ProviderRecordType.PROVIDER]
 
     def generate_api_response_object(self, is_public_response: bool = False) -> dict:
         """

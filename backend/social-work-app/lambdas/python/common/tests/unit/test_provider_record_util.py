@@ -2477,3 +2477,55 @@ class TestHomeJurisdictionForLicenseType(TstLambdas):
         )
 
         self.assertEqual('ky', records.get_home_jurisdiction_for_license_type(self.LCSW))
+
+
+class TestGetAllRecordsExceptTheProviderRecord(TstLambdas):
+    """
+    The full-migration selector, which must move an entire provider partition.
+
+    A full migration deletes the old top-level provider record, so anything this returns short of 'the
+    whole partition' is a record orphaned under a provider that no longer exists. That makes 'everything
+    except the provider record' the contract, rather than 'everything the migration happens to know about'.
+    """
+
+    def _records_covering_every_type(self):
+        """One record of every type this system stores in a provider partition."""
+        from common_test.test_data_generator import TestDataGenerator
+
+        return [
+            TestDataGenerator.generate_default_provider().serialize_to_database_record(),
+            TestDataGenerator.generate_default_provider_update().serialize_to_database_record(),
+            TestDataGenerator.generate_default_license().serialize_to_database_record(),
+            TestDataGenerator.generate_default_license_update().serialize_to_database_record(),
+            TestDataGenerator.generate_default_adverse_action().serialize_to_database_record(),
+            TestDataGenerator.generate_default_investigation().serialize_to_database_record(),
+        ]
+
+    def test_returns_every_record_but_the_provider_record(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_covering_every_type())
+
+        returned = records.get_all_records_except_the_provider_record()
+
+        self.assertEqual(5, len(returned))
+        self.assertNotIn(ProviderRecordType.PROVIDER, [record.type for record in returned])
+
+    def test_covers_every_record_type_the_system_defines(self):
+        """
+        Guards the failure mode this selector exists to prevent.
+
+        A record type added to ProviderRecordType but not handled by ProviderUserRecords is dropped at
+        construction with only a logged warning. In a full migration that record would be left behind in a
+        partition whose provider record has been deleted, so this asserts the two stay in step.
+        """
+        from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_covering_every_type())
+
+        returned_types = {record.type for record in records.get_all_records_except_the_provider_record()}
+
+        expected_types = {
+            record_type for record_type in ProviderRecordType if record_type != ProviderRecordType.PROVIDER
+        }
+        self.assertEqual(expected_types, returned_types)
