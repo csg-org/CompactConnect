@@ -29,7 +29,7 @@ jmespath==1.1.0
     #   botocore
 markupsafe==3.0.3
     # via werkzeug
-moto==5.2.2
+moto==5.2.3
     # via -r requirements-dev.in
 packaging==26.2
     # via pytest
