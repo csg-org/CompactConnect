@@ -28,11 +28,11 @@ practitioner does not strip that practitioner of the identifier their own, while
 licenses are the ones being corrected does not lose it either.
 """
 
-from datetime import datetime
 from enum import StrEnum
 
 from cc_common.config import logger
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
+from cc_common.data_model.schema.common import LicenseScopeEnum
 from cc_common.data_model.schema.license import LicenseData
 
 
@@ -108,19 +108,48 @@ def _corrected_licenses_uploaded_first(
     new_post_migration_licenses: list[LicenseData], old_remaining_licenses: list[LicenseData]
 ) -> bool:
     """
-    Whether the corrected practitioner's licenses were uploaded before anything left on the old record.
+    Whether the licenses now on the corrected record are the ones that earned the CUID.
 
-    Compares the two practitioners' whole sets, not just the license this correction happens to be moving.
-    A correction moves one license at a time, so by the time the moving license completes a pair on the
-    corrected record its earlier siblings are already there. If two states' uploads interleaved, the
-    license moving last can easily be the newest of them all while its set is still the older one. Judging
-    on the moving license alone would leave the identifier behind in exactly that case.
+    A CUID is minted the moment a practitioner first holds a matching single-state/multi-state pair, so the
+    set that earned it is the set whose pair completed first - not the set that merely started first. Those
+    differ whenever two states' uploads interleave: a state can file its single-state license before anyone
+    else and still be the last to complete a pair, having never earned the identifier at all.
+
+    So rather than comparing dates between the two sides, this replays both practitioners' uploads in the
+    order they actually happened and stops at the first pair to come together. Whichever side now holds that
+    set is the side the identifier belongs to.
+
+    A pair split across the two sides counts as the corrected record's: a correction moves one license at a
+    time, so a half-migrated set is one the remaining corrections will finish bringing across.
+
+    With no licenses remaining this is vacuously true, which is also the outcome we want: the old record is
+    being emptied, so leaving the identifier on it would only retire it.
+
+    firstUploadDate is read directly rather than defensively. Every license carries one from the moment it
+    is ingested, so an absent value means something is wrong upstream, and failing loudly here is far
+    better than silently mis-assigning a public identifier that can never be reassigned.
     """
     if not old_remaining_licenses:
         return True
 
-    return _earliest_upload(new_post_migration_licenses) < _earliest_upload(old_remaining_licenses)
+    uploads_in_order = sorted(
+        [(license_data, True) for license_data in new_post_migration_licenses]
+        + [(license_data, False) for license_data in old_remaining_licenses],
+        key=lambda entry: entry[0].firstUploadDate,
+    )
 
+    scopes_seen: dict[tuple[str, str], set[str]] = {}
+    on_corrected_record: dict[tuple[str, str], bool] = {}
+    for license_data, is_on_corrected_record in uploads_in_order:
+        # A pair is per jurisdiction and license type, so that is what identifies a set here
+        license_set = (license_data.jurisdiction, license_data.licenseType)
+        scopes_seen.setdefault(license_set, set()).add(license_data.licenseScope)
+        on_corrected_record[license_set] = on_corrected_record.get(license_set, False) or is_on_corrected_record
+        if {LicenseScopeEnum.SINGLE_STATE.value, LicenseScopeEnum.MULTI_STATE.value}.issubset(scopes_seen[license_set]):
+            return on_corrected_record[license_set]
 
-def _earliest_upload(licenses: list[LicenseData]) -> datetime:
-    return min(license_data.firstUploadDate for license_data in licenses)
+    # Unreachable in practice: this is only consulted once both sides hold a qualifying pair, so replaying
+    # their uploads must complete one. Treated as 'not the corrected record's' so an unforeseen shape leaves
+    # the identifier where it already is rather than moving it somewhere it may not belong.
+    logger.error('No completed license pair found while attributing the CUID; leaving it in place')
+    return False

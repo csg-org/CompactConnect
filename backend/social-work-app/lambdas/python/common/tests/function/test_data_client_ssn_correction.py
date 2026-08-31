@@ -427,6 +427,28 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertEqual(A_CUID, self._provider_record(NEW_PROVIDER_ID)['publicCompactIdentifier'])
         self.assertNotIn('publicCompactIdentifier', self._provider_record(OLD_PROVIDER_ID))
 
+    def test_cuid_stays_when_the_retained_set_completed_its_pair_first(self):
+        """
+        Interleaved uploads where the RETAINED state's pair completes first: oh single-state, az
+        single-state, az multi-state (completing that pair and minting the CUID), oh multi-state.
+
+        The oh set starts earliest but only becomes a pair last, so the az pair is what earned the
+        identifier and it has to stay behind with it.
+        """
+        self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state', first_upload=datetime(2020, 4, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'az', LMSW, 'single-state', first_upload=datetime(2020, 2, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'az', LMSW, 'multi-state', first_upload=datetime(2020, 3, 1, tzinfo=UTC))
+        # the oh single-state license moved across in an earlier correction
+        self._put_provider(NEW_PROVIDER_ID, givenName='Corrected')
+        self._put_license(NEW_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2020, 1, 1, tzinfo=UTC))
+
+        result = self._migrate(jurisdiction='oh', license_type=LCSW, license_scope='multi-state')
+
+        self.assertFalse(result.cuid_moved)
+        self.assertEqual(A_CUID, self._provider_record(OLD_PROVIDER_ID)['publicCompactIdentifier'])
+        self.assertNotIn('publicCompactIdentifier', self._provider_record(NEW_PROVIDER_ID))
+
     def test_cuid_stays_when_something_older_remains_on_the_old_provider(self):
         """
         Check 3, the no branch. The corrected record does qualify once this license lands, but older

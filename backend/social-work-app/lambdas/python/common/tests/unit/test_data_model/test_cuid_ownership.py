@@ -141,6 +141,29 @@ class TestResolveCuidOwnership(TstLambdas):
 
         self.assertEqual(CuidOwnership.MOVE, decision)
 
+    def test_keeps_when_the_remaining_set_completed_its_pair_first(self):
+        """
+        Check 4 has to find which set actually completed a pair first, not merely which set started first.
+
+        Upload order: the corrected state's single-state license, then the other state's single-state, then
+        the other state's MULTI-state - which completes that pair and is what mints the CUID - and only then
+        the corrected state's multi-state. The corrected state's set starts earliest, but it does not become
+        a pair until last, so it never earned the identifier and must not take it.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        already_migrated = _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))
+        migrating = _license('oh', LCSW, 'multi-state', datetime(2020, 4, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            migrating=migrating,
+            # completes at 2020-03, before the oh pair completes at 2020-04
+            old_remaining=_pair('az', LMSW, datetime(2020, 2, 1, tzinfo=UTC), datetime(2020, 3, 1, tzinfo=UTC)),
+            new_post=[already_migrated, migrating],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
+
     def test_keeps_when_an_older_qualifying_pair_stays_behind(self):
         """
         Check 4, the yes branch. This is the case of licenses accidentally attached to an existing
@@ -179,24 +202,33 @@ class TestResolveCuidOwnership(TstLambdas):
 
         self.assertEqual(CuidOwnership.MOVE, decision)
 
-    def test_compares_against_the_oldest_remaining_license(self):
+    def test_a_pair_split_across_both_records_counts_as_the_corrected_records(self):
         """
-        'Before any of the remaining licenses' means before all of them. A single older license left
-        behind is enough to keep the identifier where it is.
+        Mid-correction a set can straddle both records: its single-state license has already been moved
+        across while its multi-state license is still waiting its turn. If that set is the one that earned
+        the CUID, it belongs to the corrected record - the remaining corrections will finish bringing it
+        over, so the identifier should travel with it rather than wait behind.
         """
         from cc_common.data_model.cuid_ownership import CuidOwnership
 
-        migrating = _license('oh', LCSW, 'single-state', datetime(2016, 1, 1, tzinfo=UTC))
+        # The oh set completed first (2011) and is half migrated
+        already_migrated = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
+        still_behind = _license('oh', LCSW, 'multi-state', datetime(2011, 1, 1, tzinfo=UTC))
 
         decision = self._resolve(
-            migrating=migrating,
-            # A qualifying pair, so check 4 does not fire and the comparison in check 3 is what decides.
-            # Its newer half postdates the migrating license; its older half is what must be compared against.
-            old_remaining=_pair('ky', LMSW, datetime(2015, 1, 1, tzinfo=UTC), datetime(2020, 1, 1, tzinfo=UTC)),
-            new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2017, 1, 1, tzinfo=UTC))],
+            migrating=_license('az', LCSW, 'multi-state', datetime(2021, 1, 1, tzinfo=UTC)),
+            # the old record keeps a pair of its own, so check 3 does not fire and check 4 decides
+            old_remaining=[
+                still_behind,
+                *_pair('ky', LMSW, datetime(2018, 1, 1, tzinfo=UTC), datetime(2019, 1, 1, tzinfo=UTC)),
+            ],
+            new_post=[
+                already_migrated,
+                *_pair('az', LCSW, datetime(2020, 1, 1, tzinfo=UTC), datetime(2021, 1, 1, tzinfo=UTC)),
+            ],
         )
 
-        self.assertEqual(CuidOwnership.KEEP, decision)
+        self.assertEqual(CuidOwnership.MOVE, decision)
 
     def test_moves_when_nothing_remains_on_the_old_record(self):
         """
