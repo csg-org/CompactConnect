@@ -83,7 +83,7 @@ def resolve_cuid_ownership(
         logger.info('Corrected provider does not qualify for a CUID; leaving the identifier in place')
         return CuidOwnership.KEEP
 
-    if _corrected_licenses_started_first(new_post_migration_licenses, old_remaining_licenses):
+    if _corrected_licenses_uploaded_first(new_post_migration_licenses, old_remaining_licenses):
         logger.info("Corrected practitioner's licenses started first; moving the CUID to the corrected provider")
         return CuidOwnership.MOVE
 
@@ -103,24 +103,17 @@ def resolve_cuid_ownership(
     return CuidOwnership.KEEP
 
 
-def _corrected_licenses_started_first(
+def _corrected_licenses_uploaded_first(
     new_post_migration_licenses: list[LicenseData], old_remaining_licenses: list[LicenseData]
 ) -> bool:
     """
-    Whether the corrected practitioner's licenses began before anything left on the old record.
+    Whether the corrected practitioner's licenses were uploaded before anything left on the old record.
 
     Compares the two practitioners' whole sets, not just the license this correction happens to be moving.
     A correction moves one license at a time, so by the time the moving license completes a pair on the
-    corrected record its earlier siblings are already there - and with two states' uploads interleaved, the
+    corrected record its earlier siblings are already there. If two states' uploads interleaved, the
     license moving last can easily be the newest of them all while its set is still the older one. Judging
     on the moving license alone would leave the identifier behind in exactly that case.
-
-    With no licenses remaining this is vacuously true, which is also the outcome we want: the old record is
-    being emptied, so leaving the identifier on it would only retire it.
-
-    firstUploadDate is read directly rather than defensively. Every license carries one from the moment it
-    is ingested, so an absent value means something is wrong upstream, and failing loudly here is far
-    better than silently mis-assigning a public identifier that can never be reassigned.
     """
     if not old_remaining_licenses:
         return True
@@ -129,8 +122,4 @@ def _corrected_licenses_started_first(
 
 
 def _earliest_upload(licenses: list[LicenseData]) -> datetime:
-    return min(_first_upload_date(license_data) for license_data in licenses)
-
-
-def _first_upload_date(license_data: LicenseData) -> datetime:
-    return license_data.to_dict()['firstUploadDate']
+    return min(license_data.firstUploadDate for license_data in licenses)
