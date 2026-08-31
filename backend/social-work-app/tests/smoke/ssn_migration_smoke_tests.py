@@ -29,7 +29,7 @@ These tests require:
 Expect a long runtime. A practitioner's single-state license must be fully ingested before their multi-state
 license is uploaded (see the Upload order section of docs/README.md), so building the two pairs takes four
 sequential upload/ingest cycles before the two corrections even begin - six waits in total, each of which
-can take several minutes because of the SQS batching windows in front of the preprocess and ingest handlers.
+spends a couple of minutes in the SQS batching windows in front of the preprocess and ingest handlers.
 
 Note that by design, developers do not have the ability to delete records from the SSN DynamoDB table, so
 the SSN records created by these tests are left in place. The tests use fixed mock SSNs so repeated runs
@@ -89,8 +89,9 @@ LICENSE_TYPE_ABBREVIATION = 'lbsw'
 TEST_STAFF_USER_EMAIL = 'testStaffUserSocwSsnMigration@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-ssn-migration-smoke-client'
 
-# Ingest runs through two SQS stages whose event source mappings use multi-minute batching windows, so a
-# correction can take a while to land. See the developer note in license_upload_smoke_tests.py.
+# Ingest runs through two SQS stages, each with a one-minute batching window in front of it, so a correction
+# takes a couple of minutes to land at minimum. This bound is deliberately far above that, since it also has
+# to cover a cold start and a retry. See the developer note in license_upload_smoke_tests.py.
 _MIGRATION_WAIT_SECONDS = 900
 _POLL_INTERVAL_SECONDS = 30
 

@@ -107,7 +107,8 @@ This test validates license upload, home state change notification, jurisdiction
 3. Runs the shared 3-upload home state change flow with **LBSW** (Jane TestSmith / SSN `999-88-8888`)
 4. Asserts GET provider privileges include **AZ** only (CO is live but excluded; OH is home and excluded)
 
-Expect long runtimes (up to ~15 minutes) due to SQS batching windows during license ingest. Do not run this test concurrently with other smoke tests that use the same shared practitioner identity against the same sandbox.
+Expect a long runtime - roughly 15-20 minutes - since each of the six ingest waits sits behind the
+one-minute batching windows on the preprocess and ingest queues, and the test performs them in sequence. Do not run this test concurrently with other smoke tests that use the same shared practitioner identity against the same sandbox.
 
 ### SSN Migration Smoke Tests (`ssn_migration_smoke_tests.py`)
 
@@ -136,7 +137,7 @@ which is what keeps the original provider record alive to be checked after the i
 Expect a **long** runtime. A practitioner's single-state license must be fully ingested before their
 multi-state license is uploaded (see [Upload order](../../docs/README.md)), so building the two pairs takes
 four sequential upload/ingest cycles before the two corrections begin - six waits in total, each of which can
-take several minutes because of the SQS batching windows. Both provider partitions are cleaned up
+take a couple of minutes each because of the SQS batching windows. Both provider partitions are cleaned up
 automatically, including on failure; the SSN table records are left in place by design, and the fixed mock
 SSNs mean reruns reuse the same mappings.
 
