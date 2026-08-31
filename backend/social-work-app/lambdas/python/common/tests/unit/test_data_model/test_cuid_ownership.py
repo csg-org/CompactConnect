@@ -57,8 +57,8 @@ class TestResolveCuidOwnership(TstLambdas):
         return resolve_cuid_ownership(
             old_provider_cuid=old_cuid,
             new_provider_cuid=new_cuid,
-            migrating_license=migrating_license,
             old_remaining_licenses=old_remaining if old_remaining is not None else [],
+            # the migrating license is always among the corrected record's licenses after the move
             new_post_migration_licenses=new_post if new_post is not None else [migrating_license],
         )
 
@@ -114,6 +114,29 @@ class TestResolveCuidOwnership(TstLambdas):
             old_remaining=_pair('ky', LMSW, datetime(2018, 1, 1, tzinfo=UTC), datetime(2019, 1, 1, tzinfo=UTC)),
             # The corrected record already held the matching multi-state license, so this completes a pair
             new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2012, 1, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.MOVE, decision)
+
+    def test_moves_when_the_corrected_set_started_first_even_if_the_migrating_license_did_not(self):
+        """
+        Check 3 has to compare the two practitioners' license sets, not just the license being moved.
+
+        Interleaved upload order: the corrected state's single-state license lands first, then the other
+        state's single-state, then the corrected state's multi-state (which completes the pair and mints the
+        CUID), then the other state's multi-state. Correcting single-state before multi-state means the
+        license moving here is the LATEST of the four - but its set began before anything left behind, so
+        the identifier belongs with it.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        already_migrated = _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))
+        migrating = _license('oh', LCSW, 'multi-state', datetime(2020, 3, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            migrating=migrating,
+            old_remaining=_pair('az', LMSW, datetime(2020, 2, 1, tzinfo=UTC), datetime(2020, 4, 1, tzinfo=UTC)),
+            new_post=[already_migrated, migrating],
         )
 
         self.assertEqual(CuidOwnership.MOVE, decision)

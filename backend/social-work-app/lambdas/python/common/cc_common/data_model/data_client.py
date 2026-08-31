@@ -1684,7 +1684,6 @@ class DataClient:
                 if existing_new_provider_record is not None
                 else None
             ),
-            migrating_license=target_license,
             old_remaining_licenses=old_remaining_licenses,
             new_post_migration_licenses=[*new_existing_licenses, rekeyed_target_license],
         )

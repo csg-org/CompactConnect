@@ -9,9 +9,10 @@ CUID is earned by a matching single-state/multi-state *pair*, that rule is appli
    if and when that record is emptied.
 2. If the corrected practitioner does not qualify for a CUID even with this license added, nothing moves. They are
    assigned one by the ordinary rule on a subsequent upload.
-3. Otherwise the CUID follows whichever licenses were uploaded first: if the license being corrected predates
-   everything left on the old record, it takes the identifier with it, and the old record is assigned a fresh one on
-   its next qualifying upload.
+3. Otherwise the CUID follows whichever practitioner's licenses were uploaded first: if the corrected record's
+   licenses began before anything left on the old record, it takes the identifier, and the old record is assigned a
+   fresh one on its next qualifying upload. The comparison is across both whole sets - a correction moves one license
+   at a time, so the one moving last can be the newest of them all while its set is still the older one.
 4. If something older stayed behind, the identifier only stays with it while the old record still holds a qualifying
    pair. Once it does not, nothing there could have earned the identifier, so it moves to the corrected practitioner
    rather than being stranded.
@@ -42,7 +43,6 @@ def resolve_cuid_ownership(
     *,
     old_provider_cuid: str | None,
     new_provider_cuid: str | None,
-    migrating_license: LicenseData,
     old_remaining_licenses: list[LicenseData],
     new_post_migration_licenses: list[LicenseData],
 ) -> CuidOwnership:
@@ -54,7 +54,6 @@ def resolve_cuid_ownership(
 
     :param old_provider_cuid: The CUID currently on the old provider record, if any
     :param new_provider_cuid: The CUID currently on the corrected provider record, if any
-    :param migrating_license: The license record this correction is moving
     :param old_remaining_licenses: The old provider's licenses with the migrating license removed
     :param new_post_migration_licenses: The corrected provider's licenses with the migrating license added
     :return: KEEP to leave the CUID where it is, MOVE to transfer it to the corrected record
@@ -80,8 +79,8 @@ def resolve_cuid_ownership(
         logger.info('Corrected provider does not qualify for a CUID; leaving the identifier in place')
         return CuidOwnership.KEEP
 
-    if _license_predates_all(migrating_license, old_remaining_licenses):
-        logger.info('Corrected license predates everything remaining; moving the CUID to the corrected provider')
+    if _corrected_licenses_started_first(new_post_migration_licenses, old_remaining_licenses):
+        logger.info("Corrected practitioner's licenses started first; moving the CUID to the corrected provider")
         return CuidOwnership.MOVE
 
     old_provider_still_qualifies = ProviderRecordUtility.has_paired_single_and_multi_state_license(
@@ -100,9 +99,17 @@ def resolve_cuid_ownership(
     return CuidOwnership.KEEP
 
 
-def _license_predates_all(migrating_license: LicenseData, old_remaining_licenses: list[LicenseData]) -> bool:
+def _corrected_licenses_started_first(
+    new_post_migration_licenses: list[LicenseData], old_remaining_licenses: list[LicenseData]
+) -> bool:
     """
-    Whether the license being corrected was uploaded before everything left on the old record.
+    Whether the corrected practitioner's licenses began before anything left on the old record.
+
+    Compares the two practitioners' whole sets, not just the license this correction happens to be moving.
+    A correction moves one license at a time, so by the time the moving license completes a pair on the
+    corrected record its earlier siblings are already there - and with two states' uploads interleaved, the
+    license moving last can easily be the newest of them all while its set is still the older one. Judging
+    on the moving license alone would leave the identifier behind in exactly that case.
 
     With no licenses remaining this is vacuously true, which is also the outcome we want: the old record is
     being emptied, so leaving the identifier on it would only retire it.
@@ -114,9 +121,11 @@ def _license_predates_all(migrating_license: LicenseData, old_remaining_licenses
     if not old_remaining_licenses:
         return True
 
-    return _first_upload_date(migrating_license) < min(
-        _first_upload_date(license_data) for license_data in old_remaining_licenses
-    )
+    return _earliest_upload(new_post_migration_licenses) < _earliest_upload(old_remaining_licenses)
+
+
+def _earliest_upload(licenses: list[LicenseData]) -> datetime:
+    return min(_first_upload_date(license_data) for license_data in licenses)
 
 
 def _first_upload_date(license_data: LicenseData) -> datetime:

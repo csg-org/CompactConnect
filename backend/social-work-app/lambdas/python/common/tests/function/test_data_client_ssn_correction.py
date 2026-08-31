@@ -404,6 +404,29 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
             ],
         )
 
+    def test_cuid_moves_when_the_corrected_set_started_first_across_interleaved_uploads(self):
+        """
+        Two states' licenses interleaved: oh single-state, az single-state, oh multi-state (completing the
+        pair that mints the CUID), az multi-state. The oh single-state license has already been corrected
+        across, so this migrates the oh multi-state one - the newest of the four.
+
+        The identifier still belongs with the oh set, which began before anything the old record retains.
+        Comparing only the migrating license's own upload date would leave it behind.
+        """
+        self._put_provider(OLD_PROVIDER_ID, publicCompactIdentifier=A_CUID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'multi-state', first_upload=datetime(2020, 3, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'az', LMSW, 'single-state', first_upload=datetime(2020, 2, 1, tzinfo=UTC))
+        self._put_license(OLD_PROVIDER_ID, 'az', LMSW, 'multi-state', first_upload=datetime(2020, 4, 1, tzinfo=UTC))
+        # the oh single-state license moved across in an earlier correction
+        self._put_provider(NEW_PROVIDER_ID, givenName='Corrected')
+        self._put_license(NEW_PROVIDER_ID, 'oh', LCSW, 'single-state', first_upload=datetime(2020, 1, 1, tzinfo=UTC))
+
+        result = self._migrate(jurisdiction='oh', license_type=LCSW, license_scope='multi-state')
+
+        self.assertTrue(result.cuid_moved)
+        self.assertEqual(A_CUID, self._provider_record(NEW_PROVIDER_ID)['publicCompactIdentifier'])
+        self.assertNotIn('publicCompactIdentifier', self._provider_record(OLD_PROVIDER_ID))
+
     def test_cuid_stays_when_something_older_remains_on_the_old_provider(self):
         """
         Check 3, the no branch. The corrected record does qualify once this license lands, but older
