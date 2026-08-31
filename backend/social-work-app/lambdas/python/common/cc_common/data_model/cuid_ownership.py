@@ -28,6 +28,7 @@ practitioner does not strip that practitioner of the identifier their own, while
 licenses are the ones being corrected does not lose it either.
 """
 
+from datetime import datetime
 from enum import StrEnum
 
 from cc_common.config import logger
@@ -110,17 +111,17 @@ def _corrected_licenses_uploaded_first(
     """
     Whether the licenses now on the corrected record are the ones that earned the CUID.
 
-    A CUID is minted the moment a practitioner first holds a matching single-state/multi-state pair, so the
-    set that earned it is the set whose pair completed first - not the set that merely started first. Those
-    differ whenever two states' uploads interleave: a state can file its single-state license before anyone
-    else and still be the last to complete a pair, having never earned the identifier at all.
+    Both practitioners qualify for a CUID by the time this is asked, so the question is which of them got
+    there first. A CUID is minted the moment a matching single-state/multi-state pair is complete, which is
+    the LATER of that pair's two uploads - so the set that earned it is the one whose completion date is
+    earliest, and whichever record now holds that set is where the identifier belongs.
 
-    So rather than comparing dates between the two sides, this replays both practitioners' uploads in the
-    order they actually happened and stops at the first pair to come together. Whichever side now holds that
-    set is the side the identifier belongs to.
+    Note that a set's two dates are not interchangeable: a set can be the first to file a license and the
+    last to become a pair. Only its completion date decides, which is why this compares maxima within a set
+    and minima across sets rather than combining the dates in any other way.
 
-    A pair split across the two sides counts as the corrected record's: a correction moves one license at a
-    time, so a half-migrated set is one the remaining corrections will finish bringing across.
+    A pair split across the two records counts as the corrected record's: a correction moves one license at
+    a time, so a half-migrated set is one the remaining corrections will finish bringing across.
 
     With no licenses remaining this is vacuously true, which is also the outcome we want: the old record is
     being emptied, so leaving the identifier on it would only retire it.
@@ -132,24 +133,31 @@ def _corrected_licenses_uploaded_first(
     if not old_remaining_licenses:
         return True
 
-    uploads_in_order = sorted(
-        [(license_data, True) for license_data in new_post_migration_licenses]
-        + [(license_data, False) for license_data in old_remaining_licenses],
-        key=lambda entry: entry[0].firstUploadDate,
-    )
+    uploads_by_set: dict[tuple[str, str], dict[str, datetime]] = {}
+    set_is_on_corrected_record: dict[tuple[str, str], bool] = {}
+    for licenses, is_on_corrected_record in (
+        (new_post_migration_licenses, True),
+        (old_remaining_licenses, False),
+    ):
+        for license_data in licenses:
+            # A pair is per jurisdiction and license type, so that is what identifies a set here
+            license_set = (license_data.jurisdiction, license_data.licenseType)
+            uploads_by_set.setdefault(license_set, {})[license_data.licenseScope] = license_data.firstUploadDate
+            set_is_on_corrected_record[license_set] = (
+                set_is_on_corrected_record.get(license_set, False) or is_on_corrected_record
+            )
 
-    scopes_seen: dict[tuple[str, str], set[str]] = {}
-    on_corrected_record: dict[tuple[str, str], bool] = {}
-    for license_data, is_on_corrected_record in uploads_in_order:
-        # A pair is per jurisdiction and license type, so that is what identifies a set here
-        license_set = (license_data.jurisdiction, license_data.licenseType)
-        scopes_seen.setdefault(license_set, set()).add(license_data.licenseScope)
-        on_corrected_record[license_set] = on_corrected_record.get(license_set, False) or is_on_corrected_record
-        if {LicenseScopeEnum.SINGLE_STATE.value, LicenseScopeEnum.MULTI_STATE.value}.issubset(scopes_seen[license_set]):
-            return on_corrected_record[license_set]
+    completion_dates = {
+        license_set: max(scope_uploads.values())
+        for license_set, scope_uploads in uploads_by_set.items()
+        if {LicenseScopeEnum.SINGLE_STATE.value, LicenseScopeEnum.MULTI_STATE.value}.issubset(scope_uploads)
+    }
+    if not completion_dates:
+        # Unreachable in practice: this is only consulted once both records hold a qualifying pair. Treated
+        # as 'not the corrected record's' so an unforeseen shape leaves the identifier where it already is
+        # rather than moving it somewhere it may not belong.
+        logger.error('No completed license pair found while attributing the CUID; leaving it in place')
+        return False
 
-    # Unreachable in practice: this is only consulted once both sides hold a qualifying pair, so replaying
-    # their uploads must complete one. Treated as 'not the corrected record's' so an unforeseen shape leaves
-    # the identifier where it already is rather than moving it somewhere it may not belong.
-    logger.error('No completed license pair found while attributing the CUID; leaving it in place')
-    return False
+    first_completed_set = min(completion_dates, key=completion_dates.get)
+    return set_is_on_corrected_record[first_completed_set]

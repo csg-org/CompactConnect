@@ -164,6 +164,32 @@ class TestResolveCuidOwnership(TstLambdas):
 
         self.assertEqual(CuidOwnership.KEEP, decision)
 
+    def test_a_set_that_started_early_but_paired_late_did_not_earn_the_cuid(self):
+        """
+        A pair is created at the LATER of its two uploads, so a set can start well before another and still
+        become a pair well after it.
+
+        Here the corrected set filed its single-state license in January but did not add multi-state until
+        April, while the retained set filed both within two days of each other in February. February beats
+        April, so the retained set minted the CUID and keeps it.
+
+        This case is what rules out shortcuts that treat a set's two dates as interchangeable - totalling or
+        averaging them puts the corrected set first, because its very early first upload outweighs its very
+        late second one. Only the completion date answers the question.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        decision = self._resolve(
+            migrating=_license('oh', LCSW, 'multi-state', datetime(2020, 4, 10, tzinfo=UTC)),
+            old_remaining=_pair('az', LMSW, datetime(2020, 2, 20, tzinfo=UTC), datetime(2020, 2, 22, tzinfo=UTC)),
+            new_post=[
+                _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC)),
+                _license('oh', LCSW, 'multi-state', datetime(2020, 4, 10, tzinfo=UTC)),
+            ],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
+
     def test_keeps_when_an_older_qualifying_pair_stays_behind(self):
         """
         Check 4, the yes branch. This is the case of licenses accidentally attached to an existing
