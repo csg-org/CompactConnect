@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 from unittest.mock import patch
+from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key
 from moto import mock_aws
@@ -65,6 +66,49 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         return next(
             (record for record in self._records_for(provider_id) if record['type'] == 'provider'),
             None,
+        )
+
+    def _records_of_type(self, provider_id, record_type):
+        return [record for record in self._records_for(provider_id) if record['type'] == record_type]
+
+    def _put_adverse_action(self, provider_id, jurisdiction, license_type, license_type_abbreviation, scope, **extra):
+        return self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'jurisdiction': jurisdiction,
+                'licenseType': license_type,
+                'licenseTypeAbbreviation': license_type_abbreviation,
+                'licenseScope': scope,
+                'actionAgainst': 'license',
+                **extra,
+            }
+        )
+
+    def _put_investigation(
+        self, provider_id, jurisdiction, license_type, license_type_abbreviation, scope, *, closed=False, **extra
+    ):
+        overrides = {
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'licenseType': license_type,
+            'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': scope,
+            'investigationAgainst': 'license',
+            **extra,
+        }
+        if closed:
+            overrides['closeDate'] = datetime(2025, 1, 1, tzinfo=UTC)
+        return self.test_data_generator.put_default_investigation_record_in_provider_table(overrides)
+
+    def _put_license_update(self, provider_id, jurisdiction, license_type, scope, **extra):
+        return self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'jurisdiction': jurisdiction,
+                'licenseType': license_type,
+                'licenseScope': scope,
+                **extra,
+            }
         )
 
     def _migrate(self, *, jurisdiction='oh', license_type=LCSW, license_scope='single-state'):
@@ -137,6 +181,56 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
             'everything moves, plus the ssnCorrection provider update the migration writes',
         )
 
+    def test_full_migration_moves_every_record_type_associated_with_the_license(self):
+        """
+        get_records_associated_with_license selects the license, its adverse actions, its investigations
+        (open and closed), and its update history - see provider_record_util.py. This proves each of those
+        types actually survives migrate_provider_for_ssn_correction's transaction-building and rekeying,
+        which is a different code path than the selector unit tests exercise.
+        """
+        self._put_provider(OLD_PROVIDER_ID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
+        self._put_adverse_action(OLD_PROVIDER_ID, 'oh', LCSW, 'lcsw', 'single-state')
+        # Distinct investigationIds: the default is a fixed constant, and two investigations on the same
+        # license would otherwise collide on the same sort key and silently overwrite one another.
+        self._put_investigation(
+            OLD_PROVIDER_ID, 'oh', LCSW, 'lcsw', 'single-state', closed=False, investigationId=uuid4()
+        )
+        self._put_investigation(
+            OLD_PROVIDER_ID, 'oh', LCSW, 'lcsw', 'single-state', closed=True, investigationId=uuid4()
+        )
+        self._put_license_update(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
+
+        result = self._migrate()
+
+        self.assertTrue(result.migration_performed)
+        self.assertTrue(result.full_migration)
+        self.assertEqual([], self._records_for(OLD_PROVIDER_ID), 'the old partition must be empty')
+        self.assertEqual(
+            {
+                'provider': 1,
+                'license': 1,
+                'adverseAction': 1,
+                'investigation': 2,
+                'licenseUpdate': 1,
+                'providerUpdate': 1,
+            },
+            self._record_types(NEW_PROVIDER_ID),
+            'every record type associated with the license must arrive, including both investigations - '
+            'closed history is not left behind just because it is no longer active',
+        )
+        for record_type in ('adverseAction', 'investigation', 'licenseUpdate'):
+            for record in self._records_of_type(NEW_PROVIDER_ID, record_type):
+                self.assertEqual(
+                    NEW_PROVIDER_ID, record['providerId'], f'{record_type} record was not rekeyed to the new provider'
+                )
+        investigations = self._records_of_type(NEW_PROVIDER_ID, 'investigation')
+        self.assertEqual(
+            {True, False},
+            {record.get('closeDate') is not None for record in investigations},
+            'expected one open and one closed investigation to have migrated',
+        )
+
     def test_migrated_license_carries_the_corrected_ssn_last_four(self):
         self._put_provider(OLD_PROVIDER_ID)
         self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state', ssnLastFour='1111')
@@ -205,6 +299,66 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         old_provider = self._provider_record(OLD_PROVIDER_ID)
         self.assertEqual('ky', old_provider['licenseJurisdiction'], 'repopulated from the remaining license')
         self.assertEqual('Remaining', old_provider['givenName'])
+
+    def test_partial_migration_moves_associated_records_for_the_corrected_license_only(self):
+        """
+        A partial migration must be surgical: every associated record of the corrected license moves, and
+        every associated record of the license that stays behind is untouched - not merely present, but
+        identical, since a partial migration has no business writing to a license it was not asked to move.
+        """
+        self._put_provider(OLD_PROVIDER_ID)
+        self._put_license(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
+        self._put_adverse_action(OLD_PROVIDER_ID, 'oh', LCSW, 'lcsw', 'single-state')
+        self._put_investigation(OLD_PROVIDER_ID, 'oh', LCSW, 'lcsw', 'single-state', closed=True)
+        self._put_license_update(OLD_PROVIDER_ID, 'oh', LCSW, 'single-state')
+
+        self._put_license(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state', givenName='Remaining')
+        self._put_adverse_action(OLD_PROVIDER_ID, 'ky', LMSW, 'lmsw', 'multi-state')
+        self._put_investigation(OLD_PROVIDER_ID, 'ky', LMSW, 'lmsw', 'multi-state', closed=False)
+        self._put_license_update(OLD_PROVIDER_ID, 'ky', LMSW, 'multi-state')
+
+        remaining_records_before = {
+            (record['type'], record['sk']): record for record in self._records_for(OLD_PROVIDER_ID)
+        }
+
+        result = self._migrate()
+
+        self.assertTrue(result.migration_performed)
+        self.assertFalse(result.full_migration)
+
+        # everything belonging to the corrected license moved, rekeyed to the new provider
+        moved_types = self._record_types(NEW_PROVIDER_ID)
+        self.assertEqual(
+            {
+                'provider': 1,
+                'license': 1,
+                'adverseAction': 1,
+                'investigation': 1,
+                'licenseUpdate': 1,
+                'providerUpdate': 1,
+            },
+            moved_types,
+        )
+        for record_type in ('adverseAction', 'investigation', 'licenseUpdate'):
+            record = self._records_of_type(NEW_PROVIDER_ID, record_type)[0]
+            self.assertEqual('oh', record['jurisdiction'], f'{record_type} belongs to the wrong license')
+
+        # everything belonging to the remaining license is untouched - same records, same content
+        after = {(record['type'], record['sk']): record for record in self._records_for(OLD_PROVIDER_ID)}
+        for record_type in ('license', 'adverseAction', 'investigation', 'licenseUpdate'):
+            key = next(k for k in remaining_records_before if k[0] == record_type)
+            self.assertIn(key, after, f'{record_type} belonging to the remaining license was removed')
+            self.assertEqual(
+                remaining_records_before[key],
+                after[key],
+                f'{record_type} belonging to the remaining license was modified',
+            )
+        remaining_types = {
+            record_type: count
+            for record_type, count in self._record_types(OLD_PROVIDER_ID).items()
+            if record_type != 'provider'
+        }
+        self.assertEqual({'license': 1, 'adverseAction': 1, 'investigation': 1, 'licenseUpdate': 1}, remaining_types)
 
     def test_only_the_requested_scope_moves(self):
         """A state may need to correct one scope's row only; its mate must be left untouched."""
