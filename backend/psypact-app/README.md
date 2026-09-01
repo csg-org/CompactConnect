@@ -310,7 +310,7 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   - deploy the backend pipeline stacks (note: you will need to approve the
   permission change requests for each stack deployment in the terminal):
     ```
-    cdk deploy --context action=bootstrapDeploy TestBackendPipelineStack BetaBackendPipelineStack ProdBackendPipelineStack
+    cdk deploy --context action=bootstrapDeploy TestBackendPsypact BetaBackendPsypact ProdBackendPsypact
     ```
     
 ### Manually deploy each environment from your local CLI
