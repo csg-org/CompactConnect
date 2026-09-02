@@ -93,6 +93,7 @@ class UserList extends mixins(MixinForm) {
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
+            accountEmail: this.$t('common.emailAddress'),
             permissionsShortDisplay: () => this.$t('account.permissions'),
             affiliationDisplay: () => this.$t('account.affiliation'),
             statesDisplay: () => this.$t('account.states'),

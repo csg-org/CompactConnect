@@ -9,9 +9,8 @@
     <Card class="edit-user-container" @keydown.tab="focusTrap($event)">
         <div class="edit-user-title">{{ $t('account.editUserPermissions') }}</div>
         <form @submit.prevent="handleSubmit">
-            <div class="edit-user-name">
-                {{ user.getFullName() }}
-            </div>
+            <div class="edit-user-name">{{ user.getFullName() }}</div>
+            <div class="edit-user-email">{{ user.compactConnectEmail }}</div>
             <div class="edit-user-form-row">
                 <InputSelect :formInput="formData.compact" class="permission-type-select" />
                 <div class="input-connector"></div>

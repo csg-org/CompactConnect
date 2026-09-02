@@ -17,8 +17,33 @@
     .cell {
         padding-bottom: 0.4rem;
 
+        .cell-value {
+            max-width: 60%;
+            word-break: break-word;
+        }
+
         @media @tabletWidth {
+            flex-basis: 14%;
             padding-bottom: 0;
+
+            .cell-value {
+                max-width: unset;
+                word-break: unset;
+            }
+
+            &.first-name {
+                flex-basis: 10%;
+            }
+
+            &.last-name {
+                flex-basis: 12%;
+            }
+
+            &.email {
+                flex-basis: 18%;
+                flex-shrink: 0;
+                word-break: break-word;
+            }
         }
     }
 
