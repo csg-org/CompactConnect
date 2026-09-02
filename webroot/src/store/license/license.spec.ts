@@ -105,6 +105,30 @@ describe('License Store Mutations', () => {
 
         expect(state.model).to.matchPattern([licensee]);
     });
+    it('should successfully update licensee (already in store - preserving list-only props)', () => {
+        const state = {
+            model: [{
+                id: 1, licenseNumber: 'A-123', eligibility: 'eligible', licenseType: 'social worker'
+            }]
+        };
+        const licensee = {
+            id: 1, licenseNumber: null, eligibility: null, licenseType: null
+        };
+
+        mutations[MutationTypes.STORE_UPDATE_LICENSEE](state, licensee);
+
+        expect(state.model).to.matchPattern([{
+            id: 1, licenseNumber: 'A-123', eligibility: 'eligible', licenseType: 'social worker'
+        }]);
+    });
+    it('should successfully update licensee (already in store - not overwriting new list-only props)', () => {
+        const state = { model: [{ id: 1, licenseType: 'social worker' }] };
+        const licensee = { id: 1, licenseType: 'clinical social worker' };
+
+        mutations[MutationTypes.STORE_UPDATE_LICENSEE](state, licensee);
+
+        expect(state.model).to.matchPattern([{ id: 1, licenseType: 'clinical social worker' }]);
+    });
     it('should successfully remove licensee (id missing)', () => {
         const state = {};
         const licenseeId = '';
