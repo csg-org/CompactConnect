@@ -38,37 +38,30 @@ class TestResolveCuidOwnership(TstLambdas):
     touching DynamoDB.
     """
 
-    def _resolve(
-        self,
-        *,
-        old_cuid=A_CUID,
-        new_cuid=None,
-        migrating=None,
-        old_remaining=None,
-        new_post=None,
-    ):
+    def _resolve(self, *, migrating, old_remaining, new_post, old_cuid=None, new_cuid=None):
         from cc_common.data_model.cuid_ownership import resolve_cuid_ownership
 
-        migrating_license = (
-            migrating
-            if migrating is not None
-            else _license('oh', LCSW, 'single-state', datetime(2015, 1, 1, tzinfo=UTC))
-        )
+        # Ownership is decided from the two resulting sets; requiring `migrating` keeps its
+        # firstUploadDate at the call site instead of hidden behind a helper default.
+        self.assertIn(migrating, new_post)
+
         return resolve_cuid_ownership(
             old_provider_cuid=old_cuid,
             new_provider_cuid=new_cuid,
-            old_remaining_licenses=old_remaining if old_remaining is not None else [],
-            # the migrating license is always among the corrected record's licenses after the move
-            new_post_migration_licenses=new_post if new_post is not None else [migrating_license],
+            old_remaining_licenses=old_remaining,
+            new_post_migration_licenses=new_post,
         )
 
     def test_no_cuid_on_the_old_record_is_a_no_op(self):
         """Nothing to move. The corrected record's own assignment is the ordinary rule's business."""
         from cc_common.data_model.cuid_ownership import CuidOwnership
 
+        migrating = _license('oh', LCSW, 'single-state', datetime(2015, 1, 1, tzinfo=UTC))
+
         decision = self._resolve(
-            old_cuid=None,
-            new_post=_pair('oh', LCSW, datetime(2015, 1, 1, tzinfo=UTC), datetime(2015, 2, 1, tzinfo=UTC)),
+            migrating=migrating,
+            old_remaining=[],
+            new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2015, 2, 1, tzinfo=UTC))],
         )
 
         self.assertEqual(CuidOwnership.KEEP, decision)
@@ -77,10 +70,14 @@ class TestResolveCuidOwnership(TstLambdas):
         """Check 1: a CUID already on the corrected record wins, whatever the licenses say."""
         from cc_common.data_model.cuid_ownership import CuidOwnership
 
+        migrating = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
+
         decision = self._resolve(
+            old_cuid=A_CUID,
             new_cuid=ANOTHER_CUID,
+            migrating=migrating,
             old_remaining=[],
-            new_post=_pair('oh', LCSW, datetime(2010, 1, 1, tzinfo=UTC), datetime(2010, 2, 1, tzinfo=UTC)),
+            new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2010, 2, 1, tzinfo=UTC))],
         )
 
         self.assertEqual(CuidOwnership.KEEP, decision)
@@ -95,6 +92,7 @@ class TestResolveCuidOwnership(TstLambdas):
         migrating = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
 
         decision = self._resolve(
+            old_cuid=A_CUID,
             migrating=migrating,
             # Older than everything remaining, which would otherwise move it - check 2 comes first
             old_remaining=_pair('ky', LMSW, datetime(2019, 1, 1, tzinfo=UTC), datetime(2019, 2, 1, tzinfo=UTC)),
@@ -110,6 +108,7 @@ class TestResolveCuidOwnership(TstLambdas):
         migrating = _license('oh', LCSW, 'single-state', datetime(2011, 1, 1, tzinfo=UTC))
 
         decision = self._resolve(
+            old_cuid=A_CUID,
             migrating=migrating,
             old_remaining=_pair('ky', LMSW, datetime(2018, 1, 1, tzinfo=UTC), datetime(2019, 1, 1, tzinfo=UTC)),
             # The corrected record already held the matching multi-state license, so this completes a pair
@@ -134,6 +133,7 @@ class TestResolveCuidOwnership(TstLambdas):
         migrating = _license('oh', LCSW, 'multi-state', datetime(2020, 3, 1, tzinfo=UTC))
 
         decision = self._resolve(
+            old_cuid=A_CUID,
             migrating=migrating,
             old_remaining=_pair('az', LMSW, datetime(2020, 2, 1, tzinfo=UTC), datetime(2020, 4, 1, tzinfo=UTC)),
             new_post=[already_migrated, migrating],
@@ -156,6 +156,7 @@ class TestResolveCuidOwnership(TstLambdas):
         migrating = _license('oh', LCSW, 'multi-state', datetime(2020, 4, 1, tzinfo=UTC))
 
         decision = self._resolve(
+            old_cuid=A_CUID,
             migrating=migrating,
             # completes at 2020-03, before the oh pair completes at 2020-04
             old_remaining=_pair('az', LMSW, datetime(2020, 2, 1, tzinfo=UTC), datetime(2020, 3, 1, tzinfo=UTC)),
@@ -179,12 +180,15 @@ class TestResolveCuidOwnership(TstLambdas):
         """
         from cc_common.data_model.cuid_ownership import CuidOwnership
 
+        migrating = _license('oh', LCSW, 'multi-state', datetime(2020, 4, 10, tzinfo=UTC))
+
         decision = self._resolve(
-            migrating=_license('oh', LCSW, 'multi-state', datetime(2020, 4, 10, tzinfo=UTC)),
+            old_cuid=A_CUID,
+            migrating=migrating,
             old_remaining=_pair('az', LMSW, datetime(2020, 2, 20, tzinfo=UTC), datetime(2020, 2, 22, tzinfo=UTC)),
             new_post=[
                 _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC)),
-                _license('oh', LCSW, 'multi-state', datetime(2020, 4, 10, tzinfo=UTC)),
+                migrating,
             ],
         )
 
@@ -201,6 +205,7 @@ class TestResolveCuidOwnership(TstLambdas):
         migrating = _license('ky', LMSW, 'multi-state', datetime(2020, 2, 1, tzinfo=UTC))
 
         decision = self._resolve(
+            old_cuid=A_CUID,
             migrating=migrating,
             old_remaining=_pair('oh', LCSW, datetime(2015, 1, 1, tzinfo=UTC), datetime(2015, 2, 1, tzinfo=UTC)),
             new_post=[migrating, _license('ky', LMSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))],
@@ -220,6 +225,7 @@ class TestResolveCuidOwnership(TstLambdas):
         migrating = _license('ky', LMSW, 'multi-state', datetime(2020, 2, 1, tzinfo=UTC))
 
         decision = self._resolve(
+            old_cuid=A_CUID,
             migrating=migrating,
             # Older than the migrating license, but a lone license rather than a pair
             old_remaining=[_license('oh', LCSW, 'single-state', datetime(2015, 1, 1, tzinfo=UTC))],
@@ -248,12 +254,16 @@ class TestResolveCuidOwnership(TstLambdas):
         retained_own_pair = _pair('ky', LMSW, datetime(2018, 1, 1, tzinfo=UTC), datetime(2019, 1, 1, tzinfo=UTC))
 
         while_split = self._resolve(
+            old_cuid=A_CUID,
+            migrating=oh_single_state,
             old_remaining=[oh_multi_state, *retained_own_pair],
             new_post=[oh_single_state, *corrected_own_pair],
         )
         self.assertEqual(CuidOwnership.KEEP, while_split)
 
         once_whole = self._resolve(
+            old_cuid=A_CUID,
+            migrating=oh_multi_state,
             old_remaining=list(retained_own_pair),
             new_post=[oh_single_state, oh_multi_state, *corrected_own_pair],
         )
@@ -269,6 +279,7 @@ class TestResolveCuidOwnership(TstLambdas):
         migrating = _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))
 
         decision = self._resolve(
+            old_cuid=A_CUID,
             migrating=migrating,
             old_remaining=[],
             new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2019, 1, 1, tzinfo=UTC))],
@@ -283,6 +294,7 @@ class TestResolveCuidOwnership(TstLambdas):
         migrating = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
 
         decision = self._resolve(
+            old_cuid=A_CUID,
             migrating=migrating,
             old_remaining=[],
             new_post=[migrating, _license('ky', LMSW, 'multi-state', datetime(2011, 1, 1, tzinfo=UTC))],
