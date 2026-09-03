@@ -943,10 +943,6 @@ class ProviderUserRecords:
         risk orphaning something. Excluding by type rather than listing the categories to include means a
         record type added to this class in future is migrated by default, instead of being silently left
         behind until someone remembers to add it here.
-
-        A record type this class does not recognise at all is still not returned - it is logged as a warning
-        at construction and retained in no collection - which is exactly what the migration's orphan guard
-        exists to catch.
         """
         return [record for record in self._all_typed_records if record.type != ProviderRecordType.PROVIDER]
 
