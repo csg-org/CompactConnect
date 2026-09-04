@@ -309,6 +309,9 @@ class UpdateCategory(CCEnum):
     LICENSE_UPLOAD_UPDATE_OTHER = 'other'
     # Provider top-level home jurisdiction changed as a result of a license upload.
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
+    # A state corrected a previously-uploaded SSN, migrating a license (and its dependent records) from the
+    # provider id the incorrect SSN resolved to onto the corrected one.
+    SSN_CORRECTION = 'ssnCorrection'
 
 
 # License upload related update categories

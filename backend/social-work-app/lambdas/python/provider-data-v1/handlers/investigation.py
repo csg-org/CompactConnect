@@ -93,7 +93,8 @@ def _generate_investigation_for_record_type(
             f"compact: '{compact}' licenseType: '{license_type_abbr}'"
         )
 
-    # populate the investigation data to be stored in the database
+    # populate the investigation data to be stored in the database. Unlike the encumbrance path, this
+    # constructor validates immediately, so the home jurisdiction has to be resolved before it is called.
     return InvestigationData.create_new(
         {
             'compact': compact,
@@ -102,6 +103,12 @@ def _generate_investigation_for_record_type(
             'investigationId': uuid4(),
             'licenseType': license_type.name,
             'licenseScope': license_scope,
+            # Recorded now rather than recomputed during an SSN correction: privileges are generated from
+            # the home multi-state license of this license type, and a practitioner's home jurisdiction can
+            # change later.
+            'homeJurisdictionAtTimeOfCreation': config.data_client.get_home_jurisdiction_for_license_type(
+                compact=compact, provider_id=provider_id, license_type=license_type.name
+            ),
             'investigationAgainst': investigation_against_record_type,
             'submittingUser': cognito_sub,
             'creationDate': config.current_standard_datetime,

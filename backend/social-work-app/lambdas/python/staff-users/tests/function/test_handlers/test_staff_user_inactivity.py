@@ -190,7 +190,7 @@ class TestStaffUserInactivity(TstFunction):
 
     def test_target_last_login_date_overrides_the_computed_date(self):
         """In the case of a failure that needs to be manually replayed, verify that the replay date is used in place
-         of the current date.
+        of the current date.
         """
         self._seed_user(days_since_login=40)
         replay_date = (MOCK_TODAY - timedelta(days=40)).date().isoformat()

@@ -39,6 +39,52 @@ class TestAdverseActionRecordSchema(TstLambdas):
         with self.assertRaises(ValidationError):
             AdverseActionRecordSchema().load(adverse_action_data)
 
+    def test_home_jurisdiction_is_not_exposed_in_any_adverse_action_api_response(self):
+        """
+        This field exists to route records during an SSN correction, and nothing outside the backend needs
+        it. Keeping it out of both response schemas means no frontend work to absorb, so the test covers the
+        general schema as well as the public one - the general schema is the one someone would reach for
+        first if they wanted to surface it.
+        """
+        from cc_common.data_model.schema.adverse_action.api import (
+            AdverseActionGeneralResponseSchema,
+            AdverseActionPublicResponseSchema,
+        )
+
+        adverse_action = self.test_data_generator.generate_default_adverse_action().to_dict()
+        adverse_action['dateOfUpdate'] = adverse_action.get('dateOfUpdate', '2024-11-08T23:59:59+00:00')
+
+        for schema_class in (AdverseActionPublicResponseSchema, AdverseActionGeneralResponseSchema):
+            with self.subTest(schema=schema_class.__name__):
+                response = schema_class().dump(schema_class().load(adverse_action))
+                self.assertNotIn('homeJurisdictionAtTimeOfCreation', response)
+
+    def test_home_jurisdiction_at_time_of_creation_is_required(self):
+        """
+        The migration reads this field to decide whether a privilege's records follow a corrected
+        multi-state license, so a record without it cannot be placed. Required rather than defaulted.
+        """
+        from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
+
+        adverse_action_data = self.test_data_generator.generate_default_adverse_action().to_dict()
+        adverse_action_data.pop('homeJurisdictionAtTimeOfCreation')
+
+        with self.assertRaises(ValidationError) as context:
+            AdverseActionRecordSchema().load(adverse_action_data)
+
+        self.assertIn('homeJurisdictionAtTimeOfCreation', context.exception.messages)
+
+    def test_home_jurisdiction_at_time_of_creation_must_be_a_valid_jurisdiction(self):
+        from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
+
+        adverse_action_data = self.test_data_generator.generate_default_adverse_action().to_dict()
+        adverse_action_data['homeJurisdictionAtTimeOfCreation'] = 'not-a-jurisdiction'
+
+        with self.assertRaises(ValidationError) as context:
+            AdverseActionRecordSchema().load(adverse_action_data)
+
+        self.assertIn('homeJurisdictionAtTimeOfCreation', context.exception.messages)
+
     def test_invalid_action_against(self):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from cc_common.data_model.schema.common import CompactEligibilityStatus
@@ -118,6 +164,7 @@ class TestAdverseActionDataClass(TstLambdas):
                 'jurisdiction': 'ne',
                 'licenseType': 'licensed clinical social worker',
                 'licenseTypeAbbreviation': 'lcsw',
+                'homeJurisdictionAtTimeOfCreation': 'oh',
                 'pk': 'socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'licenseScope': 'single-state',

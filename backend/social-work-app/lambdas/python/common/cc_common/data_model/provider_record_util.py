@@ -8,7 +8,9 @@ from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
+    CCDataClass,
     CompactEligibilityStatus,
+    InvestigationAgainstEnum,
     InvestigationStatusEnum,
     LicenseScopeEnum,
     UpdateCategory,
@@ -245,25 +247,36 @@ class ProviderUserRecords:
         self._provider_records: list[ProviderData] = []
         self._provider_update_records: list[ProviderUpdateData] = []
         self._license_update_records: list[LicenseUpdateData] = []
+        # Every record above, in one list, so callers that need the whole partition rather than a particular
+        # category do not have to enumerate the categories and cannot fall behind as new ones are added
+        self._all_typed_records: list[CCDataClass] = []
 
         # Convert records once during initialization (skip privilege/privilegeUpdate; no longer stored)
         for record in provider_records:
             record_type = record.get('type')
             if record_type == ProviderRecordType.LICENSE:
-                self._license_records.append(LicenseData.from_database_record(record))
+                typed_record = LicenseData.from_database_record(record)
+                self._license_records.append(typed_record)
             elif record_type == ProviderRecordType.ADVERSE_ACTION:
-                self._adverse_action_records.append(AdverseActionData.from_database_record(record))
+                typed_record = AdverseActionData.from_database_record(record)
+                self._adverse_action_records.append(typed_record)
             elif record_type == ProviderRecordType.INVESTIGATION:
-                self._investigation_records.append(InvestigationData.from_database_record(record))
+                typed_record = InvestigationData.from_database_record(record)
+                self._investigation_records.append(typed_record)
             elif record_type == ProviderRecordType.PROVIDER:
-                self._provider_records.append(ProviderData.from_database_record(record))
+                typed_record = ProviderData.from_database_record(record)
+                self._provider_records.append(typed_record)
             elif record_type == ProviderRecordType.PROVIDER_UPDATE:
-                self._provider_update_records.append(ProviderUpdateData.from_database_record(record))
+                typed_record = ProviderUpdateData.from_database_record(record)
+                self._provider_update_records.append(typed_record)
             elif record_type == ProviderRecordType.LICENSE_UPDATE:
-                self._license_update_records.append(LicenseUpdateData.from_database_record(record))
+                typed_record = LicenseUpdateData.from_database_record(record)
+                self._license_update_records.append(typed_record)
             else:
                 # log the warning, but continue with initialization
                 logger.warning('Unrecognized record type found.', record_type=record_type)
+                continue
+            self._all_typed_records.append(typed_record)
 
     def get_specific_license_record(
         self, jurisdiction: str, license_abbreviation: str, license_scope: str
@@ -646,6 +659,26 @@ class ProviderUserRecords:
 
         return multi_state_licenses_with_matching_single_state_license
 
+    def get_home_jurisdiction_for_license_type(self, license_type: str) -> str | None:
+        """
+        The jurisdiction of the home multi-state license for this license type, which is the license any
+        privilege of that type is generated from.
+
+        Resolved per license type rather than from the provider record's single licenseJurisdiction,
+        because a practitioner can hold a home license in one state for one license type and another state
+        for a different one.
+
+        :return: The home jurisdiction, or None if this license type has no paired multi-state license
+        """
+        return next(
+            (
+                license_data.jurisdiction
+                for license_data in self._find_multi_state_home_licenses_with_matching_single_state_licenses()
+                if license_data.licenseType == license_type
+            ),
+            None,
+        )
+
     def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
         """
         Generate privilege dicts at runtime for each eligible home multi-state license type this provider holds.
@@ -794,6 +827,124 @@ class ProviderUserRecords:
             and record.licenseScope == license_scope
             and (filter_condition is None or filter_condition(record))
         ]
+
+    def get_records_associated_with_license(
+        self, jurisdiction: str, license_type: str, license_scope: str
+    ) -> list[CCDataClass]:
+        """
+        Get the single license record identified by jurisdiction, license type, and scope, along with every
+        record that hangs off it: its adverse actions, its investigations, and its update history.
+
+        Scoped to one license record rather than to the license type as a whole, because a state may
+        legitimately need to correct the SSN on just one scope's row - the other scope's row may have been
+        uploaded under the correct SSN all along. While a single-state/multi-state pair is split across two
+        providers mid-correction, the ingest pairing checks report the missing mate back to the uploading
+        state, prompting them to correct the remaining row.
+
+        Returns an empty list if this provider has no license matching all three identifiers.
+
+        :param jurisdiction: The jurisdiction of the license
+        :param license_type: The license type (full name, not abbreviation)
+        :param license_scope: The license scope (single-state or multi-state)
+        :return: The license record and all of its dependent records
+        """
+        license_record = next(
+            (
+                record
+                for record in self._license_records
+                if record.jurisdiction == jurisdiction
+                and record.licenseType == license_type
+                and record.licenseScope == license_scope
+            ),
+            None,
+        )
+        if license_record is None:
+            return []
+
+        associated_records = [license_record, *self._get_dependent_records_for_license(license_record)]
+
+        # Privileges are generated from the home multi-state license, so their records travel with it. A
+        # single-state license never generates privileges, and a multi-state license only owns the records
+        # that name its jurisdiction as the home they were created under.
+        if license_record.licenseScope == LicenseScopeEnum.MULTI_STATE.value:
+            associated_records.extend(
+                self.get_privilege_records_created_under_home_license(
+                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                )
+            )
+
+        return associated_records
+
+    def _get_dependent_records_for_license(self, license_record: LicenseData) -> list[CCDataClass]:
+        """
+        Get the records that hang off a single license: its adverse actions, its investigations, and its
+        update history.
+
+        Closed investigations are included along with open ones, because a migration moves a license's whole
+        history rather than just its currently-active records.
+        """
+        return [
+            *self.get_adverse_action_records_for_license(
+                license_record.jurisdiction,
+                license_record.licenseTypeAbbreviation,
+                license_record.licenseScope,
+            ),
+            *self.get_investigation_records_for_license(
+                license_record.jurisdiction,
+                license_record.licenseTypeAbbreviation,
+                license_record.licenseScope,
+                include_closed=True,
+            ),
+            *self.get_update_records_for_license(
+                license_record.jurisdiction,
+                license_record.licenseType,
+                license_record.licenseScope,
+            ),
+        ]
+
+    def get_privilege_records_created_under_home_license(
+        self, home_jurisdiction: str, license_type_abbreviation: str
+    ) -> list[CCDataClass]:
+        """
+        Every adverse action and investigation recorded against a privilege that was generated from the
+        given home multi-state license.
+
+        Privilege records name the privilege's own jurisdiction, never the home license's, so
+        homeJurisdictionAtTimeOfCreation is the only thing tying them back to the license that produced
+        them. Both halves of the filter matter: a practitioner can hold two license types homed in the same
+        jurisdiction, and jurisdiction alone would not separate them.
+
+        Closed investigations are included alongside open ones, because a migration moves a license's whole
+        history rather than only its currently-active records.
+        """
+        return [
+            *[
+                record
+                for record in self._adverse_action_records
+                if record.actionAgainst == AdverseActionAgainstEnum.PRIVILEGE
+                and record.homeJurisdictionAtTimeOfCreation == home_jurisdiction
+                and record.licenseTypeAbbreviation == license_type_abbreviation
+            ],
+            *[
+                record
+                for record in self._investigation_records
+                if record.investigationAgainst == InvestigationAgainstEnum.PRIVILEGE
+                and record.homeJurisdictionAtTimeOfCreation == home_jurisdiction
+                and record.licenseTypeAbbreviation == license_type_abbreviation
+            ],
+        ]
+
+    def get_all_records_except_the_provider_record(self) -> list[CCDataClass]:
+        """
+        Every record in this partition that a migration can move, which is everything but the top-level
+        provider record - that one is deleted directly by the migration's final transaction.
+
+        Used for a full migration, where the partition is about to be deleted and selectivity would only
+        risk orphaning something. Excluding by type rather than listing the categories to include means a
+        record type added to this class in future is migrated by default, instead of being silently left
+        behind until someone remembers to add it here.
+        """
+        return [record for record in self._all_typed_records if record.type != ProviderRecordType.PROVIDER]
 
     def generate_api_response_object(self, is_public_response: bool = False) -> dict:
         """
