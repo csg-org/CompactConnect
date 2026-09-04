@@ -1,9 +1,10 @@
 """
 Which practitioner record keeps the Compact Unique Identifier when an SSN correction moves a license.
 
-When correcting/migrating license records to a corrected SSN, the CUID stays with the set of license records that were
-uploaded first and thereby caused it to be generated. Because a correction moves one license record at a time, and a
-CUID is earned by a matching single-state/multi-state *pair*, that rule is applied as four questions in order:
+When correcting/migrating license records to a corrected SSN, the CUID stays with the practitioner whose qualifying
+single-state/multi-state pair completed first and thereby caused it to be generated. Because a correction moves one
+license record at a time, and a CUID is earned by a matching pair rather than by the raw upload order of individual
+licenses, that rule is applied as four questions in order:
 
 1. Is there an existing practitioner record under the corrected SSN with a CUID already assigned?
 yes -> move the license over, do not overwrite the existing CUID
@@ -14,7 +15,8 @@ yes -> proceed to question 3
 3. Does the original practitioner still qualify for a CUID?
 no -> move CUID over with license records
 yes -> proceed to question 4
-4. Were the licenses that are being corrected uploaded before any of the remaining licenses?
+4. Did the corrected practitioner's qualifying pair complete before the remaining practitioner's qualifying pair?
+The practitioner whose qualifying pair completes first receives the CUID.
 yes -> move the CUID over to the corrected practitioner record, remove CUID from the original record.
 A new CUID will be generated for the original practitioner when a state performs another qualifying
 license upload for one of the remaining licenses.
