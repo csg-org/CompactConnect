@@ -105,7 +105,7 @@ describe('License Store Mutations', () => {
 
         expect(state.model).to.matchPattern([licensee]);
     });
-    it('should successfully update licensee (already in store - preserving list-only props)', () => {
+    it('should successfully not update licensee (already in store - preserving list-only props)', () => {
         const state = {
             model: [{
                 id: 1, licenseNumber: 'A-123', eligibility: 'eligible', licenseType: 'social worker'
