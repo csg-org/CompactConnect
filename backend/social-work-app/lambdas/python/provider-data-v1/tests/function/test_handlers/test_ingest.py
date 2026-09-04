@@ -2786,8 +2786,9 @@ class TestIngestSsnCorrection(TstFunction):
 
     def test_an_unresolvable_previous_ssn_still_writes_the_license_but_mints_no_cuid(self):
         """
-        Nothing migrates, but the row is still a correction upload, so the license is written normally and
-        CUID assignment stays suppressed. Under-minting is recoverable; over-minting is not.
+        A correction upload is classified by the presence of previous_provider_id, not by whether that id
+        resolves to a provider with records. A previous SSN with no records still carries a providerId, so the record
+        undergoes migration; the license is written, but CUID assignment stays suppressed.
         """
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             new_provider_id = json.load(f)['detail']['providerId']
