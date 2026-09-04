@@ -45,6 +45,7 @@ export interface LicenseSearch {
     firstName?: string;
     lastName?: string;
     homeState?: string;
+    licenseScope?: string;
     dob?: string;
     privilegeState?: string;
     privilegePurchaseStartDate?: string;
@@ -177,6 +178,20 @@ class LicenseeSearch extends mixins(MixinForm) {
         return options;
     }
 
+    get licenseScopeOptions(): Array<{ value: string, name: string | ComputedRef }> {
+        const options = this.$tm('licensing.licenseScopes').map((option) => ({
+            value: option.key,
+            name: option.name,
+        }));
+
+        options.unshift({
+            value: '',
+            name: computed(() => this.$t('common.selectOption')),
+        });
+
+        return options;
+    }
+
     get investigationStatusOptions(): Array<{ value: string, name: string | ComputedRef }> {
         const options = this.$tm('licensing.investigationStatusOptions').map((option) => ({
             value: option.key,
@@ -242,6 +257,13 @@ class LicenseeSearch extends mixins(MixinForm) {
                 valueOptions: this.stateOptions,
                 value: this.searchParams.homeState || '',
                 isDisabled: computed(() => this.enableCompactSelect && !this.compactType),
+            }),
+            licenseScope: new FormInput({
+                id: 'license-scope',
+                name: 'license-scope',
+                label: computed(() => this.$t('licensing.licenseScope')),
+                valueOptions: this.licenseScopeOptions,
+                value: this.searchParams.licenseScope || '',
             }),
             licenseNumber: new FormInput({
                 id: 'license-number',
@@ -384,6 +406,10 @@ class LicenseeSearch extends mixins(MixinForm) {
                 allowedSearchProps.push('dob');
             }
 
+            if (this.$isAppModeSocialWork && !this.isPublicSearch) {
+                allowedSearchProps.push('licenseScope');
+            }
+
             allowedSearchProps.forEach((searchProp) => { searchProps[searchProp] = this.formValues[searchProp]; });
             this.$emit('searchParams', searchProps);
 
@@ -403,6 +429,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.encumberStartDate.value = '';
         this.formData.encumberEndDate.value = '';
         this.formData.npi.value = '';
+        this.formData.licenseScope.value = '';
         this.formData.licenseNumber.value = '';
         this.formData.dob.value = '';
         this.isFormLoading = false;
@@ -429,6 +456,10 @@ class LicenseeSearch extends mixins(MixinForm) {
         } else if (this.$isAppGroupModeMultiState) {
             this.formData.licenseNumber.value = 'ABC123';
             this.formData.dob.value = moment('1970-01-01').format('YYYY-MM-DD');
+        }
+
+        if (this.$isAppModeSocialWork && !this.isPublicSearch) {
+            this.formData.licenseScope.value = 'multi-state';
         }
 
         this.validateAll({ asTouched: true });

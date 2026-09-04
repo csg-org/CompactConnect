@@ -504,6 +504,12 @@ export class LicenseeSerializer {
             json.adverseActions.forEach((serverAdverseAction) => {
                 licenseeData.adverseActions.push(AdverseActionSerializer.fromServer(serverAdverseAction));
             });
+        } else {
+            // If no adverseActions at licensee level, attempt to build adverse actions from license / privilege data
+            licenseeData.adverseActions = [
+                ...licenseeData.licenses.flatMap((license) => license.adverseActions),
+                ...licenseeData.privileges.flatMap((privilege) => privilege.adverseActions),
+            ];
         }
 
         return new Licensee(licenseeData);

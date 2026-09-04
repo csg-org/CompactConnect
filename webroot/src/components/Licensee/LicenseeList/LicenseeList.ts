@@ -115,6 +115,22 @@ class LicenseeList extends Vue {
         return (homeState) ? `${this.$t('licensing.homeState')}: ${new State({ abbrev: homeState }).name()}` : '';
     }
 
+    get searchDisplayLicenseScope(): string {
+        const { licenseScope } = this.searchParams;
+        let displayScope = '';
+
+        if (licenseScope) {
+            const scopeOptions = this.$tm('licensing.licenseScopes') || [];
+            const selectedOption = scopeOptions.find((scopeOption) => scopeOption.key === licenseScope);
+
+            if (selectedOption?.name) {
+                displayScope = `${this.$t('licensing.licenseScope')}: ${selectedOption.name}`;
+            }
+        }
+
+        return displayScope;
+    }
+
     get searchDisplayPrivilegeState(): string {
         const { privilegeState } = this.searchParams;
 
@@ -207,6 +223,7 @@ class LicenseeList extends Vue {
             this.searchDisplayFullName,
             this.searchDisplayDob,
             this.searchDisplayHomeState,
+            this.searchDisplayLicenseScope,
             this.searchDisplayPrivilegeState,
             this.searchDisplayPrivilegePurchaseDates,
             this.searchDisplayMilitaryStatus,
@@ -383,6 +400,9 @@ class LicenseeList extends Vue {
         }
         if (searchParams?.homeState) {
             requestConfig.homeState = searchParams.homeState.toLowerCase();
+        }
+        if (searchParams?.licenseScope) {
+            requestConfig.licenseScope = searchParams.licenseScope;
         }
         if (searchParams?.privilegeState) {
             requestConfig.privilegeState = searchParams.privilegeState.toLowerCase();

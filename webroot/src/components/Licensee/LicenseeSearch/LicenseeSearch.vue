@@ -60,6 +60,12 @@
                     :title="(formData.homeState.isDisabled) ? $t('licensing.searchStateDisabled') : ''"
                 />
             </div>
+            <div v-if="$isAppModeSocialWork && !isPublicSearch" class="search-form-row">
+                <InputSelect
+                    :formInput="formData.licenseScope"
+                    class="search-input license-scope-select"
+                />
+            </div>
             <div v-if="$isAppGroupModeMultiState" class="search-form-row">
                 <InputText
                     :formInput="formData.licenseNumber"
