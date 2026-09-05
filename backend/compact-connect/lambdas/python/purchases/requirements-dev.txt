@@ -12,7 +12,7 @@ aws-lambda-powertools==3.34.0
     # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
-boto3==1.43.72
+boto3==1.43.78
     # via
     #   -r requirements-dev.in
     #   moto
@@ -51,7 +51,7 @@ defusedxml==0.7.1
     # via py-serializable
 docker==7.2.0
     # via moto
-faker==40.36.0
+faker==40.37.0
     # via -r requirements-dev.in
 filelock==3.32.2
     # via cachecontrol
@@ -74,7 +74,7 @@ marshmallow==4.3.1
     # via -r requirements-dev.in
 mdurl==0.1.2
     # via markdown-it-py
-moto[dynamodb,s3]==5.2.2
+moto[dynamodb,s3]==5.2.3
     # via -r requirements-dev.in
 msgpack==1.2.1
     # via cachecontrol
@@ -141,7 +141,7 @@ responses==0.26.2
     # via moto
 rich==15.0.0
     # via pip-audit
-ruff==0.16.3
+ruff==0.16.4
     # via -r requirements-dev.in
 s3transfer==0.19.2
     # via boto3

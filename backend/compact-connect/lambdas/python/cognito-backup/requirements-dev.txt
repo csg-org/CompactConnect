@@ -6,7 +6,7 @@
 #
 aws-lambda-powertools==3.34.0
     # via -r requirements-dev.in
-boto3==1.43.72
+boto3==1.43.78
     # via
     #   -r requirements-dev.in
     #   moto
@@ -39,7 +39,7 @@ joserfc==1.7.1
     # via moto
 markupsafe==3.0.3
     # via werkzeug
-moto[cognitoidp,s3]==5.2.2
+moto[cognitoidp,s3]==5.2.3
     # via -r requirements-dev.in
 packaging==26.2
     # via pytest
