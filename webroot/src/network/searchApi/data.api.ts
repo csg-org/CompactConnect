@@ -23,6 +23,7 @@ export interface SearchParamsInterfaceLocal {
     licenseeFirstName?: string;
     licenseeLastName?: string;
     homeState?: string;
+    licenseScope?: string;
     dob?: string;
     privilegeState?: string;
     privilegePurchaseStartDate?: string;
@@ -133,6 +134,7 @@ export class SearchDataApi implements DataApiInterface {
             licenseeLastName,
             dob,
             homeState,
+            licenseScope,
             privilegeState,
             privilegePurchaseStartDate,
             privilegePurchaseEndDate,
@@ -153,6 +155,7 @@ export class SearchDataApi implements DataApiInterface {
             || licenseeLastName
             || dob
             || homeState
+            || licenseScope
             || privilegeState
             || privilegePurchaseStartDate
             || privilegePurchaseEndDate
@@ -206,6 +209,18 @@ export class SearchDataApi implements DataApiInterface {
                         query: {
                             term: {
                                 'licenses.dateOfBirth': dob,
+                            },
+                        },
+                    },
+                });
+            }
+            if (licenseScope) {
+                conditions.push({
+                    nested: {
+                        path: 'licenses',
+                        query: {
+                            term: {
+                                'licenses.licenseScope': licenseScope,
                             },
                         },
                     },

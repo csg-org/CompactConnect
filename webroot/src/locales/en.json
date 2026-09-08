@@ -656,6 +656,7 @@
         "jurisdictionFeeMilitary": "State Fee (Military)",
         "licenseTypeSearch": "Profession type",
         "licenseType": "License type",
+        "licenseScope": "License scope",
         "category": "Category",
         "adverseActions": "Adverse actions",
         "status": "Status",

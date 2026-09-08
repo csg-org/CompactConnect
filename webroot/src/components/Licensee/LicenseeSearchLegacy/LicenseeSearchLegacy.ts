@@ -312,7 +312,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         }
         if (this.$isAppModeSocialWork) {
             this.formData.licenseType.value = 'licensed clinical social worker';
-            this.formData.cuid.value = 'SwC-8879-1510662364862837507201851701209841388880384284903247330';
+            this.formData.cuid.value = 'SwC-8879-15106';
         }
 
         this.validateAll({ asTouched: true });

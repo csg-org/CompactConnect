@@ -625,6 +625,7 @@
         "purchaseFormErrorMessage": "Por favor, corrija los errores del formulario que se muestran en rojo.",
         "licenseTypeSearch": "Tipo de profesión",
         "licenseType": "Tipo de licencia",
+        "licenseScope": "Alcance de la licencia",
         "category": "Categoría",
         "adverseActions": "Acciones adversas",
         "status": "Estado",
