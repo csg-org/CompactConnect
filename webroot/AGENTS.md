@@ -7,7 +7,7 @@
 
 ## Code Architecture
 - When adding a new file, scan existing files of the same type (components, models, network, pages, etc.) and identify files with a similar context to try and reuse existing patterns.
-- Every new file starts with the standard header comment block, matching the blueprint templates:
+- Every new JavaScript or TypeScript source file starts with the standard header comment block, matching the blueprint templates:
     ```
     //
     //  FileName.ts
@@ -111,7 +111,14 @@
     - A new third-party script or SDK → `script-src`, `script-src-elem`, usually `connect-src`, often `frame-src` and `style-src-elem` (see the recaptcha / authorize.net entries)
     - A new API, Cognito, or S3 host → `connect-src`
     - Images or media from a new host → `img-src` / `media-src`
-    - `URL.createObjectURL`, client-generated downloads or file previews → `img-src` / `connect-src` need `blob:`, which is **not** currently allowed
+    - `URL.createObjectURL()` or a `blob:` URL — `'self'` never matches `blob:`, so it must be listed explicitly in whichever directive consumes it:
+        - `<img src="blob:…">` → `img-src`
+        - `<audio>` / `<video src="blob:…">` → `media-src`
+        - `<iframe src="blob:…">` → `frame-src`. Note the framed document inherits this CSP, so inline scripts / styles inside the generated HTML are still blocked by `default-src 'none'`.
+        - `fetch()` / XHR against a `blob:` URL → `connect-src`
+        - `new Worker(blobUrl)` → `worker-src`
+        - `<object>` / `<embed>`, e.g. an inline PDF preview → blocked outright by `object-src 'none'`. Do not loosen it; use an `<iframe>` or a download instead.
+        - `<a download href="blob:…">` plus `.click()` → needs **no** CSP change. A download is a navigation, and `default-src` is not a fallback for navigations. What may need `connect-src` is the API request that fetched the bytes, and that needs the API host, not `blob:`.
     - A new font source → `font-src` (currently only `self` and `fonts.gstatic.com`)
     - A web worker, or a change to the service worker / PWA manifest → `worker-src` / `manifest-src`
 - Never propose `unsafe-inline`, `unsafe-eval`, `unsafe-hashes`, or `wasm-unsafe-eval`. `srcKeywordsEscape()` strips them with a console warning, so they will not work. If a third-party library injects an inline `<style>`, add its sha256 hash to `style-src-elem` instead.
