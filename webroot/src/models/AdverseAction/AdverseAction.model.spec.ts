@@ -6,7 +6,7 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import {
     serverDateFormat,
     serverDatetimeFormat,
@@ -18,9 +18,7 @@ import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 import moment from 'moment';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('AdverseAction model', () => {
     before(() => {

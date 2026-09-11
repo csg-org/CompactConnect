@@ -5,12 +5,12 @@
 //  Created by InspiringApps on 6/12/24.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import mutations, { MutationTypes } from './pagination.mutations';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
+use(chaiMatchPattern);
 
-const { expect } = chai;
 const defaultPageNum = 1;
 const defaultPageSize = 25;
 

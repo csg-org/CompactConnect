@@ -9,11 +9,9 @@ import { PurchaseFlowState } from '@models/PurchaseFlowState/PurchaseFlowState.m
 import { PurchaseFlowStep } from '@models/PurchaseFlowStep/PurchaseFlowStep.model';
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('PurchaseFlowState model', () => {
     it('should create a PrivilegePurchaseOption with expected defaults', () => {

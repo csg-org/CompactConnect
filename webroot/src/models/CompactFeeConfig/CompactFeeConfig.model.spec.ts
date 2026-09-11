@@ -6,13 +6,11 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { FeeTypes } from '@/app.config';
 import { CompactFeeConfig, CompactFeeConfigSerializer } from '@models/CompactFeeConfig/CompactFeeConfig.model';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('CompactFeeConfig model', () => {
     it('should create a CompactFeeConfig with default values', () => {

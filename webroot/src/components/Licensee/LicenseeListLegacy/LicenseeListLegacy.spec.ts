@@ -6,7 +6,7 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { mountShallow, mountFull } from '@tests/helpers/setup';
 import LicenseeList from '@components/Licensee/LicenseeListLegacy/LicenseeListLegacy.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
@@ -14,9 +14,7 @@ import { AppModes } from '@/app.config';
 import store from '@store/index';
 import sinon from 'sinon';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 const lastKey = 'lastKey';
 const prevLastKey = 'prevLastKey';
 const allSearchParams = {

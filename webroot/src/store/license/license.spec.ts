@@ -4,16 +4,16 @@
 //
 //  Created by InspiringApps on 7/2/24.
 //
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import { License } from '@/models/License/License.model';
 import mutations, { MutationTypes } from './license.mutations';
 import actions from './license.actions';
 import getters from './license.getters';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-const sinon = require('sinon');
+use(chaiMatchPattern);
 
-const { expect } = chai;
+const sinon = require('sinon');
 
 describe('License Store Mutations', () => {
     it('should successfully get licensees request', () => {

@@ -22,7 +22,7 @@ module.exports = {
         '@vue/airbnb',
         '@vue/typescript/recommended',
         'plugin:vue-a11y/base',
-        'plugin:json/recommended',
+        'plugin:json/recommended-legacy',
     ],
     parserOptions: {
         ecmaVersion: 2020,

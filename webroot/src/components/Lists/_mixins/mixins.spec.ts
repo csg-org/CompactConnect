@@ -5,16 +5,15 @@
 //  Created by InspiringApps on 5/21/2020.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import CompactToggleMixin from '@components/Lists/_mixins/CompactToggle.mixin';
 import ListManipulationMixin from '@components/Lists/_mixins/ListManipulation.mixin';
 import PaginationMixin from '@components/Lists/_mixins/Pagination.mixin';
 import SortingMixin from '@components/Lists/_mixins/Sorting.mixin';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('CompactToggle mixin', async () => {
     it('should mount the component', async () => {

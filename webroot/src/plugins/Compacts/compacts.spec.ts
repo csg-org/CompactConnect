@@ -6,7 +6,7 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import compactsPlugin, {
     compactConfigs,
@@ -21,9 +21,7 @@ import CompactSelector from '@components/CompactSelector/CompactSelector.vue';
 import store from '@store/index';
 import i18n from '@/i18n';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 const buildApp = () => {
     const app = { config: { globalProperties: {} as any }};

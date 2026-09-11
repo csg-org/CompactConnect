@@ -5,15 +5,15 @@
 //  Created by InspiringApps on 9/4/24.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import mutations, { MutationTypes } from './users.mutations';
 import actions from './users.actions';
 import getters from './users.getters';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-const sinon = require('sinon');
+use(chaiMatchPattern);
 
-const { expect } = chai;
+const sinon = require('sinon');
 
 describe('Users Store Mutations', () => {
     it('should successfully get users request', () => {

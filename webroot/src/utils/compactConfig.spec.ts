@@ -6,7 +6,7 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { AppModes, AppGroupModes } from '@/app.config';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import {
@@ -20,9 +20,7 @@ import {
     getEncumberConfigPrivilege
 } from '@utils/compactConfig';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('compactConfig utils', () => {
     afterEach(() => {

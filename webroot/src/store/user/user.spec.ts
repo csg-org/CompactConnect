@@ -8,7 +8,7 @@
 import { FeeTypes, AppModes } from '@/app.config';
 import { authStorage, tokens, AuthTypes } from '@utils/auth';
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PurchaseFlowStep } from '@models/PurchaseFlowStep/PurchaseFlowStep.model';
@@ -22,10 +22,9 @@ import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
 import getters from './user.getters';
 
-chai.use(chaiMatchPattern);
-const sinon = require('sinon');
+use(chaiMatchPattern);
 
-const { expect } = chai;
+const sinon = require('sinon');
 
 describe('Use Store Mutations', () => {
     it('should successfully get login request', () => {

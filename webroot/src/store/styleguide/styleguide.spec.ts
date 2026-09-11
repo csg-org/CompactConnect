@@ -5,12 +5,11 @@
 //  Created by InspiringApps on 6/12/24.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import mutations, { MutationTypes } from './styleguide.mutations';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('Styleguide Store Mutations', () => {
     it('should successfully get styleguide count request', () => {

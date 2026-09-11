@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 7/8/2024.
 //
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { serverDateFormat, displayDateFormat, serverDatetimeFormat } from '@/app.config';
 import {
     License,
@@ -24,9 +24,7 @@ import { Investigation } from '@models/Investigation/Investigation.model';
 import i18n from '@/i18n';
 import moment from 'moment';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('License model', () => {
     before(() => {

@@ -4,6 +4,8 @@
 //
 //  Created by InspiringApps on 7/8/2024.
 //
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import {
     PrivilegePurchaseOption,
     PrivilegePurchaseOptionSerializer
@@ -11,10 +13,7 @@ import {
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('PrivilegePurchaseOption model', () => {
     before(() => {

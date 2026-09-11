@@ -6,16 +6,14 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import {
     LicenseHistoryItem,
     LicenseHistoryItemSerializer
 } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import i18n from '@/i18n';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('LicenseHistoryItem model', () => {
     before(() => {

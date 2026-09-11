@@ -5,6 +5,8 @@
 //  Created by InspiringApps on 5/21/2020.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import FormMixin from '@components/Forms/_mixins/form.mixin';
 import InputMixin from '@components/Forms/_mixins/input.mixin';
@@ -12,10 +14,7 @@ import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 import sinon from 'sinon';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('Form mixin', async () => {
     it('should mount the component', async () => {

@@ -6,16 +6,14 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { serverDateFormat, displayDateFormat } from '@/app.config';
 import { Investigation, InvestigationSerializer } from '@models/Investigation/Investigation.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 import moment from 'moment';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('Investigation model', () => {
     before(() => {

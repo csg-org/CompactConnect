@@ -16,8 +16,7 @@
         "noImplicitAny": false,
         "types": [
             "webpack-env",
-            "mocha",
-            "chai"
+            "mocha"
         ],
         "paths": {
             "@/*": [ "src/*" ],
