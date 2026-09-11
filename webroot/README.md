@@ -288,7 +288,7 @@ In **`/backend/compact-connect-ui-app/`**:
 In **`/backend/compact-connect-ui-app/lambdas/nodejs`**:
 
 - _If you haven't already, make sure you have followed the README to ensure the correct Node version and installation of dependencies_
-- Make CSP updates to `/cloudfront-cspindex.js` as needed
+- Make CSP updates to `/cloudfront-csp/index.js` as needed
 - Update the tests in `/cloudfront-csp/test/index.test.js` as needed
 - Run `yarn lint`
 - Run `yarn test:csp`
