@@ -20,7 +20,6 @@ from cc_common.data_model.schema.fields import (
     InvestigationStatusField,
     ITUTE164PhoneNumber,
     Jurisdiction,
-    NationalProviderIdentifier,
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
@@ -81,8 +80,7 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
     # associated with the `ssn` field, to correct a previously-uploaded incorrect SSN. This value is
     # stripped out before the license data leaves the SSN-scoped preprocessing path and is never persisted.
     previousSSN = SocialSecurityNumber(required=False, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     # Note that the two fields below, `licenseStatus` and `compactEligibility`, are stored
     # in the database as `jurisdictionUploadedLicenseStatus` and `jurisdictionUploadedCompactEligibility`.
@@ -120,16 +118,6 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
 
     @validates_schema
-    def validate_ssn_or_license_number_present(self, data, **_kwargs):
-        """A license record must carry at least one identifier we can tie to a practitioner.
-
-        The SSN identifies them directly. A license number identifies them indirectly, by matching a
-        license record the same jurisdiction has already uploaded for them under their SSN.
-        """
-        if not data.get('ssn') and not data.get('licenseNumber'):
-            raise ValidationError({'ssn': ['ssn is required when licenseNumber is not provided.']})
-
-    @validates_schema
     def validate_previous_ssn_requires_ssn(self, data, **_kwargs):
         """previousSSN only has meaning as a correction of the ssn provided alongside it."""
         if data.get('previousSSN') and not data.get('ssn'):
@@ -164,8 +152,7 @@ class LicenseReportResponseSchema(ForgivingSchema):
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -194,8 +181,7 @@ class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -235,8 +221,7 @@ class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSc
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))

@@ -41,12 +41,8 @@ class LicenseData(CCDataClass):
         return self._data['licenseType']
 
     @property
-    def npi(self) -> str | None:
-        return self._data.get('npi')
-
-    @property
-    def licenseNumber(self) -> str | None:
-        return self._data.get('licenseNumber')
+    def licenseNumber(self) -> str:
+        return self._data['licenseNumber']
 
     @property
     def ssnLastFour(self) -> str:

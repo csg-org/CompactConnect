@@ -1,9 +1,17 @@
 import json
 import os
+import sys
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
+
+# backend/common-python is the git source of truth. CDK copies common_lambdas into this
+# directory at synth time for the Lambda layer; that copy is gitignored.
+_COMMON_PYTHON = Path(__file__).resolve().parents[5] / 'common-python'
+if _COMMON_PYTHON.is_dir() and str(_COMMON_PYTHON) not in sys.path:
+    sys.path.insert(0, str(_COMMON_PYTHON))
 
 
 class TstLambdas(TestCase):
@@ -35,7 +43,7 @@ class TstLambdas(TestCase):
                 'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'LICENSE_NUMBER_GSI_NAME': 'licenseNumberGSI',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["aslp", "octp", "coun", "psypact"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -98,7 +106,11 @@ class TstLambdas(TestCase):
                         'aslp': [
                             {'name': 'audiologist', 'abbreviation': 'aud'},
                             {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
-                        ]
+                        ],
+                        'psypact': [
+                            {'name': 'Psychologist', 'abbreviation': 'psych'},
+                            {'name': 'School Psychologist', 'abbreviation': 'schpsych'},
+                        ],
                     },
                 ),
             },

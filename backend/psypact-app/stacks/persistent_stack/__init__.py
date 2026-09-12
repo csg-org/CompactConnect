@@ -66,6 +66,7 @@ class PersistentStack(AppStack):
             self,
             'PythonCommonLayerVersions',
             compatible_runtimes=[Runtime.PYTHON_3_12, Runtime.PYTHON_3_14],
+            include_shared_python=True,
         )
 
         self.shared_encryption_key = Key(

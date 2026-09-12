@@ -54,7 +54,7 @@ def clean_modules():
     This is especially important for modules like config that maintain state.
     """
     # List of module prefixes to clean up
-    modules_to_clean = ['cc_common', 'common_test', 'handlers', 'tests']
+    modules_to_clean = ['cc_common', 'common_lambdas', 'common_test', 'handlers', 'tests']
 
     for module_name in list(sys.modules.keys()):
         for prefix in modules_to_clean:
@@ -107,7 +107,10 @@ def run_tests(cov: Coverage, args):
                 # Change to the test directory
                 os.chdir(dir_path)
 
-                # Set up PYTHONPATH for common code if needed
+                # Set up PYTHONPATH for common lambda code and backend/common-python
+                common_python = APP_DIR.parent / 'common-python'
+                if common_python.is_dir() and str(common_python) not in sys.path:
+                    sys.path.insert(0, str(common_python))
                 if test_dir != 'lambdas/python/common' and 'python' in test_dir:
                     common_path = APP_DIR / 'lambdas/python/common'
                     if str(common_path) not in sys.path:

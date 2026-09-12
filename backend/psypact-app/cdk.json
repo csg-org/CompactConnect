@@ -29,8 +29,8 @@
     ],
     "license_types": {
       "psypact": [
-        {"name": "audiologist", "abbreviation": "aud"},
-        {"name": "speech-language pathologist", "abbreviation": "slp"}
+        {"name": "Psychologist", "abbreviation": "psych"},
+        {"name": "School Psychologist", "abbreviation": "schpsych"}
       ]
     },
     "compacts": [
