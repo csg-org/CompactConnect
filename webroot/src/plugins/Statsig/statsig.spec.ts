@@ -6,7 +6,7 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { config as envConfig, appEnvironments } from '@plugins/EnvConfig/envConfig.plugin';
 import statsigPlugin, {
     STATSIG_PRODUCTION,
@@ -20,9 +20,7 @@ import statsigPlugin, {
 import { StatsigSessionReplayPlugin } from '@statsig/session-replay';
 import { StatsigAutoCapturePlugin } from '@statsig/web-analytics';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 const origAppEnv = envConfig.appEnv;
 
 describe('Statsig plugin', async () => {

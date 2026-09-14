@@ -16,11 +16,9 @@ import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/Acc
 import i18n from '@/i18n';
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('User model', () => {
     before(() => {

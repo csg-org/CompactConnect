@@ -11,11 +11,9 @@ import { Compact } from '@models/Compact/Compact.model';
 import i18n from '@/i18n';
 import moment from 'moment';
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('PrivilegeAttestation model', () => {
     before(() => {

@@ -6,14 +6,12 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { AppModes } from '@/app.config';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { getApiBaseUrl } from '@network/apiUrls';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('apiUrls helpers', () => {
     it('should successfully resolve jcc api base urls', () => {

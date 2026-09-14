@@ -6,7 +6,7 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import CompactSelector from '@components/CompactSelector/CompactSelector.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
@@ -14,9 +14,7 @@ import { MutationTypes } from '@store/user/user.mutations';
 import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import store from '@store/index';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 const buildCompactPermission = (compactType: CompactType | string): CompactPermission => ({
     compact: new Compact({ type: compactType as CompactType }),

@@ -7,11 +7,9 @@
 import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('AcceptedAttestationToSend model', () => {
     it('should create a PrivilegePurchaseOption with expected defaults', () => {

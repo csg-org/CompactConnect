@@ -5,13 +5,12 @@
 //  Created by InspiringApps on 4/12/2020.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('FormInput model', () => {
     it('should create a FormInput with expected defaults', () => {

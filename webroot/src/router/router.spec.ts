@@ -5,16 +5,15 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import guards from '@router/_guards';
 import routes from '@router/routes';
 import store from '@/store';
 import { AppModes } from '@/app.config';
 import { AuthTypes, getAuthCallbackPath } from '@utils/auth';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('Router Guards', () => {
     it('should successfully return authentication guard', () => {

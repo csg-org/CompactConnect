@@ -5,6 +5,8 @@
 //  Created by InspiringApps on 7/29/2026.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import sinon from 'sinon';
 import axios from 'axios';
 import { AppModes } from '@/app.config';
@@ -16,10 +18,7 @@ import {
 } from '@utils/auth';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('auth utils', () => {
     let axiosPostStub;

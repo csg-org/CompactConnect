@@ -5,6 +5,8 @@
 //  Created by InspiringApps on 8/12/2024.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import { mountFull, mountShallow } from '@tests/helpers/setup';
 import PublicDashboard from '@pages/PublicDashboard/PublicDashboard.vue';
 import { AppModes } from '@/app.config';
@@ -13,10 +15,7 @@ import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { nextTick } from 'vue';
 import { flushPromises } from '@vue/test-utils';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('PublicDashboard page', async () => {
     it('should mount the page component', async () => {

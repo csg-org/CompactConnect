@@ -5,16 +5,16 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import { AppModes, AppGroupModes } from '@/app.config';
 import { AuthTypes } from '@utils/auth';
 import mutations, { MutationTypes } from './global.mutations';
 import actions from './global.actions';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-const sinon = require('sinon');
+use(chaiMatchPattern);
 
-const { expect } = chai;
+const sinon = require('sinon');
 
 describe('Global Store Mutations', () => {
     it('should successfully begin loading', () => {

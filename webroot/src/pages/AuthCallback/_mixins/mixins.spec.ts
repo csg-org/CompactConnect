@@ -5,6 +5,8 @@
 //  Created by InspiringApps on 6/24/2026.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import sinon from 'sinon';
 import axios from 'axios';
 import { mountShallow } from '@tests/helpers/setup';
@@ -19,10 +21,7 @@ import {
 } from '@utils/auth';
 import sessionStorage from '@store/session.storage';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('AuthCallbackHandler mixin', async () => {
     it('should mount the component', async () => {

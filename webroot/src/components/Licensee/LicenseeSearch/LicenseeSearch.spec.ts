@@ -6,16 +6,14 @@
 //
 
 import chaiMatchPattern from 'chai-match-pattern';
-import chai from 'chai';
+import { use, expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import LicenseeSearch from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { AppModes } from '@/app.config';
 import store from '@store/index';
 
-chai.use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('LicenseeSearch component', async () => {
     afterEach(async () => {

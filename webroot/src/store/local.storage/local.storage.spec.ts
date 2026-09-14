@@ -5,12 +5,11 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
+import chaiMatchPattern from 'chai-match-pattern';
+import { use, expect } from 'chai';
 import store from './index';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
-
-const { expect } = chai;
+use(chaiMatchPattern);
 
 describe('Local Storage store', () => {
     it('should successfully check if localStorage is available (available)', () => {
