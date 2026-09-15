@@ -95,6 +95,59 @@ class TestLicenses(TstFunction):
         expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
         self.assertEqual(expected_message, json.loads(queue_messages[0].body))
 
+    def test_post_licenses_forwards_previous_ssn_to_preprocessing_queue(self):
+        """
+        previousSSN rides the SSN preprocessing queue alongside the ssn it corrects. It is the preprocessor,
+        not this handler, that resolves it and strips it before anything reaches the event bus.
+        """
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['previousSSN'] = '123-12-9876'
+        event['body'] = json.dumps([license_data])
+
+        event = self._create_signed_event(event)
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        queue_messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(1, len(queue_messages))
+        self.assertEqual('123-12-9876', json.loads(queue_messages[0].body)['previousSSN'])
+
+    def test_post_licenses_rejects_previous_ssn_without_ssn(self):
+        """A record identified only by license number has no corrected SSN for previousSSN to correct to."""
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data.pop('ssn')
+        license_data['previousSSN'] = '123-12-9876'
+        event['body'] = json.dumps([license_data])
+
+        event = self._create_signed_event(event)
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            ['previousSSN may only be provided together with ssn.'],
+            json.loads(resp['body'])['errors']['0']['previousSSN'],
+        )
+        self.assertEqual(0, len(self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)))
+
     def test_post_licenses_does_not_let_request_body_override_path_parameters(self):
         from handlers.licenses import post_licenses
 

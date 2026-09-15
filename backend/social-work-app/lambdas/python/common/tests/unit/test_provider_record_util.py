@@ -1,5 +1,5 @@
 # ruff: noqa: SLF001 private-member
-from datetime import date
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
 from tests import TstLambdas
@@ -2276,3 +2276,256 @@ class TestPopulateProviderRecordAggregateFields(TstLambdas):
         )
 
         self.assertEqual('encumbered', provider_record.to_dict()['encumberedStatus'])
+
+
+class TestProviderUserRecordsSsnCorrectionSelectors(TstLambdas):
+    """
+    Selectors used by the SSN-correction migration to decide which records move with a corrected license.
+
+    A correction is scoped to a single license record - jurisdiction, license type, AND scope - because a
+    state may legitimately need to correct only one scope's row, the other having been uploaded under the
+    correct SSN all along. The single-state and multi-state licenses of one type must therefore never be
+    bundled by these selectors.
+    """
+
+    LCSW = 'licensed clinical social worker'
+    LMSW = 'licensed master social worker'
+
+    def _records_for_full_practitioner(self):
+        """Build a provider holding an LCSW pair in OH, an LMSW single-state in OH, and an LCSW pair in KY."""
+        from common_test.test_data_generator import TestDataGenerator
+
+        records = [TestDataGenerator.generate_default_provider().serialize_to_database_record()]
+
+        for overrides in [
+            *_license_pair_overrides('oh', self.LCSW),
+            *_license_pair_overrides('ky', self.LCSW),
+            {'jurisdiction': 'oh', 'licenseType': self.LMSW, 'licenseScope': 'single-state'},
+        ]:
+            records.append(TestDataGenerator.generate_default_license(overrides).serialize_to_database_record())
+
+        # An adverse action and an investigation against each scope of the OH LCSW license, plus a closed
+        # investigation, which must move as well - the migration takes a license's whole history.
+        for scope in ('single-state', 'multi-state'):
+            records.append(
+                TestDataGenerator.generate_default_adverse_action(
+                    {
+                        'jurisdiction': 'oh',
+                        'licenseType': self.LCSW,
+                        'licenseTypeAbbreviation': 'lcsw',
+                        'licenseScope': scope,
+                        'actionAgainst': 'license',
+                    }
+                ).serialize_to_database_record()
+            )
+            investigation_overrides = {
+                'jurisdiction': 'oh',
+                'licenseType': self.LCSW,
+                'licenseTypeAbbreviation': 'lcsw',
+                'licenseScope': scope,
+                'investigationAgainst': 'license',
+            }
+            # Close the multi-state one, so the fixture covers a closed investigation as well as an open one
+            if scope == 'multi-state':
+                investigation_overrides['closeDate'] = datetime(2025, 1, 1, tzinfo=UTC)
+            records.append(
+                TestDataGenerator.generate_default_investigation(investigation_overrides).serialize_to_database_record()
+            )
+            records.append(
+                TestDataGenerator.generate_default_license_update(
+                    {'jurisdiction': 'oh', 'licenseType': self.LCSW, 'licenseScope': scope}
+                ).serialize_to_database_record()
+            )
+
+        # An adverse action on the KY license, which must NOT move when OH is corrected
+        records.append(
+            TestDataGenerator.generate_default_adverse_action(
+                {
+                    'jurisdiction': 'ky',
+                    'licenseType': self.LCSW,
+                    'licenseTypeAbbreviation': 'lcsw',
+                    'licenseScope': 'single-state',
+                    'actionAgainst': 'license',
+                }
+            ).serialize_to_database_record()
+        )
+
+        records.append(TestDataGenerator.generate_default_provider_update().serialize_to_database_record())
+        return records
+
+    def test_returns_only_the_requested_scope(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        associated = records.get_records_associated_with_license('oh', self.LCSW, 'single-state')
+
+        licenses = [record for record in associated if record.type == 'license']
+        self.assertEqual(1, len(licenses))
+        self.assertEqual('single-state', licenses[0].licenseScope)
+        for record in associated:
+            self.assertEqual(
+                'single-state',
+                record.licenseScope,
+                'the multi-state row may have been uploaded under the correct SSN all along, so nothing '
+                'of the other scope may be selected',
+            )
+
+    def test_returns_dependent_records_for_the_selected_license(self):
+        """The closed multi-state investigation in the fixture proves closed history moves too."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        counts_by_scope = {}
+        for scope in ('single-state', 'multi-state'):
+            counts = {}
+            for record in records.get_records_associated_with_license('oh', self.LCSW, scope):
+                counts[record.type] = counts.get(record.type, 0) + 1
+            counts_by_scope[scope] = counts
+
+        expected = {'license': 1, 'adverseAction': 1, 'investigation': 1, 'licenseUpdate': 1}
+        self.assertEqual(
+            {'single-state': expected, 'multi-state': expected},
+            counts_by_scope,
+            'each scope selects its own license, adverse actions, investigations (including closed) and '
+            'update history, and nothing of its mate',
+        )
+
+    def test_excludes_records_for_other_jurisdictions_and_license_types(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        associated = records.get_records_associated_with_license('oh', self.LCSW, 'single-state')
+
+        for record in associated:
+            self.assertEqual('oh', record.jurisdiction)
+            self.assertEqual(self.LCSW, record.licenseType)
+
+    def test_returns_empty_when_no_license_matches(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_for_full_practitioner())
+
+        # wrong jurisdiction, wrong license type, and a scope the provider holds no license for
+        self.assertEqual([], records.get_records_associated_with_license('ne', self.LCSW, 'single-state'))
+        self.assertEqual(
+            [], records.get_records_associated_with_license('oh', 'licensed social worker', 'single-state')
+        )
+        self.assertEqual([], records.get_records_associated_with_license('oh', self.LMSW, 'multi-state'))
+
+
+class TestHomeJurisdictionForLicenseType(TstLambdas):
+    """
+    Resolving the home jurisdiction a privilege is generated from, which is what an adverse action or
+    investigation records at creation so an SSN correction can later route it.
+    """
+
+    LCSW = 'licensed clinical social worker'
+    LMSW = 'licensed master social worker'
+
+    def _records(self, license_overrides, provider_overrides=None):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from common_test.test_data_generator import TestDataGenerator
+
+        provider = TestDataGenerator.generate_default_provider(provider_overrides)
+        records = [provider.serialize_to_database_record()]
+        for overrides in license_overrides:
+            records.append(TestDataGenerator.generate_default_license(overrides).serialize_to_database_record())
+        return ProviderUserRecords(records)
+
+    def test_returns_the_jurisdiction_of_the_paired_multi_state_license(self):
+        records = self._records(_license_pair_overrides('ky', self.LCSW))
+
+        self.assertEqual('ky', records.get_home_jurisdiction_for_license_type(self.LCSW))
+
+    def test_resolves_per_license_type_not_per_provider(self):
+        """
+        The decisive case. A practitioner can hold a home license in one state for one license type and
+        another state for a different type, while the provider record carries a single licenseJurisdiction.
+        Resolving from the provider record would stamp the wrong jurisdiction on one of the two.
+        """
+        records = self._records(
+            [
+                *_license_pair_overrides('oh', self.LCSW),
+                *_license_pair_overrides('ky', self.LMSW),
+            ],
+            provider_overrides={'licenseJurisdiction': 'oh'},
+        )
+
+        self.assertEqual('oh', records.get_home_jurisdiction_for_license_type(self.LCSW))
+        self.assertEqual('ky', records.get_home_jurisdiction_for_license_type(self.LMSW))
+
+    def test_returns_none_when_the_license_type_has_no_paired_multi_state_license(self):
+        """An unpaired license generates no privileges, so it has no home jurisdiction to speak of."""
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        records = self._records(
+            [{'jurisdiction': 'oh', 'licenseType': self.LCSW, 'licenseScope': LicenseScopeEnum.SINGLE_STATE}]
+        )
+
+        self.assertIsNone(records.get_home_jurisdiction_for_license_type(self.LCSW))
+
+    def test_prefers_the_most_recently_renewed_paired_multi_state_license(self):
+        """Matches how generate_privileges_for_provider picks the home license."""
+        records = self._records(
+            [
+                *_license_pair_overrides('oh', self.LCSW, multi_extra={'dateOfRenewal': date(2020, 1, 1)}),
+                *_license_pair_overrides('ky', self.LCSW, multi_extra={'dateOfRenewal': date(2024, 1, 1)}),
+            ]
+        )
+
+        self.assertEqual('ky', records.get_home_jurisdiction_for_license_type(self.LCSW))
+
+
+class TestGetAllRecordsExceptTheProviderRecord(TstLambdas):
+    """
+    The full-migration selector, which must move an entire provider partition.
+
+    A full migration deletes the old top-level provider record, so anything this returns short of 'the
+    whole partition' is a record orphaned under a provider that no longer exists. That makes 'everything
+    except the provider record' the contract, rather than 'everything the migration happens to know about'.
+    """
+
+    def _records_covering_every_type(self):
+        """One record of every type this system stores in a provider partition."""
+        from common_test.test_data_generator import TestDataGenerator
+
+        return [
+            TestDataGenerator.generate_default_provider().serialize_to_database_record(),
+            TestDataGenerator.generate_default_provider_update().serialize_to_database_record(),
+            TestDataGenerator.generate_default_license().serialize_to_database_record(),
+            TestDataGenerator.generate_default_license_update().serialize_to_database_record(),
+            TestDataGenerator.generate_default_adverse_action().serialize_to_database_record(),
+            TestDataGenerator.generate_default_investigation().serialize_to_database_record(),
+        ]
+
+    def test_returns_every_record_but_the_provider_record(self):
+        from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_covering_every_type())
+
+        returned = records.get_all_records_except_the_provider_record()
+
+        self.assertEqual(5, len(returned))
+        self.assertNotIn(ProviderRecordType.PROVIDER, [record.type for record in returned])
+
+    def test_covers_every_record_type_the_system_defines(self):
+        """
+        Guards the failure mode this selector exists to prevent.
+
+        A record type added to ProviderRecordType but not handled by ProviderUserRecords is dropped at
+        construction with only a logged warning. In a full migration that record would be left behind in a
+        partition whose provider record has been deleted, so this asserts the two stay in step.
+        """
+        from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderUserRecords
+
+        records = ProviderUserRecords(self._records_covering_every_type())
+
+        returned_types = {record.type for record in records.get_all_records_except_the_provider_record()}
+
+        expected_types = {
+            record_type for record_type in ProviderRecordType if record_type != ProviderRecordType.PROVIDER
+        }
+        self.assertEqual(expected_types, returned_types)

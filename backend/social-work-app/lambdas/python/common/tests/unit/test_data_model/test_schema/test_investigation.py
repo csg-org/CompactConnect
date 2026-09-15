@@ -37,6 +37,43 @@ class TestInvestigationRecordSchema(TstLambdas):
         with self.assertRaises(ValidationError):
             InvestigationRecordSchema().load(investigation_data)
 
+    def test_home_jurisdiction_is_not_exposed_in_investigation_api_responses(self):
+        """Internal routing data for SSN corrections; nothing outside the backend consumes it."""
+        from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
+
+        investigation = self.test_data_generator.generate_default_investigation().to_dict()
+        investigation['dateOfUpdate'] = investigation.get('dateOfUpdate', '2024-11-08T23:59:59+00:00')
+
+        response = InvestigationGeneralResponseSchema().dump(InvestigationGeneralResponseSchema().load(investigation))
+
+        self.assertNotIn('homeJurisdictionAtTimeOfCreation', response)
+
+    def test_home_jurisdiction_at_time_of_creation_is_required(self):
+        """
+        The migration reads this field to decide whether a privilege's records follow a corrected
+        multi-state license, so a record without it cannot be placed. Required rather than defaulted.
+        """
+        from cc_common.data_model.schema.investigation.record import InvestigationRecordSchema
+
+        investigation_data = self.test_data_generator.generate_default_investigation().to_dict()
+        investigation_data.pop('homeJurisdictionAtTimeOfCreation')
+
+        with self.assertRaises(ValidationError) as context:
+            InvestigationRecordSchema().load(investigation_data)
+
+        self.assertIn('homeJurisdictionAtTimeOfCreation', context.exception.messages)
+
+    def test_home_jurisdiction_at_time_of_creation_must_be_a_valid_jurisdiction(self):
+        from cc_common.data_model.schema.investigation.record import InvestigationRecordSchema
+
+        investigation_data = self.test_data_generator.generate_default_investigation().to_dict()
+        investigation_data['homeJurisdictionAtTimeOfCreation'] = 'not-a-jurisdiction'
+
+        with self.assertRaises(ValidationError) as context:
+            InvestigationRecordSchema().load(investigation_data)
+
+        self.assertIn('homeJurisdictionAtTimeOfCreation', context.exception.messages)
+
     def test_invalid_investigation_against(self):
         from cc_common.data_model.schema.common import CompactEligibilityStatus
         from cc_common.data_model.schema.investigation import InvestigationData
@@ -88,6 +125,7 @@ class TestInvestigationDataClass(TstLambdas):
             'creationDate': investigation_data.creationDate,
             'licenseType': investigation_data.licenseType,
             'licenseScope': investigation_data.licenseScope,
+            'homeJurisdictionAtTimeOfCreation': investigation_data.homeJurisdictionAtTimeOfCreation,
             'type': investigation_data.type,
         }
 
@@ -114,6 +152,7 @@ class TestInvestigationDataClass(TstLambdas):
                 'jurisdiction': 'ne',
                 'licenseType': 'licensed clinical social worker',
                 'licenseScope': 'single-state',
+                'homeJurisdictionAtTimeOfCreation': 'oh',
                 'pk': pk,
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'sk': sk,

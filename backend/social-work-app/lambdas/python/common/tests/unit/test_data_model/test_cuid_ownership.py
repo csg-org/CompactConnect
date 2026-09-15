@@ -1,0 +1,303 @@
+from datetime import UTC, datetime
+
+from tests import TstLambdas
+
+LCSW = 'licensed clinical social worker'
+LMSW = 'licensed master social worker'
+A_CUID = 'SWC-4821-137'
+ANOTHER_CUID = 'SWC-9930-204'
+
+
+def _license(jurisdiction: str, license_type: str, scope: str, first_upload: datetime):
+    from common_test.test_data_generator import TestDataGenerator
+
+    return TestDataGenerator.generate_default_license(
+        {
+            'jurisdiction': jurisdiction,
+            'licenseType': license_type,
+            'licenseScope': scope,
+            'licenseNumber': f'{jurisdiction}-{license_type}-{scope}',
+            'firstUploadDate': first_upload,
+        }
+    )
+
+
+def _pair(jurisdiction: str, license_type: str, single_upload: datetime, multi_upload: datetime):
+    return [
+        _license(jurisdiction, license_type, 'single-state', single_upload),
+        _license(jurisdiction, license_type, 'multi-state', multi_upload),
+    ]
+
+
+class TestResolveCuidOwnership(TstLambdas):
+    """
+    The CUID ownership decision made during an SSN correction.
+
+    Pure logic over the license being moved plus two simulated sets - what the old record keeps, and what
+    the corrected record holds once the migrating license lands - so every branch is exercised without
+    touching DynamoDB.
+    """
+
+    def _resolve(self, *, migrating, old_remaining, new_post, old_cuid=None, new_cuid=None):
+        from cc_common.data_model.cuid_ownership import resolve_cuid_ownership
+
+        # Ownership is decided from the two resulting sets; requiring `migrating` keeps its
+        # firstUploadDate at the call site instead of hidden behind a helper default.
+        self.assertIn(migrating, new_post)
+
+        return resolve_cuid_ownership(
+            old_provider_cuid=old_cuid,
+            new_provider_cuid=new_cuid,
+            old_remaining_licenses=old_remaining,
+            new_post_migration_licenses=new_post,
+        )
+
+    def test_no_cuid_on_the_old_record_is_a_no_op(self):
+        """Nothing to move. The corrected record's own assignment is the ordinary rule's business."""
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('oh', LCSW, 'single-state', datetime(2015, 1, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            migrating=migrating,
+            old_remaining=[],
+            new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2015, 2, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
+
+    def test_corrected_record_with_its_own_cuid_is_never_overwritten(self):
+        """Check 1: a CUID already on the corrected record wins, whatever the licenses say."""
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            new_cuid=ANOTHER_CUID,
+            migrating=migrating,
+            old_remaining=[],
+            new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2010, 2, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
+
+    def test_keeps_when_the_corrected_record_does_not_qualify(self):
+        """
+        Check 2. The corrected practitioner holds no matching pair even with this license added, so there
+        is nothing for a CUID to attach to. They get one from the ordinary rule on a later upload.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            # Older than everything remaining, which would otherwise move it - check 2 comes first
+            old_remaining=_pair('ky', LMSW, datetime(2019, 1, 1, tzinfo=UTC), datetime(2019, 2, 1, tzinfo=UTC)),
+            new_post=[migrating],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
+
+    def test_moves_when_the_corrected_license_predates_everything_remaining(self):
+        """Check 3, the yes branch: the identifier follows the licenses that were uploaded first."""
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('oh', LCSW, 'single-state', datetime(2011, 1, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            old_remaining=_pair('ky', LMSW, datetime(2018, 1, 1, tzinfo=UTC), datetime(2019, 1, 1, tzinfo=UTC)),
+            # The corrected record already held the matching multi-state license, so this completes a pair
+            new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2012, 1, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.MOVE, decision)
+
+    def test_moves_when_the_corrected_set_started_first_even_if_the_migrating_license_did_not(self):
+        """
+        Check 3 has to compare the two practitioners' license sets, not just the license being moved.
+
+        Interleaved upload order: the corrected state's single-state license lands first, then the other
+        state's single-state, then the corrected state's multi-state (which completes the pair and mints the
+        CUID), then the other state's multi-state. Correcting single-state before multi-state means the
+        license moving here is the LATEST of the four - but its set began before anything left behind, so
+        the identifier belongs with it.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        already_migrated = _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))
+        migrating = _license('oh', LCSW, 'multi-state', datetime(2020, 3, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            old_remaining=_pair('az', LMSW, datetime(2020, 2, 1, tzinfo=UTC), datetime(2020, 4, 1, tzinfo=UTC)),
+            new_post=[already_migrated, migrating],
+        )
+
+        self.assertEqual(CuidOwnership.MOVE, decision)
+
+    def test_keeps_when_the_remaining_set_completed_its_pair_first(self):
+        """
+        Check 4 has to find which set actually completed a pair first, not merely which set started first.
+
+        Upload order: the corrected state's single-state license, then the other state's single-state, then
+        the other state's MULTI-state - which completes that pair and is what mints the CUID - and only then
+        the corrected state's multi-state. The corrected state's set starts earliest, but it does not become
+        a pair until last, so it never earned the identifier and must not take it.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        already_migrated = _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))
+        migrating = _license('oh', LCSW, 'multi-state', datetime(2020, 4, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            # completes at 2020-03, before the oh pair completes at 2020-04
+            old_remaining=_pair('az', LMSW, datetime(2020, 2, 1, tzinfo=UTC), datetime(2020, 3, 1, tzinfo=UTC)),
+            new_post=[already_migrated, migrating],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
+
+    def test_a_set_that_started_early_but_paired_late_did_not_earn_the_cuid(self):
+        """
+        A pair is created at the LATER of its two uploads, so a set can start well before another and still
+        become a pair well after it.
+
+        Here the corrected set filed its single-state license in January but did not add multi-state until
+        April, while the retained set filed both within two days of each other in February. February beats
+        April, so the retained set minted the CUID and keeps it.
+
+        This case is what rules out shortcuts that treat a set's two dates as interchangeable - totalling or
+        averaging them puts the corrected set first, because its very early first upload outweighs its very
+        late second one. Only the completion date answers the question.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('oh', LCSW, 'multi-state', datetime(2020, 4, 10, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            old_remaining=_pair('az', LMSW, datetime(2020, 2, 20, tzinfo=UTC), datetime(2020, 2, 22, tzinfo=UTC)),
+            new_post=[
+                _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC)),
+                migrating,
+            ],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
+
+    def test_keeps_when_an_older_qualifying_pair_stays_behind(self):
+        """
+        Check 4, the yes branch. This is the case of licenses accidentally attached to an existing
+        practitioner: the newer, mistakenly-attached licenses leave without taking the identifier that
+        practitioner's own older licenses earned.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('ky', LMSW, 'multi-state', datetime(2020, 2, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            old_remaining=_pair('oh', LCSW, datetime(2015, 1, 1, tzinfo=UTC), datetime(2015, 2, 1, tzinfo=UTC)),
+            new_post=[migrating, _license('ky', LMSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
+
+    def test_moves_when_what_stayed_behind_no_longer_qualifies(self):
+        """
+        Check 4, the no branch. Something older remains, so check 3 does not move the identifier, but that
+        remainder is not a qualifying pair - nothing left on the old record could have earned it. Leaving
+        it there would strand it on a practitioner who does not qualify while the corrected practitioner,
+        who does, has none.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('ky', LMSW, 'multi-state', datetime(2020, 2, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            # Older than the migrating license, but a lone license rather than a pair
+            old_remaining=[_license('oh', LCSW, 'single-state', datetime(2015, 1, 1, tzinfo=UTC))],
+            new_post=[migrating, _license('ky', LMSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.MOVE, decision)
+
+    def test_a_split_pair_waits_until_it_is_whole_before_taking_the_cuid(self):
+        """
+        Mid-correction a set can straddle both records: its single-state license has already been moved
+        across while its multi-state license is still waiting its turn. A half-migrated set is not yet a
+        pair on either record, so neither side can claim to have earned the CUID with it, and the identifier
+        stays where it is.
+
+        That is a deferral rather than a decision: the correction that brings the rest of the set across
+        makes it whole on the corrected record, and the identifier follows then. Asserting both steps here
+        is what shows the deferral does not strand it.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        # The oh set completed first, in 2011, and is what earned the CUID
+        oh_single_state = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
+        oh_multi_state = _license('oh', LCSW, 'multi-state', datetime(2011, 1, 1, tzinfo=UTC))
+        corrected_own_pair = _pair('az', LCSW, datetime(2020, 1, 1, tzinfo=UTC), datetime(2021, 1, 1, tzinfo=UTC))
+        retained_own_pair = _pair('ky', LMSW, datetime(2018, 1, 1, tzinfo=UTC), datetime(2019, 1, 1, tzinfo=UTC))
+
+        while_split = self._resolve(
+            old_cuid=A_CUID,
+            migrating=oh_single_state,
+            old_remaining=[oh_multi_state, *retained_own_pair],
+            new_post=[oh_single_state, *corrected_own_pair],
+        )
+        self.assertEqual(CuidOwnership.KEEP, while_split)
+
+        once_whole = self._resolve(
+            old_cuid=A_CUID,
+            migrating=oh_multi_state,
+            old_remaining=list(retained_own_pair),
+            new_post=[oh_single_state, oh_multi_state, *corrected_own_pair],
+        )
+        self.assertEqual(CuidOwnership.MOVE, once_whole)
+
+    def test_moves_when_nothing_remains_on_the_old_record(self):
+        """
+        The last license leaving a record takes the identifier with it. Leaving it behind would only
+        retire it, since the old record is about to be deleted.
+        """
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('oh', LCSW, 'single-state', datetime(2020, 1, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            old_remaining=[],
+            new_post=[migrating, _license('oh', LCSW, 'multi-state', datetime(2019, 1, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.MOVE, decision)
+
+    def test_a_pair_requires_matching_jurisdiction_and_license_type(self):
+        """Two licenses of different types, or in different jurisdictions, do not qualify the record."""
+        from cc_common.data_model.cuid_ownership import CuidOwnership
+
+        migrating = _license('oh', LCSW, 'single-state', datetime(2010, 1, 1, tzinfo=UTC))
+
+        decision = self._resolve(
+            old_cuid=A_CUID,
+            migrating=migrating,
+            old_remaining=[],
+            new_post=[migrating, _license('ky', LMSW, 'multi-state', datetime(2011, 1, 1, tzinfo=UTC))],
+        )
+
+        self.assertEqual(CuidOwnership.KEEP, decision)
