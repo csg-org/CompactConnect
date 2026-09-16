@@ -307,6 +307,79 @@ export const staffAccount = {
                 },
             },
         },
+        psyp: {
+            actions: {
+                admin: true,
+                readPrivate: true,
+                readSSN: true,
+            },
+            jurisdictions: {
+                al: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ky: {
+                    actions: {
+                        admin: false,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ne: {
+                    actions: {
+                        admin: false,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                oh: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                nv: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ma: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                wy: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+            },
+        },
     },
 };
 
@@ -1713,6 +1786,39 @@ export const users = {
                         },
                     },
                 },
+                psyp: {
+                    actions: {
+                        admin: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                    },
+                },
             },
         },
         {
@@ -1876,6 +1982,7 @@ export const compactStatesForRegistration = {
     aslp: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
     coun: [ 'al', 'ak', 'co', 'il', 'ia', 'ky', 'ne', 'nm' ],
     octp: [ 'al', 'ar', 'co', 'ct', 'il', 'ky' ],
+    psyp: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
 };
 
 export const compactConfig = {

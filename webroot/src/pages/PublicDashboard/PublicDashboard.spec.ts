@@ -112,6 +112,25 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain('&response_type=code');
         expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fsocialwork');
     });
+    it('should get correct hosted login uri config for staff (psypact)', async () => {
+        const wrapper = await mountShallow(PublicDashboard);
+        const component = wrapper.vm;
+
+        await nextTick();
+        await flushPromises();
+
+        const loginUri = component.staffLoginUri(AppModes.PSYPACT);
+
+        expect(component.csrfState).to.be.a('string').with.length.above(0);
+        expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
+        expect(loginUri).to.contain('/login');
+        expect(loginUri).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(loginUri).to.contain(`&state=${component.csrfState}`);
+        expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(loginUri).to.contain('&code_challenge_method=S256');
+        expect(loginUri).to.contain('&response_type=code');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fpsypact');
+    });
     it('should successfully render one staff login link per enabled compact', async () => {
         const wrapper = await mountFull(PublicDashboard);
         const component = wrapper.vm;
@@ -135,14 +154,35 @@ describe('PublicDashboard page', async () => {
         await nextTick();
         await flushPromises();
 
+        const loginUri = component.licenseeLoginUri(AppModes.JCC);
+
         expect(component.csrfState).to.be.a('string').with.length.above(0);
         expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
-        expect(component.hostedLoginUriLicensee).to.contain('/login');
-        expect(component.hostedLoginUriLicensee).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
-        expect(component.hostedLoginUriLicensee).to.contain(`&state=${component.csrfState}`);
-        expect(component.hostedLoginUriLicensee).to.contain(`&code_challenge=${component.pkceChallenge}`);
-        expect(component.hostedLoginUriLicensee).to.contain('&code_challenge_method=S256');
-        expect(component.hostedLoginUriLicensee).to.contain('&response_type=code');
-        expect(component.hostedLoginUriLicensee).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fjcc');
+        expect(loginUri).to.contain('/login');
+        expect(loginUri).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(loginUri).to.contain(`&state=${component.csrfState}`);
+        expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(loginUri).to.contain('&code_challenge_method=S256');
+        expect(loginUri).to.contain('&response_type=code');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fjcc');
+    });
+    it('should get correct hosted login uri config for licensee (psypact)', async () => {
+        const wrapper = await mountShallow(PublicDashboard);
+        const component = wrapper.vm;
+
+        await nextTick();
+        await flushPromises();
+
+        const loginUri = component.licenseeLoginUri(AppModes.PSYPACT);
+
+        expect(component.csrfState).to.be.a('string').with.length.above(0);
+        expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
+        expect(loginUri).to.contain('/login');
+        expect(loginUri).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(loginUri).to.contain(`&state=${component.csrfState}`);
+        expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(loginUri).to.contain('&code_challenge_method=S256');
+        expect(loginUri).to.contain('&response_type=code');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fpsypact');
     });
 });

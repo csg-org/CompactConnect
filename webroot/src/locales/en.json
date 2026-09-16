@@ -1,6 +1,7 @@
 {
     "common": {
         "appName": "CompactConnect",
+        "appTypeLabel": "App type",
         "yes": "Yes",
         "no": "No",
         "back": "Back",
@@ -517,6 +518,11 @@
             "name": "Social Work",
             "abbrev": "SOCW",
             "key": "socw"
+        },
+        {
+            "name": "PSYPACT",
+            "abbrev": "PSYPACT",
+            "key": "psyp"
         }
     ],
     "compact": {

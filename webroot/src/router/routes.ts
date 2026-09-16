@@ -82,9 +82,21 @@ const routes: Array<RouteConfig> = [
         meta: { skipTransition: true },
     },
     {
+        path: '/auth/callback/staff/psypact',
+        name: 'AuthCallbackStaffPsyPact',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/StaffPsyPact/StaffPsyPact.vue'),
+        meta: { skipTransition: true },
+    },
+    {
         path: '/auth/callback/licensee/jcc',
         name: 'AuthCallbackLicenseeJcc',
         component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/LicenseeJcc/LicenseeJcc.vue'),
+        meta: { skipTransition: true },
+    },
+    {
+        path: '/auth/callback/licensee/psypact',
+        name: 'AuthCallbackLicenseePsyPact',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/LicenseePsyPact/LicenseePsyPact.vue'),
         meta: { skipTransition: true },
     },
     {

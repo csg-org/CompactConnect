@@ -157,6 +157,38 @@
             - Prod: `https://api.socialwork.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://api.test.socialwork.jcc.iaapi.io`
+    - **`VUE_APP_API_STATE_ROOT_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_API_LICENSE_ROOT_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_API_SEARCH_ROOT_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_API_USER_ROOT_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
     - **`VUE_APP_COGNITO_REGION`**
         - _Server_ :arrow_heading_up:
             - IA Test: `us-east-1`
@@ -229,6 +261,38 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `42km9ho786d28dp812j88kvscq`
+    - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_COGNITO_CLIENT_ID_STAFF_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
     - **`VUE_APP_RECAPTCHA_KEY`**
         - _Server_ :arrow_heading_up:
             - IA Test: `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`

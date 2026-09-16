@@ -1,12 +1,14 @@
 # Adding a new compact (new AppMode)
 
+_[Go to Steps](#steps)_
+
 ## Prerequisites
 
 - Backend API hosts and staff Cognito app exist (or are being added in parallel)
 - Cognito callback URLs for the new staff auth servers; and if practitioners are allowed to register, a URL for that as well
 - Choose an existing `AppGroupMode`:
   - `PRIVILEGE_PURCHASE` (JCC-style)
-  - `MULTI_STATE` (cosmetology / social work–style)
+  - `MULTI_STATE` (cosmetology / social work / psypact–style)
 - One new compact usually maps to one `AppModes` value
 
 ## Naming
@@ -34,22 +36,11 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 - `setAppMode` → `appGroupMode` (`getAppGroupModeForAppMode`)
 - Router compact param → app mode (`getAppModeForCompact`)
 
+---
+
 ## Steps
 
-### 1. Core enums and compact config
-
-**`src/app.config.ts`**
-
-- [ ] Add `AppModes.YOUR_MODE = 'yourmode'`
-
-**`src/utils/compactConfig.ts`**
-
-- [ ] Add `CompactType.YOUR_COMPACT = 'abbr'`
-- [ ] Add `compactSetups` entry (`type`, `appMode`, `isEnabled`)
-- [ ] Add `appModeGroups[AppModes.YOUR_MODE]` → existing `PRIVILEGE_PURCHASE` or `MULTI_STATE`
-- [ ] Add `appModeEncumberConfigs[AppModes.YOUR_MODE]` (license + privilege discipline / NPDB lists; reuse shared helpers when possible)
-
-### 2. Environment
+### 1. Environment
 
 **`.env` / `.env.example`**
 
@@ -66,12 +57,33 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 
 - [ ] Add matching mock fields
 
-### 3. Wire mode → infra tables
+### 2. Core enums and compact config
+
+**`src/app.config.ts`**
+
+- [ ] Add `AppModes.YOUR_MODE = 'yourmode'`
+
+**`src/utils/compactConfig.ts`**
+
+- [ ] Add `CompactType.YOUR_COMPACT = 'abbr'`
+- [ ] Add `compactSetups` entry (`type`, `appMode`, `isEnabled`)
+- [ ] Add `appModeGroups[AppModes.YOUR_MODE]` → existing `PRIVILEGE_PURCHASE` or `MULTI_STATE`
+- [ ] Add `appModeEncumberConfigs[AppModes.YOUR_MODE]` (license + privilege discipline / NPDB lists; reuse shared helpers when possible)
+
+**`src/utils/compactConfig.spec.ts`**
+
+- [ ] Setup, app group, encumbrance, enablement gating
+
+### 3. Network config
 
 **`src/network/apiUrls.ts`**
 
 - [ ] Add a row to `appModeApiUrls` for all four API families (`state`, `license`, `search`, `user`)  
   (`Record<AppModes, …>` will fail to compile until this is done.)
+
+**`src/network/apiUrls.spec.ts`**
+
+- [ ] All four families for the new mode
 
 **`src/utils/auth.ts` → `getCognitoConfig`**
 
@@ -79,16 +91,24 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 
 ### 4. Auth callback route and page
 
-**`src/router/routes.ts`**
-
-- [ ] Add route `/auth/callback/staff/{yoursegment}`  
-  Path must equal `getAuthCallbackPath(AppModes.YOUR_MODE, AuthTypes.STAFF)`
-
-**`src/pages/AuthCallback/StaffYourMode/`**
+**`src/pages/AuthCallback/{StaffYourMode}/`**
 
 - [ ] Add a thin page (copy `StaffCosmo` / `StaffSocialWork` pattern)
 - [ ] Set `appMode = AppModes.YOUR_MODE` and `authType = AuthTypes.STAFF` only
 - [ ] Add a mount spec (optional; matches existing AuthCallback pages)
+
+**`src/pages/AuthCallback/{LicenseeYourMode}/`** _(only if new compact supports licensee login)_
+
+- [ ] Add a thin page (copy `LicenseeJcc` pattern)
+- [ ] Set `appMode = AppModes.YOUR_MODE` and `authType = AuthTypes.LICENSEE` only
+- [ ] Add a mount spec (optional; matches existing AuthCallback pages)
+
+**`src/router/routes.ts`**
+
+- [ ] Add route `/auth/callback/staff/{yoursegment}`
+  Path must equal `getAuthCallbackPath(AppModes.YOUR_MODE, AuthTypes.STAFF)`
+- [ ] Add route `/auth/callback/licensee/{yoursegment}` _(only if new compact supports licensee login)_
+    Path must equal `getAuthCallbackPath(AppModes.YOUR_MODE, AuthTypes.STAFF)`
 
 **`src/router/router.spec.ts`**
 
@@ -107,6 +127,10 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 **`src/plugins/Compacts/compacts.d.ts`**
 
 - [ ] Declare `$isAppModeYourMode: boolean`
+
+**`src/plugins/Compacts/compacts.spec.ts`**
+
+- [ ] List membership / globals if asserted
 
 ### 6. i18n / product copy
 
@@ -134,6 +158,11 @@ Only if the new compact should participate in these flows:
 **`src/pages/PublicDashboard/PublicDashboard.ts` → `bypassRedirect`**
 
 - [ ] Add a `?bypass=login-staff-…` case if emails or deep links need it (see cosmo / social work)
+- [ ] If the new compact should have a different app mode in a public context, update the `get appTypeOptions()` computed and `handleAppTypeSelect()` method.
+
+**`src/pages/PublicDashboard/PublicDashboard.spec.ts`**
+
+- [ ] Staff login URI for the new mode (optional)
 
 **`RegisterLicensee` / `MfaResetStartLicensee`**
 
@@ -144,15 +173,9 @@ Only if the new compact should participate in these flows:
 Decide whether behavior should follow JCC-like or multi-state-like patterns. Prefer `$isAppGroupMode*` when the behavior is really group-scoped. Audit existing `$isAppModeJcc` / `$isAppModeCosmetology` / `$isAppModeSocialWork` usages, for example:
 
 - LicenseCard / PrivilegeCard
+- LicenseCard / PrivilegeCard encumber specs if per-mode assertions are kept there
 - LicensingDetail (e.g. military affiliation)
 - LicenseeSearchLegacy
 - UserInvite / UserRowEdit
 
-### 9. Tests to extend
-
-- [ ] `src/utils/compactConfig.spec.ts` — setup, app group, encumbrance, enablement gating
-- [ ] `src/network/apiUrls.spec.ts` — all four families for the new mode
-- [ ] `src/plugins/Compacts/compacts.spec.ts` — list membership / globals if asserted
-- [ ] `src/pages/PublicDashboard/PublicDashboard.spec.ts` — staff login URI for the new mode (optional)
-- [ ] LicenseCard / PrivilegeCard encumber specs if per-mode assertions are kept there
-- [ ] AuthCallback mount + router path consistency
+---

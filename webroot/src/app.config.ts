@@ -12,6 +12,7 @@ export enum AppModes {
     JCC = 'jcc',
     COSMETOLOGY = 'cosmo',
     SOCIAL_WORK = 'socialwork',
+    PSYPACT = 'psypact',
 }
 
 export enum AppGroupModes {

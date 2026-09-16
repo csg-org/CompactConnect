@@ -43,7 +43,9 @@ describe('Router auth callback paths', () => {
             { name: 'AuthCallbackStaffJcc', path: getAuthCallbackPath(AppModes.JCC, AuthTypes.STAFF) },
             { name: 'AuthCallbackStaffCosmo', path: getAuthCallbackPath(AppModes.COSMETOLOGY, AuthTypes.STAFF) },
             { name: 'AuthCallbackStaffSocialWork', path: getAuthCallbackPath(AppModes.SOCIAL_WORK, AuthTypes.STAFF) },
+            { name: 'AuthCallbackStaffPsyPact', path: getAuthCallbackPath(AppModes.PSYPACT, AuthTypes.STAFF) },
             { name: 'AuthCallbackLicenseeJcc', path: getAuthCallbackPath(AppModes.JCC, AuthTypes.LICENSEE) },
+            { name: 'AuthCallbackLicenseePsyPact', path: getAuthCallbackPath(AppModes.PSYPACT, AuthTypes.LICENSEE) },
         ];
 
         expectedPaths.forEach(({ name, path }) => {

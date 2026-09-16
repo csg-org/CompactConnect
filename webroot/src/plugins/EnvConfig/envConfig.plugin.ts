@@ -53,6 +53,10 @@ export interface EnvConfig {
     apiUrlLicenseSw?: string;
     apiUrlSearchSw?: string;
     apiUrlUserSw?: string;
+    apiUrlStatePsypact?: string;
+    apiUrlLicensePsypact?: string;
+    apiUrlSearchPsypact?: string;
+    apiUrlUserPsypact?: string;
     apiUrlExample?: string;
     apiKeyExample?: string;
     cognitoRegion?: string;
@@ -64,6 +68,10 @@ export interface EnvConfig {
     cognitoClientIdStaffCosmo?: string;
     cognitoAuthDomainStaffSw?: string;
     cognitoClientIdStaffSw?: string;
+    cognitoAuthDomainStaffPsypact?: string;
+    cognitoClientIdStaffPsypact?: string;
+    cognitoAuthDomainLicenseePsypact?: string;
+    cognitoClientIdLicenseePsypact?: string;
     recaptchaKey?: string;
     statsigKey?: string;
     isStatsigDisabled?: boolean;
@@ -98,6 +106,10 @@ export const config: EnvConfig = {
     apiUrlLicenseSw: context.VUE_APP_API_LICENSE_ROOT_SW,
     apiUrlSearchSw: context.VUE_APP_API_SEARCH_ROOT_SW,
     apiUrlUserSw: context.VUE_APP_API_USER_ROOT_SW,
+    apiUrlStatePsypact: context.VUE_APP_API_STATE_ROOT_PSYPACT,
+    apiUrlLicensePsypact: context.VUE_APP_API_LICENSE_ROOT_PSYPACT,
+    apiUrlSearchPsypact: context.VUE_APP_API_SEARCH_ROOT_PSYPACT,
+    apiUrlUserPsypact: context.VUE_APP_API_USER_ROOT_PSYPACT,
     apiUrlExample: '/api',
     apiKeyExample: 'example',
     cognitoRegion: context.VUE_APP_COGNITO_REGION,
@@ -109,6 +121,10 @@ export const config: EnvConfig = {
     cognitoClientIdStaffCosmo: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO,
     cognitoAuthDomainStaffSw: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_SW,
     cognitoClientIdStaffSw: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_SW,
+    cognitoAuthDomainStaffPsypact: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_PSYPACT,
+    cognitoClientIdStaffPsypact: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_PSYPACT,
+    cognitoAuthDomainLicenseePsypact: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_PSYPACT,
+    cognitoClientIdLicenseePsypact: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE_PSYPACT,
     recaptchaKey: context.VUE_APP_RECAPTCHA_KEY,
     statsigKey: context.VUE_APP_STATSIG_KEY,
     isStatsigDisabled: (context.VUE_APP_STATSIG_DISABLED === 'true'),

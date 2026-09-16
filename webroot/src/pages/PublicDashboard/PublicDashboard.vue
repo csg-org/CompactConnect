@@ -45,6 +45,21 @@
                         :alt="$t('common.appName')"
                     />
                 </div>
+                <div v-if="isAppTypeSelectorEnabled" class="app-type-selector-container">
+                    <form @submit.prevent="handleSubmit">
+                        <InputSelect
+                            v-if="formData.appType"
+                            :formInput="formData.appType"
+                            @input="handleAppTypeSelect"
+                        />
+                        <input
+                            type="submit"
+                            class="app-type-select-submit"
+                            tabindex="-1"
+                            :aria-label="$t('common.submit')"
+                        />
+                    </form>
+                </div>
                 <Card class="dashboard-card provider-login-card">
                     <div class="header">
                         <LicenseeUserIcon class="login-icon" />
@@ -55,7 +70,7 @@
                     </div>
                     <a
                         v-if="!isUsingMockApi"
-                        :href="hostedLoginUriLicensee"
+                        :href="licenseeLoginUri($appMode)"
                         class="login-link"
                         rel="noopener noreferrer"
                     >
@@ -64,8 +79,8 @@
                     <div
                         v-else
                         class="login-link"
-                        @click="mockLicenseeLogin"
-                        @keyup.enter="mockLicenseeLogin"
+                        @click="mockLicenseeLogin($appMode)"
+                        @keyup.enter="mockLicenseeLogin($appMode)"
                         tabindex="0"
                         role="button"
                         :aria-label="$t('navigation.login')"

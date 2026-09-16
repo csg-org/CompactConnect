@@ -151,13 +151,22 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         } else if (appMode === AppModes.SOCIAL_WORK) {
             config.clientId = envConfig.cognitoClientIdStaffSw;
             config.authDomain = envConfig.cognitoAuthDomainStaffSw;
+        } else if (appMode === AppModes.PSYPACT) {
+            config.clientId = envConfig.cognitoClientIdStaffPsypact;
+            config.authDomain = envConfig.cognitoAuthDomainStaffPsypact;
         }
 
         break;
     case AuthTypes.LICENSEE:
         config.scopes = licenseeLoginScopes;
-        config.clientId = envConfig.cognitoClientIdLicensee;
-        config.authDomain = envConfig.cognitoAuthDomainLicensee;
+
+        if (appMode === AppModes.JCC) {
+            config.clientId = envConfig.cognitoClientIdLicensee;
+            config.authDomain = envConfig.cognitoAuthDomainLicensee;
+        } else if (appMode === AppModes.PSYPACT) {
+            config.clientId = envConfig.cognitoClientIdLicenseePsypact;
+            config.authDomain = envConfig.cognitoAuthDomainLicenseePsypact;
+        }
         break;
     default:
         break;

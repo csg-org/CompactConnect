@@ -17,6 +17,7 @@ declare module '@vue/runtime-core' {
         $isAppModeJcc: boolean,
         $isAppModeCosmetology: boolean,
         $isAppModeSocialWork: boolean,
+        $isAppModePsyPact: boolean,
         $isAppGroupModePrivilegePurchase: boolean,
         $isAppGroupModeMultiState: boolean,
     }

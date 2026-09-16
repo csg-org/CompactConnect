@@ -46,6 +46,7 @@ describe('Compacts plugin', async () => {
             CompactType.COUNSELING,
             CompactType.COSMETOLOGY,
             CompactType.SOCIAL_WORK,
+            CompactType.PSYPACT,
         ]);
     });
     it('should successfully merge locale display strings into each compact config', async () => {
@@ -78,6 +79,7 @@ describe('Compacts plugin', async () => {
         expect(compactSetups[CompactType.COUNSELING].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(true);
+        expect(compactSetups[CompactType.PSYPACT].isEnabled()).to.equal(true);
     });
     it('should successfully gate compacts without prod infra to non-production environments', async () => {
         envConfig.isAppProduction = true;
@@ -87,6 +89,7 @@ describe('Compacts plugin', async () => {
         expect(compactSetups[CompactType.COUNSELING].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(false);
+        expect(compactSetups[CompactType.PSYPACT].isEnabled()).to.equal(false);
     });
     it('should successfully install the compact lists as global properties', async () => {
         const app = buildApp();
@@ -105,6 +108,7 @@ describe('Compacts plugin', async () => {
         expect(globalProperties.$appGroupMode).to.equal(AppGroupModes.MULTI_STATE);
         expect(globalProperties.$isAppModeCosmetology).to.equal(true);
         expect(globalProperties.$isAppModeJcc).to.equal(false);
+        expect(globalProperties.$isAppModePsyPact).to.equal(false);
         expect(globalProperties.$isAppGroupModeMultiState).to.equal(true);
         expect(globalProperties.$isAppGroupModePrivilegePurchase).to.equal(false);
 
@@ -112,6 +116,14 @@ describe('Compacts plugin', async () => {
 
         expect(globalProperties.$appMode).to.equal(AppModes.SOCIAL_WORK);
         expect(globalProperties.$isAppModeSocialWork).to.equal(true);
+        expect(globalProperties.$isAppModeCosmetology).to.equal(false);
+        expect(globalProperties.$isAppModePsyPact).to.equal(false);
+
+        store.dispatch('setAppMode', AppModes.PSYPACT);
+
+        expect(globalProperties.$appMode).to.equal(AppModes.PSYPACT);
+        expect(globalProperties.$isAppModePsyPact).to.equal(true);
+        expect(globalProperties.$isAppModeSocialWork).to.equal(false);
         expect(globalProperties.$isAppModeCosmetology).to.equal(false);
     });
     it('should successfully expose the global properties on a mounted component', async () => {
@@ -124,8 +136,8 @@ describe('Compacts plugin', async () => {
         expect(component.$appGroupMode).to.equal(AppGroupModes.MULTI_STATE);
         expect(component.$isAppModeCosmetology).to.equal(true);
         expect(component.$isAppModeJcc).to.equal(false);
-        expect(component.$compactsAll.length).to.equal(5);
-        expect(component.$compactsEnabled.length).to.equal(5);
+        expect(component.$compactsAll.length).to.equal(6);
+        expect(component.$compactsEnabled.length).to.equal(6);
     });
     it('should successfully install a global property for each app mode flag', async () => {
         const app = buildApp();

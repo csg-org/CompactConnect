@@ -14,6 +14,7 @@ export enum CompactType {
     COUNSELING = 'coun',
     COSMETOLOGY = 'cosm',
     SOCIAL_WORK = 'socw',
+    PSYPACT = 'psyp',
 }
 
 export interface CompactSetup {
@@ -48,12 +49,18 @@ export const compactSetups: Record<CompactType, CompactSetup> = {
         appMode: AppModes.SOCIAL_WORK,
         isEnabled: () => !envConfig.isAppProduction, // @NOTE: No Prod infra yet
     },
+    [CompactType.PSYPACT]: {
+        type: CompactType.PSYPACT,
+        appMode: AppModes.PSYPACT,
+        isEnabled: () => !envConfig.isAppProduction, // @NOTE: No Prod infra yet
+    },
 };
 
 export const appModeGroups: Record<AppModes, AppGroupModes> = {
     [AppModes.JCC]: AppGroupModes.PRIVILEGE_PURCHASE,
     [AppModes.COSMETOLOGY]: AppGroupModes.MULTI_STATE,
     [AppModes.SOCIAL_WORK]: AppGroupModes.MULTI_STATE,
+    [AppModes.PSYPACT]: AppGroupModes.MULTI_STATE,
 };
 
 export const getCompactSetup = (compactType?: CompactType | string | null): CompactSetup | null =>
@@ -101,6 +108,17 @@ const disciplineTypesCosmetology = (surrenderType: string): Array<string> => [
     'revocation',
     surrenderType,
 ];
+const npdbTypesFull = [
+    'Non-compliance With Requirements',
+    'Conflict of Interest',
+    'Substandard Care or Patient Neglect/Abuse',
+    'Criminal Conviction or Adjudication',
+    'Confidentiality, Consent or Disclosure Violations',
+    'Fraud, Deception, or Misrepresentation',
+    'Improper Supervision or Allowing Unlicensed Practice',
+    'Improper Prescribing, Dispensing, Administering Medication/Drug Violation',
+    'Other',
+];
 const npdbTypesJcc = [
     'Non-compliance With Requirements',
     'Criminal Conviction or Adjudication',
@@ -115,17 +133,6 @@ const npdbTypesCosmetology = [
     'fraud',
     'consumer harm',
     'other',
-];
-const npdbTypesSocialWork = [
-    'Non-compliance With Requirements',
-    'Conflict of Interest',
-    'Substandard Care or Patient Neglect/Abuse',
-    'Criminal Conviction or Adjudication',
-    'Confidentiality, Consent or Disclosure Violations',
-    'Fraud, Deception, or Misrepresentation',
-    'Improper Supervision or Allowing Unlicensed Practice',
-    'Improper Prescribing, Dispensing, Administering Medication/Drug Violation',
-    'Other',
 ];
 
 export const appModeEncumberConfigs: Record<AppModes, AppModeEncumberConfig> = {
@@ -152,11 +159,21 @@ export const appModeEncumberConfigs: Record<AppModes, AppModeEncumberConfig> = {
     [AppModes.SOCIAL_WORK]: {
         license: {
             disciplineTypes: disciplineTypesFull('surrender of license'),
-            npdbTypes: npdbTypesSocialWork,
+            npdbTypes: npdbTypesFull,
         },
         privilege: {
             disciplineTypes: disciplineTypesFull('surrender of privilege'),
-            npdbTypes: npdbTypesSocialWork,
+            npdbTypes: npdbTypesFull,
+        },
+    },
+    [AppModes.PSYPACT]: {
+        license: {
+            disciplineTypes: disciplineTypesFull('surrender of license'),
+            npdbTypes: npdbTypesFull,
+        },
+        privilege: {
+            disciplineTypes: disciplineTypesFull('surrender of privilege'),
+            npdbTypes: npdbTypesFull,
         },
     },
 };
