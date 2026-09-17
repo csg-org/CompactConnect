@@ -12,7 +12,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { RouteRecordName } from 'vue-router';
-import { relativeTimeFormats } from '@/app.config';
+import { AppModes, relativeTimeFormats } from '@/app.config';
 import { getAppModeForCompact } from '@utils/compactConfig';
 import {
     authStorage,
@@ -20,7 +20,7 @@ import {
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT
 } from '@utils/auth';
-import { CompactType } from '@models/Compact/Compact.model';
+import { Compact, CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
 import AutoLogout from '@components/AutoLogout/AutoLogout.vue';
@@ -51,6 +51,7 @@ class App extends Vue {
     // Lifecycle
     //
     async created() {
+        this.setPageData();
         await this.$router.isReady();
         this.setAppModeFromCompact(this.routeCompactType);
 
@@ -118,6 +119,9 @@ class App extends Vue {
 
         if (!appMode) {
             this.$store.dispatch('setAppMode', getAppModeForCompact(compact));
+        } else if (appMode === AppModes.PSYPACT) {
+            // If appMode is already set and is psypact then make sure store currentCompact is also psypact
+            this.$store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.PSYPACT }));
         }
     }
 
@@ -233,6 +237,14 @@ class App extends Vue {
         this.$store.dispatch('clearMessages');
     }
 
+    setPageData(): void {
+        if (this.$isAppModePsyPact) {
+            document.title = this.$t('common.appNamePsyPact');
+        } else {
+            document.title = this.$t('common.appName');
+        }
+    }
+
     addAppModeDebugger(): void {
         appWindow.ccModeToggle = () => {
             if (this.globalStore.isAppModeDisplayed) {
@@ -248,6 +260,11 @@ class App extends Vue {
     //
     // Watchers
     //
+    @Watch('$appMode') onAppModeChange() {
+        this.setPageData();
+        this.$store.dispatch('user/clearSearchStores');
+    }
+
     @Watch('isModalOpen') onIsModalOpenChange() {
         this.body.style.overflow = (this.globalStore.isModalOpen) ? 'hidden' : 'visible';
     }

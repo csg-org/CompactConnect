@@ -74,7 +74,7 @@ class LicenseeSearch extends mixins(MixinForm) {
     }
 
     get compactOptions(): Array<any> {
-        const options: Array<any> = this.$compactsEnabled.map((compact) => ({
+        const options: Array<any> = this.$compactsEnabledCompactConnect.map((compact) => ({
             value: compact.type,
             name: compact.name,
         }));
@@ -88,7 +88,7 @@ class LicenseeSearch extends mixins(MixinForm) {
     }
 
     get enableCompactSelect(): boolean {
-        return this.isPublicSearch;
+        return this.isPublicSearch && !this.$isAppModePsyPact;
     }
 
     get compactStates(): Array<State> {

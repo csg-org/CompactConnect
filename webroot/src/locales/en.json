@@ -1,6 +1,7 @@
 {
     "common": {
         "appName": "CompactConnect",
+        "appNamePsyPact": "PSYPACT",
         "appTypeLabel": "App type",
         "yes": "Yes",
         "no": "No",
@@ -383,6 +384,7 @@
         "loginAsStaffSubtext": "Select a compact",
         "loginAsProvider": "Practitioner login",
         "loginAsProviderSubtext": "Access your account and privileges",
+        "loginAsProviderSubtextPsyPact": "Access your account and authorizations",
         "register": "Register",
         "registerAsProvider": "Create an account",
         "registerAsProviderSubtext": "Don't have an account?",
@@ -403,7 +405,7 @@
     },
     "privacyPolicy": {
         "title": "Privacy Policy",
-        "introSubtext": "This privacy policy describes how the CompactConnect website stores and uses visitor data.",
+        "introSubtext": "This privacy policy describes how the {appName} website stores and uses visitor data.",
         "whatDataIsCollectedTitle": "What data is collected?",
         "collectedDataEmail": "Email address of registered users",
         "collectedDataDevice": "Type of device, browser, and IP address",
@@ -412,9 +414,9 @@
         "howIsMyDataProtectedTitle": "How is my data protected?",
         "howIsMyDataProtectedSubtext": "We adopt industry standard data collection, storage, and processing practices and security measures to protect against unauthorized access, alteration, disclosure, or destruction of your personal information, username, password, transaction information, and data stored on our site.",
         "changesToThisPolicyTitle": "Changes to this policy",
-        "changesToThisPolicySubtext": "CompactConnect has the discretion to update this privacy policy at any time. We encourage you to frequently check this page for any changes to stay informed about how we are helping to protect the personal information we collect. You acknowledge and agree that it is your responsibility to review this privacy policy periodically and become aware of modifications.",
+        "changesToThisPolicySubtext": "{appName} has the discretion to update this privacy policy at any time. We encourage you to frequently check this page for any changes to stay informed about how we are helping to protect the personal information we collect. You acknowledge and agree that it is your responsibility to review this privacy policy periodically and become aware of modifications.",
         "disclaimerTitle": "Disclaimer",
-        "disclaimerSubtext": "Other websites that are connected by hyperlinks to and / or from the CompactConnect website may not follow the same privacy constraints. We do not assume responsibility for the practices or content of any website which links to or from our site."
+        "disclaimerSubtext": "Other websites that are connected by hyperlinks to and / or from the {appName} website may not follow the same privacy constraints. We do not assume responsibility for the practices or content of any website which links to or from our site."
     },
     "paging": {
         "previousPage": "Previous",
@@ -884,6 +886,18 @@
                 "key": "licensed bachelors social worker",
                 "compactKey": "socw",
                 "abbrev": "lbsw"
+            },
+            {
+                "name": "PSYPACT license type 1",
+                "key": "type1",
+                "compactKey": "psyp",
+                "abbrev": "type1"
+            },
+            {
+                "name": "PSYPACT license type 2",
+                "key": "type2",
+                "compactKey": "psyp",
+                "abbrev": "type2"
             }
         ],
         "licenseScopes": [

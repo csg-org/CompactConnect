@@ -10,8 +10,9 @@ import { CompactConfig } from './compacts.plugin';
 
 declare module '@vue/runtime-core' {
     interface ComponentCustomProperties {
-        $compactsAll: Array<CompactConfig>, // Includes compacts disabled for the current environment; prefer $compactsEnabled for anything user-selectable
+        $compactsAll: Array<CompactConfig>, // Includes compacts disabled for the current environment; prefer $compactsEnabled (all) or $compactsEnabledCompactConnect (CompactConnect) for anything user-selectable
         $compactsEnabled: Array<CompactConfig>,
+        $compactsEnabledCompactConnect: Array<CompactConfig>,
         $appMode: AppModes,
         $appGroupMode: AppGroupModes,
         $isAppModeJcc: boolean,

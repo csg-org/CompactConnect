@@ -66,6 +66,10 @@ export default class DashboardPublic extends mixins(MixinForm) {
     //
     // Computed
     //
+    get compactTypes(): typeof CompactType {
+        return CompactType;
+    }
+
     get bypassQuery(): string {
         const bypass: string = (this.$route.query?.bypass as string) || '';
 
@@ -107,7 +111,7 @@ export default class DashboardPublic extends mixins(MixinForm) {
                 name: 'app-type-global',
                 label: computed(() => this.$t('common.appTypeLabel')),
                 shouldHideLabel: true,
-                value: 'compactconnect',
+                value: (this.$isAppModePsyPact) ? 'psypact' : 'compactconnect',
                 valueOptions: this.appTypeOptions,
             }),
         });
@@ -225,6 +229,7 @@ export default class DashboardPublic extends mixins(MixinForm) {
             await this.$store.dispatch('setAppMode', AppModes.PSYPACT);
         } else {
             await this.$store.dispatch('setAppMode', AppModes.JCC);
+            await this.$store.dispatch('user/setCurrentCompact', null);
         }
     }
 

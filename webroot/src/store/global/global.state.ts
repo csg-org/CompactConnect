@@ -4,9 +4,20 @@
 //
 //  Created by InspiringApps on 4/12/20.
 //
-import { AppModes, AppGroupModes } from '@/app.config';
+import { AppModes, AppGroupModes, psypactHostnames } from '@/app.config';
 import { AuthTypes } from '@utils/auth';
 import { AppMessage } from '@/models/AppMessage/AppMessage.model';
+
+export const getDefaultAppMode = (): AppModes => {
+    const { hostname } = window.location;
+    let defaultAppMode = AppModes.JCC;
+
+    if (psypactHostnames.includes(hostname)) {
+        defaultAppMode = AppModes.PSYPACT;
+    }
+
+    return defaultAppMode;
+};
 
 export interface State {
     isLoading: boolean;
@@ -27,7 +38,7 @@ export const state: State = {
     messages: [],
     isModalOpen: false,
     isModalLogoutOnly: false,
-    appMode: AppModes.JCC,
+    appMode: getDefaultAppMode(),
     isAppModeDisplayed: false,
     appGroupMode: AppGroupModes.PRIVILEGE_PURCHASE,
     authType: AuthTypes.PUBLIC,

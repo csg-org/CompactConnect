@@ -97,6 +97,9 @@ describe('Compacts plugin', async () => {
 
         expect(globalProperties.$compactsAll).to.matchPattern(compactConfigs.value);
         expect(globalProperties.$compactsEnabled).to.matchPattern(enabledCompactConfigs.value);
+        expect(globalProperties.$compactsEnabledCompactConnect).to.matchPattern(
+            enabledCompactConfigs.value.filter((compactConfig) => ![CompactType.PSYPACT].includes(compactConfig.type))
+        );
     });
     it('should successfully install app mode global properties that track the store', async () => {
         const app = buildApp();
@@ -138,6 +141,7 @@ describe('Compacts plugin', async () => {
         expect(component.$isAppModeJcc).to.equal(false);
         expect(component.$compactsAll.length).to.equal(6);
         expect(component.$compactsEnabled.length).to.equal(6);
+        expect(component.$compactsEnabledCompactConnect.length).to.equal(5);
     });
     it('should successfully install a global property for each app mode flag', async () => {
         const app = buildApp();

@@ -53,6 +53,9 @@ export const compactConfigs = computed<Array<CompactConfig>>(() => {
 export const enabledCompactConfigs = computed<Array<CompactConfig>>(() =>
     compactConfigs.value.filter((compactConfig) => compactConfig.isEnabled));
 
+export const enabledCompactConfigsCompactConnect = computed<Array<CompactConfig>>(() =>
+    enabledCompactConfigs.value.filter((compactConfig) => ![CompactType.PSYPACT].includes(compactConfig.type)));
+
 export const getCompactConfig = (compactType?: CompactType | string | null): CompactConfig | null =>
     compactConfigs.value.find((compactConfig) => compactConfig.type === compactType) || null;
 
@@ -83,6 +86,7 @@ export default {
     install: (app) => {
         defineGlobal(app, '$compactsAll', () => compactConfigs.value);
         defineGlobal(app, '$compactsEnabled', () => enabledCompactConfigs.value);
+        defineGlobal(app, '$compactsEnabledCompactConnect', () => enabledCompactConfigsCompactConnect.value);
         defineGlobal(app, '$appMode', () => store.state.appMode);
         defineGlobal(app, '$appGroupMode', () => store.state.appGroupMode);
 

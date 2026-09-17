@@ -307,6 +307,11 @@ export default {
     updateAutoLogoutWarning: ({ commit }, isWarning) => {
         commit(MutationTypes.UPDATE_AUTO_LOGOUT_WARNING, isWarning);
     },
+    clearSearchStores: ({ dispatch }) => {
+        dispatch('license/resetStoreLicense', null, { root: true });
+        dispatch('pagination/resetStorePagination', null, { root: true });
+        dispatch('sorting/resetStoreSorting', null, { root: true });
+    },
     clearSessionStores: ({ dispatch }) => {
         dispatch('resetStoreUser');
         dispatch('license/resetStoreLicense', null, { root: true });

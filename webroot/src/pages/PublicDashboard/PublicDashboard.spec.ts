@@ -131,7 +131,7 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain('&response_type=code');
         expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fpsypact');
     });
-    it('should successfully render one staff login link per enabled compact', async () => {
+    it('should successfully render one staff login link per enabled compact (compactconnect)', async () => {
         const wrapper = await mountFull(PublicDashboard);
         const component = wrapper.vm;
 
@@ -139,13 +139,25 @@ describe('PublicDashboard page', async () => {
         await flushPromises();
 
         const compactLinks = wrapper.findAll('.staff-compacts .login-link');
-        const enabledCompacts = component.$compactsEnabled;
+        const enabledCompacts = component.$compactsEnabledCompactConnect;
 
         expect(enabledCompacts.length).to.be.above(0);
         expect(compactLinks.length).to.equal(enabledCompacts.length);
         compactLinks.forEach((compactLink, index) => {
             expect(compactLink.text()).to.equal(component.getCompactDisplay(enabledCompacts[index]));
         });
+    });
+    it('should successfully render one staff login link (psypact)', async () => {
+        const wrapper = await mountFull(PublicDashboard);
+        const component = wrapper.vm;
+
+        await component.$store.dispatch('setAppMode', AppModes.PSYPACT);
+        await nextTick();
+        await flushPromises();
+
+        const compactLinks = wrapper.findAll('.login-link.staff');
+
+        expect(compactLinks.length).to.equal(1);
     });
     it('should get correct hosted login uri config for licensee (jcc)', async () => {
         const wrapper = await mountShallow(PublicDashboard);
