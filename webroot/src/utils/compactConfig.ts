@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 8/18/2026.
 //
 
-import { AppModes, AppGroupModes } from '@/app.config';
+import { AppModes, AppGroupModes, psypactHostnames } from '@/app.config';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 
 export enum CompactType {
@@ -71,6 +71,39 @@ export const getAppModeForCompact = (compactType?: CompactType | string | null):
 
 export const getAppGroupModeForAppMode = (appMode?: AppModes | null): AppGroupModes | null =>
     appModeGroups[appMode as AppModes] || null;
+
+// =============================
+// =   Host-pinned app modes   =
+// =============================
+// A single build is served at compact-specific hostnames, so the host decides the app mode.
+export const appModeHostnames: Partial<Record<AppModes, Array<string>>> = {
+    [AppModes.PSYPACT]: psypactHostnames,
+};
+
+export const isLocalHostname = (): boolean => ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+export const getHostAppMode = (): AppModes | null => {
+    const { hostname } = window.location;
+    const hostMatch = Object.entries(appModeHostnames).find(([, hostnames]) => hostnames?.includes(hostname));
+
+    return (hostMatch) ? (hostMatch[0] as AppModes) : null;
+};
+
+// Deployed compact-specific hosts never switch mode at run time; localhost stays switchable for dev & testing
+export const getLockedAppMode = (): AppModes | null => {
+    const isSwitchable = isLocalHostname() || envConfig.isAppLocal;
+
+    return (isSwitchable) ? null : getHostAppMode();
+};
+
+// Most app modes map to a single compact; jcc spans several, so only resolve unambiguous modes
+export const getSoleCompactForAppMode = (appMode?: AppModes | null): CompactType | null => {
+    const compactTypes = Object.values(compactSetups)
+        .filter((setup) => setup.appMode === appMode)
+        .map((setup) => setup.type);
+
+    return (compactTypes.length === 1) ? compactTypes[0] : null;
+};
 
 // =============================
 // =     Encumbrance Types     =

@@ -5,10 +5,10 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { psypactHostnames } from '@/app.config';
+import { getHostAppMode, getSoleCompactForAppMode } from '@utils/compactConfig';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
-import { Compact, CompactType } from '@models/Compact/Compact.model';
+import { Compact } from '@models/Compact/Compact.model';
 import {
     authStorage,
     tokens,
@@ -18,14 +18,9 @@ import {
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 
 export const getDefaultCurrentCompact = (): Compact | null => {
-    const { hostname } = window.location;
-    let defaultCurrentCompact: Compact | null = null;
+    const defaultCompactType = getSoleCompactForAppMode(getHostAppMode());
 
-    if (psypactHostnames.includes(hostname)) {
-        defaultCurrentCompact = new Compact({ type: CompactType.PSYPACT });
-    }
-
-    return defaultCurrentCompact;
+    return (defaultCompactType) ? new Compact({ type: defaultCompactType }) : null;
 };
 
 export interface State {

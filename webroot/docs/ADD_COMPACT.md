@@ -28,7 +28,7 @@ Example: `AppModes.SOCIAL_WORK = 'socialwork'` → `/auth/callback/staff/socialw
 
 Once the config and infra wiring below are in place, these do **not** need per-compact UI lists or interceptor edits:
 
-- PublicDashboard staff login cards (`$compactsEnabled`)
+- PublicDashboard staff login cards (`$compactsEnabledCompactConnect`; `$compactsEnabled` includes host-pinned compacts like psypact)
 - CompactSelector (public + permission-based options)
 - Logout, token refresh, and token revoke (`getCognitoConfig`)
 - Auth callback path string (`getAuthCallbackPath`)
@@ -167,6 +167,14 @@ Only if the new compact should participate in these flows:
 **`RegisterLicensee` / `MfaResetStartLicensee`**
 
 - [ ] These still use hard-coded compact allow-lists — add the new `CompactType` only if those pages should offer it
+
+**Host-pinned compacts** _(only if the compact gets its own DNS domains)_
+
+- [ ] Add the hostnames to `app.config.ts` and register them in `appModeHostnames` (`src/utils/compactConfig.ts`)
+- [ ] Register each hostname's `/auth/callback/...` and `/Logout` URLs on that compact's Cognito app clients
+- [ ] Exclude the compact from `$compactsEnabledCompactConnect` if it should not appear in CompactConnect compact pickers
+
+Deployed pinned hosts refuse routes for any other compact and ignore run-time `setAppMode` calls (`getLockedAppMode`); localhost stays switchable so the PublicDashboard app-type selector still works.
 
 **Mode-specific UI audit**
 

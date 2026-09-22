@@ -12,7 +12,8 @@ import LicensingDetail from '@pages/LicensingDetail/LicensingDetail.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 
 describe('LicensingDetail page', async () => {
-    before(async () => {
+    // Must be beforeEach: a file-level `before` runs before setup.ts and would be wiped
+    beforeEach(async () => {
         await mockStore.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.ASLP }));
     });
     it('should mount the page component', async () => {

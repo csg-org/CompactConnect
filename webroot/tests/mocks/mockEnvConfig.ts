@@ -24,6 +24,7 @@ const mockEnvConfig: EnvConfig = {
     isAppLocal: true,
     baseUrl: '/',
     domain: 'localhost',
+    origin: 'http://localhost',
     apiUrlState: '/',
     apiUrlLicense: '/',
     apiUrlSearch: '/',

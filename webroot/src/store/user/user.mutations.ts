@@ -9,6 +9,7 @@ import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { AuthTypes } from '@utils/auth';
+import { getDefaultCurrentCompact } from './user.state';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',
@@ -96,6 +97,8 @@ export default {
     [MutationTypes.LOGOUT_SUCCESS]: (state: any) => {
         state.model = null;
         state.isLoggedIn = false;
+        state.isLoggedInAsLicensee = false;
+        state.isLoggedInAsStaff = false;
         state.isLoadingAccount = false;
         state.error = null;
     },
@@ -160,12 +163,14 @@ export default {
     [MutationTypes.STORE_RESET_USER]: (state: any) => {
         state.model = null;
         state.isLoggedIn = false;
+        state.isLoggedInAsLicensee = false;
+        state.isLoggedInAsStaff = false;
         state.isLoadingAccount = false;
         state.refreshTokenTimeoutId = null;
         state.autoLogoutTimeoutId = null;
         state.isAutoLogoutWarning = false;
         state.userType = null;
-        state.currentCompact = null;
+        state.currentCompact = getDefaultCurrentCompact();
         state.error = null;
     },
     [MutationTypes.UPDATE_ACCOUNT_REQUEST]: (state: any) => {

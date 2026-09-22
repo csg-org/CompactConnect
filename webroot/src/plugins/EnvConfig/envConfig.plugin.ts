@@ -41,6 +41,7 @@ export interface EnvConfig {
     isAppLocal?: boolean;
     baseUrl?: string;
     domain?: string;
+    origin?: string;
     apiUrlState?: string;
     apiUrlLicense?: string;
     apiUrlSearch?: string;
@@ -94,6 +95,8 @@ export const config: EnvConfig = {
     isAppLocal: (context.VUE_APP_ENV === appEnvironments.APP_LOCAL),
     baseUrl: context.BASE_URL,
     domain: context.VUE_APP_DOMAIN,
+    // The same build is served at multiple hostnames; auth redirects must return to the current one
+    origin: (typeof window !== 'undefined') ? window.location.origin : context.VUE_APP_DOMAIN,
     apiUrlState: context.VUE_APP_API_STATE_ROOT,
     apiUrlLicense: context.VUE_APP_API_LICENSE_ROOT,
     apiUrlSearch: context.VUE_APP_API_SEARCH_ROOT,

@@ -11,6 +11,7 @@ import { AppModes, AppGroupModes } from '@/app.config';
 import { AuthTypes } from '@utils/auth';
 import mutations, { MutationTypes } from './global.mutations';
 import actions from './global.actions';
+import { getDefaultAppMode, getDefaultAppGroupMode } from './global.state';
 
 use(chaiMatchPattern);
 
@@ -82,8 +83,8 @@ describe('Global Store Mutations', () => {
             messages: [],
             isModalOpen: false,
             isModalLogoutOnly: false,
-            appMode: AppModes.JCC,
-            appGroupMode: AppGroupModes.PRIVILEGE_PURCHASE,
+            appMode: getDefaultAppMode(),
+            appGroupMode: getDefaultAppGroupMode(),
         });
     });
     it('should successfully set modal open', () => {

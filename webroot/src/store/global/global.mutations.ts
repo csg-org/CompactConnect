@@ -8,7 +8,7 @@
 import { AppModes, AppGroupModes } from '@/app.config';
 import { AuthTypes } from '@utils/auth';
 import { AppMessage } from '@/models/AppMessage/AppMessage.model';
-import { State } from './global.state';
+import { State, getDefaultAppMode, getDefaultAppGroupMode } from './global.state';
 
 export enum MutationTypes {
     BEGIN_LOADING = '[Global] Begin loading',
@@ -57,8 +57,8 @@ export default {
         state.messages = [];
         state.isModalOpen = false;
         state.isModalLogoutOnly = false;
-        state.appMode = AppModes.JCC;
-        state.appGroupMode = AppGroupModes.PRIVILEGE_PURCHASE;
+        state.appMode = getDefaultAppMode();
+        state.appGroupMode = getDefaultAppGroupMode();
     },
     [MutationTypes.SET_APP_MODE]: (state: State, mode: AppModes) => {
         state.appMode = mode;

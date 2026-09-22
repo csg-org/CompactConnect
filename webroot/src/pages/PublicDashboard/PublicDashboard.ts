@@ -5,8 +5,7 @@
 //  Created by InspiringApps on 8/12/2024.
 //
 
-import { Component, mixins } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import { Component, Vue } from 'vue-facing-decorator';
 import { AppModes } from '@/app.config';
 import {
     authStorage,
@@ -18,8 +17,7 @@ import {
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT
 } from '@utils/auth';
-import MixinForm from '@components/Forms/_mixins/form.mixin';
-import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
+import AppTypeSelector from '@components/AppTypeSelector/AppTypeSelector.vue';
 import Card from '@components/Card/Card.vue';
 import SearchIcon from '@components/Icons/Search/Search.vue';
 import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';
@@ -28,12 +26,11 @@ import LicenseeUserIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import { CompactConfig } from '@plugins/Compacts/compacts.plugin';
 import { CompactType } from '@models/Compact/Compact.model';
-import { FormInput } from '@models/FormInput/FormInput.model';
 
 @Component({
     name: 'DashboardPublic',
     components: {
-        InputSelect,
+        AppTypeSelector,
         Card,
         SearchIcon,
         RegisterIcon,
@@ -42,7 +39,7 @@ import { FormInput } from '@models/FormInput/FormInput.model';
         InputButton,
     }
 })
-export default class DashboardPublic extends mixins(MixinForm) {
+export default class DashboardPublic extends Vue {
     //
     // Data
     //
@@ -58,8 +55,6 @@ export default class DashboardPublic extends mixins(MixinForm) {
 
         if (this.bypassQuery) {
             this.bypassRedirect();
-        } else if (this.isAppTypeSelectorEnabled) {
-            this.initAppTypeFormInputs();
         }
     }
 
@@ -86,13 +81,6 @@ export default class DashboardPublic extends mixins(MixinForm) {
         return (this.shouldRemoteLogout) ? '/logout' : '/login';
     }
 
-    get appTypeOptions(): Array<{ value: string, name: string | ComputedRef }> {
-        return [
-            { value: 'compactconnect', name: computed(() => this.$t('common.appName')) },
-            { value: 'psypact', name: 'PSYPACT' },
-        ];
-    }
-
     get isUsingMockApi(): boolean {
         return this.$envConfig.isUsingMockApi || false;
     }
@@ -104,19 +92,6 @@ export default class DashboardPublic extends mixins(MixinForm) {
     //
     // Methods
     //
-    initAppTypeFormInputs(): void {
-        this.formData = reactive({
-            appType: new FormInput({
-                id: 'app-type-global',
-                name: 'app-type-global',
-                label: computed(() => this.$t('common.appTypeLabel')),
-                shouldHideLabel: true,
-                value: (this.$isAppModePsyPact) ? 'psypact' : 'compactconnect',
-                valueOptions: this.appTypeOptions,
-            }),
-        });
-    }
-
     bypassRedirect(): void {
         switch (this.bypassQuery) {
         case 'login-staff':
@@ -219,17 +194,6 @@ export default class DashboardPublic extends mixins(MixinForm) {
     setGotoCompact(compactType: CompactType): void {
         if (compactType) {
             authStorage.setItem(AUTH_LOGIN_GOTO_COMPACT, compactType);
-        }
-    }
-
-    async handleAppTypeSelect(): Promise<void> {
-        const { appType } = this.formData || {};
-
-        if (appType?.value === 'psypact') {
-            await this.$store.dispatch('setAppMode', AppModes.PSYPACT);
-        } else {
-            await this.$store.dispatch('setAppMode', AppModes.JCC);
-            await this.$store.dispatch('user/setCurrentCompact', null);
         }
     }
 

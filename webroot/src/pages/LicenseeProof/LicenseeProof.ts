@@ -126,7 +126,7 @@ export default class LicenseeProof extends Vue {
 
     get publicProfileUrl(): string {
         let url = '';
-        const { domain } = this.$envConfig || {};
+        const { origin } = this.$envConfig || {};
         const licenseeId = this.licensee.id;
         const compactType = this.currentCompactType;
 
@@ -140,7 +140,7 @@ export default class LicenseeProof extends Vue {
                     }
                 });
 
-                url = new URL(href, domain).toString();
+                url = new URL(href, origin).toString();
             } catch {
                 url = '';
             }

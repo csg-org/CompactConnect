@@ -77,7 +77,7 @@ export const psypactHostnames = [
     `test.app.psypactportal.org`,
     `app.test.psypact.iaapi.io`,
     `app.test.psypact.jcc.iaapi.io`,
-    `localhost`, // @DEBUG
+    // `localhost`, // @DEBUG
 ];
 
 // =============================

@@ -41,6 +41,8 @@ describe('StateUpload component', async () => {
         const wrapper = await mountShallow(StateUpload);
         const component = wrapper.vm;
 
+        component.$store.dispatch('user/setStoreUser', new StaffUser());
+        await component.$store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.ASLP }));
         component.isFormSuccessful = true;
         await nextTick();
 
