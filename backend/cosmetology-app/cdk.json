@@ -23,13 +23,16 @@
       "al",
       "az",
       "co",
+      "de",
       "ks",
       "ky",
       "md",
       "oh",
+      "pa",
       "tn",
       "va",
-      "wa"
+      "wa",
+      "wv"
     ],
     "license_types": {
       "cosm": [
@@ -45,13 +48,16 @@
         "al",
         "az",
         "co",
+        "de",
         "ks",
         "ky",
         "md",
         "oh",
+        "pa",
         "tn",
         "va",
-        "wa"
+        "wa",
+        "wv"
       ]
     },
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
