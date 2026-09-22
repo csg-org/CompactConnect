@@ -29,9 +29,10 @@ TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 # 'smoke_tests_env_example.json' file as a template.
 
 # By design, this sensitive endpoint should throttle users that make more than 5 requests within a 24 period, and the
-# endpoint should deactivate itself after 15 requests within 24 hours. This is to limit risk of compromised admin
+# endpoint should deactivate itself after 30 requests within 24 hours. This is to limit risk of compromised admin
 # credentials resulting in large numbers of SSNs being leaked.
-# This test spins up three test staff users and calls the endpoint 6 times each for each user.
+# This test spins up five test staff users: the first four each make 7 requests (per-user limit), and the fifth
+# triggers the global throttle on the 31st overall request.
 
 
 def _cleanup_test_generated_records():
@@ -83,11 +84,11 @@ def trigger_get_provider_ssn_endpoint_throttling():
     Verifies that the GET provider SSN endpoint will throttle and deactivate users that call the
     endpoint too frequently.
 
-    Step 1: Create three test staff users with the aslp/readSSN scope.
-    Step 2: Have each user call the endpoint until throttled after 16 requests (7 requests from first two users,
-    2 requests from the third). The first two should be disabled (asserted with the AdminGetUser api), and the last
-    one should cause the lambda to throttle itself with a set reserved concurrency limit of 0 (asserted using the boto3
-    lambda client)
+    Step 1: Create five test staff users with the aslp/readSSN scope.
+    Step 2: Have each user call the endpoint until throttled after 31 requests (7 requests from each of the first
+    four users, 3 requests from the fifth). The first four should be disabled (asserted with the AdminGetUser api),
+    and the last one should cause the lambda to throttle itself with a set reserved concurrency limit of 0
+    (asserted using the boto3 lambda client)
     Step 3: Ensure that all test staff users are cleaned up and all request record in the rate limiting table
     are cleared.
     """
@@ -95,11 +96,13 @@ def trigger_get_provider_ssn_endpoint_throttling():
     # but the endpoint will still record the access attempt
     test_provider_id = str(uuid.uuid4())
 
-    # Create three test staff users
+    # Create five test staff users
     test_emails = [
         f'test-staff-user-1-{uuid.uuid4()}@example.com',
         f'test-staff-user-2-{uuid.uuid4()}@example.com',
         f'test-staff-user-3-{uuid.uuid4()}@example.com',
+        f'test-staff-user-4-{uuid.uuid4()}@example.com',
+        f'test-staff-user-5-{uuid.uuid4()}@example.com',
     ]
 
     test_user_subs = []
@@ -116,9 +119,9 @@ def trigger_get_provider_ssn_endpoint_throttling():
         logger.info(f'Created test staff user: {email}')
 
     try:
-        # Test the first two users - each should be able to make 5 requests successfully,
+        # Test the first four users - each should be able to make 5 requests successfully,
         # get throttled on the 6th, and disabled on the 7th
-        for i, email in enumerate(test_emails[:2]):
+        for i, email in enumerate(test_emails[:4]):
             logger.info(f'Testing user {i + 1}: {email}')
 
             # Make 5 successful requests
@@ -160,25 +163,26 @@ def trigger_get_provider_ssn_endpoint_throttling():
                 raise SmokeTestFailureException(f'User {email} was not disabled after 7th request as expected')
             logger.info(f'User {email} correctly disabled after 7th request')
 
-        # Test the third user - this should trigger the global throttling after 16 total requests
-        # (14 from first two users, plus 2 from this user)
-        logger.info(f'Testing user 3: {test_emails[2]}')
+        # Test the fifth user - this should trigger the global throttling after 31 total requests
+        # (28 from first four users, plus 3 from this user)
+        logger.info(f'Testing user 5: {test_emails[4]}')
 
-        # First request should succeed
-        response = _make_ssn_request(test_emails[2], test_provider_id)
-        if response.status_code == 429:
-            raise SmokeTestFailureException(
-                f'User {test_emails[2]} was throttled on first request, expected to succeed'
-            )
-        logger.info(f'First request for user 3 successful with status code {response.status_code}')
+        # First two requests should succeed (29th and 30th overall)
+        for request_number in range(1, 3):
+            response = _make_ssn_request(test_emails[4], test_provider_id)
+            if response.status_code == 429:
+                raise SmokeTestFailureException(
+                    f'User {test_emails[4]} was throttled on request {request_number}, expected to succeed'
+                )
+            logger.info(f'Request {request_number} for user 5 successful with status code {response.status_code}')
 
-        # Second request should trigger global throttling (16th request overall)
-        response = _make_ssn_request(test_emails[2], test_provider_id)
+        # Third request should trigger global throttling (31st request overall)
+        response = _make_ssn_request(test_emails[4], test_provider_id)
         if response.status_code != 429:
             raise SmokeTestFailureException(
-                f'Expected 429 on 2nd request for user {test_emails[2]}, got {response.status_code}'
+                f'Expected 429 on 3rd request for user {test_emails[4]}, got {response.status_code}'
             )
-        logger.info('Second request correctly throttled with 429 status code')
+        logger.info('Third request correctly throttled with 429 status code')
 
         # Verify that lambda's reserved concurrency is set to 0
         # Give the lambda a moment to update its concurrency

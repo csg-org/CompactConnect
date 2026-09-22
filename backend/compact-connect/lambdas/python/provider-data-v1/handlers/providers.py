@@ -27,6 +27,7 @@ from marshmallow import ValidationError
 from . import get_provider_information
 
 SSN_RATE_LIMITING_PK = 'READ_SSN_REQUESTS'
+GLOBAL_SSN_REQUEST_LIMIT = 30
 
 
 @api_handler
@@ -219,7 +220,7 @@ def _ssn_rate_limit_exceeded(context: LambdaContext, user_id: str, provider_id: 
             }
         )
 
-        # Check if the global rate limit has been exceeded (more than 15 requests in 24 hours)
+        # Check if the global rate limit has been exceeded (more than GLOBAL_SSN_REQUEST_LIMIT requests in 24 hours)
         all_requests = config.rate_limiting_table.query(
             KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
             ExpressionAttributeValues={
@@ -234,8 +235,9 @@ def _ssn_rate_limit_exceeded(context: LambdaContext, user_id: str, provider_id: 
         global_request_count = len(all_requests['Items'])
         logger.info(f'Global SSN request count in last 24 hours: {global_request_count}')
 
-        # If there are more than 15 requests globally in the last 24 hours, throttle the entire endpoint
-        if global_request_count > 15:
+        # If there are more than GLOBAL_SSN_REQUEST_LIMIT requests globally in the last 24 hours, throttle the entire
+        # endpoint
+        if global_request_count > GLOBAL_SSN_REQUEST_LIMIT:
             logger.critical(
                 'Global SSN rate limit exceeded, throttling endpoint',
                 global_request_count=global_request_count,

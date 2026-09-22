@@ -556,8 +556,12 @@ class TestGetProviderSSN(TstFunction):
         self._load_provider_data()
 
         test_provider_id = '89a6377e-c3a5-40e5-bca5-317ec854c570'
-        # add 15 previous calls to the endpoint
-        staff_user_id = self._when_testing_rate_limiting(previous_attempt_count=15, provider_id=test_provider_id)
+        from handlers.providers import GLOBAL_SSN_REQUEST_LIMIT
+
+        # add GLOBAL_SSN_REQUEST_LIMIT previous calls to the endpoint
+        staff_user_id = self._when_testing_rate_limiting(
+            previous_attempt_count=GLOBAL_SSN_REQUEST_LIMIT, provider_id=test_provider_id
+        )
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
