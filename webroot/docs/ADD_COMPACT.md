@@ -155,10 +155,13 @@ Needed when exercising the new compact under the mock API:
 
 Only if the new compact should participate in these flows:
 
+**`src/components/AppTypeSelector/AppTypeSelector.ts`**
+
+- [ ] If the new compact should have a different app mode in a public context, update the `get appTypeOptions()` computed and `handleAppTypeSelect()` method.
+
 **`src/pages/PublicDashboard/PublicDashboard.ts` → `bypassRedirect`**
 
 - [ ] Add a `?bypass=login-staff-…` case if emails or deep links need it (see cosmo / social work)
-- [ ] If the new compact should have a different app mode in a public context, update the `get appTypeOptions()` computed and `handleAppTypeSelect()` method.
 
 **`src/pages/PublicDashboard/PublicDashboard.spec.ts`**
 
