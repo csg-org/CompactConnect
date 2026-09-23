@@ -1,0 +1,28 @@
+{
+  "pk": "aslp#CONFIGURATION",
+  "sk": "aslp#JURISDICTION#oh",
+  "type": "jurisdiction",
+  "compact": "aslp",
+  "jurisdictionName": "ohio",
+  "postalAbbreviation": "oh",
+  "privilegeFees": [
+    {
+      "licenseTypeAbbreviation": "aud",
+      "amount": 100,
+      "militaryRate": 40
+    },
+    {
+      "licenseTypeAbbreviation": "slp",
+      "amount": 100,
+      "militaryRate": 40
+    }
+  ],
+  "jurisdictionOperationsTeamEmails": ["some-operations-team@test.com"],
+  "jurisdictionAdverseActionsNotificationEmails": ["some-adverse-actions-notification-team@test.com"],
+  "jurisdictionSummaryReportNotificationEmails": ["some-summary-report-notification-team@test.com"],
+  "licenseeRegistrationEnabled": true,
+  "jurisprudenceRequirements": {
+    "required": true
+  },
+  "dateOfUpdate": "2024-10-04T12:34:56+00:00"
+}

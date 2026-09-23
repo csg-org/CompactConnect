@@ -35,6 +35,13 @@ const environmentValues = {
     searchApiSw: `##SEARCH_API_SW##`,
     s3UploadUrlStateSw: `##S3_UPLOAD_URL_STATE_SW##`,
     cognitoStaffSw: `##COGNITO_STAFF_SW##`,
+    // PSYPACT
+    dataApiPsy: `##DATA_API_PSY##`,
+    searchApiPsy: `##SEARCH_API_PSY##`,
+    s3UploadUrlStatePsy: `##S3_UPLOAD_URL_STATE_PSY##`,
+    s3UploadUrlProviderPsy: `##S3_UPLOAD_URL_PROVIDER_PSY##`,
+    cognitoStaffPsy: `##COGNITO_STAFF_PSY##`,
+    cognitoProviderPsy: `##COGNITO_PROVIDER_PSY##`,
 };
 
 // ============================================================================
@@ -90,6 +97,13 @@ const getEnvironmentUrls = () => {
     environmentUrls.searchApiSw = getFullyQualified(environmentValues.searchApiSw);
     environmentUrls.s3UploadUrlStateSw = getFullyQualified(environmentValues.s3UploadUrlStateSw);
     environmentUrls.cognitoStaffSw = getFullyQualified(environmentValues.cognitoStaffSw);
+    // PSYPACT
+    environmentUrls.dataApiPsy = getFullyQualified(environmentValues.dataApiPsy);
+    environmentUrls.searchApiPsy = getFullyQualified(environmentValues.searchApiPsy);
+    environmentUrls.s3UploadUrlStatePsy = getFullyQualified(environmentValues.s3UploadUrlStatePsy);
+    environmentUrls.s3UploadUrlProviderPsy = getFullyQualified(environmentValues.s3UploadUrlProviderPsy);
+    environmentUrls.cognitoStaffPsy = getFullyQualified(environmentValues.cognitoStaffPsy);
+    environmentUrls.cognitoProviderPsy = getFullyQualified(environmentValues.cognitoProviderPsy);
 
     return environmentUrls;
 };
@@ -238,6 +252,7 @@ const setCspHeader = (headers = {}) => {
                 domains.dataApi,
                 domains.dataApiCosmo,
                 domains.dataApiSw,
+                domains.dataApiPsy,
                 'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('media-src', [
@@ -245,6 +260,7 @@ const setCspHeader = (headers = {}) => {
                 domains.dataApi,
                 domains.dataApiCosmo,
                 domains.dataApiSw,
+                domains.dataApiPsy,
             ]),
             buildSrcString('frame-src', [
                 'self',
@@ -283,6 +299,13 @@ const setCspHeader = (headers = {}) => {
                 domains.searchApiSw,
                 domains.s3UploadUrlStateSw,
                 domains.cognitoStaffSw,
+                // PSYPACT
+                domains.dataApiPsy,
+                domains.searchApiPsy,
+                domains.s3UploadUrlStatePsy,
+                domains.s3UploadUrlProviderPsy,
+                domains.cognitoStaffPsy,
+                domains.cognitoProviderPsy,
                 // Begin Statsig domains
                 'https://api.statsig.com/',
                 'https://featuregates.org/',

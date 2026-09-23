@@ -1,0 +1,25 @@
+{
+  "items": {
+    "properties": {
+      "compact": {
+        "type": "string"
+      },
+      "jurisdictionName": {
+        "description": "The name of the jurisdiction",
+        "type": "string"
+      },
+      "postalAbbreviation": {
+        "description": "The postal abbreviation of the jurisdiction",
+        "type": "string"
+      }
+    },
+    "required": [
+      "compact",
+      "jurisdictionName",
+      "postalAbbreviation"
+    ],
+    "type": "object"
+  },
+  "type": "array",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

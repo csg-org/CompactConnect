@@ -1,0 +1,225 @@
+{
+  "properties": {
+    "items": {
+      "items": {
+        "oneOf": [
+          {
+            "properties": {
+              "type": {
+                "enum": [
+                  "compact"
+                ],
+                "type": "string"
+              },
+              "compactAbbr": {
+                "description": "The abbreviation of the compact",
+                "type": "string"
+              },
+              "compactName": {
+                "description": "The full name of the compact",
+                "type": "string"
+              },
+              "compactCommissionFee": {
+                "properties": {
+                  "feeType": {
+                    "enum": [
+                      "FLAT_RATE"
+                    ],
+                    "type": "string"
+                  },
+                  "feeAmount": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "feeType",
+                  "feeAmount"
+                ],
+                "type": "object"
+              },
+              "transactionFeeConfiguration": {
+                "properties": {
+                  "licenseeCharges": {
+                    "properties": {
+                      "active": {
+                        "description": "Whether the compact is charging licensees transaction fees",
+                        "type": "boolean"
+                      },
+                      "chargeType": {
+                        "description": "The type of transaction fee charge",
+                        "enum": [
+                          "FLAT_FEE_PER_PRIVILEGE"
+                        ],
+                        "type": "string"
+                      },
+                      "chargeAmount": {
+                        "description": "The amount to charge per privilege purchased",
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "active",
+                      "chargeType",
+                      "chargeAmount"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "licenseeCharges"
+                ],
+                "type": "object"
+              },
+              "paymentProcessorPublicFields": {
+                "properties": {
+                  "publicClientKey": {
+                    "description": "The public client key for the payment processor",
+                    "type": "string"
+                  },
+                  "apiLoginId": {
+                    "description": "The API login ID for the payment processor",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "publicClientKey",
+                  "apiLoginId"
+                ],
+                "type": "object"
+              },
+              "isSandbox": {
+                "description": "Whether the compact is in sandbox mode",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type",
+              "compactAbbr",
+              "compactName",
+              "compactCommissionFee",
+              "transactionFeeConfiguration",
+              "paymentProcessorPublicFields",
+              "isSandbox"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "type": {
+                "enum": [
+                  "jurisdiction"
+                ],
+                "type": "string"
+              },
+              "jurisdictionName": {
+                "description": "The name of the jurisdiction",
+                "type": "string"
+              },
+              "postalAbbreviation": {
+                "description": "The postal abbreviation of the jurisdiction",
+                "type": "string"
+              },
+              "privilegeFees": {
+                "description": "The fees for the privileges",
+                "items": {
+                  "properties": {
+                    "licenseTypeAbbreviation": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "number"
+                    },
+                    "militaryRate": {
+                      "description": "Optional military rate for the privilege fee.",
+                      "oneOf": [
+                        {
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "licenseTypeAbbreviation",
+                    "amount"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "jurisprudenceRequirements": {
+                "properties": {
+                  "required": {
+                    "description": "Whether jurisprudence requirements exist",
+                    "type": "boolean"
+                  },
+                  "linkToDocumentation": {
+                    "description": "Optional link to jurisprudence documentation",
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "required"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "type",
+              "jurisdictionName",
+              "postalAbbreviation",
+              "privilegeFees",
+              "jurisprudenceRequirements"
+            ],
+            "type": "object"
+          }
+        ],
+        "type": "object"
+      },
+      "maxLength": 100,
+      "type": "array"
+    },
+    "pagination": {
+      "properties": {
+        "lastKey": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prevLastKey": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pageSize": {
+          "maximum": 100,
+          "minimum": 5,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "items",
+    "pagination"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

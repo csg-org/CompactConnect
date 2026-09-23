@@ -1,0 +1,39 @@
+{
+  "properties": {
+    "type": {
+      "enum": [
+        "attestation"
+      ],
+      "type": "string"
+    },
+    "attestationId": {
+      "type": "string"
+    },
+    "compact": {
+      "enum": [
+        "aslp",
+        "octp",
+        "coun"
+      ],
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "dateCreated": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    },
+    "required": {
+      "type": "boolean"
+    },
+    "locale": {
+      "type": "string"
+    }
+  },
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

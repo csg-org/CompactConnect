@@ -1,0 +1,48 @@
+{
+  "pk": "COMPACT#aslp#TRANSACTIONS#MONTH#2024-01",
+  "sk": "COMPACT#aslp#TIME#1704067200#BATCH#67890#TX#mockTransactionIdPlaceholder",
+  "type": "transaction",
+  "dateOfUpdate": "2024-01-02T15:13:58+00:00",
+  "transactionProcessor": "authorize.net",
+  "transactionId": "mockTransactionIdPlaceholder",
+  "batch": {
+    "batchId": "67890",
+    "settlementState": "settledSuccessfully",
+    "settlementTimeLocal": "2024-01-01T09:00:00",
+    "settlementTimeUTC": "2024-01-01T13:00:00.000Z"
+  },
+  "lineItems": [
+    {
+      "description": "Compact Privilege for Ohio",
+      "itemId": "priv:aslp-oh",
+      "name": "Ohio Compact Privilege",
+      "quantity": "1.0",
+      "taxable": "False",
+      "unitPrice": "100.00",
+      "privilegeId": "mock-privilege-id-oh"
+    },
+    {
+      "description": "Compact fee applied for each privilege purchased",
+      "itemId": "aslp-compact-fee",
+      "name": "ASLP Compact Fee",
+      "quantity": "1",
+      "taxable": "False",
+      "unitPrice": "10.50"
+    },
+    {
+      "description": "Credit card transaction fee",
+      "itemId": "credit-card-transaction-fee",
+      "name": "Credit Card Transaction Fee",
+      "quantity": "1",
+      "taxable": "False",
+      "unitPrice": "3.00"
+    }
+  ],
+  "compact": "aslp",
+  "licenseeId": "12345",
+  "responseCode": "1",
+  "settleAmount": "113.50",
+  "submitTimeUTC": "2024-01-01T12:00:00.000Z",
+  "transactionStatus": "settledSuccessfully",
+  "transactionType": "authCaptureTransaction"
+}

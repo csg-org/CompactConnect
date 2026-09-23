@@ -1,0 +1,52 @@
+import json
+
+from aws_lambda_powertools.utilities.typing import LambdaContext
+from cc_common.config import config, logger
+from cc_common.data_model.schema.user.api import UserMergedResponseSchema
+from cc_common.exceptions import CCInternalException
+from cc_common.utils import api_handler
+
+from handlers import user_api_schema
+
+
+@api_handler
+def get_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Return a user by the sub in their token"""
+    user_id = event['requestContext']['authorizer']['claims']['sub']
+
+    resp = config.user_client.get_user(user_id=user_id)
+    # This is really unlikely, but will check anyway
+    last_key = resp['pagination'].get('lastKey')
+    if last_key is not None:
+        logger.error('A provider had so many records, they paginated!')
+        raise CCInternalException('Unexpected provider data')
+
+    return _merge_user_records(user_id, resp['items'])
+
+
+@api_handler
+def patch_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Edit a user's own attributes"""
+    user_id = event['requestContext']['authorizer']['claims']['sub']
+
+    body = json.loads(event['body'])
+    user_records = config.user_client.update_user_attributes(user_id=user_id, attributes=body['attributes'])
+    return _merge_user_records(user_id, user_records)
+
+
+def _merge_user_records(user_id: str, records: list) -> dict:
+    users_iter = iter(records)
+    merged_user = user_api_schema.load(next(users_iter))
+    for record in users_iter:
+        compact = record['compact']
+        next_user = user_api_schema.load(record)
+        if next_user['attributes'] != merged_user['attributes']:
+            logger.warning('Inconsistent user attributes', user_id=user_id, compact=compact)
+        # Keep the last date of update
+        merged_user['dateOfUpdate'] = max(next_user['dateOfUpdate'], merged_user['dateOfUpdate'])
+        # Merge compact fields in permissions
+        merged_user['permissions'].update(next_user['permissions'])
+
+    # Validate the merged user data through the response schema
+    response_schema = UserMergedResponseSchema()
+    return response_schema.load(merged_user)

@@ -16,6 +16,7 @@ class AppId(StrEnum):
     JCC = 'jcc'
     COSMETOLOGY = 'cosmetology'
     SOCIAL_WORK = 'social-work'
+    PSYPACT = 'psypact'
 
 
 def _get_persistent_stack_parameter_name(app_id: AppId = AppId.JCC) -> str:
