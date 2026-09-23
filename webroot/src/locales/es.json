@@ -508,7 +508,7 @@
         {
             "name": "PSYPACT",
             "abbrev": "PSYPACT",
-            "key": "psyp"
+            "key": "psypact"
         }
     ],
     "compact": {
@@ -872,16 +872,10 @@
                 "abbrev": "lbsw"
             },
             {
-                "name": "PSYPACT license type 1",
-                "key": "type1",
-                "compactKey": "psyp",
-                "abbrev": "type1"
-            },
-            {
-                "name": "PSYPACT license type 2",
-                "key": "type2",
-                "compactKey": "psyp",
-                "abbrev": "type2"
+                "name": "Psicólogo",
+                "key": "psychologist",
+                "compactKey": "psypact",
+                "abbrev": "PSY"
             }
         ],
         "licenseScopes": [

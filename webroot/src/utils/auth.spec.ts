@@ -74,7 +74,7 @@ describe('auth utils', () => {
 
     it('should successfully parse a compact type from a goto path', () => {
         expect(getCompactFromGotoPath('/socw/Licensing')).to.equal('socw');
-        expect(getCompactFromGotoPath('psyp/Licensing')).to.equal('psyp');
+        expect(getCompactFromGotoPath('psypact/Licensing')).to.equal('psypact');
         expect(getCompactFromGotoPath('/Dashboard')).to.equal(null);
         expect(getCompactFromGotoPath('')).to.equal(null);
     });
@@ -101,7 +101,7 @@ describe('auth utils', () => {
         expect(authStorage.getItem(AUTH_LOGIN_GOTO_COMPACT)).to.equal('aslp');
     });
     it('should successfully clear an incompatible stash inferred from the goto path', () => {
-        authStorage.setItem(AUTH_LOGIN_GOTO_PATH, '/psyp/Licensing');
+        authStorage.setItem(AUTH_LOGIN_GOTO_PATH, '/psypact/Licensing');
 
         clearStashIfIncompatibleWithAppMode(AppModes.JCC);
 

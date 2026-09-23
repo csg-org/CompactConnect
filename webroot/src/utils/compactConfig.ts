@@ -14,7 +14,7 @@ export enum CompactType {
     COUNSELING = 'coun',
     COSMETOLOGY = 'cosm',
     SOCIAL_WORK = 'socw',
-    PSYPACT = 'psyp',
+    PSYPACT = 'psypact',
 }
 
 export interface CompactSetup {

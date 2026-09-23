@@ -307,7 +307,7 @@ export const staffAccount = {
                 },
             },
         },
-        psyp: {
+        psypact: {
             actions: {
                 admin: true,
                 readPrivate: true,
@@ -1786,7 +1786,7 @@ export const users = {
                         },
                     },
                 },
-                psyp: {
+                psypact: {
                     actions: {
                         admin: true,
                         readPrivate: true,
@@ -1982,7 +1982,7 @@ export const compactStatesForRegistration = {
     aslp: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
     coun: [ 'al', 'ak', 'co', 'il', 'ia', 'ky', 'ne', 'nm' ],
     octp: [ 'al', 'ar', 'co', 'ct', 'il', 'ky' ],
-    psyp: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
+    psypact: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
 };
 
 export const compactConfig = {

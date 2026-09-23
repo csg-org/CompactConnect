@@ -36,6 +36,10 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 - `setAppMode` → `appGroupMode` (`getAppGroupModeForAppMode`)
 - Router compact param → app mode (`getAppModeForCompact`)
 
+These **do** still need per-compact work (not automatic):
+
+- CloudFront CSP + frontend deploy SSM wiring (`/backend/compact-connect-ui-app`)
+
 ---
 
 ## Steps
@@ -188,5 +192,54 @@ Decide whether behavior should follow JCC-like or multi-state-like patterns. Pre
 - LicensingDetail (e.g. military affiliation)
 - LicenseeSearchLegacy
 - UserInvite / UserRowEdit
+
+### 9. Content Security Policy (CSP)
+
+The policy lives in `/backend/compact-connect-ui-app` and is applied by CloudFront **only on deployed environments**. `default-src` is `'none'`, so every new compact host must be allow-listed. Never hardcode an environment domain — use `##PLACEHOLDER##` tokens and a replacement in `generate_csp_lambda_code()`.
+
+Copy an existing compact and stay consistent with its suffix (`_COSMO` / `_SW` / `_PSYPACT`).
+
+**Which hosts to add**
+
+Staff-only (Cosmetology / Social Work):
+
+- [ ] Data API, search API, state (bulk upload) S3, staff Cognito → `connect-src`
+- [ ] Data API → `img-src` and `media-src` as well
+
+Staff + licensee (JCC / PsyPact):
+
+- [ ] Everything above, plus provider-users S3 and licensee Cognito → `connect-src`
+
+Do **not** add the new compact to `script-src` / `frame-src` / `style-src` unless it introduces a new third-party script or SDK.
+
+**`/backend/common-cdk/common_constructs/frontend_app_config_utility.py`**
+
+- [ ] Add `AppId.YOUR_COMPACT` (this is the SSM path segment, e.g. `social-work`, `psypact`)
+- [ ] Add matching cases in `common-cdk/tests/test_frontend_app_config_utility.py`
+
+**`/backend/compact-connect-ui-app/lambdas/nodejs/cloudfront-csp/index.js`**
+
+- [ ] Add `##PLACEHOLDER##` entries on `environmentValues`
+- [ ] Resolve them in `getEnvironmentUrls()`
+- [ ] Add the resolved URLs to the directives above
+
+**`/backend/compact-connect-ui-app/lambdas/nodejs/cloudfront-csp/test/index.test.js`**
+
+- [ ] Add the same placeholders, fixture hosts, and expected `img-src` / `media-src` / `connect-src` entries
+
+**`/backend/compact-connect-ui-app/stacks/frontend_deployment_stack/`**
+
+- [ ] `distribution.py`: map each placeholder in `generate_csp_lambda_code()`; thread the new persistent-stack (and provider-users, if licensee) config into `UIDistribution` and the generator call
+- [ ] `deployment.py`: accept those configs and add the matching `VUE_APP_*` BundlingOptions (API roots + Cognito). See the README **Adding environment variables** section
+- [ ] `__init__.py`: `load_*_from_ssm_parameter(..., app_id=AppId.YOUR_COMPACT)`, raise if missing, pass through to the bucket deployment and `UIDistribution`
+
+A real deploy also needs the new SSM parameters written by the backend app and copied into the frontend account (same process as Cosmetology / Social Work).
+
+**Verify**
+
+Follow the frontend README **Updating the Content-Security-Policy (CSP) headers** section exactly:
+
+- [ ] `yarn lint` and `yarn test:csp` under `lambdas/nodejs`
+- [ ] Temporarily set `overwrite_snapshot=True` in `tests/app/base.py`, run `bin/run_tests.sh -l all -no`, then revert to `False`
 
 ---

@@ -36,6 +36,13 @@ const environmentValues = {
     searchApiSw: 'search.socialwork.compactconnect.org',
     s3UploadUrlStateSw: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5k.s3.amazonaws.com',
     cognitoStaffSw: 'staff-auth.socialwork.compactconnect.org',
+    // PSYPACT
+    dataApiPsyPact: 'api.psypact.org',
+    searchApiPsyPact: 'search.psypact.org',
+    s3UploadUrlStatePsyPact: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5l.s3.amazonaws.com',
+    s3UploadUrlProviderPsyPact: 'prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwl.s3.amazonaws.com',
+    cognitoStaffPsyPact: 'staff-auth.psypact.org',
+    cognitoProviderPsyPact: 'licensee-auth.psypact.org',
 };
 
 /**
@@ -74,6 +81,13 @@ const prepareLambdaForTest = () => {
         '##SEARCH_API_SW##': environmentValues.searchApiSw,
         '##S3_UPLOAD_URL_STATE_SW##': environmentValues.s3UploadUrlStateSw,
         '##COGNITO_STAFF_SW##': environmentValues.cognitoStaffSw,
+        // PSYPACT
+        '##DATA_API_PSYPACT##': environmentValues.dataApiPsyPact,
+        '##SEARCH_API_PSYPACT##': environmentValues.searchApiPsyPact,
+        '##S3_UPLOAD_URL_STATE_PSYPACT##': environmentValues.s3UploadUrlStatePsyPact,
+        '##S3_UPLOAD_URL_PROVIDER_PSYPACT##': environmentValues.s3UploadUrlProviderPsyPact,
+        '##COGNITO_STAFF_PSYPACT##': environmentValues.cognitoStaffPsyPact,
+        '##COGNITO_PROVIDER_PSYPACT##': environmentValues.cognitoProviderPsyPact,
     };
 
     // Apply all replacements to the Lambda code
@@ -110,6 +124,13 @@ const buildCspHeaders = (environment) => {
     const searchApiUrlSw = (environment?.searchApiSw) ? `https://${environment.searchApiSw}` : '';
     const s3UploadUrlStateSw = (environment?.s3UploadUrlStateSw) ? `https://${environment.s3UploadUrlStateSw}` : '';
     const cognitoStaffUrlSw = (environment?.cognitoStaffSw) ? `https://${environment.cognitoStaffSw}` : '';
+    // PSYPACT
+    const dataApiUrlPsyPact = (environment?.dataApiPsyPact) ? `https://${environment.dataApiPsyPact}` : '';
+    const searchApiUrlPsyPact = (environment?.searchApiPsyPact) ? `https://${environment.searchApiPsyPact}` : '';
+    const s3UploadUrlStatePsyPact = (environment?.s3UploadUrlStatePsyPact) ? `https://${environment.s3UploadUrlStatePsyPact}` : '';
+    const s3UploadUrlProviderPsyPact = (environment?.s3UploadUrlProviderPsyPact) ? `https://${environment.s3UploadUrlProviderPsyPact}` : '';
+    const cognitoStaffUrlPsyPact = (environment?.cognitoStaffPsyPact) ? `https://${environment.cognitoStaffPsyPact}` : '';
+    const cognitoProviderUrlPsyPact = (environment?.cognitoProviderPsyPact) ? `https://${environment.cognitoProviderPsyPact}` : '';
     // src configs are maintained here as arrays for ease of maintenance;
     // defining them as static strings could lead to long lines of code.
     const cspDefaultSrc = [
@@ -163,6 +184,7 @@ const buildCspHeaders = (environment) => {
         dataApiUrl,
         dataApiUrlCosmo,
         dataApiUrlSw,
+        dataApiUrlPsyPact,
         'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspMediaSrc = [
@@ -170,6 +192,7 @@ const buildCspHeaders = (environment) => {
         dataApiUrl,
         dataApiUrlCosmo,
         dataApiUrlSw,
+        dataApiUrlPsyPact,
     ].join(' ');
     const cspFrameSrc = [
         '\'self\'',
@@ -208,6 +231,13 @@ const buildCspHeaders = (environment) => {
         searchApiUrlSw,
         s3UploadUrlStateSw,
         cognitoStaffUrlSw,
+        // PSYPACT
+        dataApiUrlPsyPact,
+        searchApiUrlPsyPact,
+        s3UploadUrlStatePsyPact,
+        s3UploadUrlProviderPsyPact,
+        cognitoStaffUrlPsyPact,
+        cognitoProviderUrlPsyPact,
         // Begin Statsig domains
         'https://api.statsig.com/',
         'https://featuregates.org/',
