@@ -128,9 +128,10 @@ class PageMainNav extends Vue {
     }
 
     get hasStateWritePermissions(): boolean {
+        const { isLoggedInAsStaff, $isAppModePsyPact } = this;
         let hasWritePermissions = false;
 
-        if (this.isLoggedInAsStaff) {
+        if (isLoggedInAsStaff && !$isAppModePsyPact) {
             const { staffPermission } = this;
 
             if (staffPermission?.states?.some((statePermission) =>

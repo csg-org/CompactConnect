@@ -91,7 +91,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="$isAppGroupModePrivilegePurchase" class="info-item-container">
+                        <div v-if="$isAppGroupModePrivilegePurchase || $isAppModePsyPact" class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.registrationEmail')}}</div>
                             <div class="info-item email">{{registrationEmail}}</div>
                         </div>

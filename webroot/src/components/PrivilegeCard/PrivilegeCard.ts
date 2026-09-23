@@ -212,9 +212,10 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get shouldShowDiscipline(): boolean {
-        return this.$isAppGroupModePrivilegePurchase // JCC compacts public & staff
+        return this.$isAppGroupModePrivilegePurchase // Privilege purchase compacts public & staff
             || this.$isAppModeSocialWork             // Social Work compact public & staff
-            || this.isCurrentUserPrivilegeAdmin;    // Any compact if staff user is admin of that state
+            || this.$isAppModePsyPact                // PsyPact compact public & staff
+            || this.isCurrentUserPrivilegeAdmin;     // Any compact if staff user is admin of that state
     }
 
     get adverseActions(): Array<AdverseAction> {
@@ -257,7 +258,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get shouldAllowNpdbMultiSelect(): boolean {
-        return this.$isAppModeJcc || this.$isAppModeSocialWork;
+        return !this.$isAppModeCosmetology;
     }
 
     get endInvestigationModalTitle(): string {

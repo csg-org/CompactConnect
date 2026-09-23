@@ -304,7 +304,7 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get shouldAllowNpdbMultiSelect(): boolean {
-        return this.$isAppModeJcc || this.$isAppModeSocialWork;
+        return !this.$isAppModeCosmetology;
     }
 
     get endInvestigationModalTitle(): string {

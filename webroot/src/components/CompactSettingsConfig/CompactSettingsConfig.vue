@@ -38,7 +38,7 @@
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
                 <InputEmailList
-                    v-if="$isAppGroupModePrivilegePurchase"
+                    v-if="$isAppGroupModePrivilegePurchase || $isAppModePsyPact"
                     :formInput="formData.summaryReportNotificationEmails"
                 />
                 <button

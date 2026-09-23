@@ -251,7 +251,7 @@ class LicenseeList extends Vue {
     }
 
     get headerRecord() {
-        const cosmetologySpecificColumns = {
+        const multiStateColumns = {
             licenseNumber: this.$t('licensing.stateLicenseNumber'),
             ...(this.isPublicSearch)
                 ? {
@@ -266,7 +266,7 @@ class LicenseeList extends Vue {
             lastName: this.$t('common.lastName'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             ...(this.$isAppGroupModeMultiState
-                ? { ...cosmetologySpecificColumns }
+                ? { ...multiStateColumns }
                 : {
                     privilegeStatesDisplay: () => this.$t('licensing.privileges'),
                 }
