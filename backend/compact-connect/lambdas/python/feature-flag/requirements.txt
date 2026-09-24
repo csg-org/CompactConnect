@@ -12,8 +12,8 @@ idna==3.10
     # via requests
 requests==2.34.2
     # via statsig-python-core
-statsig-python-core==0.22.0
-    # via -r requirements.in
+statsig-python-core==0.23.0
+    # via -r feature-flag/requirements.in
 typing-extensions==4.15.0
     # via statsig-python-core
 urllib3==2.7.0
