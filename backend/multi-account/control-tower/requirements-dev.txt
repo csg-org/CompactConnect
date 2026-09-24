@@ -18,9 +18,9 @@ charset-normalizer==3.4.7
     # via requests
 click==8.4.0
     # via pip-tools
-coverage[toml]==7.16.0
+coverage[toml]==7.16.1
     # via
-    #   -r requirements-dev.in
+    #   -r control-tower/requirements-dev.in
     #   pytest-cov
 cyclonedx-python-lib==11.7.0
     # via pip-audit
@@ -52,11 +52,11 @@ packaging==26.2
 pip-api==0.0.34
     # via pip-audit
 pip-audit==2.10.1
-    # via -r requirements-dev.in
+    # via -r control-tower/requirements-dev.in
 pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.6.1
-    # via -r requirements-dev.in
+    # via -r control-tower/requirements-dev.in
 platformdirs==4.9.6
     # via pip-audit
 pluggy==1.6.0
@@ -77,18 +77,18 @@ pyproject-hooks==1.2.0
     #   pip-tools
 pytest==9.1.1
     # via
-    #   -r requirements-dev.in
+    #   -r control-tower/requirements-dev.in
     #   pytest-cov
 pytest-cov==7.1.0
-    # via -r requirements-dev.in
+    # via -r control-tower/requirements-dev.in
 requests==2.34.2
     # via
     #   cachecontrol
     #   pip-audit
 rich==15.0.0
     # via pip-audit
-ruff==0.16.5
-    # via -r requirements-dev.in
+ruff==0.16.7
+    # via -r control-tower/requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 tomli==2.4.1

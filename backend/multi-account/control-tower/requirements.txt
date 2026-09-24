@@ -14,17 +14,17 @@ aws-cdk-asset-node-proxy-agent-v6==2.1.2
     # via aws-cdk-lib
 aws-cdk-cloud-assembly-schema==54.20.0
     # via aws-cdk-lib
-aws-cdk-lib==2.267.0
+aws-cdk-lib==2.269.0
     # via
-    #   -r requirements.in
+    #   -r control-tower/requirements.in
     #   cdk-nag
 cattrs==25.3.0
     # via jsii
 cdk-nag==2.38.2
-    # via -r requirements.in
+    # via -r control-tower/requirements.in
 constructs==10.8.1
     # via
-    #   -r requirements.in
+    #   -r control-tower/requirements.in
     #   aws-cdk-lib
     #   cdk-nag
 jsii==1.139.0
