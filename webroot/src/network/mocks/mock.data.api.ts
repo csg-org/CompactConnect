@@ -7,6 +7,7 @@
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { FeatureGates } from '@/app.config';
+import { getSoleCompactForAppMode } from '@utils/compactConfig';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
@@ -30,8 +31,8 @@ import {
     compactStatesForRegistration,
     compactConfig,
     stateConfig,
-    mockPrivilegeHistoryResponses
-
+    mockPrivilegeHistoryResponses,
+    getMockProviderForCompact
 } from '@network/mocks/mock.data';
 
 let mockStore: any = null;
@@ -49,16 +50,19 @@ const authenticatedProviderUserIndex = 0;
 const getAuthenticatedProvider = () => {
     const { providers } = licensees;
     const maxIndex = providers.length - 1;
+    const compactType = getSoleCompactForAppMode(mockStore?.state?.appMode)
+        || mockStore?.state?.user?.currentCompact?.type;
+    const provider = (authenticatedProviderUserIndex < 0 || authenticatedProviderUserIndex > maxIndex)
+        ? providers[0]
+        : providers[authenticatedProviderUserIndex];
 
     if (authenticatedProviderUserIndex < 0 || authenticatedProviderUserIndex > maxIndex) {
         const errorMessage = `Mock Data Error: authenticatedProviderUserIndex (${authenticatedProviderUserIndex}) does not exist in mock data. Available providers: 0-${maxIndex}. Falling back to provider at index 0.`;
 
         console.error(errorMessage);
-
-        return providers[0];
     }
 
-    return providers[authenticatedProviderUserIndex];
+    return getMockProviderForCompact(provider, compactType);
 };
 
 // License type mapping for matching abbreviations and full names to LicenseType enum values
@@ -183,7 +187,9 @@ export class DataApi {
         let response;
 
         if (serverResponse) {
-            response = wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
+            response = wait(500).then(() => (
+                LicenseeSerializer.fromServer(getMockProviderForCompact(licensees.providers[0], compact))
+            ));
         } else {
             response = wait(500).then(() => {
                 throw new Error('not found');
@@ -199,7 +205,9 @@ export class DataApi {
         let response;
 
         if (serverResponse) {
-            response = wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
+            response = wait(500).then(() => (
+                LicenseeSerializer.fromServer(getMockProviderForCompact(licensees.providers[0], compact))
+            ));
         } else {
             response = wait(500).then(() => {
                 throw new Error('not found');

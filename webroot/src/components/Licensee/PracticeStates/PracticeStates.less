@@ -1,0 +1,87 @@
+//
+//  PracticeStates.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 9/24/2026.
+//
+
+.practice-list-container {
+    display: flex;
+    width: 100%;
+    padding: 0 2rem;
+    border-radius: @borderRadiusLarge;
+    background-color: @white;
+}
+
+.practice-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    .practice-row {
+        display: flex;
+        flex-direction: column;
+        padding: 1.6rem 0;
+
+        &:not(:first-child) {
+            border-top: 1px solid @lightGrey;
+        }
+
+        @media @tabletWidth {
+            flex-direction: row;
+        }
+
+        &.header {
+            font-weight: @fontWeightBold;
+        }
+    }
+
+    .practice-cell {
+        display: flex;
+
+        @media @tabletWidth {
+            align-items: center;
+        }
+
+        &.state {
+            flex-basis: 48%;
+        }
+
+        &.status {
+            flex-basis: 24%;
+
+            .cell-value {
+                text-transform: capitalize;
+            }
+        }
+
+        &.discipline {
+            flex-basis: 24%;
+        }
+
+        &.actions {
+            flex-basis: 4%;
+
+            &:deep(.license-actions-modal) {
+                &.type-license.license-actions {
+                    width: 4.8rem;
+                }
+
+                .license-actions-menu-toggle {
+                    padding: 0.4rem 1.2rem;
+
+                    .dot {
+                        background-color: @primaryColor;
+                    }
+                }
+            }
+        }
+
+        .cell-title {
+            flex-shrink: 0;
+            width: 14.4rem;
+            padding-right: 0.4rem;
+            font-weight: @fontWeightBold;
+        }
+    }
+}

@@ -86,6 +86,7 @@
         "finish": "Termina",
         "all": "Todo",
         "any": "Cualquier",
+        "actions": "Acciones",
         "cannotBeUndone": "Esta acción no se puede deshacer.",
         "daysOfTheWeek": {
             "monday": {
@@ -602,6 +603,9 @@
         "homeState": "Estado de origen",
         "stateOfHomeLicense": "Estado de la licencia de vivienda",
         "residenceLocation": "Ubicación de la residencia",
+        "providerPracticeStates": "Dónde puede ejercer este proveedor",
+        "providerPracticeStatesSelf": "Dónde puedes practicar",
+        "providerNoPracticeStates": "No hay estados disponibles para practicar",
         "privileges": "Privilegios",
         "privilege": "Privilegio",
         "privilegeState": "Estado privilegiado",

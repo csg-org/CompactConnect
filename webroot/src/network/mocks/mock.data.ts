@@ -5,6 +5,8 @@
 //  Created by InspiringApps on 5/6/20.
 //
 import { serverDateFormat, serverDatetimeFormat } from '@/app.config';
+import { CompactType } from '@models/Compact/Compact.model';
+import { LicenseType } from '@models/License/License.model';
 import moment from 'moment';
 
 export const userData = {
@@ -2509,6 +2511,55 @@ export const mockPrivilegeHistoryResponses = [
         ]
     }
 ];
+
+const MOCK_PROVIDER_NESTED_COLLECTIONS = ['licenses', 'privileges', 'militaryAffiliations'];
+
+// Compact-specific fields applied to the shared mock practitioner at read time.
+// Add values here as a compact's mock data needs to diverge (privilege IDs, etc).
+export interface MockProviderCompactOverlay {
+    compact?: string;
+    licenseType?: string;
+}
+
+export const mockProviderCompactOverlays: Partial<Record<CompactType, MockProviderCompactOverlay>> = {
+    [CompactType.PSYPACT]: {
+        compact: CompactType.PSYPACT,
+        licenseType: LicenseType.PSYCHOLOGIST,
+    },
+};
+
+export const applyProviderCompactOverlay = (provider: any, overlay?: MockProviderCompactOverlay | null): any => {
+    if (!provider || !overlay) {
+        return provider;
+    }
+
+    const nextProvider = JSON.parse(JSON.stringify(provider));
+
+    Object.assign(nextProvider, overlay);
+
+    MOCK_PROVIDER_NESTED_COLLECTIONS.forEach((collectionKey) => {
+        const collection = nextProvider[collectionKey];
+
+        if (Array.isArray(collection)) {
+            nextProvider[collectionKey] = collection.map((item) => {
+                const nextItem = { ...item };
+
+                Object.keys(overlay).forEach((field) => {
+                    if (Object.prototype.hasOwnProperty.call(item, field)) {
+                        nextItem[field] = overlay[field];
+                    }
+                });
+
+                return nextItem;
+            });
+        }
+    });
+
+    return nextProvider;
+};
+
+export const getMockProviderForCompact = (provider: any, compactType?: string | null): any =>
+    applyProviderCompactOverlay(provider, mockProviderCompactOverlays[compactType as CompactType]);
 
 export const pets = [
     {

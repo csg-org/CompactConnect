@@ -87,6 +87,7 @@
         "finish": "Finish",
         "all": "All",
         "any": "Any",
+        "actions": "Actions",
         "cannotBeUndone": "This action cannot be undone.",
         "daysOfTheWeek": {
             "monday": {
@@ -629,6 +630,9 @@
         "generateVerificationSubtext": "Printer-friendly view",
         "provider": "Provider",
         "providers": "Providers",
+        "providerPracticeStates": "Where this provider can practice",
+        "providerPracticeStatesSelf": "Where you can practice",
+        "providerNoPracticeStates": "No states available to practice",
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
         "privilege": "Privilege",
