@@ -10,7 +10,7 @@
         <div class="top-block">
             <div class="welcome-user">{{ $t('common.welcome') }}, {{ userFullName }}</div>
             <div class="button-block">
-                <div class="btn-container">
+                <div v-if="$isAppGroupModePrivilegePurchase" class="btn-container">
                     <InputButton
                         :label="$t('licensing.generateVerification')"
                         :aria-label="$t('licensing.generateVerification')"
@@ -21,7 +21,7 @@
                     />
                     <div class="btn-subtext">{{ $t('licensing.generateVerificationSubtext') }}</div>
                 </div>
-                <div class="btn-container">
+                <div v-if="$isAppGroupModePrivilegePurchase" class="btn-container">
                     <InputButton
                         :label="`+ ${this.$t('licensing.obtainPrivileges')}`"
                         :aria-label="$t('licensing.obtainPrivileges')"
