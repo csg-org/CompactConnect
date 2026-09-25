@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
+import { getHostAppMode, getSoleCompactForAppMode } from '@utils/compactConfig';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Compact } from '@models/Compact/Compact.model';
@@ -15,6 +16,12 @@ import {
     AUTH_TYPE
 } from '@utils/auth';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
+
+export const getDefaultCurrentCompact = (): Compact | null => {
+    const defaultCompactType = getSoleCompactForAppMode(getHostAppMode());
+
+    return (defaultCompactType) ? new Compact({ type: defaultCompactType }) : null;
+};
 
 export interface State {
     model: StaffUser | LicenseeUser | null;
@@ -45,7 +52,7 @@ export const state: State = {
     refreshTokenTimeoutId: null,
     isAutoLogoutWarning: false,
     autoLogoutTimeoutId: null,
-    currentCompact: null,
+    currentCompact: getDefaultCurrentCompact(),
     purchase: new PurchaseFlowState(),
     error: null,
 };

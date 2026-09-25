@@ -12,6 +12,7 @@ export enum AppModes {
     JCC = 'jcc',
     COSMETOLOGY = 'cosmo',
     SOCIAL_WORK = 'socialwork',
+    PSYPACT = 'psypact',
 }
 
 export enum AppGroupModes {
@@ -66,6 +67,18 @@ export const getBrowserLanguage = () => {
 };
 
 export const defaultLanguage = getBrowserLanguage();
+
+// ====================
+// =      HOSTING     =
+// ====================
+export const psypactHostnames = [
+    `psypactportal.org`,
+    `app.psypactportal.org`,
+    `test.app.psypactportal.org`,
+    `app.test.psypact.iaapi.io`,
+    `app.test.psypact.jcc.iaapi.io`,
+    // `localhost`, // @DEBUG
+];
 
 // =============================
 // =     Server API Types      =
@@ -220,6 +233,7 @@ export default {
     FeeTypes,
     languagesEnabled,
     defaultLanguage,
+    psypactHostnames,
     serverDateFormat,
     serverDatetimeFormat,
     displayDateFormat,

@@ -39,7 +39,9 @@ def generate_csp_lambda_code(
     persistent_stack_values: PersistentStackFrontendAppConfigValues,
     persistent_stack_values_cosmetology: PersistentStackFrontendAppConfigValues,
     persistent_stack_values_socialwork: PersistentStackFrontendAppConfigValues,
+    persistent_stack_values_psypact: PersistentStackFrontendAppConfigValues,
     provider_users_stack_values: ProviderUsersStackFrontendAppConfigValues,
+    provider_users_stack_values_psypact: ProviderUsersStackFrontendAppConfigValues,
 ) -> str:
     """
     Generate CSP Lambda code with injected configuration values.
@@ -80,6 +82,13 @@ def generate_csp_lambda_code(
         '##SEARCH_API_SW##': persistent_stack_values_socialwork.search_api_domain_name,
         '##S3_UPLOAD_URL_STATE_SW##': f'{persistent_stack_values_socialwork.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
         '##COGNITO_STAFF_SW##': persistent_stack_values_socialwork.staff_cognito_domain,
+        # PSYPACT
+        '##DATA_API_PSYPACT##': persistent_stack_values_psypact.api_domain_name,
+        '##SEARCH_API_PSYPACT##': persistent_stack_values_psypact.search_api_domain_name,
+        '##S3_UPLOAD_URL_STATE_PSYPACT##': f'{persistent_stack_values_psypact.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
+        '##S3_UPLOAD_URL_PROVIDER_PSYPACT##': f'{persistent_stack_values_psypact.provider_users_bucket_name}{S3_URL_SUFFIX}',
+        '##COGNITO_STAFF_PSYPACT##': persistent_stack_values_psypact.staff_cognito_domain,
+        '##COGNITO_PROVIDER_PSYPACT##': provider_users_stack_values_psypact.provider_cognito_domain,
     }
 
     for placeholder, value in replacements.items():
@@ -100,7 +109,9 @@ class UIDistribution(Distribution):
         persistent_stack_frontend_app_config_values: PersistentStackFrontendAppConfigValues,
         persistent_stack_frontend_app_config_values_cosmetology: PersistentStackFrontendAppConfigValues,
         persistent_stack_frontend_app_config_values_socialwork: PersistentStackFrontendAppConfigValues,
+        persistent_stack_frontend_app_config_values_psypact: PersistentStackFrontendAppConfigValues,
         provider_users_stack_frontend_app_config_values: ProviderUsersStackFrontendAppConfigValues,
+        provider_users_stack_frontend_app_config_values_psypact: ProviderUsersStackFrontendAppConfigValues,
     ):
         stack: AppStack = AppStack.of(scope)
 
@@ -141,7 +152,9 @@ class UIDistribution(Distribution):
             persistent_stack_frontend_app_config_values,
             persistent_stack_frontend_app_config_values_cosmetology,
             persistent_stack_frontend_app_config_values_socialwork,
+            persistent_stack_frontend_app_config_values_psypact,
             provider_users_stack_frontend_app_config_values,
+            provider_users_stack_frontend_app_config_values_psypact,
         )
 
         self.csp_function = Function(

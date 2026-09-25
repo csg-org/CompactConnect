@@ -1,12 +1,14 @@
 # Adding a new compact (new AppMode)
 
+_[Go to Steps](#steps)_
+
 ## Prerequisites
 
 - Backend API hosts and staff Cognito app exist (or are being added in parallel)
 - Cognito callback URLs for the new staff auth servers; and if practitioners are allowed to register, a URL for that as well
 - Choose an existing `AppGroupMode`:
   - `PRIVILEGE_PURCHASE` (JCC-style)
-  - `MULTI_STATE` (cosmetology / social work–style)
+  - `MULTI_STATE` (cosmetology / social work / psypact–style)
 - One new compact usually maps to one `AppModes` value
 
 ## Naming
@@ -26,7 +28,7 @@ Example: `AppModes.SOCIAL_WORK = 'socialwork'` → `/auth/callback/staff/socialw
 
 Once the config and infra wiring below are in place, these do **not** need per-compact UI lists or interceptor edits:
 
-- PublicDashboard staff login cards (`$compactsEnabled`)
+- PublicDashboard staff login cards (`$compactsEnabledCompactConnect`; `$compactsEnabled` includes host-pinned compacts like psypact)
 - CompactSelector (public + permission-based options)
 - Logout, token refresh, and token revoke (`getCognitoConfig`)
 - Auth callback path string (`getAuthCallbackPath`)
@@ -34,22 +36,15 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 - `setAppMode` → `appGroupMode` (`getAppGroupModeForAppMode`)
 - Router compact param → app mode (`getAppModeForCompact`)
 
+These **do** still need per-compact work (not automatic):
+
+- CloudFront CSP + frontend deploy SSM wiring (`/backend/compact-connect-ui-app`)
+
+---
+
 ## Steps
 
-### 1. Core enums and compact config
-
-**`src/app.config.ts`**
-
-- [ ] Add `AppModes.YOUR_MODE = 'yourmode'`
-
-**`src/utils/compactConfig.ts`**
-
-- [ ] Add `CompactType.YOUR_COMPACT = 'abbr'`
-- [ ] Add `compactSetups` entry (`type`, `appMode`, `isEnabled`)
-- [ ] Add `appModeGroups[AppModes.YOUR_MODE]` → existing `PRIVILEGE_PURCHASE` or `MULTI_STATE`
-- [ ] Add `appModeEncumberConfigs[AppModes.YOUR_MODE]` (license + privilege discipline / NPDB lists; reuse shared helpers when possible)
-
-### 2. Environment
+### 1. Environment
 
 **`.env` / `.env.example`**
 
@@ -66,12 +61,33 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 
 - [ ] Add matching mock fields
 
-### 3. Wire mode → infra tables
+### 2. Core enums and compact config
+
+**`src/app.config.ts`**
+
+- [ ] Add `AppModes.YOUR_MODE = 'yourmode'`
+
+**`src/utils/compactConfig.ts`**
+
+- [ ] Add `CompactType.YOUR_COMPACT = 'abbr'`
+- [ ] Add `compactSetups` entry (`type`, `appMode`, `isEnabled`)
+- [ ] Add `appModeGroups[AppModes.YOUR_MODE]` → existing `PRIVILEGE_PURCHASE` or `MULTI_STATE`
+- [ ] Add `appModeEncumberConfigs[AppModes.YOUR_MODE]` (license + privilege discipline / NPDB lists; reuse shared helpers when possible)
+
+**`src/utils/compactConfig.spec.ts`**
+
+- [ ] Setup, app group, encumbrance, enablement gating
+
+### 3. Network config
 
 **`src/network/apiUrls.ts`**
 
 - [ ] Add a row to `appModeApiUrls` for all four API families (`state`, `license`, `search`, `user`)  
   (`Record<AppModes, …>` will fail to compile until this is done.)
+
+**`src/network/apiUrls.spec.ts`**
+
+- [ ] All four families for the new mode
 
 **`src/utils/auth.ts` → `getCognitoConfig`**
 
@@ -79,16 +95,24 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 
 ### 4. Auth callback route and page
 
-**`src/router/routes.ts`**
-
-- [ ] Add route `/auth/callback/staff/{yoursegment}`  
-  Path must equal `getAuthCallbackPath(AppModes.YOUR_MODE, AuthTypes.STAFF)`
-
-**`src/pages/AuthCallback/StaffYourMode/`**
+**`src/pages/AuthCallback/{StaffYourMode}/`**
 
 - [ ] Add a thin page (copy `StaffCosmo` / `StaffSocialWork` pattern)
 - [ ] Set `appMode = AppModes.YOUR_MODE` and `authType = AuthTypes.STAFF` only
 - [ ] Add a mount spec (optional; matches existing AuthCallback pages)
+
+**`src/pages/AuthCallback/{LicenseeYourMode}/`** _(only if new compact supports licensee login)_
+
+- [ ] Add a thin page (copy `LicenseeJcc` pattern)
+- [ ] Set `appMode = AppModes.YOUR_MODE` and `authType = AuthTypes.LICENSEE` only
+- [ ] Add a mount spec (optional; matches existing AuthCallback pages)
+
+**`src/router/routes.ts`**
+
+- [ ] Add route `/auth/callback/staff/{yoursegment}`
+  Path must equal `getAuthCallbackPath(AppModes.YOUR_MODE, AuthTypes.STAFF)`
+- [ ] Add route `/auth/callback/licensee/{yoursegment}` _(only if new compact supports licensee login)_
+    Path must equal `getAuthCallbackPath(AppModes.YOUR_MODE, AuthTypes.STAFF)`
 
 **`src/router/router.spec.ts`**
 
@@ -107,6 +131,10 @@ Once the config and infra wiring below are in place, these do **not** need per-c
 **`src/plugins/Compacts/compacts.d.ts`**
 
 - [ ] Declare `$isAppModeYourMode: boolean`
+
+**`src/plugins/Compacts/compacts.spec.ts`**
+
+- [ ] List membership / globals if asserted
 
 ### 6. i18n / product copy
 
@@ -131,28 +159,87 @@ Needed when exercising the new compact under the mock API:
 
 Only if the new compact should participate in these flows:
 
+**`src/components/AppTypeSelector/AppTypeSelector.ts`**
+
+- [ ] If the new compact should have a different app mode in a public context, update the `get appTypeOptions()` computed and `handleAppTypeSelect()` method.
+
 **`src/pages/PublicDashboard/PublicDashboard.ts` → `bypassRedirect`**
 
 - [ ] Add a `?bypass=login-staff-…` case if emails or deep links need it (see cosmo / social work)
 
+**`src/pages/PublicDashboard/PublicDashboard.spec.ts`**
+
+- [ ] Staff login URI for the new mode (optional)
+
 **`RegisterLicensee` / `MfaResetStartLicensee`**
 
 - [ ] These still use hard-coded compact allow-lists — add the new `CompactType` only if those pages should offer it
+
+**Host-pinned compacts** _(only if the compact gets its own DNS domains)_
+
+- [ ] Add the hostnames to `app.config.ts` and register them in `appModeHostnames` (`src/utils/compactConfig.ts`)
+- [ ] Register each hostname's `/auth/callback/...` and `/Logout` URLs on that compact's Cognito app clients
+- [ ] Exclude the compact from `$compactsEnabledCompactConnect` if it should not appear in CompactConnect compact pickers
+
+Deployed pinned hosts refuse routes for any other compact and ignore run-time `setAppMode` calls (`getLockedAppMode`); localhost stays switchable so the PublicDashboard app-type selector still works.
 
 **Mode-specific UI audit**
 
 Decide whether behavior should follow JCC-like or multi-state-like patterns. Prefer `$isAppGroupMode*` when the behavior is really group-scoped. Audit existing `$isAppModeJcc` / `$isAppModeCosmetology` / `$isAppModeSocialWork` usages, for example:
 
 - LicenseCard / PrivilegeCard
+- LicenseCard / PrivilegeCard encumber specs if per-mode assertions are kept there
 - LicensingDetail (e.g. military affiliation)
 - LicenseeSearchLegacy
 - UserInvite / UserRowEdit
 
-### 9. Tests to extend
+### 9. Content Security Policy (CSP)
 
-- [ ] `src/utils/compactConfig.spec.ts` — setup, app group, encumbrance, enablement gating
-- [ ] `src/network/apiUrls.spec.ts` — all four families for the new mode
-- [ ] `src/plugins/Compacts/compacts.spec.ts` — list membership / globals if asserted
-- [ ] `src/pages/PublicDashboard/PublicDashboard.spec.ts` — staff login URI for the new mode (optional)
-- [ ] LicenseCard / PrivilegeCard encumber specs if per-mode assertions are kept there
-- [ ] AuthCallback mount + router path consistency
+The policy lives in `/backend/compact-connect-ui-app` and is applied by CloudFront **only on deployed environments**. `default-src` is `'none'`, so every new compact host must be allow-listed. Never hardcode an environment domain — use `##PLACEHOLDER##` tokens and a replacement in `generate_csp_lambda_code()`.
+
+Copy an existing compact and stay consistent with its suffix (`_COSMO` / `_SW` / `_PSYPACT`).
+
+**Which hosts to add**
+
+Staff-only (Cosmetology / Social Work):
+
+- [ ] Data API, search API, state (bulk upload) S3, staff Cognito → `connect-src`
+- [ ] Data API → `img-src` and `media-src` as well
+
+Staff + licensee (JCC / PsyPact):
+
+- [ ] Everything above, plus provider-users S3 and licensee Cognito → `connect-src`
+
+Do **not** add the new compact to `script-src` / `frame-src` / `style-src` unless it introduces a new third-party script or SDK.
+
+**`/backend/common-cdk/common_constructs/frontend_app_config_utility.py`**
+
+- [ ] Add `AppId.YOUR_COMPACT` (this is the SSM path segment, e.g. `social-work`, `psypact`)
+- [ ] Add matching cases in `common-cdk/tests/test_frontend_app_config_utility.py`
+
+**`/backend/compact-connect-ui-app/lambdas/nodejs/cloudfront-csp/index.js`**
+
+- [ ] Add `##PLACEHOLDER##` entries on `environmentValues`
+- [ ] Resolve them in `getEnvironmentUrls()`
+- [ ] Add the resolved URLs to the directives above
+
+**`/backend/compact-connect-ui-app/lambdas/nodejs/cloudfront-csp/test/index.test.js`**
+
+- [ ] Add the same placeholders, fixture hosts, and expected `img-src` / `media-src` / `connect-src` entries
+
+**`/backend/compact-connect-ui-app/stacks/frontend_deployment_stack/`**
+
+- [ ] `distribution.py`: map each placeholder in `generate_csp_lambda_code()`; thread the new persistent-stack (and provider-users, if licensee) config into `UIDistribution` and the generator call
+- [ ] `deployment.py`: accept those configs and add the matching `VUE_APP_*` BundlingOptions (API roots + Cognito). See the README **Adding environment variables** section
+- [ ] `__init__.py`: `load_*_from_ssm_parameter(..., app_id=AppId.YOUR_COMPACT)`, raise if missing, pass through to the bucket deployment and `UIDistribution`
+
+A real deploy also needs the new SSM parameters written by the backend app and copied into the frontend account (same process as Cosmetology / Social Work).
+
+**Verify**
+
+Follow the frontend README **Updating the Content-Security-Policy (CSP) headers** section exactly:
+
+- [ ] `yarn lint` and `yarn test:csp` under `lambdas/nodejs`
+- [ ] Temporarily set `overwrite_snapshot=True` in `tests/app/base.py`, run `bin/run_tests.sh -l all -no`, then revert to `False`
+
+---

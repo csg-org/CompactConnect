@@ -180,7 +180,8 @@ export default {
     setStoreUser: ({ commit }, user) => {
         commit(MutationTypes.STORE_UPDATE_USER, user);
     },
-    resetStoreUser: ({ commit }) => {
+    resetStoreUser: ({ commit, dispatch }) => {
+        dispatch('clearAutoLogoutTimeout');
         commit(MutationTypes.STORE_RESET_USER);
     },
     updateAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
@@ -285,6 +286,11 @@ export default {
 
         const initiateAutoLogout = () => {
             dispatch('clearAutoLogoutTimeout');
+
+            if (!state.isLoggedIn) {
+                return;
+            }
+
             dispatch('updateAutoLogoutWarning', true);
             autoLogoutConfig.LOG(`auto logout warning: ${state.isAutoLogoutWarning}`);
         };
@@ -306,6 +312,11 @@ export default {
     },
     updateAutoLogoutWarning: ({ commit }, isWarning) => {
         commit(MutationTypes.UPDATE_AUTO_LOGOUT_WARNING, isWarning);
+    },
+    clearSearchStores: ({ dispatch }) => {
+        dispatch('license/resetStoreLicense', null, { root: true });
+        dispatch('pagination/resetStorePagination', null, { root: true });
+        dispatch('sorting/resetStoreSorting', null, { root: true });
     },
     clearSessionStores: ({ dispatch }) => {
         dispatch('resetStoreUser');

@@ -18,6 +18,18 @@
     >
         <div v-if="$matches.tablet.min && !isMenuTouchToggle" class="logo-container">
             <img
+                v-if="$isAppModePsyPact"
+                src="@assets/logos/psypact-logo-white.svg"
+                :alt="$t('common.appNamePsyPact')"
+                class="logo psypact"
+                @click="logoClick"
+                @keyup.enter="logoClick"
+                role="button"
+                :aria-label="$t('common.appNamePsyPact')"
+                tabindex="0"
+            />
+            <img
+                v-else
                 src="@assets/logos/compact-connect-logo-white.svg"
                 :alt="$t('common.appName')"
                 class="logo"

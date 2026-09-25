@@ -14,7 +14,12 @@ import {
     authStorage,
     tokens,
     AuthTypes,
-    revokeCognitoRefreshToken
+    AUTH_LOGIN_GOTO_PATH,
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
+    AUTH_LOGIN_GOTO_COMPACT,
+    revokeCognitoRefreshToken,
+    getCompactFromGotoPath,
+    clearStashIfIncompatibleWithAppMode
 } from '@utils/auth';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 
@@ -45,6 +50,9 @@ describe('auth utils', () => {
 
         authStorage.removeItem(tokens.staff.REFRESH_TOKEN);
         authStorage.removeItem(tokens.licensee.REFRESH_TOKEN);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_COMPACT);
     });
 
     afterEach(() => {
@@ -59,8 +67,46 @@ describe('auth utils', () => {
 
         authStorage.removeItem(tokens.staff.REFRESH_TOKEN);
         authStorage.removeItem(tokens.licensee.REFRESH_TOKEN);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_COMPACT);
     });
 
+    it('should successfully parse a compact type from a goto path', () => {
+        expect(getCompactFromGotoPath('/socw/Licensing')).to.equal('socw');
+        expect(getCompactFromGotoPath('psypact/Licensing')).to.equal('psypact');
+        expect(getCompactFromGotoPath('/Dashboard')).to.equal(null);
+        expect(getCompactFromGotoPath('')).to.equal(null);
+    });
+    it('should successfully clear an incompatible login stash for the app mode', () => {
+        authStorage.setItem(AUTH_LOGIN_GOTO_PATH, '/socw/Licensing');
+        authStorage.setItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE, AuthTypes.STAFF);
+        authStorage.setItem(AUTH_LOGIN_GOTO_COMPACT, 'socw');
+
+        clearStashIfIncompatibleWithAppMode(AppModes.PSYPACT);
+
+        expect(authStorage.getItem(AUTH_LOGIN_GOTO_PATH)).to.equal(null);
+        expect(authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE)).to.equal(null);
+        expect(authStorage.getItem(AUTH_LOGIN_GOTO_COMPACT)).to.equal(null);
+    });
+    it('should successfully keep a compatible login stash for the app mode', () => {
+        authStorage.setItem(AUTH_LOGIN_GOTO_PATH, '/aslp/Licensing');
+        authStorage.setItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE, AuthTypes.STAFF);
+        authStorage.setItem(AUTH_LOGIN_GOTO_COMPACT, 'aslp');
+
+        clearStashIfIncompatibleWithAppMode(AppModes.JCC);
+
+        expect(authStorage.getItem(AUTH_LOGIN_GOTO_PATH)).to.equal('/aslp/Licensing');
+        expect(authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE)).to.equal(AuthTypes.STAFF);
+        expect(authStorage.getItem(AUTH_LOGIN_GOTO_COMPACT)).to.equal('aslp');
+    });
+    it('should successfully clear an incompatible stash inferred from the goto path', () => {
+        authStorage.setItem(AUTH_LOGIN_GOTO_PATH, '/psypact/Licensing');
+
+        clearStashIfIncompatibleWithAppMode(AppModes.JCC);
+
+        expect(authStorage.getItem(AUTH_LOGIN_GOTO_PATH)).to.equal(null);
+    });
     it('should successfully post refresh token to Cognito /oauth2/revoke for staff', async () => {
         const refreshToken = 'staff-refresh-token';
 

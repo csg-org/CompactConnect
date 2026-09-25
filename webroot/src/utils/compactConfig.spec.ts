@@ -34,6 +34,7 @@ describe('compactConfig utils', () => {
             CompactType.COUNSELING,
             CompactType.COSMETOLOGY,
             CompactType.SOCIAL_WORK,
+            CompactType.PSYPACT,
         ]);
     });
     it('should successfully map each compact to its app mode', () => {
@@ -42,6 +43,7 @@ describe('compactConfig utils', () => {
         expect(getAppModeForCompact(CompactType.COUNSELING)).to.equal(AppModes.JCC);
         expect(getAppModeForCompact(CompactType.COSMETOLOGY)).to.equal(AppModes.COSMETOLOGY);
         expect(getAppModeForCompact(CompactType.SOCIAL_WORK)).to.equal(AppModes.SOCIAL_WORK);
+        expect(getAppModeForCompact(CompactType.PSYPACT)).to.equal(AppModes.PSYPACT);
     });
     it('should successfully fall back to jcc for an unknown compact type', () => {
         expect(getAppModeForCompact('not-a-compact')).to.equal(AppModes.JCC);
@@ -62,17 +64,19 @@ describe('compactConfig utils', () => {
             [AppModes.JCC]: AppGroupModes.PRIVILEGE_PURCHASE,
             [AppModes.COSMETOLOGY]: AppGroupModes.MULTI_STATE,
             [AppModes.SOCIAL_WORK]: AppGroupModes.MULTI_STATE,
+            [AppModes.PSYPACT]: AppGroupModes.MULTI_STATE,
         });
         expect(getAppGroupModeForAppMode(AppModes.JCC)).to.equal(AppGroupModes.PRIVILEGE_PURCHASE);
         expect(getAppGroupModeForAppMode(AppModes.COSMETOLOGY)).to.equal(AppGroupModes.MULTI_STATE);
         expect(getAppGroupModeForAppMode(AppModes.SOCIAL_WORK)).to.equal(AppGroupModes.MULTI_STATE);
+        expect(getAppGroupModeForAppMode(AppModes.PSYPACT)).to.equal(AppGroupModes.MULTI_STATE);
     });
     it('should successfully return null for an unknown app mode group lookup', () => {
         expect(getAppGroupModeForAppMode('not-an-app-mode' as AppModes)).to.equal(null);
         expect(getAppGroupModeForAppMode(null)).to.equal(null);
     });
 
-    it('should successfully enable jcc compacts in all environments', () => {
+    it('should successfully enable expected compacts in all environments', () => {
         envConfig.isAppProduction = true;
 
         expect(compactSetups[CompactType.ASLP].isEnabled()).to.equal(true);
@@ -80,12 +84,14 @@ describe('compactConfig utils', () => {
         expect(compactSetups[CompactType.COUNSELING].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.COSMETOLOGY].isEnabled()).to.equal(true);
     });
-    it('should successfully gate socw to non-production environments', () => {
+    it('should successfully gate expected compacts to non-production environments', () => {
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(true);
+        expect(compactSetups[CompactType.PSYPACT].isEnabled()).to.equal(true);
 
         envConfig.isAppProduction = true;
 
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(false);
+        expect(compactSetups[CompactType.PSYPACT].isEnabled()).to.equal(false);
     });
     it('should successfully return license encumber config per app mode', () => {
         expect(getEncumberConfigLicense(AppModes.JCC).disciplineTypes).to.include('surrender of license');
@@ -104,6 +110,8 @@ describe('compactConfig utils', () => {
 
         expect(getEncumberConfigLicense(AppModes.SOCIAL_WORK).disciplineTypes).to.include('surrender of license');
         expect(getEncumberConfigLicense(AppModes.SOCIAL_WORK).npdbTypes).to.include('Conflict of Interest');
+        expect(getEncumberConfigLicense(AppModes.PSYPACT).disciplineTypes).to.include('surrender of license');
+        expect(getEncumberConfigLicense(AppModes.PSYPACT).npdbTypes).to.include('Conflict of Interest');
     });
     it('should successfully return privilege encumber config per app mode', () => {
         expect(getEncumberConfigPrivilege(AppModes.JCC).disciplineTypes).to.include('surrender of privilege');
@@ -114,6 +122,10 @@ describe('compactConfig utils', () => {
         ]);
         expect(getEncumberConfigPrivilege(AppModes.SOCIAL_WORK).disciplineTypes).to.include('surrender of privilege');
         expect(getEncumberConfigPrivilege(AppModes.SOCIAL_WORK).npdbTypes).to.include(
+            'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
+        );
+        expect(getEncumberConfigPrivilege(AppModes.PSYPACT).disciplineTypes).to.include('surrender of privilege');
+        expect(getEncumberConfigPrivilege(AppModes.PSYPACT).npdbTypes).to.include(
             'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
         );
     });

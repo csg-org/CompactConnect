@@ -1,6 +1,8 @@
 {
     "common": {
-        "appName": "Compact Connect",
+        "appName": "CompactConnect",
+        "appNamePsyPact": "PSYPACT",
+        "appTypeLabel": "Tipo de aplicación",
         "yes": "Sí",
         "no": "No",
         "back": "Volver",
@@ -84,6 +86,7 @@
         "finish": "Termina",
         "all": "Todo",
         "any": "Cualquier",
+        "actions": "Acciones",
         "cannotBeUndone": "Esta acción no se puede deshacer.",
         "daysOfTheWeek": {
             "monday": {
@@ -381,6 +384,7 @@
         "loginAsStaffSubtext": "Seleccione un compacto",
         "loginAsProvider": "Inicio de sesión de practicante",
         "loginAsProviderSubtext": "Accede a tu cuenta y privilegios",
+        "loginAsProviderSubtextPsyPact": "Acceda a su cuenta y autorizaciones",
         "register": "Registro",
         "registerAsProvider": "Crear una cuenta",
         "registerAsProviderSubtext": "¿No tienes una cuenta?",
@@ -501,6 +505,11 @@
             "name": "Trabajo Social",
             "abbrev": "SOCW",
             "key": "socw"
+        },
+        {
+            "name": "PSYPACT",
+            "abbrev": "PSYPACT",
+            "key": "psypact"
         }
     ],
     "compact": {
@@ -594,6 +603,9 @@
         "homeState": "Estado de origen",
         "stateOfHomeLicense": "Estado de la licencia de vivienda",
         "residenceLocation": "Ubicación de la residencia",
+        "providerPracticeStates": "Dónde puede ejercer este proveedor",
+        "providerPracticeStatesSelf": "Dónde puedes practicar",
+        "providerNoPracticeStates": "No hay estados disponibles para practicar",
         "privileges": "Privilegios",
         "privilege": "Privilegio",
         "privilegeState": "Estado privilegiado",
@@ -862,6 +874,12 @@
                 "key": "licensed bachelors social worker",
                 "compactKey": "socw",
                 "abbrev": "lbsw"
+            },
+            {
+                "name": "Psicólogo",
+                "key": "psychologist",
+                "compactKey": "psypact",
+                "abbrev": "PSY"
             }
         ],
         "licenseScopes": [
@@ -1175,7 +1193,7 @@
     },
     "privacyPolicy": {
         "title": "Política de Privacidad",
-        "introSubtext": "Esta política de privacidad describe cómo el sitio web CompactConnect almacena y utiliza los datos de los visitantes.",
+        "introSubtext": "Esta política de privacidad describe cómo el sitio web {appName} almacena y utiliza los datos de los visitantes.",
         "whatDataIsCollectedTitle": "¿Qué datos se recopilan?",
         "collectedDataEmail": "Dirección de correo electrónico de usuarios registrados",
         "collectedDataDevice": "Tipo de dispositivo, navegador y dirección IP",
@@ -1184,9 +1202,9 @@
         "howIsMyDataProtectedTitle": "¿Cómo se protege mi información?",
         "howIsMyDataProtectedSubtext": "Adoptamos prácticas estándar de la industria para la recopilación, almacenamiento y procesamiento de datos y medidas de seguridad para proteger contra el acceso no autorizado, alteración, divulgación o destrucción de su información personal, nombre de usuario, contraseña, información de transacciones y datos almacenados en nuestro sitio.",
         "changesToThisPolicyTitle": "Cambios a esta política",
-        "changesToThisPolicySubtext": "CompactConnect tiene la discreción de actualizar esta política de privacidad en cualquier momento. Le recomendamos que revise frecuentemente esta página para cualquier cambio para mantenerse informado sobre cómo estamos ayudando a proteger la información personal que recopilamos. Usted reconoce y acepta que es su responsabilidad revisar esta política de privacidad periódicamente y conocer las modificaciones.",
+        "changesToThisPolicySubtext": "{appName} tiene la discreción de actualizar esta política de privacidad en cualquier momento. Le recomendamos que revise frecuentemente esta página para cualquier cambio para mantenerse informado sobre cómo estamos ayudando a proteger la información personal que recopilamos. Usted reconoce y acepta que es su responsabilidad revisar esta política de privacidad periódicamente y conocer las modificaciones.",
         "disclaimerTitle": "Descargo de responsabilidad",
-        "disclaimerSubtext": "Otros sitios web que están conectados por hipervínculos a y/o desde el sitio web CompactConnect pueden no seguir las mismas restricciones de privacidad. No asumimos responsabilidad por las prácticas o el contenido de cualquier sitio web que se vincule a o desde nuestro sitio."
+        "disclaimerSubtext": "Otros sitios web que están conectados por hipervínculos a y/o desde el sitio web {appName} pueden no seguir las mismas restricciones de privacidad. No asumimos responsabilidad por las prácticas o el contenido de cualquier sitio web que se vincule a o desde nuestro sitio."
     },
     "recaptcha": {
         "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",

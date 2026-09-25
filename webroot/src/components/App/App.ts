@@ -13,14 +13,18 @@ import {
 } from 'vue-facing-decorator';
 import { RouteRecordName } from 'vue-router';
 import { relativeTimeFormats } from '@/app.config';
-import { getAppModeForCompact } from '@utils/compactConfig';
+import {
+    getAppModeForCompact,
+    getLockedAppMode,
+    getSoleCompactForAppMode
+} from '@utils/compactConfig';
 import {
     authStorage,
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT
 } from '@utils/auth';
-import { CompactType } from '@models/Compact/Compact.model';
+import { Compact, CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
 import AutoLogout from '@components/AutoLogout/AutoLogout.vue';
@@ -51,12 +55,16 @@ class App extends Vue {
     // Lifecycle
     //
     async created() {
+        this.setPageData();
         await this.$router.isReady();
         this.setAppModeFromCompact(this.routeCompactType);
 
         if (this.userStore.isLoggedIn) {
             await this.handleAuth();
         }
+
+        // Host-seeded defaults skip setCurrentCompact, so memberStates stay empty unless we fetch them here
+        await this.ensureCompactStates();
 
         this.setRelativeTimeFormats();
         this.setFeatureGateRefetchInterval();
@@ -72,6 +80,10 @@ class App extends Vue {
     //
     get routeCompactType(): CompactType | null {
         return (this.$route.params.compact as CompactType) || null;
+    }
+
+    get lockedCompactType(): CompactType | null {
+        return getSoleCompactForAppMode(getLockedAppMode());
     }
 
     get globalStore() {
@@ -115,8 +127,14 @@ class App extends Vue {
 
     setAppModeFromCompact(compact: CompactType | null): void {
         const { appMode } = this.globalStore;
+        const { lockedCompactType } = this;
 
-        if (!appMode) {
+        if (lockedCompactType) {
+            // Host-pinned mode: keep currentCompact aligned, whatever the route or user permissions say
+            if (this.userStore.currentCompact?.type !== lockedCompactType) {
+                this.$store.dispatch('user/setCurrentCompact', new Compact({ type: lockedCompactType }));
+            }
+        } else if (!appMode) {
             this.$store.dispatch('setAppMode', getAppModeForCompact(compact));
         }
     }
@@ -188,6 +206,13 @@ class App extends Vue {
 
         authStorage.removeItem(AUTH_LOGIN_GOTO_COMPACT);
 
+        // Host-pinned mode: ignore the user's other compacts rather than switching mode or redirecting the route
+        if (this.lockedCompactType) {
+            this.setAppModeFromCompact(this.lockedCompactType);
+
+            return;
+        }
+
         if (authType === AuthTypes.STAFF) {
             const { permissions = [] } = user || {};
             const preLoginCompact = permissions?.find((permission) =>
@@ -222,6 +247,14 @@ class App extends Vue {
         this.setAppModeFromCompact(userDefaultCompact?.type || null);
     }
 
+    async ensureCompactStates(): Promise<void> {
+        const { currentCompact, isLoadingCompactStates } = this.userStore;
+
+        if (currentCompact?.type && !currentCompact.memberStates?.length && !isLoadingCompactStates) {
+            await this.$store.dispatch('user/getCompactStatesRequest', { compact: currentCompact.type });
+        }
+    }
+
     setRelativeTimeFormats() {
         // https://momentjs.com/docs/#/customization/relative-time/
         moment.updateLocale('en', {
@@ -231,6 +264,23 @@ class App extends Vue {
 
     closeModal() {
         this.$store.dispatch('clearMessages');
+    }
+
+    setPageData(): void {
+        const appName = (this.$isAppModePsyPact) ? this.$t('common.appNamePsyPact') : this.$t('common.appName');
+        const { origin } = this.$envConfig;
+
+        document.title = appName;
+        this.setMetaContent('meta[name="description"]', appName);
+        this.setMetaContent('meta[property="og:title"]', appName);
+        this.setMetaContent('meta[property="og:description"]', appName);
+        this.setMetaContent('meta[property="og:url"]', (origin as string));
+        this.setMetaContent('meta[property="og:image"]', `${origin}/img/icons/mstile-310x310.png`);
+        document.querySelector('link[rel="canonical"]')?.setAttribute('href', (origin as string));
+    }
+
+    setMetaContent(selector: string, content: string): void {
+        document.querySelector(selector)?.setAttribute('content', content);
     }
 
     addAppModeDebugger(): void {
@@ -248,6 +298,11 @@ class App extends Vue {
     //
     // Watchers
     //
+    @Watch('$appMode') onAppModeChange() {
+        this.setPageData();
+        this.$store.dispatch('user/clearSearchStores');
+    }
+
     @Watch('isModalOpen') onIsModalOpenChange() {
         this.body.style.overflow = (this.globalStore.isModalOpen) ? 'hidden' : 'visible';
     }

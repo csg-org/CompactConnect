@@ -17,6 +17,7 @@ import {
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT
 } from '@utils/auth';
+import AppTypeSelector from '@components/AppTypeSelector/AppTypeSelector.vue';
 import Card from '@components/Card/Card.vue';
 import SearchIcon from '@components/Icons/Search/Search.vue';
 import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';
@@ -29,6 +30,7 @@ import { CompactType } from '@models/Compact/Compact.model';
 @Component({
     name: 'DashboardPublic',
     components: {
+        AppTypeSelector,
         Card,
         SearchIcon,
         RegisterIcon,
@@ -59,6 +61,10 @@ export default class DashboardPublic extends Vue {
     //
     // Computed
     //
+    get compactTypes(): typeof CompactType {
+        return CompactType;
+    }
+
     get bypassQuery(): string {
         const bypass: string = (this.$route.query?.bypass as string) || '';
 
@@ -75,18 +81,12 @@ export default class DashboardPublic extends Vue {
         return (this.shouldRemoteLogout) ? '/logout' : '/login';
     }
 
-    get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(
-            AppModes.JCC,
-            AuthTypes.LICENSEE,
-            this.hostedLoginUriPath,
-            this.csrfState,
-            this.pkceChallenge
-        );
-    }
-
     get isUsingMockApi(): boolean {
         return this.$envConfig.isUsingMockApi || false;
+    }
+
+    get isAppTypeSelectorEnabled(): boolean {
+        return Boolean(this.$envConfig.isAppLocal);
     }
 
     //
@@ -103,8 +103,14 @@ export default class DashboardPublic extends Vue {
         case 'login-staff-sw':
             this.bypassToStaffLogin(AppModes.SOCIAL_WORK);
             break;
+        case 'login-staff-psypact':
+            this.bypassToStaffLogin(AppModes.PSYPACT);
+            break;
         case 'login-practitioner':
-            this.bypassToLicenseeLogin();
+            this.bypassToLicenseeLogin(AppModes.JCC);
+            break;
+        case 'login-practitioner-psypact':
+            this.bypassToLicenseeLogin(AppModes.PSYPACT);
             break;
         case 'recovery-practitioner':
             this.bypassToLicenseeMfaRecovery();
@@ -124,6 +130,16 @@ export default class DashboardPublic extends Vue {
         );
     }
 
+    licenseeLoginUri(appMode: AppModes): string {
+        return getHostedLoginUri(
+            appMode,
+            AuthTypes.LICENSEE,
+            this.hostedLoginUriPath,
+            this.csrfState,
+            this.pkceChallenge
+        );
+    }
+
     bypassToStaffLogin(appMode: AppModes, compactType?: CompactType): void {
         if (this.isUsingMockApi) {
             if (compactType) {
@@ -136,12 +152,15 @@ export default class DashboardPublic extends Vue {
         }
     }
 
-    bypassToLicenseeLogin(): void {
+    bypassToLicenseeLogin(appMode: AppModes, compactType?: CompactType): void {
         if (this.isUsingMockApi) {
-            this.mockLicenseeLogin();
+            if (compactType) {
+                this.setGotoCompact(compactType);
+            }
+            this.mockLicenseeLogin(appMode);
         } else {
             this.$store.dispatch('startLoading');
-            window.location.replace(this.hostedLoginUriLicensee);
+            window.location.replace(this.licenseeLoginUri(appMode));
         }
     }
 
@@ -202,7 +221,7 @@ export default class DashboardPublic extends Vue {
         }
     }
 
-    async mockLicenseeLogin(): Promise<void> {
+    async mockLicenseeLogin(appMode: AppModes): Promise<void> {
         const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
         const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         const data = {
@@ -215,6 +234,7 @@ export default class DashboardPublic extends Vue {
 
         authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
         authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+        this.$store.dispatch('setAppMode', appMode);
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
         this.$store.dispatch('user/loginSuccess', AuthTypes.LICENSEE);
 

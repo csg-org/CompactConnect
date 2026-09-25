@@ -176,6 +176,9 @@ class AutoLogout extends mixins(MixinForm) {
     @Watch('userStore.isLoggedIn') async handleLoginUpdate() {
         if (!this.userStore.isLoggedIn) {
             this.removeAutoLogoutEvents();
+            this.clearAutoLogoutGracePeriodTimer();
+            this.$store.dispatch('user/clearAutoLogoutTimeout');
+            this.$store.dispatch('user/updateAutoLogoutWarning', false);
         } else {
             this.startAutoLogoutInactivityTimer();
         }

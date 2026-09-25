@@ -7,6 +7,10 @@
 
 <template>
     <Section class="mfa-reset-licensee-section-container">
+        <template v-if="$isAppModePsyPact">
+            <h1 style="width: 60rem">TODO: PSYPACT MFA Reset Form</h1>
+        </template>
+        <template v-else>
         <div class="mfa-reset-licensee-logo-container">
             <img
                 src="@assets/logos/compact-connect-logo.png"
@@ -229,6 +233,7 @@
                 </div>
             </Transition>
         </Card>
+        </template>
         <div ref="recaptcha"></div>
     </Section>
 </template>
