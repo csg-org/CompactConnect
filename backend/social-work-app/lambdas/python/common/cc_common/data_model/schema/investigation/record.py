@@ -36,6 +36,11 @@ class InvestigationRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     licenseType = String(required=True, allow_none=False)
     licenseScope = LicenseScopeField(required=True, allow_none=False)
     investigationAgainst = InvestigationAgainstField(required=True, allow_none=False)
+    # The practitioner's home jurisdiction for this license type when the investigation was opened. Privileges
+    # are generated from the home multi-state license, so this is what ties a privilege's records back to the
+    # license that produced them - and it is recorded rather than recomputed because a practitioner's home
+    # jurisdiction can change afterwards, which would otherwise re-point historic records at the wrong license.
+    homeJurisdictionAtTimeOfCreation = Jurisdiction(required=True, allow_none=False)
 
     # Populated on creation
     investigationId = UUID(required=True, allow_none=False)

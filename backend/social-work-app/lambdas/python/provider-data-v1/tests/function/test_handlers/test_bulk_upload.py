@@ -1,6 +1,7 @@
 import csv
 import json
 from datetime import datetime
+from io import StringIO
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -115,6 +116,51 @@ class TestProcessObjects(TstFunction):
         for message in messages:
             message_data = json.loads(message.body)
             self.assertEqual(csv_licenses[message_data['licenseNumber']], message_data)
+
+    def test_bulk_upload_forwards_previous_ssn_only_for_rows_that_carry_one(self):
+        """
+        A correction file carries a previousSSN column that most rows leave blank. The reader drops blank
+        cells per row, so only the rows a state actually filled in are treated as corrections.
+        """
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        with open('../common/tests/resources/licenses.csv') as f:
+            rows = list(csv.DictReader(f))
+
+        # First row is a correction; the rest leave the new column blank.
+        rows[0]['previousSSN'] = '123-12-9876'
+        for row in rows[1:]:
+            row['previousSSN'] = ''
+
+        csv_buffer = StringIO()
+        writer = csv.DictWriter(csv_buffer, fieldnames=[*rows[0].keys()])
+        writer.writeheader()
+        writer.writerows(rows)
+
+        object_key = f'socw/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_buffer.getvalue().encode())
+
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        parse_bulk_upload_file(event, self.mock_context)
+
+        messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(len(rows), len(messages))
+
+        previous_ssns_by_license_number = {
+            json.loads(message.body)['licenseNumber']: json.loads(message.body).get('previousSSN')
+            for message in messages
+        }
+        self.assertEqual('123-12-9876', previous_ssns_by_license_number[rows[0]['licenseNumber']])
+        for row in rows[1:]:
+            self.assertIsNone(previous_ssns_by_license_number[row['licenseNumber']])
 
     def test_bulk_upload_strips_whitespace_from_string_fields(self):
         """Test that whitespace is stripped from all string fields in CSV data."""
