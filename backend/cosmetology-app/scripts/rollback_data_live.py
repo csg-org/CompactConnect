@@ -20,6 +20,7 @@ import os
 from datetime import UTC, datetime
 
 import boto3
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 
@@ -82,11 +83,23 @@ def rollback_data_live(table, compact: str, postal_abbreviations: list[str]) -> 
         for state in configured_states
         if state.get('postalAbbreviation', '').lower() not in states_to_remove
     ]
-    table.update_item(
-        Key=compact_key,
-        UpdateExpression='SET configuredStates = :states, dateOfUpdate = :updated',
-        ExpressionAttributeValues={':states': updated_states, ':updated': now},
-    )
+    try:
+        table.update_item(
+            Key=compact_key,
+            UpdateExpression='SET configuredStates = :states, dateOfUpdate = :updated',
+            ConditionExpression='configuredStates = :expected_states',
+            ExpressionAttributeValues={
+                ':states': updated_states,
+                ':updated': now,
+                ':expected_states': configured_states,
+            },
+        )
+    except ClientError as error:
+        if error.response.get('Error', {}).get('Code') != 'ConditionalCheckFailedException':
+            raise
+        raise SystemExit(
+            f'Conflict: configuredStates for {compact} changed after it was read; compact update stopped'
+        ) from error
     logger.info('Removed %s from configuredStates', ', '.join(sorted(states_to_remove)))
 
 
