@@ -39,10 +39,11 @@ def rollback_data_live(table, compact: str, postal_abbreviations: list[str]) -> 
     now = datetime.now(UTC).isoformat()
     compact_key = _configuration_key(compact)
     compact_item = table.get_item(Key=compact_key).get('Item')
-    if not compact_item:
-        raise SystemExit(f'No compact configuration found for {compact}')
-
-    configured_states = list(compact_item.get('configuredStates', []))
+    if compact_item:
+        configured_states = list(compact_item.get('configuredStates', []))
+    else:
+        configured_states = []
+        logger.info('No compact configuration found for %s; skipping configuredStates cleanup', compact)
     states_to_remove = set()
 
     for postal_abbreviation in postal_abbreviations:
