@@ -112,6 +112,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
     def test_privilege_encumbrance_allowed_when_privilege_live_without_data_live(self):
         """Encumbrance follows isLive and does not require licenseeRegistrationEnabled."""
+        import handlers.encumbrance as encumbrance_module
         from cc_common.exceptions import CCNotFoundException
         from handlers.encumbrance import encumbrance_handler
 
@@ -121,18 +122,19 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 context['compact'], context['jurisdiction']
             )
 
-        response = encumbrance_handler(event, self.mock_context)
+        with patch.object(encumbrance_module, 'config', self.config):
+            response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
     def test_privilege_encumbrance_rejected_when_jurisdiction_is_not_privilege_live(self):
         import handlers.encumbrance as encumbrance_module
         from handlers.encumbrance import encumbrance_handler
 
-        # The handler binds config at import, which can be an earlier test's singleton.
-        encumbrance_module.config.live_compact_jurisdictions = {'cosm': [DEFAULT_LICENSE_JURISDICTION]}
+        self.set_live_compact_jurisdictions_for_test({'cosm': [DEFAULT_LICENSE_JURISDICTION]})
         event = self._when_testing_privilege_encumbrance()[0]
 
-        response = encumbrance_handler(event, self.mock_context)
+        with patch.object(encumbrance_module, 'config', self.config):
+            response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
         self.assertIn('not live', json.loads(response['body'])['message'])
 
