@@ -172,7 +172,11 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
 
     try:
         compact_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
-        return CompactConfigurationResponseSchema().load(compact_config.to_dict())
+        response_data = compact_config.to_dict()
+        response_data['configuredStates'] = _configured_states_with_adverse_action_emails(
+            compact, response_data.get('configuredStates', [])
+        )
+        return CompactConfigurationResponseSchema().load(response_data)
     except CCNotFoundException:
         # in the case of a not found exception, we want to return an empty compact configuration with
         # null values
@@ -250,6 +254,39 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
         raise CCInvalidRequestException('Invalid compact configuration: ' + str(e)) from e
 
 
+def _configured_states_with_adverse_action_emails(compact: str, configured_states: list[dict]) -> list[dict]:
+    """Attach adverse-action emails for configured states.
+
+    Jurisdiction records are loaded in one query. Only states already listed on the compact are returned, and only
+    their adverse-action emails are copied.
+    """
+    emails_by_jurisdiction = config.compact_configuration_client.get_adverse_action_notification_emails_by_jurisdiction(
+        compact
+    )
+    return [
+        {
+            'postalAbbreviation': state['postalAbbreviation'],
+            'isLive': state['isLive'],
+            'jurisdictionAdverseActionsNotificationEmails': emails_by_jurisdiction.get(
+                state['postalAbbreviation'].lower(), []
+            ),
+        }
+        for state in configured_states
+    ]
+
+
+def _current_adverse_action_emails(compact: str, postal_abbr: str) -> list[str]:
+    try:
+        jurisdiction = config.compact_configuration_client.get_jurisdiction_configuration(compact, postal_abbr)
+    except CCNotFoundException:
+        return []
+    return jurisdiction.jurisdictionAdverseActionsNotificationEmails
+
+
+def _normalized_emails(emails: list[str]) -> set[str]:
+    return {email.strip().lower() for email in emails}
+
+
 def _active_member_postal_abbreviations(compact: str) -> set[str]:
     try:
         members = config.compact_configuration_client.get_active_compact_jurisdictions(compact)
@@ -311,7 +348,8 @@ def _validate_configured_states_transitions(
     2. A state can be added only when isLive is true and the state is an active member
     3. isLive can change from false to true only. That transition always requires adverse-action emails
        in the request. An existing jurisdiction email list is left unchanged.
-    4. Turning isLive on does not set licenseeRegistrationEnabled
+    4. An already privilege-live state may resend its current adverse-action list. A different list is rejected.
+    5. Turning isLive on does not set licenseeRegistrationEnabled
     """
     existing_states_by_postal = {state['postalAbbreviation'].lower(): state for state in existing_states}
     new_states_by_postal = {state['postalAbbreviation'].lower(): state for state in new_states}
@@ -359,11 +397,14 @@ def _validate_configured_states_transitions(
                 f'State "{postal_abbr}" cannot be changed from live to non-live status. '
                 f'Once a state is live (isLive: true), it cannot be reverted to non-live (isLive: false).'
             )
-        if existing_state['isLive'] and new_state.get('jurisdictionAdverseActionsNotificationEmails'):
-            raise CCInvalidRequestException(
-                f'State "{postal_abbr}" is already privilege-live. Compact admin cannot change its '
-                'adverse action notification emails.'
-            )
+        supplied_emails = new_state.get('jurisdictionAdverseActionsNotificationEmails')
+        if existing_state['isLive'] and supplied_emails:
+            current_emails = _current_adverse_action_emails(compact, postal_abbr)
+            if _normalized_emails(supplied_emails) != _normalized_emails(current_emails):
+                raise CCInvalidRequestException(
+                    f'State "{postal_abbr}" is already privilege-live. Compact admin cannot change its '
+                    'adverse action notification emails.'
+                )
 
     active_members: set[str] | None = None
     for postal_abbr, new_state in new_states_by_postal.items():

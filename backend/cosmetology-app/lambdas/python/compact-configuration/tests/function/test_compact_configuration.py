@@ -391,6 +391,62 @@ class TestStaffUsersCompactConfiguration(TstFunction):
             response_body,
         )
 
+    def test_get_compact_configuration_includes_state_adverse_action_emails_only(self):
+        """Compact admin GET includes each configured state's adverse-action emails and nothing else from the state."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'licenseeRegistrationEnabled': False,
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': False},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                ],
+            }
+        )
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'jurisdictionOperationsTeamEmails': ['state-ops@example.com'],
+                'jurisdictionAdverseActionsNotificationEmails': ['state-adverse@example.com'],
+                'licenseeRegistrationEnabled': True,
+            }
+        )
+        # Present in the table, but not a configured state, so it must not appear in the response.
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ne',
+                'jurisdictionName': 'Nebraska',
+                'jurisdictionAdverseActionsNotificationEmails': ['ne-adverse@example.com'],
+            }
+        )
+
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
+        import handlers.compact_configuration as compact_configuration_module
+
+        table = compact_configuration_module.config.compact_configuration_table
+        with patch.object(table, 'query', wraps=table.query) as query_mock:
+            response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(1, query_mock.call_count)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        configured_states = json.loads(response['body'])['configuredStates']
+
+        self.assertEqual(
+            [
+                {
+                    'postalAbbreviation': 'ky',
+                    'isLive': False,
+                    'jurisdictionAdverseActionsNotificationEmails': ['state-adverse@example.com'],
+                },
+                {
+                    'postalAbbreviation': 'oh',
+                    'isLive': True,
+                    'jurisdictionAdverseActionsNotificationEmails': [],
+                },
+            ],
+            configured_states,
+        )
+
     def test_put_compact_configuration_rejects_invalid_compact_with_auth_error(self):
         """Test putting a compact configuration rejects an invalid compact abbreviation."""
         from handlers.compact_configuration import compact_configuration_api_handler
@@ -690,6 +746,31 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
         self.assertIn('already privilege-live', json.loads(response['body'])['message'])
+
+    def test_put_compact_configuration_allows_resending_unchanged_emails_for_privilege_live_state(self):
+        """A compact-settings save can echo the current adverse-action list without changing it."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['ky-adverse@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
+        self.assertEqual(['ky-adverse@example.com'], jurisdiction.jurisdictionAdverseActionsNotificationEmails)
 
     def test_put_compact_configuration_rejects_duplicate_configured_states(self):
         """Test that duplicate states in configuredStates are rejected."""

@@ -1000,7 +1000,11 @@ class ApiModel:
                         description='List of states that have submitted configurations and their live status',
                         items=JsonSchema(
                             type=JsonSchemaType.OBJECT,
-                            required=['postalAbbreviation', 'isLive'],
+                            required=[
+                                'postalAbbreviation',
+                                'isLive',
+                                'jurisdictionAdverseActionsNotificationEmails',
+                            ],
                             properties={
                                 'postalAbbreviation': JsonSchema(
                                     type=JsonSchemaType.STRING,
@@ -1010,6 +1014,14 @@ class ApiModel:
                                 'isLive': JsonSchema(
                                     type=JsonSchemaType.BOOLEAN,
                                     description='Whether the state is privilege-live.',
+                                ),
+                                'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
+                                    type=JsonSchemaType.ARRAY,
+                                    description=(
+                                        'Adverse action notification emails stored for this state. '
+                                        'Read from the jurisdiction record. Operations emails are not included.'
+                                    ),
+                                    items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                                 ),
                             },
                         ),
