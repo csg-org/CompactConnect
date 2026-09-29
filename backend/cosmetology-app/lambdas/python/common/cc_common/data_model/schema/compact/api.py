@@ -44,7 +44,6 @@ class PutConfiguredStateRequestSchema(ConfiguredStateSchema):
         Email(required=True, allow_none=False),
         required=False,
         allow_none=False,
-        validate=Length(min=1),
     )
 
 

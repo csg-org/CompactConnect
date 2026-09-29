@@ -287,6 +287,19 @@ def _normalized_emails(emails: list[str]) -> set[str]:
     return {email.strip().lower() for email in emails}
 
 
+def _deduplicated_emails(emails: list[str]) -> list[str]:
+    """Keep the first spelling of each address, ignoring case and surrounding whitespace."""
+    seen: set[str] = set()
+    deduplicated: list[str] = []
+    for email in emails:
+        key = email.strip().lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduplicated.append(email)
+    return deduplicated
+
+
 def _active_member_postal_abbreviations(compact: str) -> set[str]:
     try:
         members = config.compact_configuration_client.get_active_compact_jurisdictions(compact)
@@ -315,6 +328,8 @@ def _store_adverse_action_emails_for_privilege_live(compact: str, postal_abbr: s
 
     if current_emails:
         return
+
+    supplied_emails = _deduplicated_emails(supplied_emails)
 
     if existing_jurisdiction:
         jurisdiction_data = existing_jurisdiction.to_dict()

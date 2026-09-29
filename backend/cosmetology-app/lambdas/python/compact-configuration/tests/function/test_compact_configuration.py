@@ -772,6 +772,152 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
         self.assertEqual(['ky-adverse@example.com'], jurisdiction.jurisdictionAdverseActionsNotificationEmails)
 
+    def test_put_compact_configuration_allows_unchanged_empty_adverse_action_email_lists(self):
+        """Echoing an empty adverse-action list passes when the state is not becoming privilege-live."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'licenseeRegistrationEnabled': False,
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': False},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                ],
+            }
+        )
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': False,
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            },
+            {
+                'postalAbbreviation': 'oh',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+    def test_put_compact_configuration_rejects_empty_email_list_when_marking_privilege_live(self):
+        """An explicit empty list still fails when a state is marked privilege-live."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('at least one', json.loads(response['body'])['message'])
+
+    def test_put_compact_configuration_deduplicates_emails_when_creating_jurisdiction(self):
+        """New privilege-live jurisdictions store the first spelling of each address."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['oh'])
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'oh',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': [
+                    'Oh-Adverse@Example.com',
+                    'oh-adverse@example.com',
+                    'second@example.com',
+                ],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'oh')
+        self.assertEqual(
+            ['Oh-Adverse@Example.com', 'second@example.com'],
+            jurisdiction.jurisdictionAdverseActionsNotificationEmails,
+        )
+
+    def test_put_compact_configuration_deduplicates_emails_when_updating_existing_jurisdiction(self):
+        """An existing jurisdiction with no adverse-action emails stores a deduplicated supplied list."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'licenseeRegistrationEnabled': False,
+                'jurisdictionOperationsTeamEmails': ['ops@example.com'],
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            }
+        )
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': [
+                    'Ky-Adverse@Example.com',
+                    'ky-adverse@example.com',
+                ],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
+        self.assertEqual(['Ky-Adverse@Example.com'], jurisdiction.jurisdictionAdverseActionsNotificationEmails)
+        self.assertEqual(['ops@example.com'], jurisdiction.jurisdictionOperationsTeamEmails)
+        self.assertFalse(jurisdiction.licenseeRegistrationEnabled)
+
+    def test_put_compact_configuration_leaves_existing_adverse_action_email_list_unchanged(self):
+        """A stored list, including its own duplicates, is not rewritten when the state becomes privilege-live."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        stored_emails = ['Keep@Example.com', 'keep@example.com']
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'licenseeRegistrationEnabled': False,
+                'jurisdictionAdverseActionsNotificationEmails': stored_emails,
+            }
+        )
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['New@Example.com', 'new@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
+        self.assertEqual(stored_emails, jurisdiction.jurisdictionAdverseActionsNotificationEmails)
+
     def test_put_compact_configuration_rejects_duplicate_configured_states(self):
         """Test that duplicate states in configuredStates are rejected."""
         from handlers.compact_configuration import compact_configuration_api_handler
