@@ -38,6 +38,11 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     licenseType = String(required=True, allow_none=False)
     licenseScope = LicenseScopeField(required=True, allow_none=False)
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
+    # The practitioner's home jurisdiction for this license type when the action was recorded. Privileges are
+    # generated from the home multi-state license, so this is what ties a privilege's records back to the
+    # license that produced them - and it is recorded rather than recomputed because a practitioner's home
+    # jurisdiction can change afterwards, which would otherwise re-point historic records at the wrong license.
+    homeJurisdictionAtTimeOfCreation = Jurisdiction(required=True, allow_none=False)
 
     # Populated on creation
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)

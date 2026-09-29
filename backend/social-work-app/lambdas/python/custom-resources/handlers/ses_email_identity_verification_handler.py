@@ -27,10 +27,7 @@ def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argume
     """
     # The event is never logged in full: it includes a pre-signed 'ResponseURL' (with an access key id and
     # signature) used to signal CloudFormation.
-    logger.info(
-        'Entering SES email identity verification handler',
-        request_type=event.get('RequestType')
-    )
+    logger.info('Entering SES email identity verification handler', request_type=event.get('RequestType'))
     properties = event['ResourceProperties']
     request_type = event['RequestType']
     match request_type:

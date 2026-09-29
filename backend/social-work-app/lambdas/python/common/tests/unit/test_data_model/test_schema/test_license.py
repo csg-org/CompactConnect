@@ -97,6 +97,60 @@ class TestLicensePostSchema(TstLambdas):
             LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
         self.assertIn('licenseScope', ctx.exception.messages)
 
+    def test_validate_post_with_previous_ssn(self):
+        """previousSSN is an optional field used to trigger an SSN-correction migration."""
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['previousSSN'] = '123-12-9876'
+
+        result = LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+
+        self.assertEqual('123-12-9876', result['previousSSN'])
+
+    def test_validate_post_without_previous_ssn(self):
+        """previousSSN must be optional - a standard upload omits it."""
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+
+        result = LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+
+        self.assertNotIn('previousSSN', result)
+
+    def test_invalid_previous_ssn_rejected(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['previousSSN'] = '123129876'
+
+        with self.assertRaises(ValidationError):
+            LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+
+    def test_previous_ssn_without_ssn_rejected(self):
+        """
+        previousSSN corrects a wrong SSN, so it is only meaningful alongside the corrected ssn. This
+        compact allows SSN-less uploads identified by license number, so an upload carrying previousSSN
+        with no ssn is a real possibility, and it would silently do nothing.
+        """
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data.pop('ssn')
+        license_data['previousSSN'] = '123-12-9876'
+
+        with self.assertRaises(ValidationError) as context:
+            LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+
+        self.assertEqual(
+            {'previousSSN': ['previousSSN may only be provided together with ssn.']},
+            context.exception.messages,
+        )
+
     def test_license_type_not_recognized_in_jurisdiction_raises_validation_error(self):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 
@@ -389,6 +443,41 @@ class TestLicenseIngestSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             LicenseIngestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_record})
+
+    def test_previous_provider_id_loaded(self):
+        """
+        The preprocessor sets previousProviderId when a previousSSN resolved to a different provider. It
+        routes the SSN-correction migration in the ingest handler and is never persisted.
+        """
+        from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_record = json.load(f)
+
+        license_record['ssnLastFour'] = license_record['ssn'][-4:]
+        license_record['providerId'] = uuid4()
+        del license_record['ssn']
+        previous_provider_id = uuid4()
+        license_record['previousProviderId'] = previous_provider_id
+
+        result = LicenseIngestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_record})
+
+        self.assertEqual(previous_provider_id, result['previousProviderId'])
+
+    def test_previous_provider_id_optional(self):
+        """An ordinary upload carries no previousProviderId."""
+        from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_record = json.load(f)
+
+        license_record['ssnLastFour'] = license_record['ssn'][-4:]
+        license_record['providerId'] = uuid4()
+        del license_record['ssn']
+
+        result = LicenseIngestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_record})
+
+        self.assertNotIn('previousProviderId', result)
 
 
 class TestLicenseOpenSearchDocumentSchema(TstLambdas):

@@ -83,6 +83,10 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema, ValidatesLicenseTy
     # SSN can identify them on subsequent uploads by their license number alone, which is always
     # required on this endpoint.
     ssn = SocialSecurityNumber(required=False, allow_none=False)
+    # If provided, the system will migrate any records associated with this SSN over to the provider
+    # associated with the `ssn` field, to correct a previously-uploaded incorrect SSN. This value is
+    # stripped out before the license data leaves the SSN-scoped preprocessing path and is never persisted.
+    previousSSN = SocialSecurityNumber(required=False, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -124,6 +128,17 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema, ValidatesLicenseTy
             raise ValidationError(
                 {'compactEligibility': ['compactEligibility cannot be eligible if licenseStatus is inactive.']}
             )
+
+    @validates_schema
+    def validate_previous_ssn_requires_ssn(self, data, **_kwargs):
+        """previousSSN only has meaning as a correction of the ssn provided alongside it.
+
+        This endpoint accepts uploads with no ssn at all, identifying the practitioner by license number
+        instead. On such an upload there is no corrected SSN for previousSSN to correct to, so accepting it
+        would silently do nothing.
+        """
+        if data.get('previousSSN') and not data.get('ssn'):
+            raise ValidationError({'previousSSN': ['previousSSN may only be provided together with ssn.']})
 
 
 class LicenseReportResponseSchema(ForgivingSchema):

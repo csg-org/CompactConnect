@@ -140,6 +140,15 @@ class ApiModel:
                             'ssn, in which case they are identified by licenseNumber instead.',
                             pattern=compact_connect_api.SSN_FORMAT,
                         ),
+                        'previousSSN': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='The incorrect social security number previously uploaded for this '
+                            'license. When provided, the system migrates the records uploaded under it over '
+                            'to the provider associated with the corrected ssn. May only be provided '
+                            'together with ssn. Complete every correction for a practitioner before '
+                            'submitting an ordinary upload for them.',
+                            pattern=compact_connect_api.SSN_FORMAT,
+                        ),
                         **self._common_license_properties,
                     },
                 ),

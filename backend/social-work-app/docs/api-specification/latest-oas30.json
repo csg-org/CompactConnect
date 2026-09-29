@@ -311,6 +311,11 @@
               "type": "string",
               "description": "The provider's social security number. May be omitted once a license record has already been uploaded for this practitioner with their ssn, in which case they are identified by licenseNumber instead."
             },
+            "previousSSN": {
+              "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
+              "type": "string",
+              "description": "The incorrect social security number previously uploaded for this license. When provided, the system migrates the records uploaded under it over to the provider associated with the corrected ssn. May only be provided together with ssn. Complete every correction for a practitioner before submitting an ordinary upload for them."
+            },
             "licenseType": {
               "type": "string",
               "enum": [
