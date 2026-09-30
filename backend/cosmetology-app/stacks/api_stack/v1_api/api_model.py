@@ -1094,7 +1094,6 @@ class ApiModel:
                                         'privilege-live, even if the jurisdiction already has emails. An existing '
                                         'list is not overwritten. Not stored on the compact.'
                                     ),
-                                    min_items=1,
                                     max_items=10,
                                     unique_items=True,
                                     items=JsonSchema(type=JsonSchemaType.STRING, format='email'),

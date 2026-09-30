@@ -1806,7 +1806,6 @@
                 "jurisdictionAdverseActionsNotificationEmails": {
                   "type": "array",
                   "description": "Adverse action notification emails. Required when marking the state privilege-live, even if the jurisdiction already has emails. An existing list is not overwritten. Not stored on the compact.",
-                  "minItems": 1,
                   "maxItems": 10,
                   "uniqueItems": true,
                   "items": {
