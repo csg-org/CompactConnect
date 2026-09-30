@@ -261,8 +261,8 @@ class StateSettingsList extends mixins(MixinForm) {
 
         this.formData = reactive({
             adverseActionNotificationEmails: new FormInput({
-                id: 'adverse-action-notification-emails',
-                name: 'adverse-action-notification-emails',
+                id: 'adverse-action-notification-emails-state',
+                name: 'adverse-action-notification-emails-state',
                 label: computed(() => this.$t('compact.adverseActionsNotificationEmails')),
                 labelSubtext: computed(() => this.$t('compact.adverseActionsNotificationEmailsSubtext')),
                 placeholder: computed(() => this.$t('compact.addEmails')),
@@ -327,7 +327,7 @@ class StateSettingsList extends mixins(MixinForm) {
         const lastTabIndex = document.getElementById('confirm-modal-cancel-button');
 
         if (this.isCompactSeparatingPrivilegeEnabled && this.isStateConfigAdverseActionEmailMissing()) {
-            firstTabIndex = document.getElementById('adverse-action-notification-emails');
+            firstTabIndex = document.getElementById('adverse-action-notification-emails-state');
         }
 
         if (event.shiftKey) {
