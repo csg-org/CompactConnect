@@ -106,9 +106,9 @@
                         <div class="action-button-row">
                             <InputSubmit
                                 id="confirm-modal-submit-button"
+                                class="action-button submit-button continue-button"
                                 :formInput="formData.stateLiveModalContinue"
                                 @click="submitStateLive"
-                                class="action-button submit-button continue-button"
                                 :label="(isFormLoading)
                                     ? $t('common.loading')
                                     : getStateLiveModalSubmitLabel()"
