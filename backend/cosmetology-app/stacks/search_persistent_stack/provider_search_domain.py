@@ -18,7 +18,7 @@ from aws_cdk.aws_opensearchservice import (
 )
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
-from common_constructs.constants import PROD_ENV_NAME
+from common_constructs.constants import BETA_ENV_NAME, PROD_ENV_NAME
 from common_constructs.stack import Stack
 from constructs import Construct
 
@@ -81,6 +81,7 @@ class ProviderSearchDomain(Construct):
         self._search_api_lambda_role = search_api_lambda_role
 
         self._is_prod_environment = environment_name == PROD_ENV_NAME
+        self._environment_name = environment_name
 
         # Determine removal policy based on environment
         removal_policy = RemovalPolicy.RETAIN if self._is_prod_environment else RemovalPolicy.DESTROY
@@ -317,8 +318,20 @@ class ProviderSearchDomain(Construct):
                 multi_az_with_standby_enabled=True,
             )
 
-        # Single node configuration for all non-prod environments
-        # (test, beta, and developer sandboxes)
+        # test and beta use t3.medium to provide sufficient JVM heap (~2GB) and avoid
+        # GC thrashing caused by OpenSearch's baseline plugin/system-index overhead.
+        if self._environment_name in ('test', BETA_ENV_NAME):
+            return CapacityConfig(
+                data_node_instance_type='t3.medium.search',
+                data_nodes=1,
+                # No dedicated master nodes for single-node clusters
+                master_nodes=None,
+                # No multi-AZ for single node
+                multi_az_with_standby_enabled=False,
+            )
+
+        # Developer sandboxes use t3.small to minimize cost; occasional GC instability
+        # is acceptable in personal sandbox environments.
         return CapacityConfig(
             data_node_instance_type='t3.small.search',
             data_nodes=1,

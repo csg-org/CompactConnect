@@ -142,13 +142,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "compact": {
@@ -163,13 +166,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "investigations": {
@@ -210,13 +216,16 @@
                                 "al",
                                 "az",
                                 "co",
+                                "de",
                                 "ks",
                                 "ky",
                                 "md",
                                 "oh",
+                                "pa",
                                 "tn",
                                 "va",
-                                "wa"
+                                "wa",
+                                "wv"
                               ]
                             },
                             "submittingUser": {
@@ -310,13 +319,16 @@
                                 "al",
                                 "az",
                                 "co",
+                                "de",
                                 "ks",
                                 "ky",
                                 "md",
                                 "oh",
+                                "pa",
                                 "tn",
                                 "va",
-                                "wa"
+                                "wa",
+                                "wv"
                               ]
                             },
                             "licenseTypeAbbreviation": {
@@ -392,13 +404,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "compact": {
@@ -448,13 +463,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "licenses": {
@@ -500,13 +518,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "homeAddressStreet1": {
@@ -552,13 +573,16 @@
                                 "al",
                                 "az",
                                 "co",
+                                "de",
                                 "ks",
                                 "ky",
                                 "md",
                                 "oh",
+                                "pa",
                                 "tn",
                                 "va",
-                                "wa"
+                                "wa",
+                                "wv"
                               ]
                             },
                             "submittingUser": {
@@ -734,13 +758,16 @@
                                 "al",
                                 "az",
                                 "co",
+                                "de",
                                 "ks",
                                 "ky",
                                 "md",
                                 "oh",
+                                "pa",
                                 "tn",
                                 "va",
-                                "wa"
+                                "wa",
+                                "wv"
                               ]
                             },
                             "licenseTypeAbbreviation": {

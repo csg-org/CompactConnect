@@ -22,13 +22,16 @@
               "al",
               "az",
               "co",
+              "de",
               "ks",
               "ky",
               "md",
               "oh",
+              "pa",
               "tn",
               "va",
-              "wa"
+              "wa",
+              "wv"
             ],
             "type": "string"
           },
@@ -110,13 +113,16 @@
             "al",
             "az",
             "co",
+            "de",
             "ks",
             "ky",
             "md",
             "oh",
+            "pa",
             "tn",
             "va",
-            "wa"
+            "wa",
+            "wv"
           ],
           "type": "string"
         },

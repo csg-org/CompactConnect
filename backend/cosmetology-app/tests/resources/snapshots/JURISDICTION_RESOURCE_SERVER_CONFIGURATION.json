@@ -54,6 +54,24 @@
     ]
   },
   {
+    "Identifier": "de",
+    "Name": "de",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.write"
+      }
+    ]
+  },
+  {
     "Identifier": "ks",
     "Name": "ks",
     "Scopes": [
@@ -126,6 +144,24 @@
     ]
   },
   {
+    "Identifier": "pa",
+    "Name": "pa",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.write"
+      }
+    ]
+  },
+  {
     "Identifier": "tn",
     "Name": "tn",
     "Scopes": [
@@ -164,6 +200,24 @@
   {
     "Identifier": "wa",
     "Name": "wa",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the cosm compact within the jurisdiction",
+        "ScopeName": "cosm.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "wv",
+    "Name": "wv",
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the cosm compact within the jurisdiction",
