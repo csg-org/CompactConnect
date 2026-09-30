@@ -333,8 +333,10 @@ class UserRowEdit extends mixins(MixinForm) {
             this.formData[`state-permission-${index}`] = permissionInput;
 
             this.permissionStateInputs.push(permissionInput);
-            await nextTick();
-            document.getElementById(`state-option-${index}`)?.focus();
+            if (!statePermission) {
+                await nextTick();
+                document.getElementById(`state-option-${index}`)?.focus();
+            }
         }
     }
 
