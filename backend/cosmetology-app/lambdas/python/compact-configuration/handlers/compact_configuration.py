@@ -238,7 +238,7 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
             # No existing configuration, so this is the first time setting this field
             logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
 
-        _validate_configured_states_transitions(
+        _validate_privilege_live_transitions_and_possibly_store_emails(
             existing_states, validated_data['configuredStates'], compact, submitting_user_id
         )
         for state in validated_data['configuredStates']:
@@ -352,7 +352,7 @@ def _store_adverse_action_emails_for_privilege_live(compact: str, postal_abbr: s
     )
 
 
-def _validate_configured_states_transitions(
+def _validate_privilege_live_transitions_and_possibly_store_emails(
     existing_states: list[dict], new_states: list[dict], compact: str, submitting_user_id: str
 ) -> None:
     """
