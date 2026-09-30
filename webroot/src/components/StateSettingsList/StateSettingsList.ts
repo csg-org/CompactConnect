@@ -399,7 +399,11 @@ class StateSettingsList extends mixins(MixinForm) {
 
             const { compactType, selectedState } = this;
             const selectedStateAbbrev = selectedState?.abbrev || '';
-            const payload = { ...this.initialCompactConfig };
+            const payload = {
+                ...this.initialCompactConfig,
+                configuredStates: (this.initialCompactConfig?.configuredStates || []) // Deep clone the configuredStates
+                    .map((configuredState) => ({ ...configuredState })),
+            };
             let isStateConfigured = false;
 
             // For enabling a state, the server requires the entire compact config, minus a couple props

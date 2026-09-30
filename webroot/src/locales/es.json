@@ -545,7 +545,7 @@
         "confirmSaveStateTitle": "¿Estás seguro de que quieres marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "confirmSaveStateYes": "Sí, marcar como en vivo",
-        "confirmSaveStateWithPrivilegesYes": "Sí, marcar como privilegio-vivir",
+        "confirmSaveStateWithPrivilegesYes": "Sí, marcar como activo para privilegios",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
         "saveSuccessfulState": "Los cambios de estado se guardaron correctamente",
         "enable": "Permitir",
