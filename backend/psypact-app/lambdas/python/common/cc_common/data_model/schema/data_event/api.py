@@ -1,0 +1,109 @@
+# ruff: noqa: N801, N815  invalid-name
+from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.fields import (
+    Compact,
+    Jurisdiction,
+)
+from cc_common.data_model.schema.military_affiliation.common import MilitaryAuditStatus
+from marshmallow.fields import UUID, AwareDateTime, Date, Email, List, Nested, String
+from marshmallow.validate import Length, OneOf
+
+
+class PrivilegeEventPrivilegeSchema(ForgivingSchema):
+    compact = String(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    jurisdiction = String(required=True, allow_none=False)
+    licenseTypeAbbrev = String(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
+
+
+class PrivilegeEventLineItemSchema(ForgivingSchema):
+    name = String(required=True, allow_none=False)
+    description = String(required=True, allow_none=False)
+    quantity = String(required=True, allow_none=False)
+    unitPrice = String(required=True, allow_none=False)
+
+
+class DataEventDetailBaseSchema(ForgivingSchema):
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    eventTime = AwareDateTime(required=True, allow_none=False)
+
+
+class PrivilegePurchaseEventDetailSchema(DataEventDetailBaseSchema):
+    providerEmail = Email(required=False, allow_none=False)
+    privileges = List(Nested(PrivilegeEventPrivilegeSchema(), required=True, allow_none=False), validate=Length(1, 100))
+    totalCost = String(required=True, allow_none=False)
+    costLineItems = List(
+        Nested(PrivilegeEventLineItemSchema(), required=True, allow_none=False), validate=Length(1, 300)
+    )
+
+
+class PrivilegeIssuanceDetailSchema(DataEventDetailBaseSchema):
+    providerEmail = Email(required=False, allow_none=False)
+
+
+class PrivilegeRenewalDetailSchema(DataEventDetailBaseSchema):
+    providerEmail = Email(required=False, allow_none=False)
+
+
+class EncumbranceEventDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    adverseActionId = UUID(required=False, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    effectiveDate = Date(required=True, allow_none=False)
+    adverseActionCategory = String(required=False, allow_none=False)
+
+
+class InvestigationEventDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    investigationId = UUID(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    investigationAgainst = String(required=True, allow_none=False)
+    # Only present for investigationClosed events with encumbrance
+    adverseActionId = UUID(required=False, allow_none=False)
+
+
+class LicenseDeactivationDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+
+
+class LicenseRevertDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    rollbackReason = String(required=True, allow_none=False)
+    startTime = AwareDateTime(required=True, allow_none=False)
+    endTime = AwareDateTime(required=True, allow_none=False)
+    rollbackExecutionName = String(required=True, allow_none=False)
+
+
+class PrivilegeRevertDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    rollbackReason = String(required=True, allow_none=False)
+    startTime = AwareDateTime(required=True, allow_none=False)
+    endTime = AwareDateTime(required=True, allow_none=False)
+    rollbackExecutionName = String(required=True, allow_none=False)
+
+
+class MilitaryAuditEventDetailSchema(ForgivingSchema):
+    """Schema for military audit event details."""
+
+    compact = Compact(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    auditResult = String(
+        required=True, allow_none=False, validate=OneOf([entry.value for entry in MilitaryAuditStatus])
+    )
+    auditNote = String(required=False, allow_none=False)
+    eventTime = AwareDateTime(required=True, allow_none=False)
+
+
+class HomeJurisdictionChangeEventDetailSchema(ForgivingSchema):
+    """Schema for home jurisdiction change events"""
+
+    compact = Compact(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    previousHomeJurisdiction = String(required=True, allow_none=True)
+    newHomeJurisdiction = String(required=True, allow_none=False)
+    eventTime = AwareDateTime(required=True, allow_none=False)

@@ -48,8 +48,9 @@ Copy `cdk.context.example.json` to `cdk.context.json` and update the values:
   "backup_vault_name": "CompactConnectBackupVault",
   "ssn_backup_vault_name": "CompactConnectBackupVault-SSN",
   "tags": {
-    "Project": "CompactConnect",
-    "Environment": "DataRetention"
+    "Project": "compact-connect",
+    "Environment": "Backups",
+    "Service": "data-retention"
   }
 }
 ```

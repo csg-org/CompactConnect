@@ -75,3 +75,40 @@ class TestQueuedLambdaProcessor(TestCase):
                 }
             },
         )
+
+    def test_event_source_mapping_waits_for_queue_policy(self):
+        """Lambda validates the function's consume permissions when it creates the event source mapping.
+
+        Those permissions live on the queue's resource policy, which the mapping has no implicit dependency
+        on, so the mapping must explicitly wait for the policy or the create intermittently fails.
+        """
+        app = App()
+        stack = Stack(app, 'Stack')
+
+        function = Function(
+            stack,
+            'Function',
+            handler='handle',
+            runtime=Runtime.PYTHON_3_14,
+            code=Code.from_inline("""def handle(*args): return"""),
+        )
+        processor = QueuedLambdaProcessor(
+            stack,
+            'Processor',
+            process_function=function,
+            visibility_timeout=Duration.minutes(5),
+            retention_period=Duration.hours(12),
+            max_batching_window=Duration.minutes(4),
+            max_receive_count=3,
+            batch_size=6,
+            encryption_key=Key(stack, 'Key'),
+            alarm_topic=Topic(stack, 'Topic'),
+        )
+
+        template = Template.from_stack(stack)
+        mappings = template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME)
+        self.assertEqual(1, len(mappings))
+        depends_on = next(iter(mappings.values()))['DependsOn']
+
+        queue_policy_logical_id = stack.get_logical_id(processor.queue.node.find_child('Policy').node.default_child)
+        self.assertIn(queue_policy_logical_id, depends_on)

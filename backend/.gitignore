@@ -9,6 +9,9 @@ __pycache__
 .cdk.staging
 cdk.out
 
+# Copied from backend/common-python at PsyPact CDK synth time for Lambda layer bundling
+psypact-app/lambdas/python/common/common_lambdas
+
 # Save for local config
 cdk.context.json
 *-cdk.context.json

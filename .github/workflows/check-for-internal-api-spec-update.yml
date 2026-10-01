@@ -5,6 +5,7 @@ on:
     paths:
       - backend/compact-connect/stacks/api_stack/v1_api/**
       - backend/cosmetology-app/stacks/api_stack/v1_api/**
+      - backend/psypact-app/stacks/api_stack/v1_api/**
       - backend/social-work-app/stacks/api_stack/v1_api/**
 
 env:
@@ -44,6 +45,7 @@ jobs:
           PROJECTS=(
             compact-connect
             cosmetology-app
+            psypact-app
             social-work-app
           )
 
