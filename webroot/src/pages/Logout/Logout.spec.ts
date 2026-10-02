@@ -10,8 +10,14 @@ import { use, expect } from 'chai';
 import sinon from 'sinon';
 import axios from 'axios';
 import { mountShallow } from '@tests/helpers/setup';
+import mockEnvConfig from '@tests/mocks/mockEnvConfig';
 import Logout from '@pages/Logout/Logout.vue';
-import { authStorage, tokens, AuthTypes } from '@utils/auth';
+import {
+    authStorage,
+    tokens,
+    AuthTypes,
+    AUTH_LOGIN_GOTO_PATH
+} from '@utils/auth';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 
 use(chaiMatchPattern);
@@ -19,6 +25,7 @@ use(chaiMatchPattern);
 describe('Logout page', async () => {
     let logoutStub;
     let originalCognitoConfig;
+    let originalIsUsingMockApi;
 
     beforeEach(() => {
         // Prevent created() from running real logout (clears shared store / redirects)
@@ -28,6 +35,7 @@ describe('Logout page', async () => {
             cognitoClientIdStaff: envConfig.cognitoClientIdStaff,
             cognitoAuthDomainStaff: envConfig.cognitoAuthDomainStaff,
         };
+        originalIsUsingMockApi = mockEnvConfig.isUsingMockApi;
         envConfig.cognitoClientIdStaff = 'test-staff-client-id';
         envConfig.cognitoAuthDomainStaff = 'https://staff-auth.test.example.com';
     });
@@ -36,7 +44,9 @@ describe('Logout page', async () => {
         logoutStub.restore();
         envConfig.cognitoClientIdStaff = originalCognitoConfig.cognitoClientIdStaff;
         envConfig.cognitoAuthDomainStaff = originalCognitoConfig.cognitoAuthDomainStaff;
+        mockEnvConfig.isUsingMockApi = originalIsUsingMockApi;
         authStorage.removeItem(tokens.staff.REFRESH_TOKEN);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
     });
 
     it('should mount the page component', async () => {
@@ -53,11 +63,17 @@ describe('Logout page', async () => {
         const revokeStub = sinon.stub(component, 'revokeTokens').resolves();
         const dispatchSpy = sinon.spy(component.$store, 'dispatch');
 
+        mockEnvConfig.isUsingMockApi = false;
         await component.logoutChecklist(false);
 
         expect(revokeStub.calledOnce).to.equal(true);
         expect(revokeStub.firstCall.args[0]).to.equal(AuthTypes.STAFF);
+        expect(dispatchSpy.calledWith('user/clearAutoLogoutTimeout')).to.equal(true);
+        expect(dispatchSpy.calledWith('user/updateAutoLogoutWarning', false)).to.equal(true);
         expect(dispatchSpy.calledWith('user/logoutRequest', AuthTypes.STAFF)).to.equal(true);
+        expect(dispatchSpy.withArgs('user/clearAutoLogoutTimeout').calledBefore(
+            dispatchSpy.withArgs('user/logoutRequest', AuthTypes.STAFF)
+        )).to.equal(true);
         expect(revokeStub.calledBefore(
             dispatchSpy.withArgs('user/logoutRequest', AuthTypes.STAFF)
         )).to.equal(true);
@@ -71,10 +87,55 @@ describe('Logout page', async () => {
         const component = wrapper.vm;
         const revokeStub = sinon.stub(component, 'revokeTokens').resolves();
 
+        mockEnvConfig.isUsingMockApi = false;
         await component.logoutChecklist(true);
 
         expect(revokeStub.firstCall.args[0]).to.equal(AuthTypes.LICENSEE);
 
+        revokeStub.restore();
+    });
+    it('should successfully skip token revoke in logoutChecklist when using the mock API', async () => {
+        const wrapper = await mountShallow(Logout);
+        const component = wrapper.vm;
+        const revokeStub = sinon.stub(component, 'revokeTokens').resolves();
+        const dispatchSpy = sinon.spy(component.$store, 'dispatch');
+
+        mockEnvConfig.isUsingMockApi = true;
+        await component.logoutChecklist(false);
+
+        expect(revokeStub.called).to.equal(false);
+        expect(dispatchSpy.calledWith('user/clearAutoLogoutTimeout')).to.equal(true);
+        expect(dispatchSpy.calledWith('user/updateAutoLogoutWarning', false)).to.equal(true);
+        expect(dispatchSpy.calledWith('user/logoutRequest', AuthTypes.STAFF)).to.equal(true);
+        expect(dispatchSpy.withArgs('user/clearAutoLogoutTimeout').calledBefore(
+            dispatchSpy.withArgs('user/logoutRequest', AuthTypes.STAFF)
+        )).to.equal(true);
+
+        revokeStub.restore();
+        dispatchSpy.restore();
+    });
+    it('should successfully skip the hosted logout redirect when using the mock API', async () => {
+        const wrapper = await mountShallow(Logout);
+        const component = wrapper.vm;
+        const replaceStub = sinon.stub(component.$router, 'replace').resolves();
+        const redirectStub = sinon.stub(component, 'beginLogoutRedirectChain');
+        const revokeStub = sinon.stub(component, 'revokeTokens').resolves();
+
+        mockEnvConfig.isUsingMockApi = true;
+        await component.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
+        authStorage.setItem(AUTH_LOGIN_GOTO_PATH, '/aslp/Licensing');
+        logoutStub.restore();
+        // created() bound the stub onto this instance; call the restored class method
+        await Logout.methods.logout.call(component);
+
+        expect(revokeStub.called).to.equal(false);
+        expect(redirectStub.called).to.equal(false);
+        expect(replaceStub.calledOnce).to.equal(true);
+        expect(replaceStub.firstCall.args[0]).to.matchPattern({ name: 'DashboardPublic' });
+        expect(authStorage.getItem(AUTH_LOGIN_GOTO_PATH)).to.equal('/aslp/Licensing');
+
+        replaceStub.restore();
+        redirectStub.restore();
         revokeStub.restore();
     });
 

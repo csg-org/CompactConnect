@@ -89,6 +89,7 @@ class RegisterLicensee extends mixins(MixinForm) {
             CompactType.ASLP,
             CompactType.OT,
             CompactType.COUNSELING,
+            CompactType.PSYPACT,
         ];
 
         licenseTypes

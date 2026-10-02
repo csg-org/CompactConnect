@@ -17,7 +17,7 @@
                 @click="goBack"
             />
             <h1 class="privacy-policy-title">{{ $t('privacyPolicy.title') }}</h1>
-            <p>{{ $t('privacyPolicy.introSubtext') }}</p>
+            <p>{{ $t('privacyPolicy.introSubtext', { appName }) }}</p>
             <h2>{{ $t('privacyPolicy.whatDataIsCollectedTitle') }}</h2>
             <ul>
                 <li>{{ $t('privacyPolicy.collectedDataEmail') }}</li>
@@ -28,9 +28,9 @@
             <h2>{{ $t('privacyPolicy.howIsMyDataProtectedTitle') }}</h2>
             <p>{{ $t('privacyPolicy.howIsMyDataProtectedSubtext') }}</p>
             <h2>{{ $t('privacyPolicy.changesToThisPolicyTitle') }}</h2>
-            <p>{{ $t('privacyPolicy.changesToThisPolicySubtext') }}</p>
+            <p>{{ $t('privacyPolicy.changesToThisPolicySubtext', { appName }) }}</p>
             <h2>{{ $t('privacyPolicy.disclaimerTitle') }}</h2>
-            <p>{{ $t('privacyPolicy.disclaimerSubtext') }}</p>
+            <p>{{ $t('privacyPolicy.disclaimerSubtext', { appName }) }}</p>
         </div>
     </div>
 </template>

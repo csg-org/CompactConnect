@@ -104,13 +104,13 @@ class MixinAuthCallbackHandler extends Vue {
     }
 
     async fetchCognitoTokens(authType: AuthTypes, cognitoAuthDomain, cognitoClientId): Promise<void> {
-        const { domain } = this.$envConfig;
+        const { origin } = this.$envConfig;
         const params = new URLSearchParams();
 
         if (authType && cognitoAuthDomain && cognitoClientId) {
             params.append('grant_type', 'authorization_code');
             params.append('client_id', cognitoClientId || '');
-            params.append('redirect_uri', `${domain}${this.$route.path}`);
+            params.append('redirect_uri', `${origin}${this.$route.path}`);
             params.append('code', this.authorizationCode);
             params.append('code_verifier', consumePkceCodeVerifier() || '');
 

@@ -10,6 +10,7 @@ import { Permission } from '@/app.config';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
+import PracticeStates from '@/components/Licensee/PracticeStates/PracticeStates.vue';
 import MilitaryAffiliationInfoBlock from '@components/MilitaryAffiliationInfoBlock/MilitaryAffiliationInfoBlock.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import AlertTriangleIcon from '@components/Icons/AlertTriangle/AlertTriangle.vue';
@@ -30,6 +31,7 @@ import { dataApi } from '@network/data.api';
         LoadingSpinner,
         LicenseCard,
         PrivilegeCard,
+        PracticeStates,
         CollapseCaretButton,
         AlertTriangleIcon,
         AlertCircleIcon,
@@ -64,14 +66,18 @@ export default class LicensingDetail extends Vue {
     //
     // Computed
     //
+    get userStore() {
+        return this.$store.state.user;
+    }
+
+    get licenseStore(): any {
+        return this.$store.state.license;
+    }
+
     get compact(): string {
         const defaultCompactType = this.$store.state.user.currentCompact?.type;
 
         return this.$route.params.compact as string || defaultCompactType;
-    }
-
-    get userStore() {
-        return this.$store.state.user;
     }
 
     get loggedInUser(): StaffUser {
@@ -98,12 +104,12 @@ export default class LicensingDetail extends Vue {
         return hasLoggedInReadSsnAccess;
     }
 
-    get licenseeId(): string {
-        return this.$route.params.licenseeId as string || '';
+    get isLoading(): boolean {
+        return this.licenseStore?.isLoading || false;
     }
 
-    get licenseStore(): any {
-        return this.$store.state.license;
+    get licenseeId(): string {
+        return this.$route.params.licenseeId as string || '';
     }
 
     get licensee(): Licensee | null {
@@ -117,58 +123,20 @@ export default class LicensingDetail extends Vue {
         return storeRecord;
     }
 
-    get isLicenseeUnderInvestigation(): boolean {
-        return this.licensee?.isUnderInvestigation() || false;
-    }
-
-    get licenseeInvestigationAlertContent(): string {
-        const investigationStates = this.licensee?.underInvestigationStates() || [];
-        const statesContent = (investigationStates.length === 1)
-            ? investigationStates[0].name()
-            : this.$t('licensing.underInvestigationAlertMultipleLocations');
-        let alertContent = '';
-
-        if (investigationStates.length) {
-            alertContent += `${this.$t('licensing.underInvestigationAlertLocation', { locations: statesContent })}
-            ${this.$t('licensing.underInvestigationAlertStatus')}`;
-        }
-
-        return alertContent;
-    }
-
     get licenseeNameDisplay(): string {
         return this.licensee?.nameDisplay() || '';
     }
 
+    get homeState(): State | null {
+        return this.licensee?.homeJurisdiction || null;
+    }
+
+    get homeStateName(): string {
+        return this.homeState?.name() || '';
+    }
+
     get licenseeHomeStateDisplay(): string {
         return this.licensee?.homeJurisdictionDisplay() || '';
-    }
-
-    get licenseeLicenses(): Array<License> {
-        return (this.licensee?.licenses || []).slice().sort(this.sortLicenses);
-    }
-
-    get isLoading(): boolean {
-        return this.licenseStore?.isLoading || false;
-    }
-
-    get activeLicenses(): Array<License> {
-        return this.licenseeLicenses.filter((license) => (license.status === LicenseStatus.ACTIVE));
-    }
-
-    get licenseePrivileges(): Array<License> {
-        return (this.licensee?.privileges || []).slice().sort(this.sortPrivileges);
-    }
-
-    get licenseeStates(): Array<string> {
-        const licenseStates = this.activeLicenses
-            .map((license) => license.issueState?.abbrev || '')
-            .filter((state) => !!state);
-        const privilegeStates = this.licenseePrivileges
-            .map((privilege) => privilege.issueState?.abbrev || '')
-            .filter((state) => !!state);
-
-        return licenseStates.concat(privilegeStates);
     }
 
     get dob(): string {
@@ -208,28 +176,50 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.bestLicense().email || '';
     }
 
+    get licenseeLicenses(): Array<License> {
+        return (this.licensee?.licenses || []).slice().sort(this.sortLicenses);
+    }
+
+    get activeLicenses(): Array<License> {
+        return this.licenseeLicenses.filter((license) => (license.status === LicenseStatus.ACTIVE));
+    }
+
+    get licenseePrivileges(): Array<License> {
+        return (this.licensee?.privileges || []).slice().sort(this.sortPrivileges);
+    }
+
+    get licenseeStates(): Array<string> {
+        const licenseStates = this.activeLicenses
+            .map((license) => license.issueState?.abbrev || '')
+            .filter((state) => !!state);
+        const privilegeStates = this.licenseePrivileges
+            .map((privilege) => privilege.issueState?.abbrev || '')
+            .filter((state) => !!state);
+
+        return licenseStates.concat(privilegeStates);
+    }
+
     get privilegesTitle(): string {
-        return this.$t('licensing.privileges');
+        return (this.$isAppModePsyPact) ? this.$t('licensing.providerPracticeStates') : this.$t('licensing.privileges');
     }
 
-    get licenseDetails(): string {
-        return this.$t('licensing.licenseDetails');
+    get isLicenseeUnderInvestigation(): boolean {
+        return this.licensee?.isUnderInvestigation() || false;
     }
 
-    get personalInformationTitle(): string {
-        return this.$t('licensing.personalInformation');
-    }
+    get licenseeInvestigationAlertContent(): string {
+        const investigationStates = this.licensee?.underInvestigationStates() || [];
+        const statesContent = (investigationStates.length === 1)
+            ? investigationStates[0].name()
+            : this.$t('licensing.underInvestigationAlertMultipleLocations');
+        let alertContent = '';
 
-    get licenseExpiredMessage(): string {
-        return this.$t('licensing.licenseExpired');
-    }
+        if (investigationStates.length) {
+            alertContent += `${this.$t('licensing.underInvestigationAlertLocation', { locations: statesContent })}
+            ${this.$t('licensing.underInvestigationAlertStatus')}`;
+        }
 
-    get homeState(): State | null {
-        return this.licensee?.homeJurisdiction || null;
-    }
-
-    get homeStateName(): string {
-        return this.homeState?.name() || '';
+        return alertContent;
     }
 
     get licenseeDiscipline(): Array<AdverseAction> {

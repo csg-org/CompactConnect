@@ -29,6 +29,12 @@ export const appModeApiUrls: Record<AppModes, Record<ApiFamily, string | undefin
         search: envConfig.apiUrlSearchSw,
         user: envConfig.apiUrlUserSw,
     },
+    [AppModes.PSYPACT]: {
+        state: envConfig.apiUrlStatePsypact,
+        license: envConfig.apiUrlLicensePsypact,
+        search: envConfig.apiUrlSearchPsypact,
+        user: envConfig.apiUrlUserPsypact,
+    },
 };
 
 export const getApiBaseUrl = (

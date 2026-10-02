@@ -27,6 +27,20 @@
         .splash-image-container {
             position: absolute;
 
+            // Psypact
+            &.psypact {
+                bottom: 0;
+                left: 0;
+                height: 95%;
+                overflow: hidden;
+
+                .splash-image {
+                    height: 100%;
+                    fill: #8eafe4;
+                }
+            }
+
+            // CompactConnect
             &.upper {
                 top: 0;
                 right: 0;
@@ -54,6 +68,12 @@
         .splash-title-container {
             padding-bottom: 8rem;
             padding-left: 60px;
+
+            &.psypact {
+                position: absolute;
+                top: 65%;
+                margin-left: 40%;
+            }
 
             .splash-title {
                 color: @white;

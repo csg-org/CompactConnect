@@ -16,6 +16,13 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 })
 export default class PrivacyPolicy extends Vue {
     //
+    // Computed
+    //
+    get appName(): string {
+        return (this.$isAppModePsyPact) ? this.$t('common.appNamePsyPact') : this.$t('common.appName');
+    }
+
+    //
     // Methods
     //
     goBack(): void {

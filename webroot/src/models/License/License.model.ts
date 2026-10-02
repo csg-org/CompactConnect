@@ -32,6 +32,7 @@ export enum LicenseType {
     PROFESSIONAL_CLINICAL_COUNSELOR = 'licensed professional clinical counselor',
     COSMETOLOGIST = 'cosmetologist',
     ESTHETICIAN = 'esthetician',
+    PSYCHOLOGIST = 'psychologist',
 }
 
 export enum LicenseScope {

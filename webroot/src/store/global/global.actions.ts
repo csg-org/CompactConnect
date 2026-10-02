@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { getAppGroupModeForAppMode } from '@utils/compactConfig';
+import { getAppGroupModeForAppMode, getLockedAppMode } from '@utils/compactConfig';
 import { MutationTypes } from './global.mutations';
 
 export default {
@@ -32,9 +32,12 @@ export default {
         commit(MutationTypes.SET_MODAL_LOGOUT_ONLY, isLogoutOnly);
     },
     setAppMode: ({ commit }, mode) => {
-        commit(MutationTypes.SET_APP_MODE, mode);
+        const lockedAppMode = getLockedAppMode();
+        const appMode = lockedAppMode || mode; // Compact-specific hosts ignore run-time mode changes
 
-        const appGroupMode = getAppGroupModeForAppMode(mode);
+        commit(MutationTypes.SET_APP_MODE, appMode);
+
+        const appGroupMode = getAppGroupModeForAppMode(appMode);
 
         if (appGroupMode) {
             commit(MutationTypes.SET_APP_GROUP_MODE, appGroupMode);

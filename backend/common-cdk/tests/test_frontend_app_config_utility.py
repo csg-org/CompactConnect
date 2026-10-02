@@ -27,6 +27,14 @@ class TestAppId(TestCase):
         """Test COSMETOLOGY app ID has expected value."""
         self.assertEqual('cosmetology', AppId.COSMETOLOGY.value)
 
+    def test_social_work_value(self):
+        """Test SOCIAL_WORK app ID has expected value."""
+        self.assertEqual('social-work', AppId.SOCIAL_WORK.value)
+
+    def test_psypact_value(self):
+        """Test PSYPACT app ID has expected value."""
+        self.assertEqual('psypact', AppId.PSYPACT.value)
+
 
 class TestParameterNameGeneration(TestCase):
     """Tests for SSM parameter name generation functions."""
@@ -46,6 +54,16 @@ class TestParameterNameGeneration(TestCase):
         name = _get_persistent_stack_parameter_name(AppId.COSMETOLOGY)
         self.assertEqual('/app/cosmetology/deployment/persistent-stack/frontend_app_configuration', name)
 
+    def test_persistent_stack_parameter_name_social_work(self):
+        """Test parameter name for SOCIAL_WORK app."""
+        name = _get_persistent_stack_parameter_name(AppId.SOCIAL_WORK)
+        self.assertEqual('/app/social-work/deployment/persistent-stack/frontend_app_configuration', name)
+
+    def test_persistent_stack_parameter_name_psypact(self):
+        """Test parameter name for PSYPACT app."""
+        name = _get_persistent_stack_parameter_name(AppId.PSYPACT)
+        self.assertEqual('/app/psypact/deployment/persistent-stack/frontend_app_configuration', name)
+
     def test_provider_users_stack_parameter_name_default(self):
         """Test default parameter name uses JCC."""
         name = _get_provider_users_stack_parameter_name()
@@ -61,6 +79,16 @@ class TestParameterNameGeneration(TestCase):
         name = _get_provider_users_stack_parameter_name(AppId.COSMETOLOGY)
         self.assertEqual('/app/cosmetology/deployment/provider-users-stack/frontend_app_configuration', name)
 
+    def test_provider_users_stack_parameter_name_social_work(self):
+        """Test parameter name for SOCIAL_WORK app."""
+        name = _get_provider_users_stack_parameter_name(AppId.SOCIAL_WORK)
+        self.assertEqual('/app/social-work/deployment/provider-users-stack/frontend_app_configuration', name)
+
+    def test_provider_users_stack_parameter_name_psypact(self):
+        """Test parameter name for PSYPACT app."""
+        name = _get_provider_users_stack_parameter_name(AppId.PSYPACT)
+        self.assertEqual('/app/psypact/deployment/provider-users-stack/frontend_app_configuration', name)
+
 
 class TestPersistentStackFrontendAppConfigUtility(TestCase):
     """Tests for the PersistentStackFrontendAppConfigUtility class."""
@@ -74,6 +102,16 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
         """Test setting COSMETOLOGY app_id."""
         util = PersistentStackFrontendAppConfigUtility(app_id=AppId.COSMETOLOGY)
         self.assertEqual(AppId.COSMETOLOGY, util._app_id)  # noqa: SLF001
+
+    def test_social_work_app_id(self):
+        """Test setting SOCIAL_WORK app_id."""
+        util = PersistentStackFrontendAppConfigUtility(app_id=AppId.SOCIAL_WORK)
+        self.assertEqual(AppId.SOCIAL_WORK, util._app_id)  # noqa: SLF001
+
+    def test_psypact_app_id(self):
+        """Test setting PSYPACT app_id."""
+        util = PersistentStackFrontendAppConfigUtility(app_id=AppId.PSYPACT)
+        self.assertEqual(AppId.PSYPACT, util._app_id)  # noqa: SLF001
 
     def test_set_staff_cognito_values(self):
         """Test setting staff Cognito values."""
@@ -142,6 +180,46 @@ class TestPersistentStackFrontendAppConfigValues(TestCase):
             self.assertIsNotNone(result)
             self.assertEqual('cosmo-domain', result.staff_cognito_domain)
 
+    def test_load_social_work_uses_string_parameter_lookup(self):
+        """Test that SOCIAL_WORK app uses standard StringParameter.value_from_lookup (same-account)."""
+        mock_stack = MagicMock()
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
+            mock_lookup.return_value = json.dumps(
+                {
+                    'staff_cognito_domain': 'socialwork-domain',
+                    'staff_cognito_client_id': 'socialwork-client',
+                }
+            )
+
+            result = PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
+                mock_stack,
+                app_id=AppId.SOCIAL_WORK,
+            )
+
+            mock_lookup.assert_called_once()
+            self.assertIsNotNone(result)
+            self.assertEqual('socialwork-domain', result.staff_cognito_domain)
+
+    def test_load_psypact_uses_string_parameter_lookup(self):
+        """Test that PSYPACT app uses standard StringParameter.value_from_lookup (same-account)."""
+        mock_stack = MagicMock()
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
+            mock_lookup.return_value = json.dumps(
+                {
+                    'staff_cognito_domain': 'psypact-domain',
+                    'staff_cognito_client_id': 'psypact-client',
+                }
+            )
+
+            result = PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
+                mock_stack,
+                app_id=AppId.PSYPACT,
+            )
+
+            mock_lookup.assert_called_once()
+            self.assertIsNotNone(result)
+            self.assertEqual('psypact-domain', result.staff_cognito_domain)
+
     def test_dummy_value_returns_dummy_config(self):
         """Test that dummy value returns dummy configuration."""
         mock_stack = MagicMock()
@@ -182,3 +260,43 @@ class TestProviderUsersStackFrontendAppConfigValues(TestCase):
             mock_lookup.assert_called_once()
             self.assertIsNotNone(result)
             self.assertEqual('test-provider-domain', result.provider_cognito_domain)
+
+    def test_load_social_work_uses_string_parameter_lookup(self):
+        """Test that SOCIAL_WORK app uses standard StringParameter.value_from_lookup."""
+        mock_stack = MagicMock()
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
+            mock_lookup.return_value = json.dumps(
+                {
+                    'provider_cognito_domain': 'socialwork-provider-domain',
+                    'provider_cognito_client_id': 'socialwork-provider-client',
+                }
+            )
+
+            result = ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(
+                mock_stack,
+                app_id=AppId.SOCIAL_WORK,
+            )
+
+            mock_lookup.assert_called_once()
+            self.assertIsNotNone(result)
+            self.assertEqual('socialwork-provider-domain', result.provider_cognito_domain)
+
+    def test_load_psypact_uses_string_parameter_lookup(self):
+        """Test that PSYPACT app uses standard StringParameter.value_from_lookup."""
+        mock_stack = MagicMock()
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
+            mock_lookup.return_value = json.dumps(
+                {
+                    'provider_cognito_domain': 'psypact-provider-domain',
+                    'provider_cognito_client_id': 'psypact-provider-client',
+                }
+            )
+
+            result = ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(
+                mock_stack,
+                app_id=AppId.PSYPACT,
+            )
+
+            mock_lookup.assert_called_once()
+            self.assertIsNotNone(result)
+            self.assertEqual('psypact-provider-domain', result.provider_cognito_domain)

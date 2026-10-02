@@ -10,6 +10,13 @@
         <div class="print-header">
             <div class="app-logo-container">
                 <img
+                    v-if="$isAppModePsyPact"
+                    src="@assets/logos/psypact-logo.png"
+                    :alt="$t('common.appNamePsyPact')"
+                    class="app-logo psypact"
+                />
+                <img
+                    v-else
                     src="@assets/logos/compact-connect-logo.png"
                     :alt="$t('common.appName')"
                     class="app-logo"
