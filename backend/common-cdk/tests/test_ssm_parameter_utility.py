@@ -55,6 +55,18 @@ class TestSSMParameterUtility(TestCase):
         rendered = template.to_json()
         self.assertNotIn('Fn::ImportValue', str(rendered))
 
+    def test_custom_parameter_name_is_used_for_read_and_write(self):
+        custom_name = '/dietitian/deployment/event-bridge/event-bus/data-event-bus-arn'
+        SSMParameterUtility.set_data_event_bus_arn_ssm_parameter(
+            self.stack, self.event_bus, parameter_name=custom_name
+        )
+
+        template = Template.from_stack(self.stack)
+        template.has_resource_properties(
+            CfnParameter.CFN_RESOURCE_TYPE_NAME,
+            {'Name': custom_name},
+        )
+
     def test_load_and_set_parameter_names_match(self):
         """The parameter name used to write must be the same one used to read."""
         SSMParameterUtility.set_data_event_bus_arn_ssm_parameter(self.stack, self.event_bus)

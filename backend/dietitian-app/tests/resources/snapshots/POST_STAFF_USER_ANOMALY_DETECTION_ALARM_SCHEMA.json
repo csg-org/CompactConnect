@@ -1,0 +1,31 @@
+{
+  "ActionsEnabled": true,
+  "AlarmDescription": "Sandbox/ApiLambdaStack staff-user-created anomaly detection. Anomalies in the number of staff users created per day are detected. Investigation is required to ensure requests are authorized.",
+  "ComparisonOperator": "GreaterThanUpperThreshold",
+  "EvaluationPeriods": 1,
+  "Metrics": [
+    {
+      "Expression": "ANOMALY_DETECTION_BAND(m1, 2)",
+      "Id": "ad1"
+    },
+    {
+      "Id": "m1",
+      "MetricStat": {
+        "Metric": {
+          "Dimensions": [
+            {
+              "Name": "service",
+              "Value": "common"
+            }
+          ],
+          "MetricName": "staff-user-created",
+          "Namespace": "compact-connect"
+        },
+        "Period": 3600,
+        "Stat": "SampleCount"
+      }
+    }
+  ],
+  "ThresholdMetricId": "ad1",
+  "TreatMissingData": "notBreaching"
+}

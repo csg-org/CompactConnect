@@ -6,6 +6,7 @@ on:
       - backend/compact-connect/stacks/state_api_stack/v1_api/**
       - backend/cosmetology-app/stacks/state_api_stack/v1_api/**
       - backend/social-work-app/stacks/state_api_stack/v1_api/**
+      - backend/dietitian-app/stacks/state_api_stack/v1_api/**
 
 env:
   AWS_REGION : "us-east-1"
@@ -44,6 +45,7 @@ jobs:
             compact-connect
             cosmetology-app
             social-work-app
+            dietitian-app
           )
 
           FAILED=0
