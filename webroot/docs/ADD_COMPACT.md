@@ -161,7 +161,7 @@ Only if the new compact should participate in these flows:
 
 **`src/components/AppTypeSelector/AppTypeSelector.ts`**
 
-- [ ] If the new compact should have a different app mode in a public context, update the `get appTypeOptions()` computed and `handleAppTypeSelect()` method.
+- [ ] If the new compact will have a different app mode based on deployed host domain (e.g. psypact), update the `get appTypeOptions()` computed and `handleAppTypeSelect()` method.
 
 **`src/pages/PublicDashboard/PublicDashboard.ts` → `bypassRedirect`**
 

@@ -16,7 +16,7 @@ import { relativeTimeFormats } from '@/app.config';
 import {
     getAppModeForCompact,
     getLockedAppMode,
-    getSoleCompactForAppMode
+    getImpliedCompactForAppMode
 } from '@utils/compactConfig';
 import {
     authStorage,
@@ -63,7 +63,7 @@ class App extends Vue {
             await this.handleAuth();
         }
 
-        // Host-seeded defaults skip setCurrentCompact, so memberStates stay empty unless we fetch them here
+        // Domain-based defaults skip setCurrentCompact, so memberStates stay empty unless we fetch them here
         await this.ensureCompactStates();
 
         this.setRelativeTimeFormats();
@@ -83,7 +83,8 @@ class App extends Vue {
     }
 
     get lockedCompactType(): CompactType | null {
-        return getSoleCompactForAppMode(getLockedAppMode());
+        // Certain compact types should be locked in based on host domain (e.g. psypact).
+        return getImpliedCompactForAppMode(getLockedAppMode());
     }
 
     get globalStore() {
@@ -130,7 +131,7 @@ class App extends Vue {
         const { lockedCompactType } = this;
 
         if (lockedCompactType) {
-            // Host-pinned mode: keep currentCompact aligned, whatever the route or user permissions say
+            // Domain-based locked mode: keep currentCompact aligned, whatever the route or user permissions say
             if (this.userStore.currentCompact?.type !== lockedCompactType) {
                 this.$store.dispatch('user/setCurrentCompact', new Compact({ type: lockedCompactType }));
             }

@@ -11,11 +11,13 @@ import { nextTick } from 'vue';
 import { flushPromises } from '@vue/test-utils';
 import sinon from 'sinon';
 import { AuthTypes } from '@utils/auth';
+import * as compactConfig from '@utils/compactConfig';
 import { mountShallow } from '@tests/helpers/setup';
 import App from '@components/App/App.vue';
 import store from '@/store';
 import { AppModes } from '@/app.config';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
+import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { MutationTypes } from '@/store/user/user.mutations';
 import { MessageTypes, AppMessage } from '@/models/AppMessage/AppMessage.model';
 
@@ -122,5 +124,30 @@ describe('App component', async () => {
         await flushPromises();
 
         expect(dispatchSpy.calledWith('user/getCompactStatesRequest', { compact: CompactType.PSYPACT })).to.equal(true);
+    });
+    it('should keep the current compact pinned after a staff login for another compact', async () => {
+        sinon.stub(compactConfig, 'getLockedAppMode').returns(AppModes.PSYPACT);
+
+        const wrapper = await mountShallow(App);
+        const instance: any = wrapper.vm;
+
+        await flushPromises();
+        await store.dispatch('setAuthType', AuthTypes.STAFF);
+        store.commit(
+            `user/${MutationTypes.STORE_UPDATE_USER}`,
+            new StaffUser({
+                permissions: [{
+                    compact: new Compact({ type: CompactType.ASLP }),
+                    isReadPrivate: true,
+                    isReadSsn: false,
+                    isAdmin: false,
+                    states: [],
+                }],
+            })
+        );
+
+        await instance.setCurrentCompact();
+
+        expect(store.state.user.currentCompact?.type).to.equal(CompactType.PSYPACT);
     });
 });

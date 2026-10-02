@@ -9,7 +9,7 @@ import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { AuthTypes } from '@utils/auth';
-import { getDefaultCurrentCompact } from './user.state';
+import { getImpliedCompactForHost } from './user.state';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',
@@ -170,7 +170,7 @@ export default {
         state.autoLogoutTimeoutId = null;
         state.isAutoLogoutWarning = false;
         state.userType = null;
-        state.currentCompact = getDefaultCurrentCompact();
+        state.currentCompact = getImpliedCompactForHost();
         state.error = null;
     },
     [MutationTypes.UPDATE_ACCOUNT_REQUEST]: (state: any) => {

@@ -7,7 +7,7 @@
 
 import chaiMatchPattern from 'chai-match-pattern';
 import { use, expect } from 'chai';
-import { AppModes, AppGroupModes } from '@/app.config';
+import { AppModes, AppGroupModes, psypactHostnames } from '@/app.config';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import {
     CompactType,
@@ -16,15 +16,21 @@ import {
     getCompactSetup,
     getAppModeForCompact,
     getAppGroupModeForAppMode,
+    getHostAppMode,
+    getLockedAppMode,
+    getImpliedCompactForAppMode,
     getEncumberConfigLicense,
     getEncumberConfigPrivilege
 } from '@utils/compactConfig';
 
 use(chaiMatchPattern);
 
+const originalIsAppLocal = envConfig.isAppLocal;
+
 describe('compactConfig utils', () => {
     afterEach(() => {
         envConfig.isAppProduction = false;
+        envConfig.isAppLocal = originalIsAppLocal;
     });
 
     it('should successfully include every compact type in compactSetups', () => {
@@ -74,6 +80,21 @@ describe('compactConfig utils', () => {
     it('should successfully return null for an unknown app mode group lookup', () => {
         expect(getAppGroupModeForAppMode('not-an-app-mode' as AppModes)).to.equal(null);
         expect(getAppGroupModeForAppMode(null)).to.equal(null);
+    });
+    it('should successfully resolve an implied compact only for unambiguous app modes', () => {
+        expect(getImpliedCompactForAppMode(AppModes.JCC)).to.equal(null);
+        expect(getImpliedCompactForAppMode(AppModes.PSYPACT)).to.equal(CompactType.PSYPACT);
+        expect(getImpliedCompactForAppMode(null)).to.equal(null);
+    });
+    it('should successfully resolve the app mode from a known hostname', () => {
+        expect(getHostAppMode(psypactHostnames[0])).to.equal(AppModes.PSYPACT);
+        expect(getHostAppMode('unknown.example.com')).to.equal(null);
+    });
+    it('should successfully lock only deployed compact-specific hostnames', () => {
+        envConfig.isAppLocal = false;
+
+        expect(getLockedAppMode('localhost')).to.equal(null);
+        expect(getLockedAppMode(psypactHostnames[0])).to.equal(AppModes.PSYPACT);
     });
 
     it('should successfully enable expected compacts in all environments', () => {

@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { getHostAppMode, getSoleCompactForAppMode } from '@utils/compactConfig';
+import { getHostAppMode, getImpliedCompactForAppMode } from '@utils/compactConfig';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Compact } from '@models/Compact/Compact.model';
@@ -17,10 +17,10 @@ import {
 } from '@utils/auth';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 
-export const getDefaultCurrentCompact = (): Compact | null => {
-    const defaultCompactType = getSoleCompactForAppMode(getHostAppMode());
+export const getImpliedCompactForHost = (): Compact | null => {
+    const impliedCompactType = getImpliedCompactForAppMode(getHostAppMode());
 
-    return (defaultCompactType) ? new Compact({ type: defaultCompactType }) : null;
+    return (impliedCompactType) ? new Compact({ type: impliedCompactType }) : null;
 };
 
 export interface State {
@@ -52,7 +52,7 @@ export const state: State = {
     refreshTokenTimeoutId: null,
     isAutoLogoutWarning: false,
     autoLogoutTimeoutId: null,
-    currentCompact: getDefaultCurrentCompact(),
+    currentCompact: getImpliedCompactForHost(),
     purchase: new PurchaseFlowState(),
     error: null,
 };

@@ -7,7 +7,7 @@
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { FeatureGates } from '@/app.config';
-import { getSoleCompactForAppMode } from '@utils/compactConfig';
+import { getImpliedCompactForAppMode } from '@utils/compactConfig';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
@@ -50,7 +50,7 @@ const authenticatedProviderUserIndex = 0;
 const getAuthenticatedProvider = () => {
     const { providers } = licensees;
     const maxIndex = providers.length - 1;
-    const compactType = getSoleCompactForAppMode(mockStore?.state?.appMode)
+    const compactType = getImpliedCompactForAppMode(mockStore?.state?.appMode)
         || mockStore?.state?.user?.currentCompact?.type;
     const provider = (authenticatedProviderUserIndex < 0 || authenticatedProviderUserIndex > maxIndex)
         ? providers[0]

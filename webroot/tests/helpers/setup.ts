@@ -143,11 +143,10 @@ let mockApi = sinon.createStubInstance(DataApi);
 beforeEach(async () => {
     const { tm: $tm, t: $t } = i18n.global;
 
-    // JSDOM serves tests from http://localhost, which is a psypact hostname, so the store's initial state is psypact
-    // rather than the documented jcc default. Normalize both before every test; specs needing psypact opt in.
-    // @NOTE: The `reset` / `user/resetStoreUser` actions can't be used here, since they re-derive these same
-    // host-based defaults. Dispatched ahead of failTestOn() so store output can't fail an unrelated test.
-    // @NOTE: File-level `before()` runs before this hook and will be overwritten; use `beforeEach` to opt in.
+    // Normalize appMode and currentCompact before every test; specs needing different values (e.g. psypact) opt in in individual tests.
+    // @NOTE: File-level `before()` runs before this hook and will be overwritten; use `beforeEach` for global file opt ins.
+    // @NOTE: The `reset` / `user/resetStoreUser` actions can't be used here, since they re-derive these based on host domain.
+    // @NOTE: Dispatched ahead of failTestOn() so store output can't fail an unrelated test.
     await mockStore.dispatch('setAppMode', AppModes.JCC);
     await mockStore.dispatch('user/setCurrentCompact', null);
 

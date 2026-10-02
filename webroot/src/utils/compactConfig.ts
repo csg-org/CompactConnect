@@ -80,24 +80,24 @@ export const appModeHostnames: Partial<Record<AppModes, Array<string>>> = {
     [AppModes.PSYPACT]: psypactHostnames,
 };
 
-export const isLocalHostname = (): boolean => ['localhost', '127.0.0.1'].includes(window.location.hostname);
+export const isLocalHostname = (hostname = window.location.hostname): boolean =>
+    ['localhost', '127.0.0.1'].includes(hostname);
 
-export const getHostAppMode = (): AppModes | null => {
-    const { hostname } = window.location;
+export const getHostAppMode = (hostname = window.location.hostname): AppModes | null => {
     const hostMatch = Object.entries(appModeHostnames).find(([, hostnames]) => hostnames?.includes(hostname));
 
     return (hostMatch) ? (hostMatch[0] as AppModes) : null;
 };
 
 // Deployed compact-specific hosts never switch mode at run time; localhost stays switchable for dev & testing
-export const getLockedAppMode = (): AppModes | null => {
-    const isSwitchable = isLocalHostname() || envConfig.isAppLocal;
+export const getLockedAppMode = (hostname = window.location.hostname): AppModes | null => {
+    const isSwitchable = isLocalHostname(hostname) || envConfig.isAppLocal;
 
-    return (isSwitchable) ? null : getHostAppMode();
+    return (isSwitchable) ? null : getHostAppMode(hostname);
 };
 
-// Most app modes map to a single compact; jcc spans several, so only resolve unambiguous modes
-export const getSoleCompactForAppMode = (appMode?: AppModes | null): CompactType | null => {
+// Most app modes imply a single compact; jcc spans several, so only resolve unambiguous modes
+export const getImpliedCompactForAppMode = (appMode?: AppModes | null): CompactType | null => {
     const compactTypes = Object.values(compactSetups)
         .filter((setup) => setup.appMode === appMode)
         .map((setup) => setup.type);

@@ -13,6 +13,7 @@ import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
+import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
 import { StaffUser, CompactPermission, StatePermission } from '@models/StaffUser/StaffUser.model';
 import { MutationTypes } from '@store/user/user.mutations';
@@ -140,21 +141,27 @@ describe('LicenseActionsModal component', async () => {
         expect(items).to.include(wrapper.vm.$t('licensing.encumber'));
         expect(items).to.not.include(wrapper.vm.$t('licensing.deactivate'));
     });
-    it('should show unencumber and end investigation only when those statuses apply', async () => {
-        const investigation = new Investigation({
-            id: 'inv-1',
-            startDate: '2026-01-01',
-        });
+    it('should hide unencumber and end investigation when neither status applies', async () => {
+        const wrapper = await mountActions();
+
+        setCurrentUser(wrapper, buildCompactPermission({}, [{ isAdmin: true }]));
+        await wrapper.vm.toggleLicenseActionMenu();
+        await wrapper.vm.$nextTick();
+
+        const items = wrapper.findAll('.license-menu-item').map((item) => item.text());
+
+        expect(items).to.not.include(wrapper.vm.$t('licensing.unencumber'));
+        expect(items).to.not.include(wrapper.vm.$t('licensing.endInvestigation'));
+    });
+    it('should show unencumber and end investigation when both statuses apply', async () => {
         const wrapper = await mountActions({
             license: buildLicense({
-                adverseActions: [{ id: 'aa-1', isActive: () => true, endDate: null }] as any,
-                investigations: [investigation],
+                adverseActions: [new AdverseAction({ id: 'aa-1', startDate: '2020-01-01' })],
+                investigations: [new Investigation({ id: 'inv-1', startDate: '2020-01-01' })],
             }),
         });
 
         setCurrentUser(wrapper, buildCompactPermission({}, [{ isAdmin: true }]));
-        wrapper.vm.license.isEncumbered = () => true;
-        wrapper.vm.license.isUnderInvestigation = () => true;
         await wrapper.vm.toggleLicenseActionMenu();
         await wrapper.vm.$nextTick();
 
