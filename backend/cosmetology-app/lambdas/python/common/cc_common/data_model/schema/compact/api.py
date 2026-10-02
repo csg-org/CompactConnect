@@ -10,6 +10,16 @@ from cc_common.data_model.schema.compact.common import (
 )
 
 
+class CompactConfigurationConfiguredStateResponseSchema(ConfiguredStateSchema):
+    """GET configured state. Adverse-action emails are read from the jurisdiction record, not stored on the compact."""
+
+    jurisdictionAdverseActionsNotificationEmails = List(
+        Email(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
+
+
 class CompactConfigurationResponseSchema(ForgivingSchema):
     """Schema for API responses from GET /v1/compacts/{compact}"""
 
@@ -22,7 +32,19 @@ class CompactConfigurationResponseSchema(ForgivingSchema):
         allow_none=False,
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
-    configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)
+    configuredStates = List(
+        Nested(CompactConfigurationConfiguredStateResponseSchema()), required=True, allow_none=False
+    )
+
+
+class PutConfiguredStateRequestSchema(ConfiguredStateSchema):
+    """Request-only configured state. Emails are written to the jurisdiction record, not stored on the compact."""
+
+    jurisdictionAdverseActionsNotificationEmails = List(
+        Email(required=True, allow_none=False),
+        required=False,
+        allow_none=False,
+    )
 
 
 class PutCompactConfigurationRequestSchema(Schema):
@@ -35,7 +57,7 @@ class PutCompactConfigurationRequestSchema(Schema):
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
-    configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)
+    configuredStates = List(Nested(PutConfiguredStateRequestSchema()), required=True, allow_none=False)
 
     @validates_schema
     def validate_no_duplicates_in_configured_states(self, data, **kwargs):  # noqa: ARG001 unused-argument

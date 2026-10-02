@@ -83,6 +83,28 @@ class _Config:
         return result
 
     @cached_property
+    def active_member_jurisdictions(self) -> dict[str, list[str]]:
+        """
+        Cached mapping of compact -> active member jurisdiction postal abbreviations.
+
+        Used when a privilege-live home state grants privileges in every other member state.
+        """
+        from cc_common.exceptions import CCNotFoundException
+
+        result: dict[str, list[str]] = {}
+        for compact in self.compacts:
+            try:
+                members = self.compact_configuration_client.get_active_compact_jurisdictions(compact)
+                result[compact] = [member['postalAbbreviation'].lower() for member in members]
+            except CCNotFoundException:
+                logger.info('No active member jurisdictions found', compact=compact)
+                result[compact] = []
+            except Exception:  # noqa: BLE001
+                logger.error('Failed to load active member jurisdictions', compact=compact)
+                raise
+        return result
+
+    @cached_property
     def user_client(self):
         from cc_common.data_model.user_client import UserClient
 

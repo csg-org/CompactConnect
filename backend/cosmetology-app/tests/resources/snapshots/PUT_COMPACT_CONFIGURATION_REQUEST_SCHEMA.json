@@ -52,8 +52,18 @@
             "type": "string"
           },
           "isLive": {
-            "description": "Whether the state is live and available for registrations.",
+            "description": "Whether the state is privilege-live.",
             "type": "boolean"
+          },
+          "jurisdictionAdverseActionsNotificationEmails": {
+            "description": "Adverse action notification emails. Required when marking the state privilege-live, even if the jurisdiction already has emails. An existing list is not overwritten. Not stored on the compact.",
+            "items": {
+              "format": "email",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "type": "array",
+            "uniqueItems": true
           }
         },
         "required": [

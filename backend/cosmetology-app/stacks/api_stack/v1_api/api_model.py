@@ -1000,7 +1000,11 @@ class ApiModel:
                         description='List of states that have submitted configurations and their live status',
                         items=JsonSchema(
                             type=JsonSchemaType.OBJECT,
-                            required=['postalAbbreviation', 'isLive'],
+                            required=[
+                                'postalAbbreviation',
+                                'isLive',
+                                'jurisdictionAdverseActionsNotificationEmails',
+                            ],
                             properties={
                                 'postalAbbreviation': JsonSchema(
                                     type=JsonSchemaType.STRING,
@@ -1009,7 +1013,15 @@ class ApiModel:
                                 ),
                                 'isLive': JsonSchema(
                                     type=JsonSchemaType.BOOLEAN,
-                                    description='Whether the state is live and available for registrations.',
+                                    description='Whether the state is privilege-live.',
+                                ),
+                                'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
+                                    type=JsonSchemaType.ARRAY,
+                                    description=(
+                                        'Adverse action notification emails stored for this state. '
+                                        'Read from the jurisdiction record. Operations emails are not included.'
+                                    ),
+                                    items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                                 ),
                             },
                         ),
@@ -1073,7 +1085,18 @@ class ApiModel:
                                 ),
                                 'isLive': JsonSchema(
                                     type=JsonSchemaType.BOOLEAN,
-                                    description='Whether the state is live and available for registrations.',
+                                    description='Whether the state is privilege-live.',
+                                ),
+                                'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
+                                    type=JsonSchemaType.ARRAY,
+                                    description=(
+                                        'Adverse action notification emails. Required when marking the state '
+                                        'privilege-live, even if the jurisdiction already has emails. An existing '
+                                        'list is not overwritten. Not stored on the compact.'
+                                    ),
+                                    max_items=10,
+                                    unique_items=True,
+                                    items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                                 ),
                             },
                         ),

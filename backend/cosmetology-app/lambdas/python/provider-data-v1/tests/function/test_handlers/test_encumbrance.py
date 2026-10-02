@@ -110,6 +110,34 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
+    def test_privilege_encumbrance_allowed_when_privilege_live_without_data_live(self):
+        """Encumbrance follows isLive and does not require licenseeRegistrationEnabled."""
+        import handlers.encumbrance as encumbrance_module
+        from cc_common.exceptions import CCNotFoundException
+        from handlers.encumbrance import encumbrance_handler
+
+        event, context = self._when_testing_privilege_encumbrance()
+        with self.assertRaises(CCNotFoundException):
+            self.config.compact_configuration_client.get_jurisdiction_configuration(
+                context['compact'], context['jurisdiction']
+            )
+
+        with patch.object(encumbrance_module, 'config', self.config):
+            response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+    def test_privilege_encumbrance_rejected_when_jurisdiction_is_not_privilege_live(self):
+        import handlers.encumbrance as encumbrance_module
+        from handlers.encumbrance import encumbrance_handler
+
+        self.set_live_compact_jurisdictions_for_test({'cosm': [DEFAULT_LICENSE_JURISDICTION]})
+        event = self._when_testing_privilege_encumbrance()[0]
+
+        with patch.object(encumbrance_module, 'config', self.config):
+            response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('not live', json.loads(response['body'])['message'])
+
     def test_privilege_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler

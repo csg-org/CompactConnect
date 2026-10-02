@@ -24,7 +24,9 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             records.append(test_license.serialize_to_database_record())
         return records
 
-    def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
+    def _patch_config_for_privilege_generation(
+        self, live_compact_jurisdictions=None, active_member_jurisdictions=None
+    ):
         """Patch config used by provider_record_util for privilege generation.
 
         By default, we set the list of live compact jurisdictions to ['al', 'ky', 'oh'].
@@ -36,8 +38,11 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         """
         if live_compact_jurisdictions is None:
             live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
+        if active_member_jurisdictions is None:
+            active_member_jurisdictions = live_compact_jurisdictions
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
+        mock_config.active_member_jurisdictions = active_member_jurisdictions
         mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
@@ -120,6 +125,52 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ],
             result,
         )
+
+    def test_privilege_live_home_generates_privileges_for_all_other_member_states(self):
+        """Ohio is privilege-live, so an Ohio licensee also gets privileges in member states that are not live."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'dateOfExpiration': date(2026, 2, 28),
+                }
+            ]
+        )
+        with self._patch_config_for_privilege_generation(
+            live_compact_jurisdictions={'cosm': ['oh']},
+            active_member_jurisdictions={'cosm': ['al', 'ky', 'oh']},
+        ):
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
+        self.assertEqual(sorted(privilege['jurisdiction'] for privilege in result), ['al', 'ky'])
+
+    def test_non_privilege_live_home_only_gets_privileges_in_privilege_live_states(self):
+        """Kentucky is not privilege-live, so a Kentucky licensee only gets a privilege in live Ohio."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'ky',
+                    'licenseType': 'cosmetologist',
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'dateOfExpiration': date(2026, 2, 28),
+                }
+            ]
+        )
+        with self._patch_config_for_privilege_generation(
+            live_compact_jurisdictions={'cosm': ['oh']},
+            active_member_jurisdictions={'cosm': ['al', 'ky', 'oh']},
+        ):
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
+        self.assertEqual([privilege['jurisdiction'] for privilege in result], ['oh'])
 
     def test_same_license_type_in_two_states_uses_most_recently_issued(self):
         """Same license type in al and oh: most recently issued is home, privileges use that jurisdiction."""
@@ -575,11 +626,16 @@ class TestGenerateApiResponseObject(TstLambdas):
             records.extend(extra_records)
         return records
 
-    def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
+    def _patch_config_for_privilege_generation(
+        self, live_compact_jurisdictions=None, active_member_jurisdictions=None
+    ):
         if live_compact_jurisdictions is None:
             live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
+        if active_member_jurisdictions is None:
+            active_member_jurisdictions = live_compact_jurisdictions
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
+        mock_config.active_member_jurisdictions = active_member_jurisdictions
         mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
@@ -651,11 +707,16 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             records.extend(extra_records)
         return records
 
-    def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
+    def _patch_config_for_privilege_generation(
+        self, live_compact_jurisdictions=None, active_member_jurisdictions=None
+    ):
         if live_compact_jurisdictions is None:
             live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
+        if active_member_jurisdictions is None:
+            active_member_jurisdictions = live_compact_jurisdictions
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
+        mock_config.active_member_jurisdictions = active_member_jurisdictions
         mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 

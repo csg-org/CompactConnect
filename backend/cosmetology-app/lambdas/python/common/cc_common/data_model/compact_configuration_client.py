@@ -1,3 +1,5 @@
+from boto3.dynamodb.conditions import Key
+
 from cc_common.config import _Config, logger
 from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
@@ -149,6 +151,33 @@ class CompactConfigurationClient:
 
         # Load through schema and convert to Jurisdiction model
         return JurisdictionConfigurationData.from_database_record(item)
+
+    def get_adverse_action_notification_emails_by_jurisdiction(self, compact: str) -> dict[str, list[str]]:
+        """Load every jurisdiction configuration for a compact in one query.
+
+        Returns postal abbreviation to adverse-action notification emails. Other jurisdiction fields are not read.
+        """
+        logger.info('Getting adverse action emails for compact jurisdictions', compact=compact)
+
+        emails_by_jurisdiction: dict[str, list[str]] = {}
+        query_kwargs = {
+            'KeyConditionExpression': Key('pk').eq(f'{compact}#CONFIGURATION')
+            & Key('sk').begins_with(f'{compact}#JURISDICTION#'),
+            'ProjectionExpression': 'postalAbbreviation, jurisdictionAdverseActionsNotificationEmails',
+        }
+        while True:
+            response = self.config.compact_configuration_table.query(**query_kwargs)
+            for item in response.get('Items', []):
+                postal_abbreviation = item.get('postalAbbreviation')
+                if not postal_abbreviation:
+                    continue
+                emails_by_jurisdiction[postal_abbreviation.lower()] = item.get(
+                    'jurisdictionAdverseActionsNotificationEmails', []
+                )
+            last_evaluated_key = response.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                return emails_by_jurisdiction
+            query_kwargs['ExclusiveStartKey'] = last_evaluated_key
 
     def save_jurisdiction_configuration(self, jurisdiction_config: JurisdictionConfigurationData) -> None:
         """

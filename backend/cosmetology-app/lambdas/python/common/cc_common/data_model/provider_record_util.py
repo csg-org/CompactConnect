@@ -57,6 +57,34 @@ def _license_sort_key(license_record: dict | LicenseData) -> tuple:
     return effective_date, date_of_issuance
 
 
+def _privilege_jurisdictions_for_home(
+    *,
+    home_jurisdiction: str,
+    live_jurisdictions: list[str],
+    member_jurisdictions: list[str],
+) -> list[str]:
+    """
+    Privilege destinations for a home license.
+
+    Always include other privilege-live jurisdictions. When the home jurisdiction is itself privilege-live,
+    also include every other active member jurisdiction.
+    """
+    live = [jurisdiction.lower() for jurisdiction in live_jurisdictions]
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for jurisdiction in live:
+        if jurisdiction != home_jurisdiction and jurisdiction not in seen:
+            ordered.append(jurisdiction)
+            seen.add(jurisdiction)
+    if home_jurisdiction in set(live):
+        for jurisdiction in member_jurisdictions:
+            normalized = jurisdiction.lower()
+            if normalized != home_jurisdiction and normalized not in seen:
+                ordered.append(normalized)
+                seen.add(normalized)
+    return ordered
+
+
 class ProviderRecordUtility:
     """
     A class for housing official logic for how to handle provider records without making database queries.
@@ -466,8 +494,9 @@ class ProviderUserRecords:
 
         For each license type, the home license is chosen from all licenses of that type: the license renewed
         most recently (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
-        When the chosen home license is compact-eligible, one privilege is generated per active compact jurisdiction
-        (excluding the home jurisdiction). When the home license is not compact-eligible, a privilege is still
+        When the chosen home license is compact-eligible, one privilege is generated per other privilege-live
+        jurisdiction. If the home jurisdiction is privilege-live, privileges are also generated for every other
+        active member jurisdiction. When the home license is not compact-eligible, a privilege is still
         generated for a jurisdiction if there is a matching privilege adverse action or an open privilege
         investigation for that jurisdiction and license type, so admins can see and resolve those records.
 
@@ -488,6 +517,10 @@ class ProviderUserRecords:
         if not live_jurisdictions_for_compact:
             logger.debug('no active jurisdictions found in environment.', compact=compact)
             return []
+
+        member_jurisdictions_for_compact = [
+            jurisdiction.lower() for jurisdiction in config.active_member_jurisdictions.get(compact, [])
+        ]
 
         # Group licenses by licenseType; for each type pick home license by most recent renewal, then issuance
         by_type: dict[str, list[LicenseData]] = {}
@@ -510,9 +543,12 @@ class ProviderUserRecords:
             home_jurisdiction = most_recent_license.jurisdiction.lower()
             license_type_abbr = most_recent_license.licenseTypeAbbreviation
 
-            for jurisdiction in live_jurisdictions_for_compact:
-                if jurisdiction == home_jurisdiction:
-                    continue
+            privilege_jurisdictions = _privilege_jurisdictions_for_home(
+                home_jurisdiction=home_jurisdiction,
+                live_jurisdictions=live_jurisdictions_for_compact,
+                member_jurisdictions=member_jurisdictions_for_compact,
+            )
+            for jurisdiction in privilege_jurisdictions:
                 privilege_aa = self.get_adverse_action_records_for_privilege(jurisdiction, license_type_abbr)
                 privilege_unlifted = any(aa.effectiveLiftDate is None for aa in privilege_aa)
                 inv_records = self.get_investigation_records_for_privilege(
