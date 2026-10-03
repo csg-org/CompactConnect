@@ -11,7 +11,12 @@ import {
     Prop,
     toNative
 } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import { Permission } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
@@ -296,7 +301,7 @@ class UserRowEdit extends mixins(MixinForm) {
         });
     }
 
-    addStateFormInput(statePermission?: StatePermission): void {
+    async addStateFormInput(statePermission?: StatePermission): Promise<void> {
         const { state } = statePermission || {};
         const stateAbbrev = state?.abbrev || '';
         const stateOptions = this.filterStateOptions();
@@ -328,6 +333,10 @@ class UserRowEdit extends mixins(MixinForm) {
             this.formData[`state-permission-${index}`] = permissionInput;
 
             this.permissionStateInputs.push(permissionInput);
+            if (!statePermission) {
+                await nextTick();
+                document.getElementById(`state-option-${index}`)?.focus();
+            }
         }
     }
 
@@ -359,12 +368,12 @@ class UserRowEdit extends mixins(MixinForm) {
         });
     }
 
-    createNewStatePermission(): void {
+    async createNewStatePermission(): Promise<void> {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
             this.lockInStateOptions();
-            this.addStateFormInput();
+            await this.addStateFormInput();
         }
     }
 
