@@ -206,7 +206,7 @@ class TestPublicGetProvider(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
         self.assertEqual([], provider_data['licenses'])
-        self.assertEqual(EXPECTED_PROVIDER_RESPONSE['privileges'], provider_data['privileges'])
+        self.assertEqual([], provider_data['privileges'])
 
     def test_public_get_provider_missing_provider_id(self):
         from handlers.public_lookup import public_get_provider

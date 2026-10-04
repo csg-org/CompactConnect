@@ -83,24 +83,19 @@ class _Config:
         return result
 
     @cached_property
-    def active_member_jurisdictions(self) -> dict[str, list[str]]:
+    def data_live_jurisdictions(self) -> dict[str, list[str]]:
         """
-        Cached mapping of compact -> active member jurisdiction postal abbreviations.
+        Cached mapping of compact -> jurisdictions whose license data is live.
 
-        Used when a privilege-live home state grants privileges in every other member state.
+        A home license generates privileges only when its jurisdiction is in this list.
+        Fetched once per Lambda cold start, same as live_compact_jurisdictions.
         """
-        from cc_common.exceptions import CCNotFoundException
-
         result: dict[str, list[str]] = {}
         for compact in self.compacts:
             try:
-                members = self.compact_configuration_client.get_active_compact_jurisdictions(compact)
-                result[compact] = [member['postalAbbreviation'].lower() for member in members]
-            except CCNotFoundException:
-                logger.info('No active member jurisdictions found', compact=compact)
-                result[compact] = []
+                result[compact] = self.compact_configuration_client.get_data_live_jurisdictions(compact)
             except Exception:  # noqa: BLE001
-                logger.error('Failed to load active member jurisdictions', compact=compact)
+                logger.error('Failed to load data-live jurisdictions', compact=compact)
                 raise
         return result
 

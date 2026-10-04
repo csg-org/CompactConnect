@@ -63,6 +63,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.set_live_compact_jurisdictions_for_test(
             {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
+        self.set_data_live_jurisdictions_for_test({'cosm': [DEFAULT_LICENSE_JURISDICTION]})
 
     def _when_testing_privilege_encumbrance(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
@@ -131,6 +132,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         from handlers.encumbrance import encumbrance_handler
 
         self.set_live_compact_jurisdictions_for_test({'cosm': [DEFAULT_LICENSE_JURISDICTION]})
+        self.set_data_live_jurisdictions_for_test({'cosm': [DEFAULT_LICENSE_JURISDICTION]})
         event = self._when_testing_privilege_encumbrance()[0]
 
         with patch.object(encumbrance_module, 'config', self.config):
@@ -277,6 +279,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         self.set_live_compact_jurisdictions_for_test(
             {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
+        self.set_data_live_jurisdictions_for_test({'cosm': [DEFAULT_LICENSE_JURISDICTION]})
 
     def _when_testing_valid_license_encumbrance(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
@@ -495,6 +498,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         self.set_live_compact_jurisdictions_for_test(
             {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
+        self.set_data_live_jurisdictions_for_test({'cosm': [DEFAULT_LICENSE_JURISDICTION]})
 
     def _setup_privilege_with_adverse_action(
         self,
@@ -814,6 +818,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         self.set_live_compact_jurisdictions_for_test(
             {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
+        self.set_data_live_jurisdictions_for_test({'cosm': [DEFAULT_LICENSE_JURISDICTION]})
 
     def _setup_license_with_adverse_action(self, adverse_action_overrides=None, license_overrides=None):
         """Helper method to set up a license with an adverse action for testing."""
