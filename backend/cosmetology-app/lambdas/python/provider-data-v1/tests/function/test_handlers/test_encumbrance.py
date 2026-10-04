@@ -111,7 +111,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         )
 
     def test_privilege_encumbrance_allowed_when_privilege_live_without_data_live(self):
-        """Encumbrance follows isLive and does not require licenseeRegistrationEnabled."""
+        """Encumbrance follows isLive and does not require isLicenseDataLive."""
         import handlers.encumbrance as encumbrance_module
         from cc_common.exceptions import CCNotFoundException
         from handlers.encumbrance import encumbrance_handler

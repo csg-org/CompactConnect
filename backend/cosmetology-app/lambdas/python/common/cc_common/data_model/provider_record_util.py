@@ -643,7 +643,8 @@ class ProviderUserRecords:
         Assemble a list of provider records into a single object used by the provider details api.
 
         :param is_public_response: If True, licenses that are not the most recent license for a type
-        will not be included in the response.
+        will not be included in the response, and licenses from jurisdictions that are not data-live
+        (jurisdiction isLicenseDataLive, stored as licenseeRegistrationEnabled) are omitted. Privileges are unchanged.
         :return: A single provider record matching our provider details api schema.
         """
         provider = self.get_provider_record().to_dict()
@@ -672,6 +673,16 @@ class ProviderUserRecords:
                 )
             ]
             licenses.append(license_dict)
+
+        if is_public_response:
+            data_live_jurisdictions = set(
+                config.compact_configuration_client.get_data_live_jurisdictions(provider['compact'])
+            )
+            licenses = [
+                license
+                for license in licenses
+                if str(license.get('jurisdiction', '')).lower() in data_live_jurisdictions
+            ]
 
         # Build privileges at runtime from eligible licenses (one privilege per license type per compact jurisdiction)
         privileges = self.generate_privileges_for_provider()

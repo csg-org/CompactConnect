@@ -187,7 +187,7 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
             {
                 'compactAbbr': compact,
                 'compactName': compact_name,
-                'licenseeRegistrationEnabled': False,
+                'isLicenseDataLiveCompactWide': False,
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
                 'configuredStates': [],
@@ -222,11 +222,12 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
             raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
         validated_data['compactName'] = compact_name
 
-        # Check if licenseeRegistrationEnabled is being changed from true to false
+        # No external process uses the compact-wide flag other than storing its value.
+        # The true-to-false rejection is preserved. The stored attribute is still licenseeRegistrationEnabled.
         existing_states: list[dict] = []
         try:
             existing_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
-            if existing_config.licenseeRegistrationEnabled and not validated_data.get('licenseeRegistrationEnabled'):
+            if existing_config.isLicenseDataLiveCompactWide and not validated_data.get('isLicenseDataLiveCompactWide'):
                 logger.info(
                     'attempt to disable licensee registration after it was enabled.',
                     compact=compact,
@@ -344,7 +345,7 @@ def _store_adverse_action_emails_for_privilege_live(compact: str, postal_abbr: s
             'postalAbbreviation': postal_abbr,
             'jurisdictionOperationsTeamEmails': [],
             'jurisdictionAdverseActionsNotificationEmails': supplied_emails,
-            'licenseeRegistrationEnabled': False,
+            'isLicenseDataLive': False,
         }
 
     config.compact_configuration_client.save_jurisdiction_configuration(
@@ -364,7 +365,7 @@ def _validate_privilege_live_transitions_and_possibly_store_emails(
     3. isLive can change from false to true only. That transition always requires adverse-action emails
        in the request. An existing jurisdiction email list is left unchanged.
     4. An already privilege-live state may resend its current adverse-action list. A different list is rejected.
-    5. Turning isLive on does not set licenseeRegistrationEnabled
+    5. Turning isLive on does not change data-live (isLicenseDataLive).
     """
     existing_states_by_postal = {state['postalAbbreviation'].lower(): state for state in existing_states}
     new_states_by_postal = {state['postalAbbreviation'].lower(): state for state in new_states}
@@ -480,7 +481,7 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
                 },
                 'jurisdictionOperationsTeamEmails': [],
                 'jurisdictionAdverseActionsNotificationEmails': [],
-                'licenseeRegistrationEnabled': False,
+                'isLicenseDataLive': False,
             }
         ).to_dict()
 
@@ -521,21 +522,19 @@ def _put_jurisdiction_configuration(event: dict, context: LambdaContext):  # noq
             raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
         validated_data['jurisdictionName'] = jurisdiction_name
 
-        # Check if licenseeRegistrationEnabled is being changed from true to false
-        if validated_data.get('licenseeRegistrationEnabled') is False:
+        # Data-live is irreversible. The stored attribute is still licenseeRegistrationEnabled.
+        if validated_data.get('isLicenseDataLive') is False:
             try:
                 existing_config = config.compact_configuration_client.get_jurisdiction_configuration(
                     compact=compact, jurisdiction=jurisdiction
                 )
-                if existing_config.licenseeRegistrationEnabled is True:
+                if existing_config.isLicenseDataLive is True:
                     logger.info(
-                        'attempt to disable licensee registration after it was enabled.',
+                        'attempt to mark license data not live after it was live.',
                         compact=compact,
                         submitting_user_id=submitting_user_id,
                     )
-                    raise CCInvalidRequestException(
-                        'Once licensee registration has been enabled, it cannot be disabled.'
-                    )
+                    raise CCInvalidRequestException('Once license data is live, it cannot be marked not live.')
             except CCNotFoundException:
                 # No existing configuration, so this is the first time setting this field
                 logger.info(

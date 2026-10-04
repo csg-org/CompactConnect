@@ -3,7 +3,12 @@
 
 For each postal abbreviation:
 
-- Sets that jurisdiction's licenseeRegistrationEnabled to false.
+- Sets that jurisdiction's data-live flag to false.
+
+  Internal Python uses isLicenseDataLive. The API and DynamoDB name remain licenseeRegistrationEnabled.
+  That attribute name is kept so this script, existing jurisdiction items, and records copied from
+  registration-based compacts do not need a migration. On those compacts the flag meant a licensee
+  could register. Cosmetology uses the same stored flag to mean the state's license data is live.
 - Removes it from the compact configuredStates list only when isLive is not true.
 
 Writes DynamoDB directly so it can bypass the API irreversibility checks.
@@ -52,12 +57,13 @@ def rollback_data_live(table, compact: str, postal_abbreviations: list[str]) -> 
         jurisdiction_key = _jurisdiction_key(compact, postal_abbreviation)
         jurisdiction_item = table.get_item(Key=jurisdiction_key).get('Item')
         if jurisdiction_item:
+            # Write the stored attribute. The API key is the same name. Internal code calls this isLicenseDataLive.
             table.update_item(
                 Key=jurisdiction_key,
                 UpdateExpression='SET licenseeRegistrationEnabled = :enabled, dateOfUpdate = :updated',
                 ExpressionAttributeValues={':enabled': False, ':updated': now},
             )
-            logger.info('%s: set licenseeRegistrationEnabled to false', postal_abbreviation)
+            logger.info('%s: set isLicenseDataLive to false', postal_abbreviation)
         else:
             logger.info('%s: no jurisdiction configuration record', postal_abbreviation)
 

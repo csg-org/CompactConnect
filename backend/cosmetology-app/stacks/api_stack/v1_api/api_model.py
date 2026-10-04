@@ -993,7 +993,13 @@ class ApiModel:
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
-                        description='Denotes whether licensee registration is enabled',
+                        description=(
+                            'No external process uses this value other than storing it. It does not mark the compact '
+                            'live and does not change privileges or which licenses are public. Once true, it cannot '
+                            'be set to false. The field is primarily preserved so the frontend can keep this feature. '
+                            'The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards '
+                            'compatibility.'
+                        ),
                     ),
                     'configuredStates': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -1068,7 +1074,13 @@ class ApiModel:
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
-                        description='Denotes whether licensee registration is enabled',
+                        description=(
+                            'No external process uses this value other than storing it. It does not mark the compact '
+                            'live and does not change privileges or which licenses are public. Once true, it cannot '
+                            'be set to false. The field is primarily preserved so the frontend can keep this feature. '
+                            'The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards '
+                            'compatibility.'
+                        ),
                     ),
                     'configuredStates': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -1153,7 +1165,13 @@ class ApiModel:
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
-                        description='Denotes whether licensee registration is enabled',
+                        description=(
+                            "Whether this state's license data is live. When true, the state's licenses appear in "
+                            'public search and public provider detail, and the state is added to configuredStates '
+                            'with isLive:false (which controls privileges), if it is not already listed. Once '
+                            'true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the '
+                            'API and in DynamoDB for backwards compatibility.'
+                        ),
                     ),
                 },
             ),
@@ -1198,7 +1216,13 @@ class ApiModel:
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
-                        description='Denotes whether licensee registration is enabled',
+                        description=(
+                            "Whether this state's license data is live. When true, the state's licenses appear in "
+                            'public search and public provider detail, and the state is added to configuredStates '
+                            'with isLive:false (which controls privileges), if it is not already listed. Once '
+                            'true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the '
+                            'API and in DynamoDB for backwards compatibility.'
+                        ),
                     ),
                 },
             ),

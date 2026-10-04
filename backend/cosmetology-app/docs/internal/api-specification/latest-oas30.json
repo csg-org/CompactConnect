@@ -1830,7 +1830,7 @@
           },
           "licenseeRegistrationEnabled": {
             "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
+            "description": "No external process uses this value other than storing it. It does not mark the compact live and does not change privileges or which licenses are public. Once true, it cannot be set to false. The field is primarily preserved so the frontend can keep this feature. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility."
           },
           "compactOperationsTeamEmails": {
             "maxItems": 10,
@@ -2419,7 +2419,7 @@
           },
           "licenseeRegistrationEnabled": {
             "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
+            "description": "Whether this state's license data is live. When true, the state's licenses appear in public search and public provider detail, and the state is added to configuredStates with isLive false if it is not already listed. This does not grant privileges. Once true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility."
           }
         },
         "additionalProperties": false
@@ -3983,10 +3983,6 @@
               "format": "email"
             }
           },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
           "compactAbbr": {
             "type": "string",
             "description": "The abbreviation of the compact"
@@ -4002,6 +3998,10 @@
               "type": "string",
               "format": "email"
             }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "No external process uses this value other than storing it. It does not mark the compact live and does not change privileges or which licenses are public. Once true, it cannot be set to false. The field is primarily preserved so the frontend can keep this feature. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility."
           }
         }
       },
@@ -4045,7 +4045,7 @@
           },
           "licenseeRegistrationEnabled": {
             "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
+            "description": "Whether this state's license data is live. When true, the state's licenses appear in public search and public provider detail, and the state is added to configuredStates with isLive false if it is not already listed. This does not grant privileges. Once true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility."
           },
           "jurisdictionName": {
             "type": "string",

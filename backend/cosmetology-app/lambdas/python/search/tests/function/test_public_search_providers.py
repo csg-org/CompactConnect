@@ -30,6 +30,8 @@ _DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_DESC = [
 
 _PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_ASC = [{'dateOfUpdate': 'asc'}, {'_id': 'asc'}]
 _PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_DESC = [{'dateOfUpdate': 'desc'}, {'_id': 'asc'}]
+# setUp marks Ohio data-live; public search always terms-filters to that set.
+_DATA_LIVE_JURISDICTION_TERMS = {'terms': {'licenses.jurisdiction': ['oh']}}
 
 
 @mock_aws
@@ -38,6 +40,15 @@ class TestPublicSearchProviders(TstFunction):
 
     def setUp(self):
         super().setUp()
+        import handlers.public_search as public_search_module
+
+        public_search_module.config = self.config
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+            }
+        )
 
     @staticmethod
     def _expected_public_search_request_body(
@@ -49,6 +60,7 @@ class TestPublicSearchProviders(TstFunction):
         search_after: list | None = None,
     ) -> dict:
         """Full OpenSearch search body for public license query (must stay aligned with public_search handler)."""
+        licenses_nested_must = [*licenses_nested_must, _DATA_LIVE_JURISDICTION_TERMS]
         body: dict = {
             'query': {
                 'bool': {
@@ -568,6 +580,25 @@ class TestPublicSearchProviders(TstFunction):
         mock_opensearch_client.search.assert_not_called()
 
     @patch('handlers.public_search.opensearch_client')
+    def test_invalid_sort_key_returns_400_when_search_would_be_empty(self, mock_opensearch_client):
+        """Unknown sorting.key is rejected even when no data-live jurisdiction matches the query."""
+        from handlers.public_search import public_search_api_handler
+
+        event = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {'jurisdiction': 'az'},
+                'pagination': {'pageSize': 10},
+                'sorting': {'key': 'invalidKey', 'direction': 'ascending'},
+            },
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('Invalid sort key', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.public_search.opensearch_client')
     def test_no_search_criteria_returns_200(self, mock_opensearch_client):
         """Test that caller can provide an empty query body and still get a successful response."""
         from handlers.public_search import public_search_api_handler
@@ -1005,6 +1036,46 @@ class TestPublicSearchProviders(TstFunction):
         response = public_search_api_handler(event, self.mock_context)
         body = json.loads(response['body'])
         self.assertEqual(body['providers'], [])
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_non_data_live_jurisdiction_returns_empty_without_search(self, mock_opensearch_client):
+        """A jurisdiction filter outside the data-live set returns no licenses and does not query OpenSearch."""
+        from handlers.public_search import public_search_api_handler
+
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'jurisdiction': 'az'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertEqual([], body['providers'])
+        self.assertEqual({'jurisdiction': 'az'}, body['query'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_no_data_live_jurisdictions_returns_empty_without_search(self, mock_opensearch_client):
+        """When no jurisdiction is data-live, a name search returns empty without querying OpenSearch."""
+        from handlers.public_search import public_search_api_handler
+
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+                'isLicenseDataLive': False,
+            }
+        )
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'familyName': 'Smith'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertEqual([], body['providers'])
+        mock_opensearch_client.search.assert_not_called()
 
     def test_invalid_request_body_returns_400(self):
         """Test that invalid or missing body returns 400."""

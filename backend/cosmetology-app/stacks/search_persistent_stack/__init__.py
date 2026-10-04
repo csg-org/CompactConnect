@@ -101,6 +101,7 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.search_api_lambda_role,
             alarm_topic=persistent_stack.alarm_topic,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
         )
 
         # The public query providers route (POST /v1/public/.../providers/query) is wired to this

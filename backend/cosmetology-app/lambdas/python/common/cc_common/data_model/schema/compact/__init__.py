@@ -30,8 +30,12 @@ class Compact(UserDict):
         return self.get('compactAdverseActionsNotificationEmails')
 
     @property
-    def licensee_registration_enabled(self):
-        return self.get('licenseeRegistrationEnabled', False)
+    def is_license_data_live_compact_wide(self):
+        """Compact-wide flag. Persisted as licenseeRegistrationEnabled.
+
+        No external process uses this value other than storing it.
+        """
+        return self.get('isLicenseDataLiveCompactWide', False)
 
 
 # New data class-based implementation
@@ -64,8 +68,12 @@ class CompactConfigurationData(CCDataClass):
         return self._data.get('compactAdverseActionsNotificationEmails', [])
 
     @property
-    def licenseeRegistrationEnabled(self) -> bool:
-        return self._data.get('licenseeRegistrationEnabled', False)
+    def isLicenseDataLiveCompactWide(self) -> bool:
+        """Compact-wide flag. Persisted as licenseeRegistrationEnabled; see CompactRecordSchema.
+
+        No external process uses this value other than storing it.
+        """
+        return self._data.get('isLicenseDataLiveCompactWide', False)
 
     @property
     def configuredStates(self) -> list[dict]:

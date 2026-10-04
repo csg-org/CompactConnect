@@ -4,7 +4,10 @@ from cc_common.config import _Config, logger
 from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
-from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
+from cc_common.data_model.schema.jurisdiction.record import (
+    LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE,
+    JurisdictionRecordSchema,
+)
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
@@ -47,11 +50,10 @@ class CompactConfigurationClient:
         """
         logger.info('Saving compact configuration', compactAbbr=compact_configuration.compactAbbr)
 
-        try:
-            existing_compact_config = self.get_compact_configuration(compact_configuration.compactAbbr)
-        except CCNotFoundException:
-            logger.info('Existing compact configuration not found.', compact=compact_configuration.compactAbbr)
-            existing_compact_config = None
+        pk = f'{compact_configuration.compactAbbr}#CONFIGURATION'
+        sk = f'{compact_configuration.compactAbbr}#CONFIGURATION'
+        raw_item = self.config.compact_configuration_table.get_item(Key={'pk': pk, 'sk': sk}).get('Item')
+        existing_compact_config = CompactConfigurationData.from_database_record(raw_item) if raw_item else None
 
         if existing_compact_config:
             # Record exists - merge with existing data to preserve all fields
@@ -74,6 +76,13 @@ class CompactConfigurationClient:
             # First time creation - use the new data directly
             logger.info('Creating new compact configuration record', compactAbbr=compact_configuration.compactAbbr)
             final_serialized = compact_configuration.serialize_to_database_record()
+
+        # Compact-wide go-live is not modeled. Older items may still have attributes this schema does not load.
+        # put_item replaces the whole item, so copy those attributes back. They are not read and do not change behavior.
+        if raw_item:
+            for attribute_name, attribute_value in raw_item.items():
+                if attribute_name not in final_serialized:
+                    final_serialized[attribute_name] = attribute_value
 
         # Use put_item to save the final record
         self.config.compact_configuration_table.put_item(Item=final_serialized)
@@ -179,6 +188,33 @@ class CompactConfigurationClient:
                 return emails_by_jurisdiction
             query_kwargs['ExclusiveStartKey'] = last_evaluated_key
 
+    def get_data_live_jurisdictions(self, compact: str) -> list[str]:
+        """Postal abbreviations whose jurisdiction isLicenseDataLive flag is true.
+
+        One query of jurisdiction configuration items. The stored attribute is still
+        LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE (licenseeRegistrationEnabled). That name is kept so existing
+        jurisdiction items, including ones migrated from a registration-based compact, do not need a data migration.
+        Cosmetology does not use it as a registration switch. Compact-wide go-live is not consulted.
+        """
+        logger.info('Getting data-live jurisdictions', compact=compact)
+
+        postals: set[str] = set()
+        query_kwargs = {
+            'KeyConditionExpression': Key('pk').eq(f'{compact}#CONFIGURATION')
+            & Key('sk').begins_with(f'{compact}#JURISDICTION#'),
+            'ProjectionExpression': f'postalAbbreviation, {LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE}',
+        }
+        while True:
+            response = self.config.compact_configuration_table.query(**query_kwargs)
+            for item in response.get('Items', []):
+                postal_abbreviation = item.get('postalAbbreviation')
+                if postal_abbreviation and item.get(LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE) is True:
+                    postals.add(postal_abbreviation.lower())
+            last_evaluated_key = response.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                return sorted(postals)
+            query_kwargs['ExclusiveStartKey'] = last_evaluated_key
+
     def save_jurisdiction_configuration(self, jurisdiction_config: JurisdictionConfigurationData) -> None:
         """
         Save the jurisdiction configuration and update related compact configuration if needed.
@@ -191,20 +227,19 @@ class CompactConfigurationClient:
         self.config.compact_configuration_table.put_item(Item=serialized_jurisdiction)
 
         # Always check if jurisdiction should be in compact's configuredStates (idempotent)
-        self._ensure_jurisdiction_in_configured_states_if_registration_enabled(jurisdiction_config)
+        self._ensure_jurisdiction_in_configured_states_if_data_live(jurisdiction_config)
 
-    def _ensure_jurisdiction_in_configured_states_if_registration_enabled(
+    def _ensure_jurisdiction_in_configured_states_if_data_live(
         self, jurisdiction_config: JurisdictionConfigurationData
     ) -> None:
         """
-        Ensure that if a jurisdiction has licensee registration enabled, it appears in the compact's
-        configuredStates list.
+        Ensure that if a jurisdiction is data-live, it appears in the compact's configuredStates list.
 
         :param jurisdiction_config: The jurisdiction configuration to check
         """
-        if not jurisdiction_config.licenseeRegistrationEnabled:
+        if not jurisdiction_config.isLicenseDataLive:
             logger.debug(
-                'Jurisdiction does not have licensee registration enabled - no action needed',
+                'Jurisdiction is not data-live - no action needed',
                 compact=jurisdiction_config.compact,
                 jurisdiction=jurisdiction_config.postalAbbreviation,
             )
@@ -265,7 +300,7 @@ class CompactConfigurationClient:
     def update_compact_configured_states(self, compact: str, configured_states: list[dict]) -> None:
         """
         Update the configuredStates field for a compact configuration using DynamoDB UPDATE operation.
-        This is used to add states to configuredStates when they enable licensee registration.
+        This is used to add states to configuredStates when they mark license data live.
 
         :param compact: The compact abbreviation
         :param configured_states: The updated list of configured states

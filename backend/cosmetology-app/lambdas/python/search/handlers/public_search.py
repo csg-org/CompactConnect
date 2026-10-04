@@ -106,7 +106,26 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
     page_size = pagination.get('pageSize') or config.default_page_size
 
     cursor = _decode_public_cursor(pagination.get('lastKey'))
-    search_body = _build_public_license_search_body(compact=compact, body=body, cursor=cursor)
+    # Reject unknown sort keys even when the query would otherwise return no licenses.
+    _build_public_opensearch_sort(body)
+    data_live_jurisdictions = config.compact_configuration_client.get_data_live_jurisdictions(compact)
+    requested_jurisdiction = (query_obj.get('jurisdiction') or '').lower()
+    if not data_live_jurisdictions or (
+        requested_jurisdiction and requested_jurisdiction not in data_live_jurisdictions
+    ):
+        logger.info(
+            'Public license search skipped; no data-live jurisdiction matches the query',
+            compact=compact,
+            jurisdiction=requested_jurisdiction or None,
+        )
+        return _empty_public_license_search_response(body)
+
+    search_body = _build_public_license_search_body(
+        compact=compact,
+        body=body,
+        cursor=cursor,
+        data_live_jurisdictions=data_live_jurisdictions,
+    )
     index_name = f'compact_{compact}_providers'
 
     logger.info('Executing public license search', compact=compact, index_name=index_name)
@@ -255,7 +274,31 @@ def _build_public_opensearch_sort(body: dict) -> list:
             raise CCInvalidRequestException(f"Invalid sort key: '{sort_key}'")
 
 
-def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict | None = None) -> dict:
+def _empty_public_license_search_response(body: dict) -> dict:
+    pagination = body.get('pagination') or {}
+    sorting = body.get('sorting') or {}
+    return {
+        'providers': [],
+        'pagination': {
+            'pageSize': pagination.get('pageSize') or config.default_page_size,
+            'lastKey': None,
+            'prevLastKey': pagination.get('lastKey'),
+        },
+        'query': body.get('query', {}),
+        'sorting': {
+            'key': sorting.get('key') or 'familyName',
+            'direction': sorting.get('direction') or 'ascending',
+        },
+    }
+
+
+def _build_public_license_search_body(
+    *,
+    compact: str,
+    body: dict,
+    data_live_jurisdictions: list[str],
+    cursor: dict | None = None,
+) -> dict:
     query_obj = body.get('query', {})
     pagination = body.get('pagination') or {}
     page_size = pagination.get('pageSize') or config.default_page_size
@@ -273,6 +316,7 @@ def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict 
         nested_must.append({'match': {'licenses.familyName': query_obj['familyName']}})
     if query_obj.get('givenName'):
         nested_must.append({'match': {'licenses.givenName': query_obj['givenName']}})
+    nested_must.append({'terms': {'licenses.jurisdiction': data_live_jurisdictions}})
 
     nested_query = {'nested': {'path': 'licenses', 'query': {'bool': {'must': nested_must}}}}
 
