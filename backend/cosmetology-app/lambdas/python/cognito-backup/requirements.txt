@@ -6,7 +6,7 @@
 #
 aws-lambda-powertools==3.35.0
     # via -r cognito-backup/requirements.in
-boto3==1.43.98
+boto3==1.43.103
     # via -r cognito-backup/requirements.in
 botocore==1.43.103
     # via
