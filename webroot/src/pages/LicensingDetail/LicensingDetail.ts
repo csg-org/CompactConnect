@@ -176,6 +176,10 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.bestLicense().email || '';
     }
 
+    get phoneNumber(): string {
+        return this.licensee?.bestLicensePhoneNumberDisplay() || '';
+    }
+
     get licenseeLicenses(): Array<License> {
         return (this.licensee?.licenses || []).slice().sort(this.sortLicenses);
     }

@@ -347,6 +347,10 @@ export class Licensee implements InterfaceLicensee {
         return this.bestLicense().mailingAddress || new Address();
     }
 
+    public bestLicensePhoneNumberDisplay(): string {
+        return this.bestLicense().phoneNumberDisplay();
+    }
+
     public hasEncumberedLicenses(): boolean {
         return this.licenses?.some((license: License) => license.isEncumbered()) || false;
     }

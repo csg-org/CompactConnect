@@ -8,6 +8,7 @@
 import { deleteUndefinedProperties, isDatePastExpiration } from '@models/_helpers';
 import { serverDateFormat } from '@/app.config';
 import { dateDisplay } from '@models/_formatters/date';
+import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
@@ -63,6 +64,7 @@ export interface InterfaceLicense {
     activeFromDate?: string | null;
     mailingAddress?: Address;
     email?: string | null;
+    phoneNumber?: string | null;
     expireDate?: string | null;
     npi?: string | null;
     licenseNumber?: string | null;
@@ -93,6 +95,7 @@ export class License implements InterfaceLicense {
     public activeFromDate? = null;
     public mailingAddress? = new Address();
     public email? = null;
+    public phoneNumber? = null;
     public renewalDate? = null;
     public npi? = null;
     public licenseNumber? = null;
@@ -218,6 +221,10 @@ export class License implements InterfaceLicense {
     public isUnderInvestigation(): boolean {
         return this.investigations?.some((investigation: Investigation) => investigation.isActive()) || false;
     }
+
+    public phoneNumberDisplay(): string {
+        return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
+    }
 }
 
 // ========================================================
@@ -238,6 +245,7 @@ export class LicenseSerializer {
                 zip: json.homeAddressPostalCode,
             }),
             email: json.emailAddress,
+            phoneNumber: json.phoneNumber,
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             issueDate: json.dateOfIssuance,
             activeFromDate: json.activeSince,

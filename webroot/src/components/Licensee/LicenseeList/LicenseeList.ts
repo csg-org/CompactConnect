@@ -264,6 +264,12 @@ class LicenseeList extends Vue {
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
+            ...(this.$isAppModeSocialWork)
+                ? {
+                    isPublicSearch: false,
+                    bestLicensePhoneNumberDisplay: () => this.$t('common.phoneNumber'),
+                }
+                : {},
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             ...(this.$isAppGroupModeMultiState
                 ? { ...multiStateColumns }
