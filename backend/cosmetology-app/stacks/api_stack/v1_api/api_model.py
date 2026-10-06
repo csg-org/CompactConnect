@@ -1025,7 +1025,6 @@ class ApiModel:
                                     type=JsonSchemaType.ARRAY,
                                     description=(
                                         'Adverse action notification emails stored for this state. '
-                                        'Read from the jurisdiction record. Operations emails are not included.'
                                     ),
                                     items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                                 ),
