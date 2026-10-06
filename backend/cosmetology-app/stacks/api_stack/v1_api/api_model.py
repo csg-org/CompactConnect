@@ -1103,8 +1103,10 @@ class ApiModel:
                                     type=JsonSchemaType.ARRAY,
                                     description=(
                                         'Adverse action notification emails. Required when marking the state '
-                                        'privilege-live, even if the jurisdiction already has emails. An existing '
-                                        'list is not overwritten. Not stored on the compact.'
+                                        'privilege-live (when isLive changes from false -> true), even if the '
+                                        'jurisdiction already has emails. An existing non-empty'
+                                        'list is never overwritten, to prevent compact admins from overwriting state'
+                                        'admin emails - it\'s always required for frontend simplicity\'s sake'
                                     ),
                                     max_items=10,
                                     unique_items=True,
