@@ -39,18 +39,20 @@
                             {{ licenseeHomeStateDisplay }}
                         </div>
                     </div>
-                    <div
-                        v-for="(license, idx) in activeLicenses"
-                        :key="idx"
-                        class="tag"
-                    >
-                        <div class="tag-icon-container">
-                            <LicenseIcon />
+                    <template v-if="!$isAppModeSocialWork">
+                        <div
+                            v-for="(license, idx) in activeLicenses"
+                            :key="idx"
+                            class="tag"
+                        >
+                            <div class="tag-icon-container">
+                                <LicenseIcon />
+                            </div>
+                            <div class="tag-text">
+                                {{ license.issueState.name() }}
+                            </div>
                         </div>
-                        <div class="tag-text">
-                            {{ license.issueState.name() }}
-                        </div>
-                    </div>
+                    </template>
                 </div>
             </div>
             <div class="personal-information-section rr-block">
@@ -96,6 +98,10 @@
                         <div class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.stateEmail')}}</div>
                             <div class="info-item email">{{stateEmail}}</div>
+                        </div>
+                        <div v-if="$isAppModeSocialWork" class="info-item-container">
+                            <div class="info-item-title">{{$t('common.phoneNumber')}}</div>
+                            <div class="info-item phone">{{phoneNumber}}</div>
                         </div>
                         <div v-if="dob" class="info-item-container">
                             <div class="info-item-title">{{$t('common.dateOfBirthShort')}}</div>
