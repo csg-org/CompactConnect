@@ -17,7 +17,10 @@ from constructs import Construct
 
 from stacks import event_state_stack as ess
 from stacks import persistent_stack as ps
-from stacks.dietitian_resource_names import DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME
+from stacks.dietitian_resource_names import (
+    DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME,
+    DIETITIAN_QUERY_DEFINITION_PREFIX,
+)
 
 
 class NotificationStack(AppStack):
@@ -143,6 +146,7 @@ class NotificationStack(AppStack):
             alarm_topic=persistent_stack.alarm_topic,
             # We want to be aware if any communications failed to send, so we'll set this threshold to 1
             dlq_count_alarm_threshold=1,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )
 
         # Create rule to route privilege.purchase events to the SQS queue
@@ -241,6 +245,7 @@ class NotificationStack(AppStack):
             listener_detail_type=listener_detail_type,
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )
 
     def _add_license_encumbrance_notification_listener(

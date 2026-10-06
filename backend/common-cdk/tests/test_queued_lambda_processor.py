@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from aws_cdk import App, Duration, Stack
-from aws_cdk.assertions import Template
+from aws_cdk.assertions import Match, Template
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import CfnEventSourceMapping, Code, Function, Runtime
 from aws_cdk.aws_sns import Topic
@@ -59,6 +59,30 @@ class TestQueuedLambdaProcessor(TestCase):
                         'maxReceiveCount': 3,
                     },
                     'VisibilityTimeout': 5 * 60,
+                }
+            },
+        )
+
+        template.has_resource_properties(
+            'AWS::IAM::Policy',
+            {
+                'PolicyDocument': {
+                    'Statement': Match.array_with(
+                        [
+                            Match.object_like(
+                                {
+                                    'Action': Match.array_with(['sqs:ReceiveMessage']),
+                                    'Effect': 'Allow',
+                                    'Resource': {
+                                        'Fn::GetAtt': [
+                                            stack.get_logical_id(processor.queue.node.default_child),
+                                            'Arn',
+                                        ]
+                                    },
+                                }
+                            )
+                        ]
+                    )
                 }
             },
         )

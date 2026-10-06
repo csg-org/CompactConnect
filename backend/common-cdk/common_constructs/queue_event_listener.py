@@ -44,6 +44,7 @@ class QueueEventListener(Construct):
         max_receive_count: int = 3,
         batch_size: int = 10,
         dlq_count_alarm_threshold: int = 1,
+        query_definition_name_prefix: str = '',
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -76,6 +77,7 @@ class QueueEventListener(Construct):
             encryption_key=encryption_key,
             alarm_topic=alarm_topic,
             dlq_count_alarm_threshold=dlq_count_alarm_threshold,
+            query_definition_name_prefix=query_definition_name_prefix,
         )
 
         # Create rule to route specified detail events to the SQS queue

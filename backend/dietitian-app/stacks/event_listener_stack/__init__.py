@@ -12,7 +12,10 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
-from stacks.dietitian_resource_names import DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME
+from stacks.dietitian_resource_names import (
+    DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME,
+    DIETITIAN_QUERY_DEFINITION_PREFIX,
+)
 
 
 class EventListenerStack(AppStack):
@@ -97,6 +100,7 @@ class EventListenerStack(AppStack):
             listener_detail_type='license.encumbrance',
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )
 
     def _add_lifting_license_encumbrance_listener(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
@@ -146,6 +150,7 @@ class EventListenerStack(AppStack):
             listener_detail_type='license.encumbranceLifted',
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )
 
     def _add_license_deactivation_listener(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
@@ -192,4 +197,5 @@ class EventListenerStack(AppStack):
             listener_detail_type='license.deactivation',
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )

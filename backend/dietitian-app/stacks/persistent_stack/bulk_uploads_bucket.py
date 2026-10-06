@@ -20,6 +20,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 import stacks.persistent_stack as ps
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 from stacks.persistent_stack.provider_table import ProviderTable
 
 
@@ -60,7 +61,7 @@ class BulkUploadsBucket(Bucket):
         QueryDefinition(
             self,
             'RuntimeQuery',
-            query_definition_name=f'{construct_id}/Lambdas',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{construct_id}/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'status', 'message', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

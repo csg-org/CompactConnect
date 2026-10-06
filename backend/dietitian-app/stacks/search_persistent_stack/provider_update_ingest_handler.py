@@ -15,6 +15,7 @@ from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from common_constructs.stack import Stack
 from constructs import Construct
 
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 from stacks.persistent_stack import ProviderTable
 from stacks.vpc_stack import VpcStack
 
@@ -126,6 +127,7 @@ class ProviderUpdateIngestHandler(Construct):
             dlq_retention_period=Duration.days(14),
             # Alert immediately if any messages end up in the DLQ
             dlq_count_alarm_threshold=0,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )
 
         # Expose the queue and DLQ for use by the EventBridge Pipe

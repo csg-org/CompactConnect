@@ -17,6 +17,7 @@ from constructs import Construct
 from stacks import event_state_stack as ess
 from stacks import persistent_stack as ps
 from stacks import search_persistent_stack as sps
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 from stacks.vpc_stack import VpcStack
 
 
@@ -167,7 +168,7 @@ class ExpirationReminderStack(AppStack):
         QueryDefinition(
             self,
             'ExpirationReminderQuery',
-            query_definition_name=f'{self.node.id}/ExpirationReminderHandler',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{self.node.id}/ExpirationReminderHandler',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'message', 'compact', 'provider_id', 'event_type', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

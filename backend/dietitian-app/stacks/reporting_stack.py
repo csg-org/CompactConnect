@@ -17,6 +17,7 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 
 
 class ReportingStack(AppStack):
@@ -123,7 +124,7 @@ class ReportingStack(AppStack):
         QueryDefinition(
             self,
             'RuntimeQuery',
-            query_definition_name=f'{self.node.id}/Lambdas',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{self.node.id}/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'message', 'compact', 'jurisdiction', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
@@ -252,7 +253,7 @@ class ReportingStack(AppStack):
         QueryDefinition(
             self,
             'TransactionReporterQuery',
-            query_definition_name=f'{self.node.id}/TransactionReporter',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{self.node.id}/TransactionReporter',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'message', 'compact', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

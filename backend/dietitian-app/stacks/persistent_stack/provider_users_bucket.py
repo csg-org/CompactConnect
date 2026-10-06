@@ -20,6 +20,7 @@ from constructs import Construct
 
 import stacks.persistent_stack as ps
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 
 
 class ProviderUsersBucket(Bucket):
@@ -77,7 +78,7 @@ class ProviderUsersBucket(Bucket):
         QueryDefinition(
             self,
             'RuntimeQuery',
-            query_definition_name=f'{construct_id}/Lambdas',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{construct_id}/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'status', 'message', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

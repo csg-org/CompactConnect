@@ -91,7 +91,7 @@ class BackupInfrastructureStack(NestedStack):
         Alias(
             self,
             'LocalBackupEncryptionKeyAlias',
-            alias_name=f'alias/compactconnect-{self.environment_name}-backup-key',
+            alias_name=f'alias/compactconnect-{self.environment_name}-dietitian-backup-key',
             target_key=self.local_backup_key,
         )
 
@@ -109,7 +109,7 @@ class BackupInfrastructureStack(NestedStack):
         Alias(
             self,
             'LocalSSNBackupEncryptionKeyAlias',
-            alias_name=f'alias/compactconnect-{self.environment_name}-ssn-backup-key',
+            alias_name=f'alias/compactconnect-{self.environment_name}-dietitian-ssn-backup-key',
             target_key=self.local_ssn_backup_key,
         )
 
@@ -118,7 +118,7 @@ class BackupInfrastructureStack(NestedStack):
         self.backup_service_role = Role(
             self,
             'BackupServiceRole',
-            role_name=f'CompactConnect-{self.environment_name}-BackupServiceRole',
+            role_name=f'CompactConnect-{self.environment_name}-Dietitian-BackupServiceRole',
             assumed_by=ServicePrincipal('backup.amazonaws.com'),
             managed_policies=[
                 ManagedPolicy.from_aws_managed_policy_name('service-role/AWSBackupServiceRolePolicyForBackup'),
@@ -152,7 +152,7 @@ class BackupInfrastructureStack(NestedStack):
         self.ssn_backup_service_role = Role(
             self,
             'SSNBackupServiceRole',
-            role_name=f'CompactConnect-{self.environment_name}-SSNBackupRole',
+            role_name=f'CompactConnect-{self.environment_name}-Dietitian-SSNBackupRole',
             assumed_by=ServicePrincipal('backup.amazonaws.com'),
             managed_policies=[
                 ManagedPolicy.from_aws_managed_policy_name('service-role/AWSBackupServiceRolePolicyForBackup'),
@@ -184,7 +184,7 @@ class BackupInfrastructureStack(NestedStack):
         self.local_backup_vault = BackupVault(
             self,
             'LocalBackupVault',
-            backup_vault_name=f'CompactConnect-{self.environment_name}-BackupVault',
+            backup_vault_name=f'CompactConnect-{self.environment_name}-Dietitian-BackupVault',
             encryption_key=self.local_backup_key,
             removal_policy=self.removal_policy,
             # note the changeable_for field is not set, so this lock is set under governance mode
@@ -220,7 +220,7 @@ class BackupInfrastructureStack(NestedStack):
         self.local_ssn_backup_vault = BackupVault(
             self,
             'LocalSSNBackupVault',
-            backup_vault_name=f'CompactConnect-{self.environment_name}-SSNBackupVault',
+            backup_vault_name=f'CompactConnect-{self.environment_name}-Dietitian-SSNBackupVault',
             encryption_key=self.local_ssn_backup_key,
             removal_policy=self.removal_policy,
             # note the changeable_for field is not set, so this lock is set under governance mode

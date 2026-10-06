@@ -127,7 +127,7 @@ class BackupSmokeTest:
             pass
 
         environment_name = context.get('environment_name', 'test')
-        return f'CompactConnect-{environment_name}-{role_suffix}'
+        return f'CompactConnect-{environment_name}-Dietitian-{role_suffix}'
 
     def _get_env_var(self, var_name: str, required: bool = True) -> str:
         """Get environment variable with error handling."""

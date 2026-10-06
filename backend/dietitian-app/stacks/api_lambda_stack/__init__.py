@@ -15,7 +15,10 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
-from stacks.dietitian_resource_names import DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME
+from stacks.dietitian_resource_names import (
+    DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME,
+    DIETITIAN_QUERY_DEFINITION_PREFIX,
+)
 from stacks.provider_users import ProviderUsersStack
 
 from .attestations import AttestationsLambdas
@@ -219,7 +222,7 @@ class ApiLambdaStack(AppStack):
         QueryDefinition(
             self,
             'RuntimeQuery',
-            query_definition_name=f'{self.node.id}/Lambdas',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{self.node.id}/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', 'level', 'status', 'message', 'method', 'path', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

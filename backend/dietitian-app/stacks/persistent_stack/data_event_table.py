@@ -26,6 +26,7 @@ from constructs import Construct
 
 from stacks import persistent_stack as ps
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 
 
 class DataEventTable(Table):
@@ -109,6 +110,7 @@ class DataEventTable(Table):
             batch_size=10,
             encryption_key=encryption_key,
             alarm_topic=alarm_topic,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )
 
         event_receiver_rule = Rule(

@@ -19,9 +19,11 @@ class PythonCommonLayerVersions(Construct):
         construct_id: str,
         *,
         compatible_runtimes: list[Runtime],
+        parameter_name_prefix: str = '/deployment/lambda/layers',
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id)
+        self._parameter_name_prefix = parameter_name_prefix.rstrip('/')
 
         from common_constructs.python_function import PythonFunction
 
@@ -116,6 +118,5 @@ class PythonCommonLayerVersions(Construct):
     def _get_ilayer_construct_id_for_runtime(runtime: Runtime):
         return f'{runtime.name}CommonPythonLayer'
 
-    @staticmethod
-    def _get_parameter_name_for_runtime(runtime: Runtime):
-        return f'/deployment/lambda/layers/{runtime.name}/common-python-layer-arn'
+    def _get_parameter_name_for_runtime(self, runtime: Runtime):
+        return f'{self._parameter_name_prefix}/{runtime.name}/common-python-layer-arn'

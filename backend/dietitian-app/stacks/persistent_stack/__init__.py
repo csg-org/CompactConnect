@@ -22,7 +22,11 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
-from stacks.dietitian_resource_names import DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME
+from stacks.dietitian_resource_names import (
+    DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME,
+    DIETITIAN_PYTHON_LAYER_PARAMETER_PREFIX,
+    DIETITIAN_QUERY_DEFINITION_PREFIX,
+)
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
@@ -67,6 +71,7 @@ class PersistentStack(AppStack):
             self,
             'PythonCommonLayerVersions',
             compatible_runtimes=[Runtime.PYTHON_3_12, Runtime.PYTHON_3_14],
+            parameter_name_prefix=DIETITIAN_PYTHON_LAYER_PARAMETER_PREFIX,
         )
 
         self.shared_encryption_key = Key(
@@ -180,7 +185,7 @@ class PersistentStack(AppStack):
         QueryDefinition(
             self,
             'StaffUserCustomEmails',
-            query_definition_name='StaffUserCustomEmails/Lambdas',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/StaffUserCustomEmails/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'message', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

@@ -6,6 +6,7 @@ from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 from stacks.persistent_stack import PersistentStack
 from stacks.provider_users.provider_users import ProviderUsers
 
@@ -84,7 +85,7 @@ class ProviderUsersStack(AppStack):
         QueryDefinition(
             self,
             'ProviderUserCustomEmails',
-            query_definition_name='ProviderUserCustomEmails/Lambdas',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/ProviderUserCustomEmails/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'message', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

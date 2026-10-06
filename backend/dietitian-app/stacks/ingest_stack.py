@@ -16,7 +16,10 @@ from common_constructs.stack import AppStack, Stack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
-from stacks.dietitian_resource_names import DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME
+from stacks.dietitian_resource_names import (
+    DIETITIAN_DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME,
+    DIETITIAN_QUERY_DEFINITION_PREFIX,
+)
 from stacks.provider_users import ProviderUsersStack
 
 
@@ -153,6 +156,7 @@ class IngestStack(AppStack):
             batch_size=50,
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )
 
         ingest_rule = Rule(

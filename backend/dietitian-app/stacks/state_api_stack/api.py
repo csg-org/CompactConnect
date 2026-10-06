@@ -7,6 +7,7 @@ from constructs import Construct
 
 from common_constructs.cc_api import CCApi
 from stacks import persistent_stack as ps
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 from stacks.state_auth import StateAuthStack
 
 
@@ -51,7 +52,7 @@ class StateApi(CCApi):
         QueryDefinition(
             self,
             'RuntimeQuery',
-            query_definition_name=f'{self.node.id}/Lambdas',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{self.node.id}/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

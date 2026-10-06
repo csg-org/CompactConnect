@@ -55,7 +55,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
         self.template.has_resource_properties(
             CfnBackupVault.CFN_RESOURCE_TYPE_NAME,
             {
-                'BackupVaultName': f'CompactConnect-{environment_name}-BackupVault',
+                'BackupVaultName': f'CompactConnect-{environment_name}-Dietitian-BackupVault',
                 'EncryptionKeyArn': Match.any_value(),
                 'LockConfiguration': {
                     'MinRetentionDays': 180,
@@ -69,7 +69,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
         self.template.has_resource_properties(
             CfnBackupVault.CFN_RESOURCE_TYPE_NAME,
             {
-                'BackupVaultName': f'CompactConnect-{environment_name}-SSNBackupVault',
+                'BackupVaultName': f'CompactConnect-{environment_name}-Dietitian-SSNBackupVault',
                 'EncryptionKeyArn': Match.any_value(),
                 'LockConfiguration': {
                     'MinRetentionDays': 180,
@@ -84,13 +84,19 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
         # General backup key alias
         self.template.has_resource_properties(
             CfnAlias.CFN_RESOURCE_TYPE_NAME,
-            {'AliasName': f'alias/compactconnect-{environment_name}-backup-key', 'TargetKeyId': Match.any_value()},
+            {
+                'AliasName': f'alias/compactconnect-{environment_name}-dietitian-backup-key',
+                'TargetKeyId': Match.any_value(),
+            },
         )
 
         # SSN backup key alias
         self.template.has_resource_properties(
             CfnAlias.CFN_RESOURCE_TYPE_NAME,
-            {'AliasName': f'alias/compactconnect-{environment_name}-ssn-backup-key', 'TargetKeyId': Match.any_value()},
+            {
+                'AliasName': f'alias/compactconnect-{environment_name}-dietitian-ssn-backup-key',
+                'TargetKeyId': Match.any_value(),
+            },
         )
 
     def test_backup_service_roles_configuration(self):
@@ -101,7 +107,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
         self.template.has_resource_properties(
             CfnRole.CFN_RESOURCE_TYPE_NAME,
             {
-                'RoleName': f'CompactConnect-{environment_name}-BackupServiceRole',
+                'RoleName': f'CompactConnect-{environment_name}-Dietitian-BackupServiceRole',
                 'AssumeRolePolicyDocument': {
                     'Statement': [
                         {
@@ -119,7 +125,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
         self.template.has_resource_properties(
             CfnRole.CFN_RESOURCE_TYPE_NAME,
             {
-                'RoleName': f'CompactConnect-{environment_name}-SSNBackupRole',
+                'RoleName': f'CompactConnect-{environment_name}-Dietitian-SSNBackupRole',
                 'AssumeRolePolicyDocument': {
                     'Statement': [
                         {
@@ -146,7 +152,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
         self.template.has_resource_properties(
             CfnRole.CFN_RESOURCE_TYPE_NAME,
             {
-                'RoleName': f'CompactConnect-{environment_name}-SSNBackupRole',
+                'RoleName': f'CompactConnect-{environment_name}-Dietitian-SSNBackupRole',
                 'Policies': Match.array_with(
                     [
                         {

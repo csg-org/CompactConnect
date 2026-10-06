@@ -1,4 +1,4 @@
-from aws_cdk import Duration, Fn, RemovalPolicy
+from aws_cdk import ArnFormat, Duration, Fn, RemovalPolicy
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_ec2 import EbsDeviceVolumeType, SubnetSelection, SubnetType
@@ -26,6 +26,16 @@ from stacks.vpc_stack import VpcStack
 
 PROD_EBS_VOLUME_SIZE = 25
 NON_PROD_EBS_VOLUME_SIZE = 10
+
+
+def _log_stream_wildcard_arn(log_group: LogGroup) -> str:
+    """ARN covering streams in a log group: arn:...:log-group:<name>:*"""
+    return Stack.of(log_group).format_arn(
+        service='logs',
+        resource='log-group',
+        arn_format=ArnFormat.COLON_RESOURCE_NAME,
+        resource_name=f'{log_group.log_group_name}:*',
+    )
 
 
 class ProviderSearchDomain(Construct):
@@ -126,9 +136,11 @@ class ProviderSearchDomain(Construct):
         )
 
         # Create CloudWatch Logs resource policy to allow OpenSearch to write logs
-        # This is set here to avoid CDK creating an auto-generated Lambda function
-        # The resource ARNs must include ':*' to grant permissions on log streams within the log groups
-        ResourcePolicy(
+        # This is set here to avoid CDK creating an auto-generated Lambda function.
+        # Build the stream ARN from the log group name. log_group_arn is the
+        # CloudFormation Arn attribute, which already ends in ':*', so appending
+        # another ':*' does not match logs:CreateLogStream.
+        logs_resource_policy = ResourcePolicy(
             self,
             'LogsResourcePolicy',
             policy_statements=[
@@ -140,9 +152,9 @@ class ProviderSearchDomain(Construct):
                         'logs:CreateLogStream',
                     ],
                     resources=[
-                        f'{app_log_group.log_group_arn}:*',
-                        f'{slow_search_log_group.log_group_arn}:*',
-                        f'{slow_index_log_group.log_group_arn}:*',
+                        _log_stream_wildcard_arn(app_log_group),
+                        _log_stream_wildcard_arn(slow_search_log_group),
+                        _log_stream_wildcard_arn(slow_index_log_group),
                     ],
                 ),
             ],
@@ -209,6 +221,9 @@ class ProviderSearchDomain(Construct):
             removal_policy=removal_policy,
             zone_awareness=zone_awareness_config,
         )
+        # OpenSearch checks the log policy when the domain is created. The domain
+        # must wait until that policy exists.
+        self.domain.node.add_dependency(logs_resource_policy)
 
         # Configure access policies
         self._configure_access_policies()

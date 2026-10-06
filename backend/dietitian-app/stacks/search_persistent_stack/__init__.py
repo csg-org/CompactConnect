@@ -3,6 +3,7 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 from stacks.persistent_stack import PersistentStack
 from stacks.search_persistent_stack.export_results_bucket import ExportResultsBucket
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
@@ -158,7 +159,7 @@ class SearchPersistentStack(AppStack):
         QueryDefinition(
             self,
             'IngestQuery',
-            query_definition_name=f'{self.node.id}/ProviderUpdateIngest',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{self.node.id}/ProviderUpdateIngest',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'message', 'compact', 'provider_id', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
@@ -171,7 +172,7 @@ class SearchPersistentStack(AppStack):
         QueryDefinition(
             self,
             'SearchLambdaQuery',
-            query_definition_name=f'{self.node.id}/SearchAPILambda',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{self.node.id}/SearchAPILambda',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'message', 'compact', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

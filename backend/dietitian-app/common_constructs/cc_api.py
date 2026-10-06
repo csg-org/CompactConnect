@@ -33,6 +33,7 @@ from common_constructs.webacl import WebACL, WebACLScope
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX
 
 MD_FORMAT = r'^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 YMD_FORMAT = r'^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'
@@ -239,7 +240,7 @@ class CCApi(RestApi):
         QueryDefinition(
             self,
             'APILogs',
-            query_definition_name=f'{self.node.id}/API',
+            query_definition_name=f'{DIETITIAN_QUERY_DEFINITION_PREFIX}/{self.node.id}/API',
             query_string=QueryString(
                 fields=['@timestamp', 'level', 'status', 'message', 'method', 'path', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],

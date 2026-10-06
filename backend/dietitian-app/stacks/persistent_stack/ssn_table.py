@@ -31,9 +31,10 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from stacks.dietitian_resource_names import DIETITIAN_QUERY_DEFINITION_PREFIX, DIETITIAN_SSN_KEY_ALIAS
 
 # Name for SSN disaster recovery sync table state machine for specific permissions
-SSN_SYNC_STATE_MACHINE_NAME = 'SSNTable-SSNSyncTableData'
+SSN_SYNC_STATE_MACHINE_NAME = 'dietitian-SSNTable-SSNSyncTableData'
 # Name prefix for all SSN tables recovered through disaster recovery process
 # Used to grant read permissions on any restored table that follows this naming convention.
 SSN_RESTORED_TABLE_NAME_PREFIX = 'DR-TEMP-SSN-'
@@ -61,7 +62,7 @@ class SSNTable(Table):
             scope,
             'SSNKey',
             enable_key_rotation=True,
-            alias='ssn-key',
+            alias=DIETITIAN_SSN_KEY_ALIAS,
             removal_policy=removal_policy,
         )
 
@@ -498,6 +499,7 @@ class SSNTable(Table):
             # Use the SSN key for encryption to protect sensitive data
             encryption_key=self.key,
             alarm_topic=alarm_topic,
+            query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
         )
 
     def _role_suppressions(self, role: Role):
