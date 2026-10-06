@@ -250,7 +250,7 @@ class LicenseeList extends Vue {
             : this.$t('licensing.licensingListDescription');
     }
 
-    get headerRecord() {
+    get headerRecord(): object {
         const multiStateColumns = {
             licenseNumber: this.$t('licensing.stateLicenseNumber'),
             ...(this.isPublicSearch)

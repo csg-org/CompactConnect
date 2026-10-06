@@ -219,7 +219,7 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public phoneNumberDisplay(): string {
-        return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
+        return (this.phoneNumber) ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
     }
 
     public isMilitaryStatusActive(): boolean {

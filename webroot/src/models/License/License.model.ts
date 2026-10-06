@@ -223,7 +223,7 @@ export class License implements InterfaceLicense {
     }
 
     public phoneNumberDisplay(): string {
-        return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
+        return (this.phoneNumber) ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
     }
 }
 
