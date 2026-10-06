@@ -289,7 +289,7 @@ def _normalized_emails(emails: list[str]) -> set[str]:
 
 
 def _deduplicated_emails(emails: list[str]) -> list[str]:
-    """Keep the first spelling of each address, ignoring case and surrounding whitespace."""
+    """Keep the first version of each address, ignoring case and surrounding whitespace."""
     seen: set[str] = set()
     deduplicated: list[str] = []
     for email in emails:

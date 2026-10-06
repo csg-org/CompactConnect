@@ -676,9 +676,9 @@ class ProviderUserRecords:
                 config.compact_configuration_client.get_data_live_jurisdictions(provider['compact'])
             )
             licenses = [
-                license
-                for license in licenses
-                if str(license.get('jurisdiction', '')).lower() in data_live_jurisdictions
+                license_dict
+                for license_dict in licenses
+                if str(license_dict.get('jurisdiction', '')).lower() in data_live_jurisdictions
             ]
 
         # Build privileges at runtime from eligible licenses (one privilege per license type per compact jurisdiction)

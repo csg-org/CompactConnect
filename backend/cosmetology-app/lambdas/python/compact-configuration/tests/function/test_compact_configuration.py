@@ -816,7 +816,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(400, response['statusCode'])
         self.assertIn('at least one', json.loads(response['body'])['message'])
 
-    def test_put_compact_configuration_deduplicates_emails_when_creating_jurisdiction(self):
+    def test_put_compact_configuration_deduplicates_emails_when_marking_jurisdiction_privilege_live(self):
         """New privilege-live jurisdictions store the first spelling of each address."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
