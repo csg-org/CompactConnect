@@ -21,7 +21,7 @@
         "properties": {
           "licenseTypeAbbreviation": {
             "enum": [
-              "rd"
+              "diet"
             ],
             "type": "string"
           },

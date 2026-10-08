@@ -29,7 +29,7 @@
     ],
     "license_types": {
       "diet": [
-        {"name": "dietitian", "abbreviation": "rd"}
+        {"name": "dietitian", "abbreviation": "diet"}
       ]
     },
     "compacts": [
