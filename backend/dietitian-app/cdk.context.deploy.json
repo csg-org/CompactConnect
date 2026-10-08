@@ -1,0 +1,15 @@
+{
+  "ssm_context": {
+    "environments": {
+      "deploy": {
+        "account_id": "851725635878",
+        "region": "us-east-1",
+        "notifications": {
+          "email": [
+            "dana@inspiringapps.com"
+          ]
+        }
+      }
+    }
+  }
+}
