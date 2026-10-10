@@ -85,14 +85,27 @@ class StateSettingsConfig extends mixins(MixinForm) {
         return this.userStore?.currentCompact?.type || null;
     }
 
+    get isCompactSeparatingPrivilegeEnabled(): boolean {
+        return this.$isAppModeCosmetology;
+    }
+
     get user(): StaffUser | null {
         return this.userStore?.model || null;
     }
 
     get liveStatusLabel(): string {
-        return (this.$isAppGroupModeMultiState)
-            ? this.$t('compact.privilegePurchaseEnabledSubtextMultiState')
-            : this.$t('compact.privilegePurchaseEnabledSubtext');
+        let statusLabel = this.$t('compact.privilegePurchaseEnabledSubtext');
+
+        if (this.isCompactSeparatingPrivilegeEnabled) {
+            statusLabel = `${this.$t('compact.privilegePurchaseEnabledSubtextMultiState1')}
+                ${this.$t('compact.privilegePurchaseEnabledSubtextIrreversable')}`;
+        } else if (this.$isAppGroupModeMultiState) {
+            statusLabel = `${this.$t('compact.privilegePurchaseEnabledSubtextMultiState1')}
+                ${this.$t('compact.privilegePurchaseEnabledSubtextMultiState2')}
+                ${this.$t('compact.privilegePurchaseEnabledSubtextIrreversable')}`;
+        }
+
+        return statusLabel;
     }
 
     get submitLabel(): string {
@@ -195,7 +208,9 @@ class StateSettingsConfig extends mixins(MixinForm) {
             isPurchaseEnabled: new FormInput({
                 id: 'purchase-enabled',
                 name: 'purchase-enabled',
-                label: computed(() => this.$t('compact.privilegePurchaseEnabled')),
+                label: computed(() => ((this.$isAppGroupModeMultiState)
+                    ? this.$t('compact.privilegePurchaseEnabledMultiState')
+                    : this.$t('compact.privilegePurchaseEnabled'))),
                 labelSubtext: computed(() => this.liveStatusLabel),
                 validation: Joi.boolean().required().messages(this.joiMessages.boolean),
                 valueOptions: [

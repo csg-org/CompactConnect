@@ -858,6 +858,8 @@ class TestEncumbranceEvents(TstFunction):
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
         self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
+        # ky has a license but is not privilege-live, so it is not notified
+        self.assertNotIn('ky', call_jurisdictions)
 
         # Verify all calls have the correct template_variables structure
         for call in calls:

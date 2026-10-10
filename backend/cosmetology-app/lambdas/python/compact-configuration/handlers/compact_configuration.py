@@ -172,7 +172,11 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
 
     try:
         compact_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
-        return CompactConfigurationResponseSchema().load(compact_config.to_dict())
+        response_data = compact_config.to_dict()
+        response_data['configuredStates'] = _configured_states_with_adverse_action_emails(
+            compact, response_data.get('configuredStates', [])
+        )
+        return CompactConfigurationResponseSchema().load(response_data)
     except CCNotFoundException:
         # in the case of a not found exception, we want to return an empty compact configuration with
         # null values
@@ -183,7 +187,7 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
             {
                 'compactAbbr': compact,
                 'compactName': compact_name,
-                'licenseeRegistrationEnabled': False,
+                'isLicenseDataLiveCompactWide': False,
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
                 'configuredStates': [],
@@ -218,23 +222,28 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
             raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
         validated_data['compactName'] = compact_name
 
-        # Check if licenseeRegistrationEnabled is being changed from true to false
+        # No external process uses the compact-wide flag other than storing its value.
+        # The true-to-false rejection is preserved. The stored attribute is still licenseeRegistrationEnabled.
+        existing_states: list[dict] = []
         try:
             existing_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
-            if existing_config.licenseeRegistrationEnabled and not validated_data.get('licenseeRegistrationEnabled'):
+            if existing_config.isLicenseDataLiveCompactWide and not validated_data.get('isLicenseDataLiveCompactWide'):
                 logger.info(
                     'attempt to disable licensee registration after it was enabled.',
                     compact=compact,
                     submitting_user_id=submitting_user_id,
                 )
                 raise CCInvalidRequestException('Once licensee registration has been enabled, it cannot be disabled.')
-
-            _validate_configured_states_transitions(
-                existing_config.configuredStates, validated_data['configuredStates'], compact, submitting_user_id
-            )
+            existing_states = existing_config.configuredStates
         except CCNotFoundException:
             # No existing configuration, so this is the first time setting this field
             logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
+
+        _validate_privilege_live_transitions_and_possibly_store_emails(
+            existing_states, validated_data['configuredStates'], compact, submitting_user_id
+        )
+        for state in validated_data['configuredStates']:
+            state.pop('jurisdictionAdverseActionsNotificationEmails', None)
 
         compact_configuration = CompactConfigurationData.create_new(validated_data)
         # Save the compact configuration
@@ -246,28 +255,123 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
         raise CCInvalidRequestException('Invalid compact configuration: ' + str(e)) from e
 
 
-def _validate_configured_states_transitions(
+def _configured_states_with_adverse_action_emails(compact: str, configured_states: list[dict]) -> list[dict]:
+    """Attach adverse-action emails for configured states.
+
+    Jurisdiction records are loaded in one query. Only states already listed on the compact are returned, and only
+    their adverse-action emails are copied.
+    """
+    emails_by_jurisdiction = config.compact_configuration_client.get_adverse_action_notification_emails_by_jurisdiction(
+        compact
+    )
+    return [
+        {
+            'postalAbbreviation': state['postalAbbreviation'],
+            'isLive': state['isLive'],
+            'jurisdictionAdverseActionsNotificationEmails': emails_by_jurisdiction.get(
+                state['postalAbbreviation'].lower(), []
+            ),
+        }
+        for state in configured_states
+    ]
+
+
+def _current_adverse_action_emails(compact: str, postal_abbr: str) -> list[str]:
+    try:
+        jurisdiction = config.compact_configuration_client.get_jurisdiction_configuration(compact, postal_abbr)
+    except CCNotFoundException:
+        return []
+    return jurisdiction.jurisdictionAdverseActionsNotificationEmails
+
+
+def _normalized_emails(emails: list[str]) -> set[str]:
+    return {email.strip().lower() for email in emails}
+
+
+def _deduplicated_emails(emails: list[str]) -> list[str]:
+    """Keep the first version of each address, ignoring case and surrounding whitespace."""
+    seen: set[str] = set()
+    deduplicated: list[str] = []
+    for email in emails:
+        key = email.strip().lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduplicated.append(email)
+    return deduplicated
+
+
+def _active_member_postal_abbreviations(compact: str) -> set[str]:
+    try:
+        members = config.compact_configuration_client.get_active_compact_jurisdictions(compact)
+    except CCNotFoundException:
+        return set()
+    return {member['postalAbbreviation'].lower() for member in members}
+
+
+def _store_adverse_action_emails_for_privilege_live(compact: str, postal_abbr: str, new_state: dict) -> None:
+    """Require adverse-action emails on every privilege-live transition. Write them only if none are stored."""
+    supplied_emails = new_state.get('jurisdictionAdverseActionsNotificationEmails')
+    if not supplied_emails:
+        raise CCInvalidRequestException(
+            f'State "{postal_abbr}" requires at least one jurisdictionAdverseActionsNotificationEmails '
+            'when it is privilege-live.'
+        )
+
+    try:
+        existing_jurisdiction = config.compact_configuration_client.get_jurisdiction_configuration(
+            compact=compact, jurisdiction=postal_abbr
+        )
+        current_emails = existing_jurisdiction.jurisdictionAdverseActionsNotificationEmails
+    except CCNotFoundException:
+        existing_jurisdiction = None
+        current_emails = []
+
+    if current_emails:
+        return
+
+    supplied_emails = _deduplicated_emails(supplied_emails)
+
+    if existing_jurisdiction:
+        jurisdiction_data = existing_jurisdiction.to_dict()
+        jurisdiction_data['jurisdictionAdverseActionsNotificationEmails'] = supplied_emails
+    else:
+        jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(postal_abbr)
+        if not jurisdiction_name:
+            raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {postal_abbr}')
+        jurisdiction_data = {
+            'compact': compact,
+            'jurisdictionName': jurisdiction_name,
+            'postalAbbreviation': postal_abbr,
+            'jurisdictionOperationsTeamEmails': [],
+            'jurisdictionAdverseActionsNotificationEmails': supplied_emails,
+            'isLicenseDataLive': False,
+        }
+
+    config.compact_configuration_client.save_jurisdiction_configuration(
+        JurisdictionConfigurationData.create_new(jurisdiction_data)
+    )
+
+
+def _validate_privilege_live_transitions_and_possibly_store_emails(
     existing_states: list[dict], new_states: list[dict], compact: str, submitting_user_id: str
 ) -> None:
     """
-    Validate that configuredStates transitions are allowed.
+    Validate configuredStates transitions and persist adverse-action emails for new privilege-live states.
 
     Rules:
-    1. States cannot be manually added or removed - only managed internally by the API
-    2. Only isLive status can be modified (false -> true only)
-
-    :param existing_states: Current configuredStates from the database
-    :param new_states: New configuredStates from the request
-    :param compact: The compact abbreviation for logging
-    :param submitting_user_id: The user making the request for logging
-    :raises CCInvalidRequestException: If validation fails
+    1. States cannot be removed
+    2. A state can be added only when isLive is true and the state is an active member
+    3. isLive can change from false to true only. That transition requires a non-empty adverse-action
+       email list. An existing jurisdiction email list is left unchanged.
+    4. A state that is already privilege-live must resend its current adverse-action list. An empty or
+       missing list is rejected. A different list is rejected.
+    5. An empty or missing adverse-action list is accepted only when isLive is false.
+    6. Turning isLive on does not change data-live (isLicenseDataLive).
     """
+    existing_states_by_postal = {state['postalAbbreviation'].lower(): state for state in existing_states}
+    new_states_by_postal = {state['postalAbbreviation'].lower(): state for state in new_states}
 
-    # Create lookup dictionaries for easier comparison
-    existing_states_by_postal = {state['postalAbbreviation']: state for state in existing_states}
-    new_states_by_postal = {state['postalAbbreviation']: state for state in new_states}
-
-    # Check for removed states
     removed_states = set(existing_states_by_postal.keys()) - set(new_states_by_postal.keys())
     if removed_states:
         logger.warning(
@@ -280,36 +384,65 @@ def _validate_configured_states_transitions(
             f'States cannot be removed from configuredStates. Attempted to remove: {", ".join(sorted(removed_states))}'
         )
 
-    # Check for added states
     added_states = set(new_states_by_postal.keys()) - set(existing_states_by_postal.keys())
-    if added_states:
+    non_live_additions = sorted(
+        postal_abbr for postal_abbr in added_states if not new_states_by_postal[postal_abbr]['isLive']
+    )
+    if non_live_additions:
         logger.warning(
-            'Attempt to add states to configuredStates',
+            'Attempt to add non-live states to configuredStates',
             compact=compact,
             submitting_user_id=submitting_user_id,
-            added_states=list(added_states),
+            added_states=non_live_additions,
         )
         raise CCInvalidRequestException(
-            f'States cannot be manually added to configuredStates. Attempted to add: {", ".join(sorted(added_states))}'
+            'States cannot be manually added to configuredStates unless they are being marked privilege-live. '
+            f'Attempted to add: {", ".join(non_live_additions)}'
         )
 
-    # Check for isLive downgrades (true -> false)
     for postal_abbr, existing_state in existing_states_by_postal.items():
-        if postal_abbr in new_states_by_postal:
-            new_state = new_states_by_postal[postal_abbr]
-            if existing_state['isLive'] and not new_state['isLive']:
-                logger.warning(
-                    'Attempt to change isLive from true to false',
-                    compact=compact,
-                    submitting_user_id=submitting_user_id,
-                    state=postal_abbr,
-                    existing_is_live=existing_state['isLive'],
-                    new_is_live=new_state['isLive'],
-                )
+        new_state = new_states_by_postal[postal_abbr]
+        if existing_state['isLive'] and not new_state['isLive']:
+            logger.warning(
+                'Attempt to change isLive from true to false',
+                compact=compact,
+                submitting_user_id=submitting_user_id,
+                state=postal_abbr,
+                existing_is_live=existing_state['isLive'],
+                new_is_live=new_state['isLive'],
+            )
+            raise CCInvalidRequestException(
+                f'State "{postal_abbr}" cannot be changed from live to non-live status. '
+                f'Once a state is live (isLive: true), it cannot be reverted to non-live (isLive: false).'
+            )
+        supplied_emails = new_state.get('jurisdictionAdverseActionsNotificationEmails')
+        if new_state['isLive'] and not supplied_emails:
+            raise CCInvalidRequestException(
+                f'State "{postal_abbr}" requires at least one jurisdictionAdverseActionsNotificationEmails '
+                'when it is privilege-live.'
+            )
+        if existing_state['isLive']:
+            current_emails = _current_adverse_action_emails(compact, postal_abbr)
+            if _normalized_emails(supplied_emails) != _normalized_emails(current_emails):
                 raise CCInvalidRequestException(
-                    f'State "{postal_abbr}" cannot be changed from live to non-live status. '
-                    f'Once a state is live (isLive: true), it cannot be reverted to non-live (isLive: false).'
+                    f'State "{postal_abbr}" is already privilege-live. Compact admin cannot change its '
+                    'adverse action notification emails.'
                 )
+
+    active_members: set[str] | None = None
+    for postal_abbr, new_state in new_states_by_postal.items():
+        existing_state = existing_states_by_postal.get(postal_abbr)
+        becoming_live = new_state['isLive'] and (existing_state is None or not existing_state['isLive'])
+        if not becoming_live:
+            continue
+        if active_members is None:
+            active_members = _active_member_postal_abbreviations(compact)
+        if postal_abbr not in active_members:
+            raise CCInvalidRequestException(
+                f'State "{postal_abbr}" is not an active member of compact "{compact}" and cannot be marked '
+                'privilege-live.'
+            )
+        _store_adverse_action_emails_for_privilege_live(compact, postal_abbr, new_state)
 
 
 @authorize_state_level_only_action(action=CCPermissionsAction.ADMIN)
@@ -355,7 +488,7 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
                 },
                 'jurisdictionOperationsTeamEmails': [],
                 'jurisdictionAdverseActionsNotificationEmails': [],
-                'licenseeRegistrationEnabled': False,
+                'isLicenseDataLive': False,
             }
         ).to_dict()
 
@@ -396,21 +529,19 @@ def _put_jurisdiction_configuration(event: dict, context: LambdaContext):  # noq
             raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
         validated_data['jurisdictionName'] = jurisdiction_name
 
-        # Check if licenseeRegistrationEnabled is being changed from true to false
-        if validated_data.get('licenseeRegistrationEnabled') is False:
+        # Data-live is irreversible. The stored attribute is still licenseeRegistrationEnabled.
+        if validated_data.get('isLicenseDataLive') is False:
             try:
                 existing_config = config.compact_configuration_client.get_jurisdiction_configuration(
                     compact=compact, jurisdiction=jurisdiction
                 )
-                if existing_config.licenseeRegistrationEnabled is True:
+                if existing_config.isLicenseDataLive is True:
                     logger.info(
-                        'attempt to disable licensee registration after it was enabled.',
+                        'attempt to mark license data not live after it was live.',
                         compact=compact,
                         submitting_user_id=submitting_user_id,
                     )
-                    raise CCInvalidRequestException(
-                        'Once licensee registration has been enabled, it cannot be disabled.'
-                    )
+                    raise CCInvalidRequestException('Once license data is live, it cannot be marked not live.')
             except CCNotFoundException:
                 # No existing configuration, so this is the first time setting this field
                 logger.info(

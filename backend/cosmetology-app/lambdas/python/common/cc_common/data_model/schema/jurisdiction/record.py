@@ -7,6 +7,15 @@ from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 
+# DynamoDB attribute for the state-admin data-live flag. Internal Python uses isLicenseDataLive.
+# The API JSON key is also licenseeRegistrationEnabled, so the contract is unchanged.
+#
+# This attribute stays named licenseeRegistrationEnabled. We are not renaming it to avoid migrating to a new field.
+# This field name was copied from other compacts that allowed registration - On those compacts the flag meant a
+# licensee could register for a privilege. Cosmetology has no registration flow. The same stored flag now means
+# the state's license data is live (public license search and public provider detail include that state's licenses).
+LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE = 'licenseeRegistrationEnabled'
+
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
 class JurisdictionRecordSchema(BaseRecordSchema):
@@ -24,7 +33,12 @@ class JurisdictionRecordSchema(BaseRecordSchema):
         required=True,
         allow_none=False,
     )
-    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
+    # See LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE. data_key is the stored attribute name; the field name is the model name.
+    isLicenseDataLive = Boolean(
+        required=True,
+        allow_none=False,
+        data_key=LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE,
+    )
 
     # Generated fields
     pk = String(required=True, allow_none=False)

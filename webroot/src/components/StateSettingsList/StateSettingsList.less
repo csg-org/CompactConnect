@@ -99,14 +99,30 @@
             .modal-content {
                 padding-top: 0.6rem;
 
+                .mock-populate {
+                    display: inline-block;
+                    padding-bottom: 0.4rem;
+                    font-size: @fontSize;
+                }
+
+                .state-email-list {
+                    margin-top: 1.6rem;
+
+                    .state-email-list-label {
+                        font-weight: @fontWeightBold;
+                    }
+                }
+
+                .btn-catch-email-lists {
+                    .visually-hidden();
+                }
+
                 .modal-error {
                     margin-top: 2.4rem;
                     color: @midRed;
                     text-align: right;
                 }
-            }
 
-            .modal-actions {
                 .action-button-row {
                     display: flex;
                     flex-direction: column;

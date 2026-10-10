@@ -32,7 +32,7 @@
       "type": "array"
     },
     "licenseeRegistrationEnabled": {
-      "description": "Denotes whether licensee registration is enabled",
+      "description": "Whether this state's license data is live. When true, the state's licenses appear in public search and public provider detail, and the state is added to configuredStates with isLive:false (which controls privileges), if it is not already listed. Once true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility.",
       "type": "boolean"
     }
   },

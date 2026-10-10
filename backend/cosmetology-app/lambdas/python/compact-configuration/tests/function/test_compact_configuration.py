@@ -305,7 +305,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         # we only allow the following values in the body
         event['body'] = json.dumps(
             {
-                'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
+                'licenseeRegistrationEnabled': compact_config.isLicenseDataLiveCompactWide,
                 'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
                 'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
                 'configuredStates': compact_config.configuredStates,
@@ -317,9 +317,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
     def _when_testing_put_compact_configuration(self):
         from cc_common.utils import ResponseEncoder
 
-        compact_config = self.test_data_generator.generate_default_compact_configuration(
-            value_overrides={'licenseeRegistrationEnabled': False}
-        )
+        compact_config = self.test_data_generator.generate_default_compact_configuration()
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = compact_config.compactAbbr
         # add compact admin scope to the event
@@ -329,7 +327,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         # we only allow the following values in the body
         event['body'] = json.dumps(
             {
-                'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
+                'licenseeRegistrationEnabled': compact_config.isLicenseDataLiveCompactWide,
                 'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
                 'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
                 'configuredStates': compact_config.configuredStates,
@@ -391,6 +389,61 @@ class TestStaffUsersCompactConfiguration(TstFunction):
             response_body,
         )
 
+    def test_get_compact_configuration_includes_state_adverse_action_emails_only(self):
+        """Compact admin GET includes each configured state's adverse-action emails and nothing else from the state."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': False},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                ],
+            }
+        )
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'jurisdictionOperationsTeamEmails': ['state-ops@example.com'],
+                'jurisdictionAdverseActionsNotificationEmails': ['state-adverse@example.com'],
+                'isLicenseDataLive': True,
+            }
+        )
+        # Present in the table, but not a configured state, so it must not appear in the response.
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ne',
+                'jurisdictionName': 'Nebraska',
+                'jurisdictionAdverseActionsNotificationEmails': ['ne-adverse@example.com'],
+            }
+        )
+
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
+        import handlers.compact_configuration as compact_configuration_module
+
+        table = compact_configuration_module.config.compact_configuration_table
+        with patch.object(table, 'query', wraps=table.query) as query_mock:
+            response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(1, query_mock.call_count)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        configured_states = json.loads(response['body'])['configuredStates']
+
+        self.assertEqual(
+            [
+                {
+                    'postalAbbreviation': 'ky',
+                    'isLive': False,
+                    'jurisdictionAdverseActionsNotificationEmails': ['state-adverse@example.com'],
+                },
+                {
+                    'postalAbbreviation': 'oh',
+                    'isLive': True,
+                    'jurisdictionAdverseActionsNotificationEmails': [],
+                },
+            ],
+            configured_states,
+        )
+
     def test_put_compact_configuration_rejects_invalid_compact_with_auth_error(self):
         """Test putting a compact configuration rejects an invalid compact abbreviation."""
         from handlers.compact_configuration import compact_configuration_api_handler
@@ -438,10 +491,10 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
 
     def test_put_compact_configuration_rejects_disabling_licensee_registration(self):
-        """Test that a compact configuration update is rejected if trying to disable licensee registration after enabling it."""
+        """Test that a compact configuration update is rejected if trying to disable the compact-wide flag after enabling it."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # First, create a compact configuration with licenseeRegistrationEnabled=True
+        # First, create a compact configuration with isLicenseDataLiveCompactWide=True
         event, _ = self._when_testing_put_compact_configuration_with_existing_configuration()
 
         # Now attempt to update with licenseeRegistrationEnabled=False
@@ -459,17 +512,16 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test that removing states from configuredStates is rejected."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # First, create a compact configuration with some configured states
+        # States already present from the data-live opt-in, including one privilege-live state
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': False},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                ],
+            }
+        )
         event, original_config = self._when_testing_put_compact_configuration()
-        body = json.loads(event['body'])
-        body['configuredStates'] = [
-            {'postalAbbreviation': 'ky', 'isLive': False},
-            {'postalAbbreviation': 'oh', 'isLive': True},
-        ]
-        event['body'] = json.dumps(body)
-
-        # Submit the configuration
-        compact_configuration_api_handler(event, self.mock_context)
 
         # Now attempt to remove one of the states
         event, _ = self._when_testing_put_compact_configuration()
@@ -491,17 +543,15 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test that changing isLive from true to false is rejected."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # First, create a compact configuration with a live state
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': True},
+                    {'postalAbbreviation': 'oh', 'isLive': False},
+                ],
+            }
+        )
         event, original_config = self._when_testing_put_compact_configuration()
-        body = json.loads(event['body'])
-        body['configuredStates'] = [
-            {'postalAbbreviation': 'ky', 'isLive': True},
-            {'postalAbbreviation': 'oh', 'isLive': False},
-        ]
-        event['body'] = json.dumps(body)
-
-        # Submit the configuration
-        compact_configuration_api_handler(event, self.mock_context)
 
         # Now attempt to change Kentucky from live to non-live
         event, _ = self._when_testing_put_compact_configuration()
@@ -523,22 +573,23 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test that changing isLive from false to true is allowed."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # First, create a compact configuration with a non-live state
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'configuredStates': [{'postalAbbreviation': 'ky', 'isLive': False}],
+            }
+        )
         event, original_config = self._when_testing_put_compact_configuration()
-        body = json.loads(event['body'])
-        body['configuredStates'] = [
-            {'postalAbbreviation': 'ky', 'isLive': False},
-        ]
-        event['body'] = json.dumps(body)
-
-        # Submit the configuration
-        compact_configuration_api_handler(event, self.mock_context)
 
         # Now change Kentucky from non-live to live
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
         event, _ = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'postalAbbreviation': 'ky', 'isLive': True},  # Changed to true
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['ky-adverse@example.com'],
+            },
         ]
         event['body'] = json.dumps(body)
 
@@ -556,36 +607,360 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(configured_states[0]['postalAbbreviation'], 'ky')
         self.assertTrue(configured_states[0]['isLive'])
 
-    def test_put_compact_configuration_rejects_adding_new_states(self):
-        """Test that adding new states to configuredStates is rejected."""
+    def test_put_compact_configuration_rejects_adding_non_live_states(self):
+        """Adding a state that is not being marked privilege-live is still rejected."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # First, create a compact configuration with one state
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'configuredStates': [{'postalAbbreviation': 'ky', 'isLive': False}],
+            }
+        )
         event, original_config = self._when_testing_put_compact_configuration()
-        body = json.loads(event['body'])
-        body['configuredStates'] = [
-            {'postalAbbreviation': 'ky', 'isLive': False},
-        ]
-        event['body'] = json.dumps(body)
 
-        # Submit the configuration
-        compact_configuration_api_handler(event, self.mock_context)
-
-        # Now attempt to add a new state
         event, _ = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
             {'postalAbbreviation': 'ky', 'isLive': False},
-            {'postalAbbreviation': 'oh', 'isLive': True},  # New state
+            {'postalAbbreviation': 'oh', 'isLive': False},
         ]
         event['body'] = json.dumps(body)
 
-        # Should be rejected with a 400 error
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
         response_body = json.loads(response['body'])
         self.assertIn('States cannot be manually added to configuredStates', response_body['message'])
         self.assertIn('oh', response_body['message'])
+
+    def test_put_compact_configuration_marks_member_privilege_live_without_data_live_and_stores_emails(self):
+        """Compact admin can privilege-live a member that has never data-lived, and the emails are stored."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['oh'])
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'oh',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['oh-adverse@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        stored_compact = self.config.compact_configuration_client.get_compact_configuration(original_config.compactAbbr)
+        self.assertEqual([{'postalAbbreviation': 'oh', 'isLive': True}], stored_compact.configuredStates)
+        self.assertEqual(['oh'], self.config.compact_configuration_client.get_live_compact_jurisdictions('cosm'))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'oh')
+        self.assertEqual(['oh-adverse@example.com'], jurisdiction.jurisdictionAdverseActionsNotificationEmails)
+        self.assertFalse(jurisdiction.isLicenseDataLive)
+        self.assertEqual([], jurisdiction.jurisdictionOperationsTeamEmails)
+
+    def test_put_compact_configuration_requires_emails_even_when_jurisdiction_already_has_them(self):
+        """Privilege-live always requires the email field. An existing list is not overwritten."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'isLicenseDataLive': False,
+                'jurisdictionAdverseActionsNotificationEmails': ['existing@example.com'],
+            }
+        )
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [{'postalAbbreviation': 'ky', 'isLive': True}]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('jurisdictionAdverseActionsNotificationEmails', json.loads(response['body'])['message'])
+
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['replacement@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
+        self.assertEqual(['existing@example.com'], jurisdiction.jurisdictionAdverseActionsNotificationEmails)
+        self.assertFalse(jurisdiction.isLicenseDataLive)
+
+    def test_put_compact_configuration_requires_emails_when_marking_privilege_live(self):
+        """The current Enable payload, which sends isLive true and no emails, is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [{'postalAbbreviation': 'ky', 'isLive': True}]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('jurisdictionAdverseActionsNotificationEmails', json.loads(response['body'])['message'])
+
+    def test_put_compact_configuration_rejects_emails_for_state_already_privilege_live(self):
+        """Emails in the body are rejected once a state is already privilege-live."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['ky-adverse@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['other@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('already privilege-live', json.loads(response['body'])['message'])
+
+    def test_put_compact_configuration_allows_resending_unchanged_emails_for_privilege_live_state(self):
+        """A compact-settings save can echo the current adverse-action list without changing it."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['ky-adverse@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
+        self.assertEqual(['ky-adverse@example.com'], jurisdiction.jurisdictionAdverseActionsNotificationEmails)
+
+    def test_put_compact_configuration_allows_empty_adverse_action_email_list_for_state_that_is_not_live(self):
+        """A not-live state may send an empty list. A live state in the same body must resend its stored list."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': False},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                ],
+            }
+        )
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+                'jurisdictionAdverseActionsNotificationEmails': ['oh-adverse@example.com'],
+            }
+        )
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': False,
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            },
+            {
+                'postalAbbreviation': 'oh',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['oh-adverse@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+    def test_put_compact_configuration_rejects_empty_email_list_for_state_already_privilege_live(self):
+        """An already privilege-live state cannot omit its adverse-action list or send an empty one."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': False},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                ],
+            }
+        )
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+                'jurisdictionAdverseActionsNotificationEmails': ['oh-adverse@example.com'],
+            }
+        )
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': False,
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            },
+            {
+                'postalAbbreviation': 'oh',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('at least one', json.loads(response['body'])['message'])
+
+        body['configuredStates'][1].pop('jurisdictionAdverseActionsNotificationEmails')
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('at least one', json.loads(response['body'])['message'])
+
+    def test_put_compact_configuration_rejects_empty_email_list_when_marking_privilege_live(self):
+        """An explicit empty list still fails when a state is marked privilege-live."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('at least one', json.loads(response['body'])['message'])
+
+    def test_put_compact_configuration_deduplicates_emails_when_marking_jurisdiction_privilege_live(self):
+        """New privilege-live jurisdictions store the first spelling of each address."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['oh'])
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'oh',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': [
+                    'Oh-Adverse@Example.com',
+                    'oh-adverse@example.com',
+                    'second@example.com',
+                ],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'oh')
+        self.assertEqual(
+            ['Oh-Adverse@Example.com', 'second@example.com'],
+            jurisdiction.jurisdictionAdverseActionsNotificationEmails,
+        )
+
+    def test_put_compact_configuration_deduplicates_emails_when_updating_existing_jurisdiction(self):
+        """An existing jurisdiction with no adverse-action emails stores a deduplicated supplied list."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'isLicenseDataLive': False,
+                'jurisdictionOperationsTeamEmails': ['ops@example.com'],
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            }
+        )
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': [
+                    'Ky-Adverse@Example.com',
+                    'ky-adverse@example.com',
+                ],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
+        self.assertEqual(['Ky-Adverse@Example.com'], jurisdiction.jurisdictionAdverseActionsNotificationEmails)
+        self.assertEqual(['ops@example.com'], jurisdiction.jurisdictionOperationsTeamEmails)
+        self.assertFalse(jurisdiction.isLicenseDataLive)
+
+    def test_put_compact_configuration_leaves_existing_adverse_action_email_list_unchanged(self):
+        """A stored list, including its own duplicates, is not rewritten when the state becomes privilege-live."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky'])
+        stored_emails = ['Keep@Example.com', 'keep@example.com']
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'isLicenseDataLive': False,
+                'jurisdictionAdverseActionsNotificationEmails': stored_emails,
+            }
+        )
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['New@Example.com', 'new@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
+        self.assertEqual(stored_emails, jurisdiction.jurisdictionAdverseActionsNotificationEmails)
 
     def test_put_compact_configuration_rejects_duplicate_configured_states(self):
         """Test that duplicate states in configuredStates are rejected."""
@@ -633,7 +1008,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             {
                 'jurisdictionOperationsTeamEmails': jurisdiction_config.jurisdictionOperationsTeamEmails,
                 'jurisdictionAdverseActionsNotificationEmails': jurisdiction_config.jurisdictionAdverseActionsNotificationEmails,
-                'licenseeRegistrationEnabled': jurisdiction_config.licenseeRegistrationEnabled,
+                'licenseeRegistrationEnabled': jurisdiction_config.isLicenseDataLive,
             },
             cls=ResponseEncoder,
         )
@@ -741,7 +1116,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'postalAbbreviation': test_jurisdiction_config.postalAbbreviation,
                 'jurisdictionOperationsTeamEmails': test_jurisdiction_config.jurisdictionOperationsTeamEmails,
                 'jurisdictionAdverseActionsNotificationEmails': test_jurisdiction_config.jurisdictionAdverseActionsNotificationEmails,
-                'licenseeRegistrationEnabled': test_jurisdiction_config.licenseeRegistrationEnabled,
+                'licenseeRegistrationEnabled': test_jurisdiction_config.isLicenseDataLive,
             },
             response_body,
         )
@@ -796,9 +1171,9 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test that a jurisdiction configuration update is rejected if trying to disable licensee registration after enabling it."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # First, create a jurisdiction configuration with licenseeRegistrationEnabled=True
+        # First, create a jurisdiction configuration with isLicenseDataLive=True
         event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
-        # Set licenseeRegistrationEnabled to True in the request body
+        # Set isLicenseDataLive to True in the request body
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = True
         event['body'] = json.dumps(body)
@@ -806,7 +1181,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         # Submit the configuration
         compact_configuration_api_handler(event, self.mock_context)
 
-        # Now attempt to update with licenseeRegistrationEnabled=False
+        # Now attempt to update with isLicenseDataLive=False
         event, _ = self._when_testing_put_jurisdiction_configuration()
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = False
@@ -816,7 +1191,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
         response_body = json.loads(response['body'])
-        self.assertIn('Once licensee registration has been enabled, it cannot be disabled', response_body['message'])
+        self.assertIn('Once license data is live, it cannot be marked not live.', response_body['message'])
 
     def test_put_jurisdiction_configuration_adds_state_to_configured_states_when_enabling_registration(self):
         """Test that enabling licensee registration automatically adds the state to compact's configuredStates."""
@@ -827,7 +1202,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             value_overrides={'configuredStates': []}
         )
 
-        # Create a jurisdiction configuration with licenseeRegistrationEnabled=True
+        # Create a jurisdiction configuration with isLicenseDataLive=True
         event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = True
@@ -852,7 +1227,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         and the compact config can't be found."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # Create a jurisdiction configuration with licenseeRegistrationEnabled=True, without a compact config
+        # Create a jurisdiction configuration with isLicenseDataLive=True, without a compact config
         event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration(create_compact=False)
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = True
@@ -866,7 +1241,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test that a state is not added to configuredStates if it already exists."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # Create a jurisdiction configuration for the same state with licenseeRegistrationEnabled=True
+        # Create a jurisdiction configuration for the same state with isLicenseDataLive=True
         event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = True
@@ -892,7 +1267,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertTrue(configured_states[0]['isLive'])  # Should preserve existing isLive status
 
     def test_put_jurisdiction_configuration_only_adds_state_to_compact_when_changing_from_false_to_true(self):
-        """Test that changing licenseeRegistrationEnabled from false to true adds the state to configuredStates."""
+        """Test that changing isLicenseDataLive from false to true adds the state to configuredStates."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
         # First, create a compact configuration with empty configuredStates
@@ -900,7 +1275,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             value_overrides={'configuredStates': []}
         )
 
-        # Create a jurisdiction configuration with licenseeRegistrationEnabled=False
+        # Create a jurisdiction configuration with isLicenseDataLive=False
         event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = False

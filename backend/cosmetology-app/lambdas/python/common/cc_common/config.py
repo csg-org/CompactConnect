@@ -83,6 +83,23 @@ class _Config:
         return result
 
     @cached_property
+    def data_live_jurisdictions(self) -> dict[str, list[str]]:
+        """
+        Cached mapping of compact -> jurisdictions whose license data is live.
+
+        A home license generates privileges only when its jurisdiction is in this list.
+        Fetched once per Lambda cold start, same as live_compact_jurisdictions.
+        """
+        result: dict[str, list[str]] = {}
+        for compact in self.compacts:
+            try:
+                result[compact] = self.compact_configuration_client.get_data_live_jurisdictions(compact)
+            except Exception:  # noqa: BLE001
+                logger.error('Failed to load data-live jurisdictions', compact=compact)
+                raise
+        return result
+
+    @cached_property
     def user_client(self):
         from cc_common.data_model.user_client import UserClient
 

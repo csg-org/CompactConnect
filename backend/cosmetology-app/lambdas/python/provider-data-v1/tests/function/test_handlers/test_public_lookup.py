@@ -52,6 +52,12 @@ class TestPublicGetProvider(TstFunction):
     def setUp(self):
         super().setUp()
         self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+            }
+        )
 
     def test_public_get_provider_response_with_expected_fields_filtered(self):
         self._load_provider_data()
@@ -175,6 +181,32 @@ class TestPublicGetProvider(TstFunction):
             },
         ]
         self.assertEqual(expected_licenses, provider_data['licenses'])
+
+    def test_public_get_provider_omits_license_when_jurisdiction_is_not_data_live(self):
+        self._load_provider_data()
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+                'isLicenseDataLive': False,
+            }
+        )
+
+        from handlers.public_lookup import public_get_provider
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        del event['requestContext']['authorizer']
+        event['pathParameters'] = {'compact': 'cosm', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['queryStringParameters'] = None
+
+        resp = public_get_provider(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        provider_data = json.loads(resp['body'])
+        self.assertEqual([], provider_data['licenses'])
+        self.assertEqual([], provider_data['privileges'])
 
     def test_public_get_provider_missing_provider_id(self):
         from handlers.public_lookup import public_get_provider

@@ -13,7 +13,7 @@ class ConfiguredStateSchema(Schema):
     Schema for individual configured state entries in a compact configuration.
 
     This schema defines the structure for states that have submitted configurations
-    and are tracked for live status management.
+    and are tracked for privilege-live status. isLive is the compact-admin privilege-live flag.
     """
 
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
