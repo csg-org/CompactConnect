@@ -1805,7 +1805,7 @@
                 },
                 "jurisdictionAdverseActionsNotificationEmails": {
                   "type": "array",
-                  "description": "Adverse action notification emails. Required when marking the state privilege-live (when isLive changes from false -> true), even if the jurisdiction already has emails. An existing non-empty list is never overwritten, to prevent compact admins from overwriting state admin emails - it's always required for frontend simplicity's sake",
+                  "description": "Adverse action notification emails. Required when isLive is true, both for a state that is already privilege-live and for one being marked privilege-live. A privilege-live state must resend its current list; a different list is rejected and an existing list is never overwritten. An empty or omitted list is accepted only when isLive is false.",
                   "maxItems": 10,
                   "uniqueItems": true,
                   "items": {

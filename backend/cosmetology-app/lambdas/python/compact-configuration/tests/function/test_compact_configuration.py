@@ -765,8 +765,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         jurisdiction = self.config.compact_configuration_client.get_jurisdiction_configuration('cosm', 'ky')
         self.assertEqual(['ky-adverse@example.com'], jurisdiction.jurisdictionAdverseActionsNotificationEmails)
 
-    def test_put_compact_configuration_allows_unchanged_empty_adverse_action_email_lists(self):
-        """Echoing an empty adverse-action list passes when the state is not becoming privilege-live."""
+    def test_put_compact_configuration_allows_empty_adverse_action_email_list_for_state_that_is_not_live(self):
+        """A not-live state may send an empty list. A live state in the same body must resend its stored list."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
@@ -775,6 +775,51 @@ class TestStaffUsersCompactConfiguration(TstFunction):
                     {'postalAbbreviation': 'ky', 'isLive': False},
                     {'postalAbbreviation': 'oh', 'isLive': True},
                 ],
+            }
+        )
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+                'jurisdictionAdverseActionsNotificationEmails': ['oh-adverse@example.com'],
+            }
+        )
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {
+                'postalAbbreviation': 'ky',
+                'isLive': False,
+                'jurisdictionAdverseActionsNotificationEmails': [],
+            },
+            {
+                'postalAbbreviation': 'oh',
+                'isLive': True,
+                'jurisdictionAdverseActionsNotificationEmails': ['oh-adverse@example.com'],
+            },
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+    def test_put_compact_configuration_rejects_empty_email_list_for_state_already_privilege_live(self):
+        """An already privilege-live state cannot omit its adverse-action list or send an empty one."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': False},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                ],
+            }
+        )
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+                'jurisdictionAdverseActionsNotificationEmails': ['oh-adverse@example.com'],
             }
         )
         event, _ = self._when_testing_put_compact_configuration()
@@ -794,7 +839,14 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event['body'] = json.dumps(body)
 
         response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('at least one', json.loads(response['body'])['message'])
+
+        body['configuredStates'][1].pop('jurisdictionAdverseActionsNotificationEmails')
+        event['body'] = json.dumps(body)
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('at least one', json.loads(response['body'])['message'])
 
     def test_put_compact_configuration_rejects_empty_email_list_when_marking_privilege_live(self):
         """An explicit empty list still fails when a state is marked privilege-live."""

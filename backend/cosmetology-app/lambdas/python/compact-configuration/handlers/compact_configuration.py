@@ -315,7 +315,7 @@ def _store_adverse_action_emails_for_privilege_live(compact: str, postal_abbr: s
     if not supplied_emails:
         raise CCInvalidRequestException(
             f'State "{postal_abbr}" requires at least one jurisdictionAdverseActionsNotificationEmails '
-            'when it is marked privilege-live.'
+            'when it is privilege-live.'
         )
 
     try:
@@ -362,10 +362,12 @@ def _validate_privilege_live_transitions_and_possibly_store_emails(
     Rules:
     1. States cannot be removed
     2. A state can be added only when isLive is true and the state is an active member
-    3. isLive can change from false to true only. That transition always requires adverse-action emails
-       in the request. An existing jurisdiction email list is left unchanged.
-    4. An already privilege-live state may resend its current adverse-action list. A different list is rejected.
-    5. Turning isLive on does not change data-live (isLicenseDataLive).
+    3. isLive can change from false to true only. That transition requires a non-empty adverse-action
+       email list. An existing jurisdiction email list is left unchanged.
+    4. A state that is already privilege-live must resend its current adverse-action list. An empty or
+       missing list is rejected. A different list is rejected.
+    5. An empty or missing adverse-action list is accepted only when isLive is false.
+    6. Turning isLive on does not change data-live (isLicenseDataLive).
     """
     existing_states_by_postal = {state['postalAbbreviation'].lower(): state for state in existing_states}
     new_states_by_postal = {state['postalAbbreviation'].lower(): state for state in new_states}
@@ -414,7 +416,12 @@ def _validate_privilege_live_transitions_and_possibly_store_emails(
                 f'Once a state is live (isLive: true), it cannot be reverted to non-live (isLive: false).'
             )
         supplied_emails = new_state.get('jurisdictionAdverseActionsNotificationEmails')
-        if existing_state['isLive'] and supplied_emails:
+        if new_state['isLive'] and not supplied_emails:
+            raise CCInvalidRequestException(
+                f'State "{postal_abbr}" requires at least one jurisdictionAdverseActionsNotificationEmails '
+                'when it is privilege-live.'
+            )
+        if existing_state['isLive']:
             current_emails = _current_adverse_action_emails(compact, postal_abbr)
             if _normalized_emails(supplied_emails) != _normalized_emails(current_emails):
                 raise CCInvalidRequestException(
