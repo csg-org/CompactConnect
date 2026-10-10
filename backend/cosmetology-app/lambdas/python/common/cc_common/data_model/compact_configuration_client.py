@@ -50,10 +50,11 @@ class CompactConfigurationClient:
         """
         logger.info('Saving compact configuration', compactAbbr=compact_configuration.compactAbbr)
 
-        pk = f'{compact_configuration.compactAbbr}#CONFIGURATION'
-        sk = f'{compact_configuration.compactAbbr}#CONFIGURATION'
-        raw_item = self.config.compact_configuration_table.get_item(Key={'pk': pk, 'sk': sk}).get('Item')
-        existing_compact_config = CompactConfigurationData.from_database_record(raw_item) if raw_item else None
+        try:
+            existing_compact_config = self.get_compact_configuration(compact_configuration.compactAbbr)
+        except CCNotFoundException:
+            logger.info('Existing compact configuration not found.', compact=compact_configuration.compactAbbr)
+            existing_compact_config = None
 
         if existing_compact_config:
             # Record exists - merge with existing data to preserve all fields
@@ -76,13 +77,6 @@ class CompactConfigurationClient:
             # First time creation - use the new data directly
             logger.info('Creating new compact configuration record', compactAbbr=compact_configuration.compactAbbr)
             final_serialized = compact_configuration.serialize_to_database_record()
-
-        # Compact-wide go-live is not modeled. Older items may still have attributes this schema does not load.
-        # put_item replaces the whole item, so copy those attributes back. They are not read and do not change behavior.
-        if raw_item:
-            for attribute_name, attribute_value in raw_item.items():
-                if attribute_name not in final_serialized:
-                    final_serialized[attribute_name] = attribute_value
 
         # Use put_item to save the final record
         self.config.compact_configuration_table.put_item(Item=final_serialized)
