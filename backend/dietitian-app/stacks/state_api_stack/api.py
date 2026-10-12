@@ -35,6 +35,8 @@ class StateApi(CCApi):
         self.log_groups = []
 
         self.v1_api = V1Api(self.root, persistent_stack=persistent_stack)
+        # Serialize CreateModel — parallel creates hit API Gateway rate limits (429).
+        self.serialize_api_gateway_scaffolding()
 
         # Create the QueryDefinition after all API modules have been initialized and added their log groups
         self._create_runtime_query_definition()

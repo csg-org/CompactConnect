@@ -15,6 +15,7 @@ from aws_cdk.aws_apigateway import (
     LogGroupLogDestination,
     Method,
     MethodLoggingLevel,
+    Model,
     ResponseType,
     RestApi,
     SecurityPolicy,
@@ -275,6 +276,21 @@ class CCApi(RestApi):
                 properties={'message': JsonSchema(type=JsonSchemaType.STRING)},
             ),
         )
+
+    def serialize_api_gateway_scaffolding(self) -> None:
+        """
+        Chain CloudFormation DependsOn across API Gateway models so CreateModel calls run
+        sequentially.
+
+        Parallel creates commonly hit API Gateway account rate limits (429) on first deploy of a
+        large RestApi. Call this after all routes and models have been added.
+
+        Methods are intentionally not chained: DependsOn between Methods creates a cycle with the
+        RestApi Deployment / Stage / Lambda permission graph.
+        """
+        models = [child for child in self.node.find_all() if isinstance(child, Model)]
+        for index in range(1, len(models)):
+            models[index].node.add_dependency(models[index - 1])
 
     def _add_domain_name(self, api_domain_name: str, hosted_zone: IHostedZone):
         self.record = ARecord(

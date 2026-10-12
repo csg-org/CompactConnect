@@ -2,7 +2,7 @@
   "ssm_context": {
     "environments": {
       "deploy": {
-        "account_id": "851725635878",
+        "account_id": "058264278168",
         "region": "us-east-1",
         "notifications": {
           "email": [

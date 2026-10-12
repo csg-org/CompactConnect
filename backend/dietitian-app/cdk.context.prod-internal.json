@@ -1,0 +1,56 @@
+{
+  "ssm_context": {
+    "github_repo_string": "InspiringApps/JCC-CompactConnect",
+    "app_name": "dietitian-compact-connect",
+    "environments": {
+      "pipeline": {
+        "account_id": "851725635878",
+        "region": "us-east-1",
+        "connection_arn": "arn:aws:codestar-connections:us-east-1:851725635878:connection/e10e0c81-02ce-444a-ac66-5e89e39e16d3"
+      },
+      "prod": {
+        "account_id": "211177113058",
+        "region": "us-east-1",
+        "domain_name": "dietitian.jcc.iaapi.io",
+        "ui_domain_name_override": "app.jcc.iaapi.io",
+        "backup_enabled": true,
+        "notifications": {
+          "ses_operations_support_email": "dana@inspiringapps.com",
+          "email": [
+            "dana@inspiringapps.com"
+          ]
+        },
+        "backup_policies": {
+          "general_data": {
+            "schedule": {
+              "year": "*",
+              "month": "*",
+              "day": "*",
+              "hour": "5",
+              "minute": "0"
+            },
+            "delete_after_days": 730,
+            "cold_storage_after_days": 30
+          },
+          "frequent_updates": {
+            "schedule": {
+              "year": "*",
+              "month": "*",
+              "day": "*",
+              "hour": "*",
+              "minute": "0"
+            },
+            "delete_after_days": 730,
+            "cold_storage_after_days": 30
+          }
+        }
+      }
+    },
+    "backup_config": {
+      "backup_account_id": "398142520158",
+      "backup_region": "us-west-2",
+      "general_vault_name": "CompactConnectBackupVault",
+      "ssn_vault_name": "CompactConnectSSNBackupVault"
+    }
+  }
+}
