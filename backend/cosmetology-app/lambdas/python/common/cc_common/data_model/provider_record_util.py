@@ -485,7 +485,12 @@ class ProviderUserRecords:
         sorted_licenses = self._sort_licenses_by_most_recent(license_records)
         return sorted_licenses[0]
 
-    def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
+    def generate_privileges_for_provider(
+        self,
+        include_inactive_privileges: bool = False,
+        *,
+        data_live_jurisdictions: list[str] | None = None,
+    ) -> list[dict]:
         """
         Generate privilege dicts at runtime for each license type this provider holds.
 
@@ -504,6 +509,10 @@ class ProviderUserRecords:
 
         :param include_inactive_privileges: When True, generate privileges for ineligible home licenses
             and mark them inactive instead of omitting them entirely.
+        :param data_live_jurisdictions: Postal abbreviations whose license data is live for this compact.
+            When omitted, the cached config.data_live_jurisdictions mapping is used. Public responses pass
+            the same fresh query result used to filter licenses, so a warm Lambda does not mix that query
+            with a stale cache.
         """
         if not self._license_records:
             return []
@@ -516,7 +525,10 @@ class ProviderUserRecords:
             logger.debug('no active jurisdictions found in environment.', compact=compact)
             return []
 
-        data_live_jurisdictions_for_compact = config.data_live_jurisdictions.get(compact, [])
+        if data_live_jurisdictions is None:
+            data_live_jurisdictions_for_compact = config.data_live_jurisdictions.get(compact, [])
+        else:
+            data_live_jurisdictions_for_compact = data_live_jurisdictions
 
         # Group licenses by licenseType; for each type pick home license by most recent renewal, then issuance
         by_type: dict[str, list[LicenseData]] = {}
@@ -642,11 +654,12 @@ class ProviderUserRecords:
         will not be included in the response, and licenses from jurisdictions that are not data-live
         (jurisdiction isLicenseDataLive, stored as licenseeRegistrationEnabled) are omitted. Privileges are
         generated only from data-live home licenses, and only in other privilege-live jurisdictions.
+        The public response loads data-live jurisdictions once and uses that list for both the license
+        filter and privilege generation.
         :return: A single provider record matching our provider details api schema.
         """
         provider = self.get_provider_record().to_dict()
         licenses = []
-        privileges = []
 
         if is_public_response:
             # only include the most recent license for each license type in the public response
@@ -671,18 +684,22 @@ class ProviderUserRecords:
             ]
             licenses.append(license_dict)
 
+        # Build privileges at runtime from eligible licenses (one privilege per license type per compact jurisdiction)
         if is_public_response:
-            data_live_jurisdictions = set(
-                config.compact_configuration_client.get_data_live_jurisdictions(provider['compact'])
+            # One fresh query for both paths. config.data_live_jurisdictions is cached for the
+            # Lambda lifetime and can disagree with this query on a warm container.
+            data_live_jurisdictions = config.compact_configuration_client.get_data_live_jurisdictions(
+                provider['compact']
             )
+            data_live_jurisdiction_set = {jurisdiction.lower() for jurisdiction in data_live_jurisdictions}
             licenses = [
                 license_dict
                 for license_dict in licenses
-                if str(license_dict.get('jurisdiction', '')).lower() in data_live_jurisdictions
+                if str(license_dict.get('jurisdiction', '')).lower() in data_live_jurisdiction_set
             ]
-
-        # Build privileges at runtime from eligible licenses (one privilege per license type per compact jurisdiction)
-        privileges = self.generate_privileges_for_provider()
+            privileges = self.generate_privileges_for_provider(data_live_jurisdictions=data_live_jurisdictions)
+        else:
+            privileges = self.generate_privileges_for_provider()
 
         provider['licenses'] = licenses
         provider['privileges'] = privileges

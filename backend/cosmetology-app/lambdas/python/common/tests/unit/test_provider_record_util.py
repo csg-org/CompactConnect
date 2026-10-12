@@ -734,6 +734,50 @@ class TestGenerateApiResponseObject(TstLambdas):
             api_response['adverseActions'],
         )
 
+    def test_public_response_reuses_fresh_data_live_jurisdictions_for_privileges(self):
+        """License filtering and privilege generation share one fresh data-live query.
+
+        config.data_live_jurisdictions stays cached for a warm Lambda. The public response must not
+        filter licenses with a new query and then generate privileges from that stale cache.
+        """
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'ky',
+                    'licenseType': 'cosmetologist',
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'dateOfExpiration': date(2026, 2, 28),
+                }
+            ]
+        )
+        with self._patch_config_for_privilege_generation(
+            live_compact_jurisdictions={'cosm': ['oh', 'ky']},
+            data_live_jurisdictions={'cosm': []},
+        ) as mock_config:
+            mock_config.compact_configuration_client.get_data_live_jurisdictions.return_value = ['ky']
+            provider_user_records = ProviderUserRecords(records)
+            api_response = provider_user_records.generate_api_response_object(is_public_response=True)
+
+        self.assertEqual(['ky'], [license_record['jurisdiction'] for license_record in api_response['licenses']])
+        self.assertEqual(
+            [('oh', 'ky')],
+            [(privilege['jurisdiction'], privilege['licenseJurisdiction']) for privilege in api_response['privileges']],
+        )
+
+        with self._patch_config_for_privilege_generation(
+            live_compact_jurisdictions={'cosm': ['oh', 'ky']},
+            data_live_jurisdictions={'cosm': ['ky']},
+        ) as mock_config:
+            mock_config.compact_configuration_client.get_data_live_jurisdictions.return_value = []
+            provider_user_records = ProviderUserRecords(records)
+            api_response = provider_user_records.generate_api_response_object(is_public_response=True)
+
+        self.assertEqual([], api_response['licenses'])
+        self.assertEqual([], api_response['privileges'])
+
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
 class TestGenerateOpenSearchDocuments(TstLambdas):
