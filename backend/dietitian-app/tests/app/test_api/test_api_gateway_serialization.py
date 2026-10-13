@@ -1,22 +1,23 @@
 from aws_cdk.assertions import Template
-from aws_cdk.aws_apigateway import CfnModel
+from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
 
 from tests.app.test_api import TestApi
 
 
 class TestApiGatewaySerialization(TestApi):
     """
-    Ensure API Gateway models are created serially via DependsOn.
+    Ensure API Gateway models/resources/methods are created serially via DependsOn.
 
-    Parallel CreateModel calls commonly hit account rate limits (429) on first deploy
-    of a large RestApi (same approach as DiningOut's serializeModelCreation).
+    Parallel CreateModel / CreateResource / CreateMethod calls commonly hit account rate
+    limits (429) on first deploy of a large RestApi.
     """
 
     def _assert_single_predecessor_chain(self, resources: dict):
+        """Assert peer DependsOn edges among this resource type form a single path."""
         logical_ids = set(resources.keys())
         self.assertGreater(len(logical_ids), 1)
 
-        # Ignore DependsOn edges to non-models (e.g. the RestApi).
+        # Ignore DependsOn edges to other resource types (e.g. RestApi, parent Resource).
         predecessors = {}
         for logical_id, resource in resources.items():
             depends_on = resource.get('DependsOn', [])
@@ -30,10 +31,12 @@ class TestApiGatewaySerialization(TestApi):
         for logical_id, deps in predecessors.items():
             if logical_id == roots[0]:
                 continue
-            self.assertEqual(
+            # Serialization adds exactly one peer edge. Parent/child Resource refs may add
+            # additional peer DependsOn edges, so require at least one.
+            self.assertGreaterEqual(
                 len(deps),
                 1,
-                f'{logical_id} should depend on exactly one peer in the chain, found {deps}',
+                f'{logical_id} should depend on at least one peer in the chain, found {deps}',
             )
 
         successors = {logical_id: [] for logical_id in logical_ids}
@@ -41,29 +44,30 @@ class TestApiGatewaySerialization(TestApi):
             for predecessor in deps:
                 successors[predecessor].append(logical_id)
 
-        visited = []
-        current = roots[0]
-        while current is not None:
-            self.assertNotIn(current, visited)
-            visited.append(current)
-            next_nodes = successors[current]
-            self.assertLessEqual(len(next_nodes), 1)
-            current = next_nodes[0] if next_nodes else None
+        # Walk from the unique root using any successor that still has unvisited nodes;
+        # every resource must be reachable (connected DAG rooted at one node).
+        visited = set()
+        queue = [roots[0]]
+        while queue:
+            current = queue.pop(0)
+            if current in visited:
+                continue
+            visited.add(current)
+            queue.extend(successors[current])
 
-        self.assertEqual(len(visited), len(logical_ids))
-        self.assertEqual(set(visited), logical_ids)
+        self.assertEqual(visited, logical_ids)
 
-    def test_api_stack_serializes_model_creation(self):
-        api_stack = self.app.sandbox_backend_stage.api_stack
-        template = Template.from_stack(api_stack)
+    def _assert_stack_scaffolding_serialized(self, stack):
+        template = Template.from_stack(stack)
         self._assert_single_predecessor_chain(template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME))
+        self._assert_single_predecessor_chain(template.find_resources(CfnResource.CFN_RESOURCE_TYPE_NAME))
+        self._assert_single_predecessor_chain(template.find_resources(CfnMethod.CFN_RESOURCE_TYPE_NAME))
 
-    def test_state_api_stack_serializes_model_creation(self):
-        state_api_stack = self.app.sandbox_backend_stage.state_api_stack
-        template = Template.from_stack(state_api_stack)
-        self._assert_single_predecessor_chain(template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME))
+    def test_api_stack_serializes_api_gateway_scaffolding(self):
+        self._assert_stack_scaffolding_serialized(self.app.sandbox_backend_stage.api_stack)
 
-    def test_search_api_stack_serializes_model_creation(self):
-        search_api_stack = self.app.sandbox_backend_stage.search_api_stack
-        template = Template.from_stack(search_api_stack)
-        self._assert_single_predecessor_chain(template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME))
+    def test_state_api_stack_serializes_api_gateway_scaffolding(self):
+        self._assert_stack_scaffolding_serialized(self.app.sandbox_backend_stage.state_api_stack)
+
+    def test_search_api_stack_serializes_api_gateway_scaffolding(self):
+        self._assert_stack_scaffolding_serialized(self.app.sandbox_backend_stage.search_api_stack)

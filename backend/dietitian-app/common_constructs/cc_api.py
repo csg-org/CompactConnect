@@ -4,7 +4,7 @@ import json
 from functools import cached_property
 
 import jsii
-from aws_cdk import Aspects, CfnOutput, Duration, IAspect
+from aws_cdk import Aspects, CfnOutput, CfnResource, Duration, IAspect
 from aws_cdk.aws_apigateway import (
     AccessLogFormat,
     Cors,
@@ -16,6 +16,7 @@ from aws_cdk.aws_apigateway import (
     Method,
     MethodLoggingLevel,
     Model,
+    Resource,
     ResponseType,
     RestApi,
     SecurityPolicy,
@@ -279,18 +280,30 @@ class CCApi(RestApi):
 
     def serialize_api_gateway_scaffolding(self) -> None:
         """
-        Chain CloudFormation DependsOn across API Gateway models so CreateModel calls run
-        sequentially.
+        Chain CloudFormation DependsOn across API Gateway models, resources, and methods so
+        CreateModel / CreateResource / CreateMethod calls run sequentially.
 
         Parallel creates commonly hit API Gateway account rate limits (429) on first deploy of a
         large RestApi. Call this after all routes and models have been added.
 
-        Methods are intentionally not chained: DependsOn between Methods creates a cycle with the
-        RestApi Deployment / Stage / Lambda permission graph.
+        Dependencies are added on the underlying Cfn resources (default_child), not via
+        construct-level node.add_dependency. Method construct deps would also pull in
+        Lambda::Permission children and cycle with Deployment / Stage.
         """
-        models = [child for child in self.node.find_all() if isinstance(child, Model)]
-        for index in range(1, len(models)):
-            models[index].node.add_dependency(models[index - 1])
+        self._serialize_cfn_constructs([child for child in self.node.find_all() if isinstance(child, Model)])
+        self._serialize_cfn_constructs([child for child in self.node.find_all() if isinstance(child, Resource)])
+        self._serialize_cfn_constructs([child for child in self.node.find_all() if isinstance(child, Method)])
+
+    @staticmethod
+    def _serialize_cfn_constructs(constructs: list[Construct]) -> None:
+        previous: CfnResource | None = None
+        for construct in constructs:
+            cfn = construct.node.default_child
+            if not isinstance(cfn, CfnResource):
+                continue
+            if previous is not None:
+                cfn.add_dependency(previous)
+            previous = cfn
 
     def _add_domain_name(self, api_domain_name: str, hosted_zone: IHostedZone):
         self.record = ARecord(
