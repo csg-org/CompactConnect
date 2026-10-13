@@ -59,6 +59,7 @@ describe('License model', () => {
         expect(license.privilegeId).to.equal(null);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.email).to.equal(null);
+        expect(license.phoneNumber).to.equal(null);
         expect(license.licenseType).to.equal(null);
         expect(license.licenseScope).to.equal(null);
         expect(license.history).to.matchPattern([]);
@@ -83,6 +84,7 @@ describe('License model', () => {
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
         expect(license.isUnderInvestigation()).to.equal(false);
+        expect(license.phoneNumberDisplay()).to.equal('');
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -99,6 +101,7 @@ describe('License model', () => {
             privilegeId: 'privilegeId',
             mailingAddress: new Address(),
             email: 'test@example.com',
+            phoneNumber: '+12223334444',
             npi: 'test-npi',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseScope: LicenseScope.MULTI_STATE,
@@ -124,6 +127,7 @@ describe('License model', () => {
         expect(license.expireDate).to.equal(data.expireDate);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.email).to.equal(data.email);
+        expect(license.phoneNumber).to.equal(data.phoneNumber);
         expect(license.npi).to.equal(data.npi);
         expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.privilegeId).to.equal(data.privilegeId);
@@ -152,6 +156,7 @@ describe('License model', () => {
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
         expect(license.isUnderInvestigation()).to.equal(false);
+        expect(license.phoneNumberDisplay()).to.equal('+1 222-333-4444');
     });
     it('should create a License with specific values (custom displayName delimiter)', () => {
         const data = {
@@ -185,6 +190,7 @@ describe('License model', () => {
             homeAddressState: 'co',
             homeAddressPostalCode: 'test-zip',
             emailAddress: 'test@example.com',
+            phoneNumber: '+12223334444',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseScope: LicenseScope.SINGLE_STATE,
             history: [],
@@ -221,6 +227,7 @@ describe('License model', () => {
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.email).to.equal(data.emailAddress);
+        expect(license.phoneNumber).to.equal(data.phoneNumber);
         expect(license.issueState.abbrev).to.equal(data.jurisdiction);
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
@@ -257,8 +264,9 @@ describe('License model', () => {
         expect(license.isEncumbered()).to.equal(true);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
         expect(license.isUnderInvestigation()).to.equal(true);
+        expect(license.phoneNumberDisplay()).to.equal('+1 222-333-4444');
     });
-    it('should create a privilege with specific values through serializer', () => {
+    it('should create a Privilege with specific values through serializer', () => {
         const data = {
             dateOfUpdate: '2025-03-26T16:19:09+00:00',
             type: 'privilege',
@@ -626,6 +634,7 @@ describe('License model', () => {
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
         expect(license.isUnderInvestigation()).to.equal(true);
+        expect(license.phoneNumberDisplay()).to.equal('');
     });
     it('should populate isDeactivated correctly given license history (deactivation)', () => {
         const data = {
