@@ -28,10 +28,10 @@ from smoke_common import (
 )
 
 # Test configuration
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'diet'
 TEST_JURISDICTION = 'oh'  # Home jurisdiction
 TEST_PRIVILEGE_JURISDICTION = 'ne'  # Where privilege is purchased
-TEST_LICENSE_TYPE = 'speech-language pathologist'
+TEST_LICENSE_TYPE = 'dietitian'
 TEST_GIVEN_NAME = 'TestProvider'
 TEST_FAMILY_NAME = 'LicenseDeactivation'
 TEST_APP_CLIENT_NAME = 'test-license-deactivation-smoke-client'

@@ -17,7 +17,7 @@ from smoke_common import (
     load_smoke_test_env,
 )
 
-COMPACT = 'aslp'
+COMPACT = 'diet'
 JURISDICTION = 'ne'
 TEST_PROVIDER_GIVEN_NAME = 'Joe'
 TEST_PROVIDER_FAMILY_NAME = 'Dokes'
@@ -84,7 +84,7 @@ def trigger_get_provider_ssn_endpoint_throttling():
     Verifies that the GET provider SSN endpoint will throttle and deactivate users that call the
     endpoint too frequently.
 
-    Step 1: Create five test staff users with the aslp/readSSN scope.
+    Step 1: Create five test staff users with the diet/readSSN scope.
     Step 2: Have each user call the endpoint until throttled after 31 requests (7 requests from each of the first
     four users, 3 requests from the fifth). The first four should be disabled (asserted with the AdminGetUser api),
     and the last one should cause the lambda to throttle itself with a set reserved concurrency limit of 0

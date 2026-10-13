@@ -20,13 +20,13 @@ from smoke_common import (
 )
 
 MOCK_SSN = '999-99-9999'
-COMPACT = 'aslp'
+COMPACT = 'diet'
 JURISDICTION = 'ne'
 TEST_PROVIDER_GIVEN_NAME = 'Joe'
 TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 TEST_PROVIDER_UPDATED_FAMILY_NAME = 'Dokes-Smith'
 TEST_LICENSE_NUMBER = 'A0608337260'
-TEST_LICENSE_TYPE = 'audiologist'
+TEST_LICENSE_TYPE = 'dietitian'
 
 # This script can be run locally to test the license upload/ingest flow against a sandbox environment
 # of the Compact Connect API.
@@ -215,7 +215,7 @@ def upload_licenses_record(client_id: str, client_secret: str):
     license_ingest_record_response = data_events_table.query(
         KeyConditionExpression='pk = :pk AND sk BETWEEN :start_time AND :end_time',
         ExpressionAttributeValues={
-            ':pk': 'COMPACT#aslp#JURISDICTION#ne',
+            ':pk': f'COMPACT#{COMPACT}#JURISDICTION#{JURISDICTION}',
             ':start_time': f'TYPE#license.ingest#TIME#{int(start_time.timestamp())}',
             ':end_time': f'TYPE#license.ingest#TIME#{int(event_time.timestamp())}',
         },

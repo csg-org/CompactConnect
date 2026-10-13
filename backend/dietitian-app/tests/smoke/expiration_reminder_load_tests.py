@@ -72,13 +72,14 @@ dynamodb_table = config.provider_user_dynamodb_table
 # Test configuration: counts of matching vs non-matching providers for the 30-day expiration run
 MATCHING_PROVIDERS = 10_000  # Providers with one privilege expiring on target date (receive email)
 NON_MATCHING_PROVIDERS = 5_000  # Providers with neither privilege on target date (no email)
-COMPACT = 'aslp'  # Use aslp compact as it has two license types to test two privileges
+COMPACT = 'diet'
 JURISDICTION = JURISDICTIONS[0]  # Use first jurisdiction
-# Second jurisdiction and license type for two-privilege-per-provider
+# Second jurisdiction for two-privilege-per-provider. Diet has a single license type, so both
+# privileges use it and stay distinct by jurisdiction.
 JURISDICTION_2 = JURISDICTIONS[1]
 if COMPACT in LICENSE_TYPES and LICENSE_TYPES[COMPACT]:
     LICENSE_TYPE = LICENSE_TYPES[COMPACT][0]['name']
-    LICENSE_TYPE_2 = LICENSE_TYPES[COMPACT][1]['name']
+    LICENSE_TYPE_2 = LICENSE_TYPES[COMPACT][1]['name'] if len(LICENSE_TYPES[COMPACT]) > 1 else LICENSE_TYPE
 else:
     raise SmokeTestFailureException(f'No license types found for compact {COMPACT}')
 
@@ -298,7 +299,7 @@ def find_lambda_function_name(partial_name: str) -> str:
         raise SmokeTestFailureException(f'Failed to list Lambda functions: {str(e)}') from e
 
 
-def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
+def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'diet'):
     """
     Invoke the expiration reminder Lambda asynchronously and poll CloudWatch Logs for completion.
 
@@ -306,7 +307,7 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
     Polls CloudWatch Logs to find the completion message with metrics.
 
     :param days_before: Days before expiration (30, 7, or 0)
-    :param compact: Compact to process (e.g. 'aslp', 'coun', 'octp')
+    :param compact: Compact to process (e.g. 'diet')
     :return: Dict containing targetDate, daysBefore, compact, and metrics
     """
     # Search for "ExpirationReminder" since CDK truncates function names

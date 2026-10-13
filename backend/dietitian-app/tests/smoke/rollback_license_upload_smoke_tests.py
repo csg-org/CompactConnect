@@ -22,12 +22,12 @@ from smoke_common import (
     load_smoke_test_env,
 )
 
-COMPACT = 'coun'
+COMPACT = 'diet'
 JURISDICTION = 'ne'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 
-LICENSE_TYPE = 'licensed professional counselor'
+LICENSE_TYPE = 'dietitian'
 
 # Test configuration
 NUM_LICENSES_TO_UPLOAD = 300

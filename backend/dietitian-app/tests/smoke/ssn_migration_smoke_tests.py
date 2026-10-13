@@ -43,6 +43,7 @@ from botocore.exceptions import ClientError
 from config import config, logger
 from military_affiliation_smoke_tests import test_military_affiliation_upload
 from smoke_common import (
+    LICENSE_TYPES,
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
     cleanup_test_provider_records,
@@ -58,23 +59,28 @@ from smoke_common import (
     wait_for_provider_creation,
 )
 
-# If you test provider is in a different compact, change this value
-TEST_COMPACT = 'coun'
+# If your test provider is in a different compact, change this value
+TEST_COMPACT = 'diet'
 # The transaction history table index that maps a payment transaction id back to its record. Fixed in
 # the CDK (see stacks/persistent_stack/transaction_history_table.py), so it is not environment-specific.
 TRANSACTION_ID_GSI_NAME = 'transactionIdGSI'
 # The corrected SSN the test provider is temporarily migrated to during the full migration roundtrip
 FULL_MIGRATION_CORRECTED_SSN = '999-99-8877'
 
-# Partial migration test constants: a standalone mock practitioner with OT + OTA licenses in octp/ne
-PARTIAL_MIGRATION_COMPACT = 'octp'
+# Partial migration needs two distinct license types under one SSN. Diet only defines dietitian,
+# so test_partial_ssn_migration skips until a second license type exists.
+PARTIAL_MIGRATION_COMPACT = 'diet'
 PARTIAL_MIGRATION_JURISDICTION = 'ne'
 PARTIAL_MIGRATION_GIVEN_NAME = 'SsnMigration'
 PARTIAL_MIGRATION_FAMILY_NAME = 'PartialSmokeTest'
 PARTIAL_MIGRATION_ORIGINAL_SSN = '999-99-8888'
 PARTIAL_MIGRATION_CORRECTED_SSN = '999-99-8899'
-OT_LICENSE_TYPE = 'occupational therapist'
-OTA_LICENSE_TYPE = 'occupational therapy assistant'
+_partial_license_types = LICENSE_TYPES.get(PARTIAL_MIGRATION_COMPACT, [])
+# First type is the one migrated; second (if present) is the one left behind.
+MIGRATED_LICENSE_TYPE = _partial_license_types[0]['name'] if _partial_license_types else 'dietitian'
+REMAINING_LICENSE_TYPE = (
+    _partial_license_types[1]['name'] if len(_partial_license_types) > 1 else MIGRATED_LICENSE_TYPE
+)
 
 TEST_STAFF_USER_EMAIL = 'testStaffUserSsnMigration@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-ssn-migration-client'
@@ -1031,7 +1037,7 @@ def _build_partial_test_license(license_type: str, ssn: str, previous_ssn: str |
     license_record = {
         'ssn': ssn,
         'npi': '2222222222',
-        'licenseNumber': f'SSN-MIG-{("OT" if license_type == OT_LICENSE_TYPE else "OTA")}',
+        'licenseNumber': f'SSN-MIG-{("OT" if license_type == MIGRATED_LICENSE_TYPE else "OTA")}',
         'givenName': PARTIAL_MIGRATION_GIVEN_NAME,
         'familyName': PARTIAL_MIGRATION_FAMILY_NAME,
         'dateOfBirth': '1990-01-01',
@@ -1060,17 +1066,19 @@ def _get_license_types_in_partition(compact: str, provider_id: str) -> set[str]:
 
 def test_partial_ssn_migration():
     """
-    Partial migration: a mock practitioner with OT and OTA licenses under one (incorrect) SSN has only the
-    OT license's SSN corrected. The OT license must move to a new provider id while the OTA license and the
+    Partial migration: a mock practitioner with two license types under one (incorrect) SSN has only one
+    license's SSN corrected. That license must move to a new provider id while the other license and the
     old provider record remain in place.
 
-    Step 1: Upload OT + OTA licenses under the same mock SSN and wait for the provider to be created.
-    Step 2: Re-upload the OT license with a corrected SSN and previousSSN set to the original mock SSN.
-    Step 3: Verify the OT license now lives under a new provider id with its own top-level provider record
-            and arrived intact, while the OTA license and provider record remain under the old provider id
-            completely untouched - including the person-level state a partial migration must not move.
-    Step 4: Clean up all DynamoDB records for both provider ids.
+    Diet defines a single license type, so this scenario cannot run until a second type exists.
     """
+    if len(LICENSE_TYPES.get(PARTIAL_MIGRATION_COMPACT, [])) < 2:
+        print(
+            f'Skipping partial SSN migration: compact {PARTIAL_MIGRATION_COMPACT} has fewer than two '
+            'license types, and this test needs two distinct types under one SSN.'
+        )
+        return
+
     test_staff_user_sub = create_test_staff_user(
         email=TEST_STAFF_USER_EMAIL,
         compact=PARTIAL_MIGRATION_COMPACT,
@@ -1090,8 +1098,8 @@ def test_partial_ssn_migration():
             PARTIAL_MIGRATION_COMPACT,
             PARTIAL_MIGRATION_JURISDICTION,
             [
-                _build_partial_test_license(OT_LICENSE_TYPE, PARTIAL_MIGRATION_ORIGINAL_SSN),
-                _build_partial_test_license(OTA_LICENSE_TYPE, PARTIAL_MIGRATION_ORIGINAL_SSN),
+                _build_partial_test_license(MIGRATED_LICENSE_TYPE, PARTIAL_MIGRATION_ORIGINAL_SSN),
+                _build_partial_test_license(REMAINING_LICENSE_TYPE, PARTIAL_MIGRATION_ORIGINAL_SSN),
             ],
         )
         old_provider_id = wait_for_provider_creation(
@@ -1105,7 +1113,7 @@ def test_partial_ssn_migration():
             f'both license records to exist under provider {old_provider_id}',
             lambda: (
                 _get_license_types_in_partition(PARTIAL_MIGRATION_COMPACT, old_provider_id)
-                == {OT_LICENSE_TYPE, OTA_LICENSE_TYPE}
+                == {MIGRATED_LICENSE_TYPE, REMAINING_LICENSE_TYPE}
             ),
         )
 
@@ -1124,7 +1132,7 @@ def test_partial_ssn_migration():
             PARTIAL_MIGRATION_JURISDICTION,
             [
                 _build_partial_test_license(
-                    OT_LICENSE_TYPE, PARTIAL_MIGRATION_CORRECTED_SSN, previous_ssn=PARTIAL_MIGRATION_ORIGINAL_SSN
+                    MIGRATED_LICENSE_TYPE, PARTIAL_MIGRATION_CORRECTED_SSN, previous_ssn=PARTIAL_MIGRATION_ORIGINAL_SSN
                 )
             ],
         )
@@ -1145,7 +1153,7 @@ def test_partial_ssn_migration():
             raise SmokeTestFailureException(
                 'The old provider record was deleted during a partial migration; it should have been preserved'
             )
-        if old_license_types != {OTA_LICENSE_TYPE}:
+        if old_license_types != {REMAINING_LICENSE_TYPE}:
             raise SmokeTestFailureException(
                 f'Expected only the OTA license to remain under the old provider id; found: {old_license_types}'
             )
@@ -1153,14 +1161,14 @@ def test_partial_ssn_migration():
         _verify_license_ssn_last_four(
             records=old_provider_records,
             expected_ssn_last_four=PARTIAL_MIGRATION_ORIGINAL_SSN[-4:],
-            license_type=OTA_LICENSE_TYPE,
+            license_type=REMAINING_LICENSE_TYPE,
         )
         # nothing belonging to the license that stayed may have been touched
         _verify_records_left_behind_are_untouched(
             source_records=pre_migration_records,
             target_records=old_provider_records,
             provider_id=old_provider_id,
-            migrated_license_type=OT_LICENSE_TYPE,
+            migrated_license_type=MIGRATED_LICENSE_TYPE,
         )
         # a partial migration leaves the practitioner in place on the old provider id: their person-level
         # state stays with the records that back it, rather than following the corrected license
@@ -1178,7 +1186,7 @@ def test_partial_ssn_migration():
         new_license_types = {record['licenseType'] for record in new_provider_records if record['type'] == 'license'}
         if 'provider' not in new_record_types:
             raise SmokeTestFailureException('No top-level provider record was created for the new provider id')
-        if new_license_types != {OT_LICENSE_TYPE}:
+        if new_license_types != {MIGRATED_LICENSE_TYPE}:
             raise SmokeTestFailureException(
                 f'Expected only the OT license under the new provider id; found: {new_license_types}'
             )
@@ -1186,7 +1194,7 @@ def test_partial_ssn_migration():
         _verify_license_ssn_last_four(
             records=new_provider_records,
             expected_ssn_last_four=PARTIAL_MIGRATION_CORRECTED_SSN[-4:],
-            license_type=OT_LICENSE_TYPE,
+            license_type=MIGRATED_LICENSE_TYPE,
         )
         # the military affiliation records stay with the old provider on a partial migration, so a status
         # carried across would have no supporting documentation behind it. This is a deliberate omission -
@@ -1202,7 +1210,7 @@ def test_partial_ssn_migration():
             )
         # and the OT license's records must have arrived intact, not just present
         _verify_all_records_migrated(
-            source_records=[record for record in pre_migration_records if record.get('licenseType') == OT_LICENSE_TYPE],
+            source_records=[record for record in pre_migration_records if record.get('licenseType') == MIGRATED_LICENSE_TYPE],
             source_provider_id=old_provider_id,
             target_records=new_provider_records,
             target_provider_id=new_provider_id,

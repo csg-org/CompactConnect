@@ -335,7 +335,7 @@ def upload_license_record(
         'dateOfBirth': '1985-01-01',
         'dateOfIssuance': '2020-01-01',
         'ssn': '999-99-9999',
-        'licenseType': 'speech-language pathologist',
+        'licenseType': 'dietitian',
         'dateOfExpiration': '2050-01-01',
         'homeAddressState': 'ne',
         'homeAddressCity': 'Omaha',
