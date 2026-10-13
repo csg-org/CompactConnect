@@ -1156,7 +1156,7 @@
         "editUserPermissions": "Editar permisos de usuario",
         "permissionsUpdatedTitle": "Sus permisos se han actualizado",
         "permissionsUpdatedTitleOther": "Los permisos de {name} se han actualizado",
-        "permissionsUpdatedDescription": "Debe cerrar sesión e iniciar sesión de nuevo para acceder a los nuevos permisos, o continuar sin cerrar sesión.",
+        "permissionsUpdatedDescription": "Debe cerrar sesión e iniciar sesión de nuevo para acceder a los nuevos permisos.",
         "permissionsUpdatedDescriptionOther": "Deben cerrar sesión e iniciar sesión de nuevo para acceder a los nuevos permisos.",
         "logOut": "Cerrar sesión",
         "addState": "Agregar estado / jurisdiccion",

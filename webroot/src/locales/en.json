@@ -1172,7 +1172,7 @@
         "editUserPermissions": "Edit user permissions",
         "permissionsUpdatedTitle": "Your permissions have been updated",
         "permissionsUpdatedTitleOther": "{name}'s permissions have been updated",
-        "permissionsUpdatedDescription": "You must log out and back in in order to access new permissions, or continue without logging out.",
+        "permissionsUpdatedDescription": "You must log out and back in in order to access new permissions.",
         "permissionsUpdatedDescriptionOther": "They must log out and back in in order to access new permissions.",
         "logOut": "Log Out",
         "addState": "Add state / jurisdiction",

@@ -31,6 +31,7 @@
                 </TransitionGroup>
                 <div v-if="shouldShowAddStateButton" class="edit-user-form-row">
                     <button
+                        id="add-state-permission"
                         class="add-state text-like"
                         @click.prevent="createNewStatePermission"
                         @keyup.enter.prevent="createNewStatePermission"

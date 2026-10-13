@@ -310,7 +310,14 @@ class UserRowEdit extends mixins(MixinForm) {
             const firstEnabledFormInput: string = Object.keys(formData)
                 .filter((key) => key !== 'submit')
                 .find((key) => !formData[key].isDisabled) || '';
-            const firstEnabledInputId = formData[firstEnabledFormInput]?.id || 'cancel-edit-user';
+            // If no selects are enabled, start at add state button (when shown) or cancel
+            let firstEnabledInputId = formData[firstEnabledFormInput]?.id || '';
+
+            if (!firstEnabledInputId) {
+                firstEnabledInputId = (this.shouldShowAddStateButton)
+                    ? 'add-state-permission'
+                    : 'cancel-edit-user';
+            }
 
             firstTabIndex = document.getElementById(firstEnabledInputId);
             lastTabIndex = document.getElementById('submit');
