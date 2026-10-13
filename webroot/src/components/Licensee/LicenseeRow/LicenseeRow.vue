@@ -47,6 +47,23 @@
             }"></span>
         </div>
         <div
+            v-if="$isAppModeSocialWork && !isPublicSearch && !item.isPublicSearch"
+            class="cell phone-number"
+            :class="{ 'is-sort-enabled': isSortOptionEnabled('phoneNumber') }"
+            @click="isSortOptionEnabled('phoneNumber') && handleSortSelect('phoneNumber')"
+            @keyup.enter="isSortOptionEnabled('phoneNumber') && handleSortSelect('phoneNumber')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('phoneNumber')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
+        >
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('common.phoneNumber') }}:</span>
+            {{ item.bestLicensePhoneNumberDisplay() }}
+            <span v-if="isSortOptionEnabled('phoneNumber')" class="sort-icon" :class="{
+                'is-selected': isSortOptionSelected('phoneNumber'),
+                'asc': isSortOptionAscending('phoneNumber'),
+                'desc': isSortOptionDescending('phoneNumber'),
+            }"></span>
+        </div>
+        <div
             class="cell state-of-license"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('stateOfLicense') }"
             @click="isSortOptionEnabled('stateOfLicense') && handleSortSelect('stateOfLicense')"

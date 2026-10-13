@@ -99,6 +99,7 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
         expect(licensee.bestLicense()).to.be.an.instanceof(License);
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
+        expect(licensee.bestLicensePhoneNumberDisplay()).to.equal('');
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
@@ -139,8 +140,9 @@ describe('Licensee model', () => {
                         street2: 'test-street2',
                         city: 'test-city',
                         state: 'co',
-                        zip: 'test-zip'
+                        zip: 'test-zip',
                     }),
+                    phoneNumber: '+12223334444',
                     licenseNumber: '1',
                     status: 'active'
                 }),
@@ -151,8 +153,9 @@ describe('Licensee model', () => {
                         street2: 'test-street2',
                         city: 'test-city',
                         state: 'co',
-                        zip: 'test-zip'
+                        zip: 'test-zip',
                     }),
+                    phoneNumber: '+12223334444',
                     licenseNumber: '2',
                     status: 'inactive'
                 }),
@@ -226,6 +229,7 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.bestLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestLicensePhoneNumberDisplay()).to.equal('');
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
@@ -379,6 +383,7 @@ describe('Licensee model', () => {
                     homeAddressCity: 'test-city',
                     homeAddressState: 'co',
                     homeAddressPostalCode: 'test-zip',
+                    phoneNumber: '+12223334444',
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().add(1, 'day').format(serverDateFormat),
                     licenseType: LicenseType.AUDIOLOGIST,
@@ -557,6 +562,7 @@ describe('Licensee model', () => {
         expect(licensee.bestLicense()).to.be.an.instanceof(License);
         expect(licensee.bestLicense().licenseNumber).to.equal('1');
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
+        expect(licensee.bestLicensePhoneNumberDisplay()).to.equal('+1 222-333-4444');
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([
             {
                 id: 'providerId1-co-audiologist',
