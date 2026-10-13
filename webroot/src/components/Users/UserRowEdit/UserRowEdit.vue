@@ -59,8 +59,10 @@
             <div class="icon-container">
                 <CheckCircle aria-hidden="true" />
             </div>
-            <div class="success-title">{{ permissionsUpdatedTitle }}</div>
-            <div class="success-subtitle">{{ permissionsUpdatedDescription }}</div>
+            <div role="status" aria-live="polite">
+                <div class="success-title">{{ permissionsUpdatedTitle }}</div>
+                <div class="success-subtitle">{{ permissionsUpdatedDescription }}</div>
+            </div>
             <div class="success-actions">
                 <InputButton
                     id="continue-without-logout"
