@@ -147,6 +147,7 @@ class NotificationStack(AppStack):
             # We want to be aware if any communications failed to send, so we'll set this threshold to 1
             dlq_count_alarm_threshold=1,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )
 
         # Create rule to route privilege.purchase events to the SQS queue
@@ -246,6 +247,7 @@ class NotificationStack(AppStack):
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )
 
     def _add_license_encumbrance_notification_listener(

@@ -31,6 +31,7 @@ class QueuedLambdaProcessor(Construct):
         dlq_count_alarm_threshold: int = 10,
         dlq_retention_period: Duration | None = None,
         query_definition_name_prefix: str = '',
+        grant_sqs_consume_on_execution_role: bool = False,
     ):
         super().__init__(scope, construct_id)
 
@@ -55,21 +56,43 @@ class QueuedLambdaProcessor(Construct):
             dead_letter_queue=DeadLetterQueue(max_receive_count=max_receive_count, queue=self.dlq),
         )
 
-        # Lambda rejects an SQS event source mapping unless the function execution role itself
-        # allows these actions. A queue resource policy is not enough, and pointing that policy
-        # at the role while the role references the queue is a circular dependency.
-        sqs_consume_statement = PolicyStatement(
-            effect=Effect.ALLOW,
-            actions=[
-                'sqs:ReceiveMessage',
-                'sqs:ChangeMessageVisibility',
-                'sqs:GetQueueUrl',
-                'sqs:DeleteMessage',
-                'sqs:GetQueueAttributes',
-            ],
-            resources=[self.queue.queue_arn],
-        )
-        process_function.add_to_role_policy(sqs_consume_statement)
+        # The following section of code is equivalent to:
+        # process_function.add_event_source(
+        #     SqsEventSource(
+        #         self.queue,
+        #         batch_size=batch_size,
+        #         max_batching_window=max_batching_window,
+        #         report_batch_item_failures=True,
+        #     ),
+        # )
+        #
+        # Except that, by default, we grant the lambda permission to consume SQS messages via resource
+        # policy on the queue, rather than the more conventional approach of principal policy on the IAM role.
+        #
+        # We use a lower-level add_event_source_mapping method here so that we can control how those
+        # permissions are granted. Granting via the role creates a dependency from the role on the queue.
+        # In some cases, adding that dependency causes a circular dependency. Existing compacts keep the
+        # queue resource policy so their deployed templates stay the same.
+        #
+        # Lambda can reject an SQS event source mapping unless the function execution role itself allows
+        # these actions. A queue resource policy is not enough in that case, and pointing that policy at
+        # the role while the role references the queue is a circular dependency. Callers that need the
+        # role grant (a second compact in the same account) set grant_sqs_consume_on_execution_role.
+        sqs_consume_actions = [
+            'sqs:ReceiveMessage',
+            'sqs:ChangeMessageVisibility',
+            'sqs:GetQueueUrl',
+            'sqs:DeleteMessage',
+            'sqs:GetQueueAttributes',
+        ]
+        if grant_sqs_consume_on_execution_role:
+            process_function.add_to_role_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=sqs_consume_actions,
+                    resources=[self.queue.queue_arn],
+                )
+            )
         self.event_source_mapping = process_function.add_event_source_mapping(
             f'SqsEventSource:{Stack.of(self).stack_name}:{construct_id}',
             batch_size=batch_size,
@@ -77,11 +100,21 @@ class QueuedLambdaProcessor(Construct):
             report_batch_item_failures=True,
             event_source_arn=self.queue.queue_arn,
         )
-        # The role's default policy is a separate resource. The mapping must wait for it,
-        # or Lambda checks the role before ReceiveMessage is attached.
-        default_policy = process_function.role.node.try_find_child('DefaultPolicy')
-        if default_policy is not None:
-            self.event_source_mapping.node.add_dependency(default_policy)
+        if grant_sqs_consume_on_execution_role:
+            # The role's default policy is a separate resource. The mapping must wait for it,
+            # or Lambda checks the role before ReceiveMessage is attached.
+            default_policy = process_function.role.node.try_find_child('DefaultPolicy')
+            if default_policy is not None:
+                self.event_source_mapping.node.add_dependency(default_policy)
+        else:
+            self.queue.add_to_resource_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    principals=[process_function.role],
+                    actions=sqs_consume_actions,
+                    resources=[self.queue.queue_arn],
+                )
+            )
 
         self._add_queue_alarms(
             retention_period=retention_period,

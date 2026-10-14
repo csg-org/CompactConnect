@@ -500,6 +500,7 @@ class SSNTable(Table):
             encryption_key=self.key,
             alarm_topic=alarm_topic,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )
 
     def _role_suppressions(self, role: Role):
