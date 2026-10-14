@@ -38,23 +38,34 @@ TEST_APP_CLIENT_NAME = 'test-license-deactivation-smoke-client'
 TEST_SSN = '999-99-9999'  # Test SSN for license uploads
 
 
-def get_provider_details_from_api(staff_headers: dict, compact: str, provider_id: str):
+def get_provider_details_from_api(
+    staff_headers: dict, compact: str, provider_id: str, staff_user_email: str | None = None
+):
     """
     Get provider details from the staff API endpoint.
 
     :param staff_headers: Authentication headers for staff user
     :param compact: The compact abbreviation
     :param provider_id: The provider's ID
+    :param staff_user_email: If provided, re-authenticate when the access token has expired. On a 401 the token is
+        refreshed in place so later calls that share this headers dict use the new token.
     :returns: Provider details from the API including privileges list
     :raises SmokeTestFailureException: If the API request fails
     """
     import requests
 
-    response = requests.get(
-        url=f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}',
-        headers=staff_headers,
-        timeout=10,
-    )
+    def _get():
+        return requests.get(
+            url=f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}',
+            headers=staff_headers,
+            timeout=10,
+        )
+
+    response = _get()
+    if response.status_code == 401 and staff_user_email is not None:
+        logger.info('Staff auth token expired (401); refreshing and retrying provider read')
+        staff_headers.update(get_staff_user_auth_headers(staff_user_email))
+        response = _get()
 
     if response.status_code != 200:
         raise SmokeTestFailureException(f'Failed to get provider details. Response: {response.json()}')
@@ -70,6 +81,7 @@ def validate_privilege_deactivation(
     license_type: str,
     max_wait_time: int = 120,
     check_interval: int = 15,
+    staff_user_email: str | None = None,
 ):
     """
     Validate that privilege is deactivated due to license deactivation.
@@ -85,6 +97,7 @@ def validate_privilege_deactivation(
     :param license_type: The license type
     :param max_wait_time: Maximum time to wait in seconds (default: 120)
     :param check_interval: Time between checks in seconds (default: 15)
+    :param staff_user_email: If provided, re-authenticate when the access token expires during the wait
     :returns: The matching privilege record if validation succeeds
     :raises SmokeTestFailureException: If privilege is not properly deactivated within the time limit
     """
@@ -98,7 +111,9 @@ def validate_privilege_deactivation(
         attempts += 1
 
         try:
-            provider_data = get_provider_details_from_api(staff_headers, compact, provider_id)
+            provider_data = get_provider_details_from_api(
+                staff_headers, compact, provider_id, staff_user_email=staff_user_email
+            )
             privileges = provider_data.get('privileges', [])
 
             # Find the privilege that matches our test criteria
@@ -209,6 +224,7 @@ def test_license_deactivation_privilege_workflow():
             given_name=TEST_GIVEN_NAME,
             family_name=TEST_FAMILY_NAME,
             max_wait_time=660,  # 11 minutes (to account for message batch windows)
+            staff_user_email=staff_email,
         )
 
         # Step 2: Create a test privilege record
@@ -223,7 +239,9 @@ def test_license_deactivation_privilege_workflow():
         )
 
         # Verify privilege was created and is active
-        provider_data = get_provider_details_from_api(staff_headers, TEST_COMPACT, provider_id)
+        provider_data = get_provider_details_from_api(
+            staff_headers, TEST_COMPACT, provider_id, staff_user_email=staff_email
+        )
         privileges = provider_data.get('privileges', [])
 
         test_privilege = None
@@ -274,6 +292,7 @@ def test_license_deactivation_privilege_workflow():
             license_type=TEST_LICENSE_TYPE,
             max_wait_time=660,  # 11 minutes (to account for message batch windows)
             check_interval=15,
+            staff_user_email=staff_email,
         )
 
         logger.info('✅ Privilege was automatically deactivated with status "inactive"')
