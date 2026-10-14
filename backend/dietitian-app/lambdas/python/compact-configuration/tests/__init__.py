@@ -16,7 +16,7 @@ class TstLambdas(TestCase):
                 'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["aslp", "octp", "coun", "diet"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'ENVIRONMENT_NAME': 'test',
                 'LICENSE_TYPES': json.dumps(

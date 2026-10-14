@@ -442,7 +442,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting a compact configuration returns a compact configuration."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='aslp/admin')
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='diet/admin')
+        event['pathParameters']['compact'] = 'diet'
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -450,8 +451,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
         self.assertEqual(
             {
-                'compactAbbr': 'aslp',
-                'compactName': 'Audiology and Speech Language Pathology',
+                'compactAbbr': 'diet',
+                'compactName': 'Dietitian',
                 'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': None},
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],

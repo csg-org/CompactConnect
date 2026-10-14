@@ -26,6 +26,8 @@ from smoke_common import (
 
 
 TEST_STAFF_USER_EMAIL = 'testStaffUserQuerySmokeTests@smokeTestFakeEmail.com'
+# Separate admin user needed to PATCH the test staff user's permissions (only admins can grant readPrivate)
+TEST_ADMIN_STAFF_USER_EMAIL = 'testAdminStaffUserQuerySmokeTests@smokeTestFakeEmail.com'
 
 
 def get_general_provider_user_data_smoke_test():
@@ -61,15 +63,16 @@ def get_general_provider_user_data_smoke_test():
     if 'ssn' in get_provider_general_provider_object:
         raise SmokeTestFailureException(f'unexpected ssn field returned. Response: {get_provider_response.json()}')
 
-    # remove the fields from the user profile that are not in the query response
+    # remove the fields from the user profile that are not in the general (non-readPrivate) query response
     test_user_profile.pop('ssnLastFour', None)
     test_user_profile.pop('dateOfBirth', None)
     test_user_profile.pop('encumberedStatus', None)
+    test_user_profile.pop('militaryStatusNote', None)  # only returned for readPrivate callers
     for provider_license in test_user_profile['licenses']:
         provider_license.pop('ssnLastFour', None)
         provider_license.pop('dateOfBirth', None)
         provider_license.pop('encumberedStatus', None)
-        for history_event in provider_license['history']:
+        for history_event in provider_license.get('history', []):
             history_event['previous'].pop('ssnLastFour', None)
             history_event['previous'].pop('dateOfBirth', None)
             history_event['previous'].pop('encumberedStatus', None)
@@ -128,13 +131,14 @@ def query_provider_user_smoke_test():
     if 'ssn' in provider_object:
         raise SmokeTestFailureException(f'unexpected ssn field returned. Response: {post_response.json()}')
 
-    # remove the fields from the user profile that are not in the query response
+    # remove the fields from the user profile that are not in the general (non-readPrivate) query response
     test_user_profile.pop('ssnLastFour', None)
     test_user_profile.pop('dateOfBirth', None)
     test_user_profile.pop('licenses')
     test_user_profile.pop('militaryAffiliations')
     test_user_profile.pop('privileges')
     test_user_profile.pop('encumberedStatus', None)
+    test_user_profile.pop('militaryStatusNote', None)  # only returned for readPrivate callers
 
     if provider_object != test_user_profile:
         raise SmokeTestFailureException(
@@ -159,11 +163,12 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
     provider_id = provider_user_profile['providerId']
     compact = provider_user_profile['compact']
     # Step 1: Update the staff user's permissions using the PATCH '/v1/staff-users/me/permissions' endpoint.
-    staff_users_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+    # Only compact admins can grant readPrivate, so we use the separate admin staff user here.
+    admin_staff_headers = get_staff_user_auth_headers(TEST_ADMIN_STAFF_USER_EMAIL)
     patch_body = {'permissions': {compact: {'actions': {'readPrivate': True}}}}
     patch_response = requests.patch(
         url=config.api_base_url + f'/v1/compacts/{compact}/staff-users/{test_staff_user_id}',
-        headers=staff_users_headers,
+        headers=admin_staff_headers,
         json=patch_body,
         timeout=10,
     )
@@ -187,30 +192,8 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
 
     # Step 3: Verify the Provider response matches the profile.
     provider_object = get_provider_response.json()
-    # because this test staff user is a compact admin, there will be download links present for the
-    # military affiliation files, so we need to account for those here by removing them from the
-    # list of military records and checking the links to verify they are valid
-    for record in provider_object['militaryAffiliations']:
-        if 'downloadLinks' in record.keys():
-            download_links = record.pop('downloadLinks')
-            # Verify the download link is valid and can download the file
-            for download_link in download_links:
-                if 'url' not in download_link or 'fileName' not in download_link:
-                    raise SmokeTestFailureException(f'Invalid download link structure: {download_link}')
-
-                # Attempt to download the file using the pre-signed URL
-                logger.info(f'downloading test file from {download_link["url"]}')
-                download_response = requests.get(download_link['url'], timeout=30)
-                if download_response.status_code != 200:
-                    raise SmokeTestFailureException(
-                        f'Failed to download file from pre-signed URL. Status code: {download_response.status_code}, '
-                        f'URL: {download_link["url"]}, File name: {download_link["fileName"]}'
-                    )
-                logger.info(f'Successfully downloaded file: {download_link["fileName"]}')
-        else:
-            raise SmokeTestFailureException(
-                f'Missing expected download links for military affiliation. Military affiliation: {record}'
-            )
+    # the test staff user now has readPrivate permission (granted via PATCH above), but is not a compact admin,
+    # so there will be no download links for military affiliation files in this response
 
     if provider_object != test_user_profile:
         raise SmokeTestFailureException(
@@ -224,9 +207,18 @@ if __name__ == '__main__':
     load_smoke_test_env()
     provider_user_profile = call_provider_users_me_endpoint()
     provider_compact = provider_user_profile['compact']
-    # ensure the test staff user is in the same compact as the test provider user without 'readPrivate' permissions
+    # Create a readGeneral (non-admin) test staff user for tests 1/2. Using a non-admin user ensures
+    # that readPrivate fields are sanitized in the general data retrieval flow.
     test_user_sub = create_test_staff_user(
         email=TEST_STAFF_USER_EMAIL,
+        compact=provider_compact,
+        jurisdiction='oh',
+        permissions={'actions': set(), 'jurisdictions': {'oh': {'write'}}},
+    )
+    # Create a separate compact-admin staff user whose sole role is to PATCH the test staff user's
+    # permissions in test 3 (only compact admins can grant readPrivate).
+    admin_user_sub = create_test_staff_user(
+        email=TEST_ADMIN_STAFF_USER_EMAIL,
         compact=provider_compact,
         jurisdiction='oh',
         permissions={'actions': {'admin'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
@@ -240,3 +232,4 @@ if __name__ == '__main__':
         logger.error(f'Query provider smoke tests failed: {str(e)}')
     finally:
         delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_user_sub, compact=provider_compact)
+        delete_test_staff_user(TEST_ADMIN_STAFF_USER_EMAIL, user_sub=admin_user_sub, compact=provider_compact)
