@@ -382,6 +382,39 @@ export const staffAccount = {
                 },
             },
         },
+        dietitians: {
+            actions: {
+                admin: true,
+                readPrivate: true,
+                readSSN: true,
+            },
+            jurisdictions: {
+                ak: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ar: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+            },
+        },
     },
 };
 
@@ -1831,6 +1864,39 @@ export const users = {
                         },
                     },
                 },
+                dietitians: {
+                    actions: {
+                        admin: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                    },
+                },
             },
         },
         {
@@ -1995,6 +2061,7 @@ export const compactStatesForRegistration = {
     coun: [ 'al', 'ak', 'co', 'il', 'ia', 'ky', 'ne', 'nm' ],
     octp: [ 'al', 'ar', 'co', 'ct', 'il', 'ky' ],
     psypact: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
+    dietitians: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
 };
 
 export const compactConfig = {
@@ -2531,10 +2598,34 @@ export interface MockProviderCompactOverlay {
     licenseType?: string;
 }
 
-export const mockProviderCompactOverlays: Partial<Record<CompactType, MockProviderCompactOverlay>> = {
+export const mockProviderCompactOverlays: Record<CompactType, MockProviderCompactOverlay> = {
+    [CompactType.ASLP]: {
+        compact: CompactType.ASLP,
+        licenseType: LicenseType.AUDIOLOGIST,
+    },
+    [CompactType.OT]: {
+        compact: CompactType.OT,
+        licenseType: LicenseType.OCCUPATIONAL_THERAPY_ASSISTANT,
+    },
+    [CompactType.COUNSELING]: {
+        compact: CompactType.COUNSELING,
+        licenseType: LicenseType.PROFESSIONAL_COUNSELOR,
+    },
+    [CompactType.COSMETOLOGY]: {
+        compact: CompactType.COSMETOLOGY,
+        licenseType: LicenseType.COSMETOLOGIST,
+    },
+    [CompactType.SOCIAL_WORK]: {
+        compact: CompactType.SOCIAL_WORK,
+        licenseType: LicenseType.LICENSED_CLINICAL_SOCIAL_WORKER,
+    },
     [CompactType.PSYPACT]: {
         compact: CompactType.PSYPACT,
         licenseType: LicenseType.PSYCHOLOGIST,
+    },
+    [CompactType.DIETITIANS]: {
+        compact: CompactType.DIETITIANS,
+        licenseType: LicenseType.DIETITIAN,
     },
 };
 

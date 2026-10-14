@@ -38,6 +38,12 @@ describe('apiUrls helpers', () => {
         expect(getApiBaseUrl(AppModes.PSYPACT, 'search')).to.equal(envConfig.apiUrlSearchPsypact);
         expect(getApiBaseUrl(AppModes.PSYPACT, 'user')).to.equal(envConfig.apiUrlUserPsypact);
     });
+    it('should successfully resolve dietitians api base urls', () => {
+        expect(getApiBaseUrl(AppModes.DIETITIANS, 'state')).to.equal(envConfig.apiUrlStateDiet);
+        expect(getApiBaseUrl(AppModes.DIETITIANS, 'license')).to.equal(envConfig.apiUrlLicenseDiet);
+        expect(getApiBaseUrl(AppModes.DIETITIANS, 'search')).to.equal(envConfig.apiUrlSearchDiet);
+        expect(getApiBaseUrl(AppModes.DIETITIANS, 'user')).to.equal(envConfig.apiUrlUserDiet);
+    });
     it('should successfully not resolve for an unknown or missing app mode', () => {
         expect(getApiBaseUrl(null, 'license')).to.equal(undefined);
         expect(getApiBaseUrl(undefined, 'user')).to.equal(undefined);

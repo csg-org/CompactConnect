@@ -88,6 +88,12 @@ const routes: Array<RouteConfig> = [
         meta: { skipTransition: true },
     },
     {
+        path: '/auth/callback/staff/dietitians',
+        name: 'AuthCallbackStaffDietitians',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/StaffDietitians/StaffDietitians.vue'),
+        meta: { skipTransition: true },
+    },
+    {
         path: '/auth/callback/licensee/jcc',
         name: 'AuthCallbackLicenseeJcc',
         component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/LicenseeJcc/LicenseeJcc.vue'),
@@ -97,6 +103,12 @@ const routes: Array<RouteConfig> = [
         path: '/auth/callback/licensee/psypact',
         name: 'AuthCallbackLicenseePsyPact',
         component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/LicenseePsyPact/LicenseePsyPact.vue'),
+        meta: { skipTransition: true },
+    },
+    {
+        path: '/auth/callback/licensee/dietitians',
+        name: 'AuthCallbackLicenseeDietitians',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/LicenseeDietitians/LicenseeDietitians.vue'),
         meta: { skipTransition: true },
     },
     {

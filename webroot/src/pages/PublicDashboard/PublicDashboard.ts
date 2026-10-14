@@ -106,11 +106,17 @@ export default class DashboardPublic extends Vue {
         case 'login-staff-psypact':
             this.bypassToStaffLogin(AppModes.PSYPACT);
             break;
+        case 'login-staff-dietitians':
+            this.bypassToStaffLogin(AppModes.DIETITIANS);
+            break;
         case 'login-practitioner':
             this.bypassToLicenseeLogin(AppModes.JCC);
             break;
         case 'login-practitioner-psypact':
             this.bypassToLicenseeLogin(AppModes.PSYPACT);
+            break;
+        case 'login-practitioner-dietitians':
+            this.bypassToLicenseeLogin(AppModes.DIETITIANS);
             break;
         case 'recovery-practitioner':
             this.bypassToLicenseeMfaRecovery();

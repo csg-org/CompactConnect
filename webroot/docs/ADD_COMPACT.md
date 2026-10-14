@@ -154,6 +154,7 @@ Needed when exercising the new compact under the mock API:
 - [ ] If the compact **allows licensee registration**, add it to `compactStatesForRegistration`  
   (Cosmetology and social work are omitted there on purpose because they do not allow registration.)
 - [ ] Add or extend licensee / search fixtures only if you need mock flows for that compact (many fixtures stay on `octp` by default)
+- [ ] Add mock overlay to `mockProviderCompactOverlays()`
 
 ### 8. Optional / situational UI
 
@@ -206,7 +207,7 @@ Staff-only (Cosmetology / Social Work):
 - [ ] Data API, search API, state (bulk upload) S3, staff Cognito → `connect-src`
 - [ ] Data API → `img-src` and `media-src` as well
 
-Staff + licensee (JCC / PsyPact):
+Staff + licensee (JCC / PsyPact / Dietitians):
 
 - [ ] Everything above, plus provider-users S3 and licensee Cognito → `connect-src`
 

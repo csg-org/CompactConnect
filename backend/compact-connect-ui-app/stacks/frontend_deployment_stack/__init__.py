@@ -55,12 +55,22 @@ class FrontendDeploymentStack(AppStack):
                 self, app_id=AppId.PSYPACT
             )
         )
+        persistent_stack_frontend_app_config_values_dietitians = (
+            PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
+                self, app_id=AppId.DIETITIANS
+            )
+        )
         provider_users_stack_frontend_app_config_values = (
             ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(self)
         )
         provider_users_stack_frontend_app_config_values_psypact = (
             ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(
                 self, app_id=AppId.PSYPACT
+            )
+        )
+        provider_users_stack_frontend_app_config_values_dietitians = (
+            ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(
+                self, app_id=AppId.DIETITIANS
             )
         )
 
@@ -90,6 +100,12 @@ class FrontendDeploymentStack(AppStack):
             'Make sure PsyPact Persistent Stack resources have been deployed and the parameter '
             'has been copied to this account.'
             )
+        if persistent_stack_frontend_app_config_values_dietitians is None:
+            raise ValueError(
+            'Persistent Stack App Configuration (dietitians) not found in SSM. '
+            'Make sure Dietitians Persistent Stack resources have been deployed and the parameter '
+            'has been copied to this account.'
+            )
         if provider_users_stack_frontend_app_config_values is None:
             raise ValueError(
                 'Provider Users Stack App Configuration not found in SSM. '
@@ -99,6 +115,12 @@ class FrontendDeploymentStack(AppStack):
             raise ValueError(
             'Provider Users Stack App Configuration (psypact) not found in SSM. '
             'Make sure PsyPact Provider Users Stack resources have been deployed and the parameter '
+            'has been copied to this account.'
+            )
+        if provider_users_stack_frontend_app_config_values_dietitians is None:
+            raise ValueError(
+            'Provider Users Stack App Configuration (dietitians) not found in SSM. '
+            'Make sure Dietitians Provider Users Stack resources have been deployed and the parameter '
             'has been copied to this account.'
             )
 
@@ -148,8 +170,10 @@ class FrontendDeploymentStack(AppStack):
             persistent_stack_app_config_values_cosmetology=persistent_stack_frontend_app_config_values_cosmetology,
             persistent_stack_app_config_values_socialwork=persistent_stack_frontend_app_config_values_socialwork,
             persistent_stack_app_config_values_psypact=persistent_stack_frontend_app_config_values_psypact,
+            persistent_stack_app_config_values_dietitians=persistent_stack_frontend_app_config_values_dietitians,
             provider_users_stack_app_config_values=provider_users_stack_frontend_app_config_values,
             provider_users_stack_app_config_values_psypact=provider_users_stack_frontend_app_config_values_psypact,
+            provider_users_stack_app_config_values_dietitians=provider_users_stack_frontend_app_config_values_dietitians,
         )
 
         self.distribution = UIDistribution(
@@ -162,6 +186,8 @@ class FrontendDeploymentStack(AppStack):
             persistent_stack_frontend_app_config_values_cosmetology=persistent_stack_frontend_app_config_values_cosmetology,
             persistent_stack_frontend_app_config_values_socialwork=persistent_stack_frontend_app_config_values_socialwork,
             persistent_stack_frontend_app_config_values_psypact=persistent_stack_frontend_app_config_values_psypact,
+            persistent_stack_frontend_app_config_values_dietitians=persistent_stack_frontend_app_config_values_dietitians,
             provider_users_stack_frontend_app_config_values=provider_users_stack_frontend_app_config_values,
             provider_users_stack_frontend_app_config_values_psypact=provider_users_stack_frontend_app_config_values_psypact,
+            provider_users_stack_frontend_app_config_values_dietitians=provider_users_stack_frontend_app_config_values_dietitians,
         )

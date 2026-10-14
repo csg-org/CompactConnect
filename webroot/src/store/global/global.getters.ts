@@ -16,6 +16,7 @@ export default {
     isAppModeCosmetology: (state: State) => state.appMode === AppModes.COSMETOLOGY,
     isAppModeSocialWork: (state: State) => state.appMode === AppModes.SOCIAL_WORK,
     isAppModePsyPact: (state: State) => state.appMode === AppModes.PSYPACT,
+    isAppModeDietitians: (state: State) => state.appMode === AppModes.DIETITIANS,
     isAppGroupModePrivilegePurchase: (state: State) => state.appGroupMode === AppGroupModes.PRIVILEGE_PURCHASE,
     isAppGroupModeMultiState: (state: State) => state.appGroupMode === AppGroupModes.MULTI_STATE,
 };

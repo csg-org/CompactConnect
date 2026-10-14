@@ -15,6 +15,7 @@ export enum CompactType {
     COSMETOLOGY = 'cosm',
     SOCIAL_WORK = 'socw',
     PSYPACT = 'psypact',
+    DIETITIANS = 'dietitians',
 }
 
 export interface CompactSetup {
@@ -54,6 +55,11 @@ export const compactSetups: Record<CompactType, CompactSetup> = {
         appMode: AppModes.PSYPACT,
         isEnabled: () => !envConfig.isAppProduction, // @NOTE: No Prod infra yet
     },
+    [CompactType.DIETITIANS]: {
+        type: CompactType.DIETITIANS,
+        appMode: AppModes.DIETITIANS,
+        isEnabled: () => !envConfig.isAppProduction, // @NOTE: No Prod infra yet
+    },
 };
 
 export const appModeGroups: Record<AppModes, AppGroupModes> = {
@@ -61,6 +67,7 @@ export const appModeGroups: Record<AppModes, AppGroupModes> = {
     [AppModes.COSMETOLOGY]: AppGroupModes.MULTI_STATE,
     [AppModes.SOCIAL_WORK]: AppGroupModes.MULTI_STATE,
     [AppModes.PSYPACT]: AppGroupModes.MULTI_STATE,
+    [AppModes.DIETITIANS]: AppGroupModes.PRIVILEGE_PURCHASE,
 };
 
 export const getCompactSetup = (compactType?: CompactType | string | null): CompactSetup | null =>
@@ -200,6 +207,16 @@ export const appModeEncumberConfigs: Record<AppModes, AppModeEncumberConfig> = {
         },
     },
     [AppModes.PSYPACT]: {
+        license: {
+            disciplineTypes: disciplineTypesFull('surrender of license'),
+            npdbTypes: npdbTypesFull,
+        },
+        privilege: {
+            disciplineTypes: disciplineTypesFull('surrender of privilege'),
+            npdbTypes: npdbTypesFull,
+        },
+    },
+    [AppModes.DIETITIANS]: {
         license: {
             disciplineTypes: disciplineTypesFull('surrender of license'),
             npdbTypes: npdbTypesFull,

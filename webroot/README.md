@@ -189,6 +189,38 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `TODO`
+    - **`VUE_APP_API_STATE_ROOT_DIET`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_API_LICENSE_ROOT_DIET`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_API_SEARCH_ROOT_DIET`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_API_USER_ROOT_DIET`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
     - **`VUE_APP_COGNITO_REGION`**
         - _Server_ :arrow_heading_up:
             - IA Test: `us-east-1`
@@ -286,6 +318,38 @@
         - _Local_ :arrow_heading_down:
             - `TODO`
     - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE_PSYPACT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_DIET`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_COGNITO_CLIENT_ID_STAFF_DIET`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_DIET`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `TODO`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `TODO`
+    - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE_DIET`**
         - _Server_ :arrow_heading_up:
             - IA Test: `TODO`
             - CSG Test: `TODO`
