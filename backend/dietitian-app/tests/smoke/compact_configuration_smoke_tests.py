@@ -224,7 +224,10 @@ def test_compact_configuration(compact: str = None):
 
 
 def test_jurisdiction_configuration(
-    compact: str = None, jurisdiction: str = 'ne', recreate_compact_config: bool = False
+    compact: str = None,
+    jurisdiction: str = 'ne',
+    recreate_compact_config: bool = False,
+    allow_already_live: bool = False,
 ):
     """
     Test that a state admin can update and retrieve jurisdiction configuration.
@@ -366,6 +369,9 @@ def test_jurisdiction_configuration(
             if state.get('postalAbbreviation') == jurisdiction.lower():
                 jurisdiction_found = True
                 if state.get('isLive') is not False:
+                    if allow_already_live and state.get('isLive') is True:
+                        print(f'{jurisdiction} is already live in configuredStates')
+                        return config_response
                     raise SmokeTestFailureException(
                         f'Expected jurisdiction {jurisdiction} to have isLive: false in configuredStates, '
                         f'but got isLive: {state.get("isLive")}'

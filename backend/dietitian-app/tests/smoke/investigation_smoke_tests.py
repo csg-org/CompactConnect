@@ -7,6 +7,7 @@ including creating investigations and closing them through the API endpoints.
 """
 
 import time
+from datetime import date, datetime, timedelta, timezone
 
 import requests
 from smoke_common import (
@@ -23,6 +24,10 @@ from smoke_common import (
     load_smoke_test_env,
     logger,
 )
+
+# smoke_common adds the common library to sys.path before cc_common can be imported
+from cc_common.data_model.schema.common import ActiveInactiveStatus  # noqa: E402
+from cc_common.data_model.schema.privilege import PrivilegeData  # noqa: E402
 
 
 def clean_investigation_records():
@@ -105,6 +110,101 @@ def clean_investigation_records():
         f'{len(investigation_update_records)} investigation update records, and '
         f'{len(encumbrance_update_records)} encumbrance update records'
     )
+
+
+# Jurisdictions the test staff user is granted admin on. The inserted privilege uses one of these
+# so the investigation endpoints authorize the caller.
+_STAFF_ADMIN_JURISDICTIONS = ('ky', 'co', 'ne')
+_inserted_privilege = None
+
+
+def ensure_test_privilege():
+    """
+    Insert a privilege record directly when the test provider has none.
+
+    Privilege investigations need an existing privilege. Purchasing one requires Authorize.net
+    credentials, so this writes the record the API reads instead.
+    """
+    global _inserted_privilege
+
+    provider_data = call_provider_users_me_endpoint()
+    if provider_data.get('privileges'):
+        logger.info('Provider already has a privilege; skipping manual insert')
+        return
+
+    licenses = provider_data.get('licenses') or []
+    if not licenses:
+        raise SmokeTestFailureException('Cannot create a test privilege: provider has no license')
+
+    license_record = licenses[0]
+    license_jurisdiction = license_record['jurisdiction']
+    privilege_jurisdiction = next(
+        (jurisdiction for jurisdiction in _STAFF_ADMIN_JURISDICTIONS if jurisdiction != license_jurisdiction),
+        _STAFF_ADMIN_JURISDICTIONS[0],
+    )
+    compact = provider_data['compact']
+    provider_id = provider_data['providerId']
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    expiration = license_record.get('dateOfExpiration')
+    expiration_date = date.fromisoformat(expiration) if expiration else (now + timedelta(days=365)).date()
+
+    privilege = PrivilegeData.create_new(
+        {
+            'providerId': provider_id,
+            'compact': compact,
+            'jurisdiction': privilege_jurisdiction,
+            'licenseJurisdiction': license_jurisdiction,
+            'licenseType': license_record['licenseType'],
+            'dateOfIssuance': now,
+            'dateOfRenewal': now,
+            'dateOfExpiration': expiration_date,
+            'compactTransactionId': 'smoke-test-privilege',
+            'attestations': [{'attestationId': 'smoke-test', 'version': '1'}],
+            'privilegeId': f'SMOKE-{privilege_jurisdiction.upper()}-1',
+            'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
+        }
+    )
+    record = privilege.serialize_to_database_record()
+    dynamodb_table = get_provider_user_dynamodb_table()
+    dynamodb_table.put_item(Item=record)
+    dynamodb_table.update_item(
+        Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+        UpdateExpression='ADD privilegeJurisdictions :jurisdictions',
+        ExpressionAttributeValues={':jurisdictions': {privilege_jurisdiction}},
+    )
+    _inserted_privilege = {
+        'pk': record['pk'],
+        'sk': record['sk'],
+        'compact': compact,
+        'provider_id': provider_id,
+        'jurisdiction': privilege_jurisdiction,
+    }
+    logger.info(
+        'Inserted test privilege',
+        jurisdiction=privilege_jurisdiction,
+        license_type=license_record['licenseType'],
+    )
+
+
+def delete_test_privilege():
+    """Remove the privilege inserted by ensure_test_privilege."""
+    global _inserted_privilege
+
+    if not _inserted_privilege:
+        return
+
+    dynamodb_table = get_provider_user_dynamodb_table()
+    dynamodb_table.delete_item(Key={'pk': _inserted_privilege['pk'], 'sk': _inserted_privilege['sk']})
+    dynamodb_table.update_item(
+        Key={
+            'pk': f'{_inserted_privilege["compact"]}#PROVIDER#{_inserted_privilege["provider_id"]}',
+            'sk': f'{_inserted_privilege["compact"]}#PROVIDER',
+        },
+        UpdateExpression='DELETE privilegeJurisdictions :jurisdictions',
+        ExpressionAttributeValues={':jurisdictions': {_inserted_privilege['jurisdiction']}},
+    )
+    logger.info('Deleted test privilege', jurisdiction=_inserted_privilege['jurisdiction'])
+    _inserted_privilege = None
 
 
 def setup_test_environment():
@@ -459,6 +559,7 @@ def main():
 
         # Get staff user auth headers once for reuse
         auth_headers = get_staff_user_auth_headers(staff_user_email)
+        ensure_test_privilege()
 
         # Run tests
         setup_test_environment()
@@ -482,6 +583,7 @@ def main():
         # Clean up test staff user
         if staff_user_email and staff_user_sub:
             delete_test_staff_user(staff_user_email, staff_user_sub, COMPACTS[0])
+        delete_test_privilege()
         clean_investigation_records()
 
     logger.info('All investigation smoke tests passed!')

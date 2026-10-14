@@ -7,14 +7,15 @@ including setting encumbrances and lifting them through the API endpoints.
 """
 
 import time
+from datetime import date, datetime, timedelta, timezone
 
 import requests
-from purchasing_privileges_smoke_tests import test_purchasing_privilege
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
     config,
     create_test_staff_user,
+    delete_existing_privilege_records,
     delete_test_staff_user,
     get_all_provider_database_records,
     get_provider_user_dynamodb_table,
@@ -23,6 +24,13 @@ from smoke_common import (
     load_smoke_test_env,
     logger,
 )
+
+# smoke_common adds the common library to sys.path before cc_common can be imported
+from cc_common.data_model.schema.common import ActiveInactiveStatus  # noqa: E402
+from cc_common.data_model.schema.privilege import PrivilegeData  # noqa: E402
+
+# The encumbrance helper looks up a privilege in this jurisdiction.
+_PRIVILEGE_JURISDICTION = 'ne'
 
 
 def clean_adverse_actions():
@@ -70,9 +78,62 @@ def _remove_encumbered_status_from_license_and_provider():
                 )
 
 
+def insert_test_privilege():
+    """
+    Write a Nebraska privilege record directly.
+
+    Encumbrance tests need an existing privilege. Purchasing one requires Authorize.net credentials,
+    so this writes the record the API reads instead.
+    """
+    provider_data = call_provider_users_me_endpoint()
+    licenses = provider_data.get('licenses') or []
+    if not licenses:
+        raise SmokeTestFailureException('Cannot create a test privilege: provider has no license')
+
+    license_record = licenses[0]
+    compact = provider_data['compact']
+    provider_id = provider_data['providerId']
+    delete_existing_privilege_records(
+        provider_id=provider_id, compact=compact, jurisdiction=_PRIVILEGE_JURISDICTION
+    )
+
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    expiration = license_record.get('dateOfExpiration')
+    expiration_date = date.fromisoformat(expiration) if expiration else (now + timedelta(days=365)).date()
+    privilege = PrivilegeData.create_new(
+        {
+            'providerId': provider_id,
+            'compact': compact,
+            'jurisdiction': _PRIVILEGE_JURISDICTION,
+            'licenseJurisdiction': license_record['jurisdiction'],
+            'licenseType': license_record['licenseType'],
+            'dateOfIssuance': now,
+            'dateOfRenewal': now,
+            'dateOfExpiration': expiration_date,
+            'compactTransactionId': 'smoke-test-privilege',
+            'attestations': [{'attestationId': 'smoke-test', 'version': '1'}],
+            'privilegeId': f'SMOKE-{_PRIVILEGE_JURISDICTION.upper()}-1',
+            'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
+        }
+    )
+    record = privilege.serialize_to_database_record()
+    dynamodb_table = get_provider_user_dynamodb_table()
+    dynamodb_table.put_item(Item=record)
+    dynamodb_table.update_item(
+        Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+        UpdateExpression='ADD privilegeJurisdictions :jurisdictions',
+        ExpressionAttributeValues={':jurisdictions': {_PRIVILEGE_JURISDICTION}},
+    )
+    logger.info(
+        'Inserted test privilege',
+        jurisdiction=_PRIVILEGE_JURISDICTION,
+        license_type=license_record['licenseType'],
+    )
+
+
 def setup_test_environment():
     """
-    Set up the test environment by cleaning adverse actions and purchasing a privilege.
+    Set up the test environment by cleaning adverse actions and inserting a privilege.
     """
     logger.info('Setting up test environment...')
 
@@ -82,9 +143,7 @@ def setup_test_environment():
     # remove encumbered status from license and provider if present
     _remove_encumbered_status_from_license_and_provider()
 
-    # Purchase a privilege to ensure we have one to test with
-    logger.info('Purchasing a privilege for testing...')
-    test_purchasing_privilege()
+    insert_test_privilege()
 
     logger.info('Test environment setup complete')
 
@@ -102,7 +161,7 @@ class EncumbranceTestHelper:
         self.compact = provider_data['compact']
         self.provider_id = provider_data['providerId']
 
-        # Get jurisdiction information from Nebraska privilege (smoke tests purchase privilege in NE)
+        # Get jurisdiction information from the Nebraska privilege inserted for this test
         # Query database directly for privilege records
         provider_user_records = get_provider_user_records(self.compact, self.provider_id)
 
