@@ -45,6 +45,7 @@ class QueueEventListener(Construct):
         batch_size: int = 10,
         dlq_count_alarm_threshold: int = 1,
         query_definition_name_prefix: str = '',
+        grant_sqs_consume_on_execution_role: bool = False,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -78,6 +79,7 @@ class QueueEventListener(Construct):
             alarm_topic=alarm_topic,
             dlq_count_alarm_threshold=dlq_count_alarm_threshold,
             query_definition_name_prefix=query_definition_name_prefix,
+            grant_sqs_consume_on_execution_role=grant_sqs_consume_on_execution_role,
         )
 
         # Create rule to route specified detail events to the SQS queue

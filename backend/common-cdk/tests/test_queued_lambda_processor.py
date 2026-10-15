@@ -64,6 +64,80 @@ class TestQueuedLambdaProcessor(TestCase):
         )
 
         template.has_resource_properties(
+            'AWS::SQS::QueuePolicy',
+            {
+                'PolicyDocument': {
+                    'Statement': Match.array_with(
+                        [
+                            Match.object_like(
+                                {
+                                    'Action': Match.array_with(['sqs:ReceiveMessage']),
+                                    'Effect': 'Allow',
+                                    'Principal': {
+                                        'AWS': {
+                                            'Fn::GetAtt': [
+                                                stack.get_logical_id(function.role.node.default_child),
+                                                'Arn',
+                                            ]
+                                        }
+                                    },
+                                }
+                            )
+                        ]
+                    )
+                }
+            },
+        )
+
+        template.has_resource(
+            CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'BatchSize': 6,
+                    'EventSourceArn': {'Fn::GetAtt': [stack.get_logical_id(processor.queue.node.default_child), 'Arn']},
+                    'FunctionName': {'Ref': stack.get_logical_id(function.node.default_child)},
+                    'FunctionResponseTypes': ['ReportBatchItemFailures'],
+                    'MaximumBatchingWindowInSeconds': 4 * 60,
+                }
+            },
+        )
+
+    def test_execution_role_grant_is_opt_in(self):
+        app = App()
+        stack = Stack(app, 'Stack')
+
+        key = Key(stack, 'Key')
+        topic = Topic(stack, 'Topic')
+        function = Function(
+            stack,
+            'Function',
+            handler='handle',
+            runtime=Runtime.PYTHON_3_14,
+            code=Code.from_inline("""def handle(*args): return"""),
+        )
+        processor = QueuedLambdaProcessor(
+            stack,
+            'Processor',
+            process_function=function,
+            visibility_timeout=Duration.minutes(5),
+            retention_period=Duration.hours(12),
+            max_batching_window=Duration.minutes(4),
+            max_receive_count=3,
+            batch_size=6,
+            encryption_key=key,
+            alarm_topic=topic,
+            grant_sqs_consume_on_execution_role=True,
+        )
+
+        template = Template.from_stack(stack)
+        for policy in template.find_resources('AWS::SQS::QueuePolicy').values():
+            for statement in policy['Properties']['PolicyDocument']['Statement']:
+                actions = statement.get('Action', [])
+                if isinstance(actions, str):
+                    actions = [actions]
+                self.assertNotIn('sqs:ReceiveMessage', actions)
+        role_policy_id = stack.get_logical_id(function.role.node.find_child('DefaultPolicy').node.default_child)
+        template.has_resource_properties(
             'AWS::IAM::Policy',
             {
                 'PolicyDocument': {
@@ -86,16 +160,7 @@ class TestQueuedLambdaProcessor(TestCase):
                 }
             },
         )
-
         template.has_resource(
             CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'BatchSize': 6,
-                    'EventSourceArn': {'Fn::GetAtt': [stack.get_logical_id(processor.queue.node.default_child), 'Arn']},
-                    'FunctionName': {'Ref': stack.get_logical_id(function.node.default_child)},
-                    'FunctionResponseTypes': ['ReportBatchItemFailures'],
-                    'MaximumBatchingWindowInSeconds': 4 * 60,
-                }
-            },
+            props={'DependsOn': Match.array_with([role_policy_id])},
         )

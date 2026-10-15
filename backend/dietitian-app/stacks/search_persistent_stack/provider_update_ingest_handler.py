@@ -128,6 +128,7 @@ class ProviderUpdateIngestHandler(Construct):
             # Alert immediately if any messages end up in the DLQ
             dlq_count_alarm_threshold=0,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )
 
         # Expose the queue and DLQ for use by the EventBridge Pipe

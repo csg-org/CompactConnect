@@ -101,6 +101,7 @@ class EventListenerStack(AppStack):
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )
 
     def _add_lifting_license_encumbrance_listener(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
@@ -151,6 +152,7 @@ class EventListenerStack(AppStack):
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )
 
     def _add_license_deactivation_listener(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
@@ -198,4 +200,5 @@ class EventListenerStack(AppStack):
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )

@@ -157,6 +157,7 @@ class IngestStack(AppStack):
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )
 
         ingest_rule = Rule(

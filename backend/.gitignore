@@ -9,8 +9,13 @@ __pycache__
 .cdk.staging
 cdk.out
 
-# Save for local config
+# Save for local config. Copy a cdk.context.*-example.json to cdk.context.json.
+# Real environment context stays local.
 cdk.context.json
 *-cdk.context.json
-# smoke test env
+cdk.context.*.json
+!cdk.context.*-example.json
+cdk.context-internal.json
+# smoke test env. Copy smoke_tests_env_example.json to smoke_tests_env.json locally.
 *smoke_tests_env.json
+*smoke_tests_env-*.json

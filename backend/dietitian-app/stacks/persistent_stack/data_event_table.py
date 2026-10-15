@@ -111,6 +111,7 @@ class DataEventTable(Table):
             encryption_key=encryption_key,
             alarm_topic=alarm_topic,
             query_definition_name_prefix=DIETITIAN_QUERY_DEFINITION_PREFIX,
+            grant_sqs_consume_on_execution_role=True,
         )
 
         event_receiver_rule = Rule(
