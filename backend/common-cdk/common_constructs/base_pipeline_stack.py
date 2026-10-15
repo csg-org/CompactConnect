@@ -22,6 +22,7 @@ class CCPipelineType(StrEnum):
     FRONTEND = 'Frontend'
     COSMETOLOGY = 'Cosmetology'
     SOCIAL_WORK = 'SocialWork'
+    DIETITIAN = 'Dietitian'
 
 
 class BasePipelineStack(Stack):
