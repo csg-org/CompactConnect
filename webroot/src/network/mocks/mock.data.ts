@@ -1625,7 +1625,7 @@ export const users = {
     lastKey: 'abc',
     items: [
         {
-            userId: '10',
+            userId: staffAccount.userId,
             status: 'active',
             attributes: {
                 givenName: 'Miles',

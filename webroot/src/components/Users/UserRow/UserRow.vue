@@ -181,6 +181,7 @@
                                 {{ $t('account.editPermissions') }}
                             </li>
                             <li
+                                v-if="!isCurrentUser"
                                 class="row-menu-item"
                                 :class="{ 'disabled': isDeactivated, 'danger': !isDeactivated }"
                                 role="button"
@@ -226,7 +227,7 @@
             <div v-if="isEditUserModalDisplayed">
                 <div class="modal-mask"></div>
                 <div class="edit-user-modal">
-                    <UserRowEdit :user="item" @saved="closeEditUserModal" @cancel="closeEditUserModal" />
+                    <UserRowEdit :user="item" @cancel="closeEditUserModal" />
                 </div>
             </div>
             <Modal
