@@ -20,7 +20,7 @@ class TstLambdas(TestCase):
                 'TRANSACTION_HISTORY_TRANSACTION_ID_GSI_NAME': 'transactionIdGSI',
                 'TRANSACTION_REPORTS_BUCKET_NAME': 'transaction-report-bucket',
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': 'email-notification-service',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["diet"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'ENVIRONMENT_NAME': 'test',
                 'PROVIDER_TABLE_NAME': 'provider-table',
@@ -30,9 +30,8 @@ class TstLambdas(TestCase):
                 'COMPACT_TRANSACTION_ID_GSI_NAME': 'compactTransactionIdGSI',
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        'diet': [
+                            {'name': 'dietitian', 'abbreviation': 'diet'},
                         ],
                     },
                 ),

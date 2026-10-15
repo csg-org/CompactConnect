@@ -17,8 +17,8 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
                 {
                     'type': 'compact',
                     'extra': 'field',
-                    'compactAbbr': 'aslp',
-                    'compactName': 'Audiology and Speech Language Pathology',
+                    'compactAbbr': 'diet',
+                    'compactName': 'Dietitian',
                     'compactCommissionFee': {'feeAmount': Decimal('10.00'), 'feeType': 'FLAT_RATE'},
                     'paymentProcessorPublicFields': {
                         'publicClientKey': 'some-public-client-key',
@@ -34,9 +34,9 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
                     'extra': 'field',
                     'jurisdictionName': 'Kentucky',
                     'postalAbbreviation': 'ky',
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'privilegeFees': [
-                        {'licenseTypeAbbreviation': 'AUD', 'amount': Decimal('25.00'), 'militaryRate': Decimal('20.00')}
+                        {'licenseTypeAbbreviation': 'diet', 'amount': Decimal('25.00'), 'militaryRate': Decimal('20.00')}
                     ],
                     'jurisprudenceRequirements': {'required': True},
                 },
@@ -60,8 +60,8 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
             'items': [
                 {
                     'type': 'compact',
-                    'compactAbbr': 'aslp',
-                    'compactName': 'Audiology and Speech Language Pathology',
+                    'compactAbbr': 'diet',
+                    'compactName': 'Dietitian',
                     'compactCommissionFee': {'feeAmount': Decimal('10.00'), 'feeType': 'FLAT_RATE'},
                     'paymentProcessorPublicFields': {
                         'publicClientKey': 'some-public-client-key',
@@ -114,8 +114,8 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
             'items': [
                 {
                     # Missing 'type' field
-                    'compactAbbr': 'aslp',
-                    'compactName': 'Audiology and Speech Language Pathology',
+                    'compactAbbr': 'diet',
+                    'compactName': 'Dietitian',
                 }
             ]
         }
@@ -139,7 +139,7 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
                 {
                     'type': 'compact',
                     # Missing required fields for compact options
-                    'compactAbbr': 'aslp',
+                    'compactAbbr': 'diet',
                     # Missing 'compactName', 'compactCommissionFee', etc.
                 }
             ]

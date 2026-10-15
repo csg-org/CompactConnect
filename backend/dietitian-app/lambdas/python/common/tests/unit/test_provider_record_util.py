@@ -11,9 +11,9 @@ class TestProviderRecordUtility(TstLambdas):
         # Create a base license record that we'll modify for different test cases
         self.base_license = {
             'type': 'license',
-            'compact': 'aslp',
+            'compact': 'diet',
             'jurisdiction': 'oh',
-            'licenseType': 'physician',
+            'licenseType': 'dietitian',
             'licenseNumber': '12345',
             'dateOfIssuance': '2024-01-01',
             'licenseStatus': ActiveInactiveStatus.ACTIVE,
@@ -25,16 +25,16 @@ class TestProviderRecordUtility(TstLambdas):
             'dateOfUpdate': '2025-05-12T15:05:08+00:00',
             'type': 'privilege',
             'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-            'compact': 'octp',
+            'compact': 'diet',
             'jurisdiction': 'al',
             'licenseJurisdiction': 'ky',
-            'licenseType': 'occupational therapy assistant',
+            'licenseType': 'dietitian',
             'dateOfIssuance': '2025-04-23T15:47:14+00:00',
             'dateOfRenewal': '2025-04-23T15:47:14+00:00',
             'dateOfExpiration': '2027-02-12',
             'compactTransactionId': '120061887030',
             'attestations': [],
-            'privilegeId': 'OTA-AL-12',
+            'privilegeId': 'DIET-AL-12',
             'administratorSetStatus': 'active',
             'status': 'active',
             'history': [],
@@ -184,12 +184,12 @@ class TestProviderRecordUtility(TstLambdas):
 
         # Define the expected issuance update
         expected_issuance_update = {
-            'compact': 'octp',
+            'compact': 'diet',
             'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'jurisdiction': 'al',
-            'licenseType': 'occupational therapy assistant',
+            'licenseType': 'dietitian',
             'previous': {},
             'providerId': 'test-provider-id',
             'type': 'privilegeUpdate',
@@ -226,12 +226,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -239,12 +239,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-02-02T03:59:59.999999+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -283,12 +283,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -296,12 +296,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-02-02T03:59:59.999999+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -340,12 +340,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -384,12 +384,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -420,13 +420,13 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = [
             {
-                'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-05-01T23:59:00+00:00'),
                 'jurisdiction': 'ky',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'dietitian',
                 'previous': {
                     'administratorSetStatus': 'active',
                     'attestations': [],
@@ -437,7 +437,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                     'encumberedStatus': 'unencumbered',
                     'licenseJurisdiction': 'oh',
-                    'privilegeId': 'SLP-KY-26',
+                    'privilegeId': 'DIET-KY-26',
                 },
                 'providerId': '1b6bcfa2-28ad-4f9a-acf4-bba771f6cc11',
                 'type': 'privilegeUpdate',
@@ -445,13 +445,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'updateType': 'encumbrance',
             },
             {
-                'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120064106492#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120064106492#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-07-15T23:59:00+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'dietitian',
                 'previous': {
                     'administratorSetStatus': 'inactive',
                     'attestations': [],
@@ -462,7 +462,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:04:05+00:00'),
                     'encumberedStatus': 'licenseEncumbered',
                     'licenseJurisdiction': 'oh',
-                    'privilegeId': 'SLP-NE-25',
+                    'privilegeId': 'DIET-NE-25',
                 },
                 'providerId': '1b6bcfa2-28ad-4f9a-acf4-bba771f6cc11',
                 'type': 'privilegeUpdate',
@@ -470,13 +470,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'updateType': 'lifting_encumbrance',
             },
             {
-                'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-08-15T15:24:01+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {
                     'attestations': [],
                     'compactTransactionId': '120059525522',
@@ -485,7 +485,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
                     'licenseJurisdiction': 'ky',
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
@@ -493,7 +493,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'updateType': 'renewal',
             },
@@ -507,12 +507,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -520,13 +520,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-05-01T23:59:00+00:00'),
                 'jurisdiction': 'ky',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'dietitian',
                 'previous': {
                     'administratorSetStatus': 'active',
                     'attestations': [],
@@ -537,7 +537,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                     'encumberedStatus': 'unencumbered',
                     'licenseJurisdiction': 'oh',
-                    'privilegeId': 'SLP-KY-26',
+                    'privilegeId': 'DIET-KY-26',
                 },
                 'providerId': '1b6bcfa2-28ad-4f9a-acf4-bba771f6cc11',
                 'type': 'privilegeUpdate',
@@ -545,12 +545,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updateType': 'encumbrance',
             },
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T03:59:59.999999+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -558,13 +558,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120064106492#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120064106492#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-07-15T23:59:00+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'dietitian',
                 'previous': {
                     'administratorSetStatus': 'inactive',
                     'attestations': [],
@@ -575,7 +575,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:04:05+00:00'),
                     'encumberedStatus': 'licenseEncumbered',
                     'licenseJurisdiction': 'oh',
-                    'privilegeId': 'SLP-NE-25',
+                    'privilegeId': 'DIET-NE-25',
                 },
                 'providerId': '1b6bcfa2-28ad-4f9a-acf4-bba771f6cc11',
                 'type': 'privilegeUpdate',
@@ -583,13 +583,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'updateType': 'lifting_encumbrance',
             },
             {
-                'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-08-15T15:24:01+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {
                     'attestations': [],
                     'compactTransactionId': '120059525522',
@@ -598,7 +598,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
                     'licenseJurisdiction': 'ky',
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
@@ -606,7 +606,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'updateType': 'renewal',
             },
@@ -635,13 +635,13 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = [
             {
-                'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {
                     'attestations': [],
                     'compactTransactionId': '120059525522',
@@ -650,7 +650,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
                     'licenseJurisdiction': 'ky',
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
@@ -658,7 +658,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'updateType': 'renewal',
             },
@@ -672,12 +672,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -685,13 +685,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {
                     'attestations': [],
                     'compactTransactionId': '120059525522',
@@ -700,7 +700,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
                     'licenseJurisdiction': 'ky',
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
@@ -708,7 +708,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'updateType': 'renewal',
             },
@@ -736,13 +736,13 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = [
             {
-                'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {
                     'attestations': [],
                     'compactTransactionId': '120059525522',
@@ -751,7 +751,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
                     'licenseJurisdiction': 'ky',
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
@@ -759,7 +759,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'updateType': 'renewal',
             },
@@ -773,12 +773,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -786,12 +786,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
+                'compact': 'diet',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T03:59:59.999999+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -799,13 +799,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'previous': {
                     'attestations': [],
                     'compactTransactionId': '120059525522',
@@ -814,7 +814,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
                     'licenseJurisdiction': 'ky',
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
@@ -822,7 +822,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
-                    'privilegeId': 'OTA-NE-10',
+                    'privilegeId': 'DIET-NE-10',
                 },
                 'updateType': 'renewal',
             },
@@ -847,13 +847,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             },
             {
-                'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'dietitian',
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
                 'updateType': 'deactivation',
@@ -870,7 +870,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'compactTransactionId': '1234567890',
                     'administratorSetStatus': 'active',
                     'licenseJurisdiction': 'oh',
-                    'privilegeId': 'OTA-NE-1',
+                    'privilegeId': 'DIET-NE-1',
                 },
                 'updatedValues': {
                     'administratorSetStatus': 'inactive',
@@ -883,10 +883,10 @@ class TestProviderRecordUtility(TstLambdas):
 
         # Define the expected issuance update
         expected_history = {
-            'compact': 'octp',
+            'compact': 'diet',
             'jurisdiction': 'al',
-            'licenseType': 'occupational therapy assistant',
-            'privilegeId': 'OTA-AL-12',
+            'licenseType': 'dietitian',
+            'privilegeId': 'DIET-AL-12',
             'providerId': 'test-provider-id',
             'events': [
                 {
@@ -926,13 +926,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             },
             {
-                'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'jurisdiction': 'ky',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'dietitian',
                 'previous': {
                     'administratorSetStatus': 'active',
                     'attestations': [],
@@ -943,7 +943,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                     'encumberedStatus': 'unencumbered',
                     'licenseJurisdiction': 'oh',
-                    'privilegeId': 'SLP-KY-26',
+                    'privilegeId': 'DIET-KY-26',
                 },
                 'providerId': '1b6bcfa2-28ad-4f9a-acf4-bba771f6cc11',
                 'type': 'privilegeUpdate',
@@ -961,10 +961,10 @@ class TestProviderRecordUtility(TstLambdas):
 
         # Define the expected issuance update
         expected_history = {
-            'compact': 'octp',
+            'compact': 'diet',
             'jurisdiction': 'al',
-            'licenseType': 'occupational therapy assistant',
-            'privilegeId': 'OTA-AL-12',
+            'licenseType': 'dietitian',
+            'privilegeId': 'DIET-AL-12',
             'providerId': 'test-provider-id',
             'events': [
                 {
@@ -1005,13 +1005,13 @@ class TestProviderRecordUtility(TstLambdas):
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             },
             {
-                'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
+                'compact': 'diet',
+                'compactTransactionIdGSIPK': 'COMPACT#diet#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'jurisdiction': 'ky',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'dietitian',
                 'previous': {
                     'administratorSetStatus': 'active',
                     'attestations': [],
@@ -1022,7 +1022,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                     'encumberedStatus': 'unencumbered',
                     'licenseJurisdiction': 'oh',
-                    'privilegeId': 'SLP-KY-26',
+                    'privilegeId': 'DIET-KY-26',
                 },
                 'providerId': '1b6bcfa2-28ad-4f9a-acf4-bba771f6cc11',
                 'type': 'privilegeUpdate',
@@ -1040,10 +1040,10 @@ class TestProviderRecordUtility(TstLambdas):
 
         # Define the expected issuance update
         expected_history = {
-            'compact': 'octp',
+            'compact': 'diet',
             'jurisdiction': 'al',
-            'licenseType': 'occupational therapy assistant',
-            'privilegeId': 'OTA-AL-12',
+            'licenseType': 'dietitian',
+            'privilegeId': 'DIET-AL-12',
             'providerId': 'test-provider-id',
             'events': [
                 {
@@ -1344,7 +1344,7 @@ class TestGetRecordsAssociatedWithLicense(TstLambdas):
     target license together with EVERY record that depends on it across MULTIPLE privileges so nothing is
     silently left behind on the old provider. Each test asserts that one record type comes back in full.
 
-    A single rich record set is generated once in setUp: the target license (oh / slp) with two privileges
+    A single rich record set is generated once in setUp: the target license (oh / dietitian) with two privileges
     purchased against it (in ne and ky), two of every dependent record type for the license and for each
     privilege, plus noise that must be excluded (a different license type in the same jurisdiction with its
     own dependents, and person-level records).
@@ -1362,7 +1362,7 @@ class TestGetRecordsAssociatedWithLicense(TstLambdas):
         self.target_license_type = constants.DEFAULT_LICENSE_TYPE
         abbr = constants.DEFAULT_LICENSE_TYPE_ABBREVIATION
 
-        # --- target license and the two privileges purchased against it (home license oh/slp) ---
+        # --- target license and the two privileges purchased against it (home license oh/diet) ---
         self.target_license = gen.generate_default_license()
         self.associated_privileges = [
             gen.generate_default_privilege(
@@ -1434,51 +1434,48 @@ class TestGetRecordsAssociatedWithLicense(TstLambdas):
                     )
                 )
 
-        # --- noise: a different license type (oh / audiologist) with its own full set of dependents ---
-        other_type, other_abbr = 'audiologist', 'aud'
+        # --- noise: a dietitian license in a different state, with its own dependents ---
+        unrelated_jurisdiction = 'al'
+        unrelated_privilege_jurisdiction = 'tx'
         self.other_license_records = [
-            gen.generate_default_license({'licenseType': other_type}),
+            gen.generate_default_license({'jurisdiction': unrelated_jurisdiction}),
             gen.generate_default_privilege(
-                {'licenseType': other_type, 'jurisdiction': 'ne', 'privilegeId': 'AUD-NE-1'}
+                {
+                    'jurisdiction': unrelated_privilege_jurisdiction,
+                    'licenseJurisdiction': unrelated_jurisdiction,
+                    'privilegeId': 'DIET-TX-1',
+                }
             ),
             gen.generate_default_adverse_action(
                 {
                     'actionAgainst': 'license',
-                    'jurisdiction': self.target_jurisdiction,
-                    'licenseType': other_type,
-                    'licenseTypeAbbreviation': other_abbr,
+                    'jurisdiction': unrelated_jurisdiction,
                     'adverseActionId': '99999999-0000-0000-0000-000000000001',
                 }
             ),
             gen.generate_default_investigation(
                 {
                     'investigationAgainst': 'license',
-                    'jurisdiction': self.target_jurisdiction,
-                    'licenseType': other_type,
-                    'licenseTypeAbbreviation': other_abbr,
+                    'jurisdiction': unrelated_jurisdiction,
                     'investigationId': '99999999-0000-0000-0000-000000000002',
                 }
             ),
-            gen.generate_default_license_update({'licenseType': other_type}),
+            gen.generate_default_license_update({'jurisdiction': unrelated_jurisdiction}),
             gen.generate_default_adverse_action(
                 {
                     'actionAgainst': 'privilege',
-                    'jurisdiction': 'ne',
-                    'licenseType': other_type,
-                    'licenseTypeAbbreviation': other_abbr,
+                    'jurisdiction': unrelated_privilege_jurisdiction,
                     'adverseActionId': '99999999-0000-0000-0000-000000000003',
                 }
             ),
             gen.generate_default_investigation(
                 {
                     'investigationAgainst': 'privilege',
-                    'jurisdiction': 'ne',
-                    'licenseType': other_type,
-                    'licenseTypeAbbreviation': other_abbr,
+                    'jurisdiction': unrelated_privilege_jurisdiction,
                     'investigationId': '99999999-0000-0000-0000-000000000004',
                 }
             ),
-            gen.generate_default_privilege_update({'jurisdiction': 'ne', 'licenseType': other_type}),
+            gen.generate_default_privilege_update({'jurisdiction': unrelated_privilege_jurisdiction}),
         ]
         # --- noise: person-level records, never associated with any single license ---
         self.person_level_records = [
@@ -1563,10 +1560,10 @@ class TestGetRecordsAssociatedWithLicense(TstLambdas):
         # multi-privilege path: two privileges, two update records each -> all four must return
         self.assertEqual(self._keys(self.privilege_updates), self._keys(self._returned('privilegeUpdate')))
 
-    def test_excludes_records_belonging_to_a_different_license_type(self):
+    def test_excludes_records_belonging_to_a_license_in_another_jurisdiction(self):
         returned_keys = self._keys(self.result)
         leaked = self._keys(self.other_license_records) & returned_keys
-        self.assertEqual(set(), leaked, f'records for a different license type leaked into the result: {leaked}')
+        self.assertEqual(set(), leaked, f'records for a different jurisdiction leaked into the result: {leaked}')
 
     def test_excludes_person_level_records(self):
         returned_keys = self._keys(self.result)

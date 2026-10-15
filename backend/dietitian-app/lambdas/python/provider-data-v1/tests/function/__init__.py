@@ -366,10 +366,10 @@ class TstFunction(TstLambdas):
             # Update preprocessing message with license data including SSN
             preprocessing_sqs_message_copy.update(
                 {
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'jurisdiction': home,
                     'licenseNumber': f'TEST-{ssn_serial}',
-                    'licenseType': 'speech-language pathologist',
+                    'licenseType': 'dietitian',
                     'status': 'active',
                     'dateOfIssuance': '2020-01-01',
                     'dateOfExpiration': '2050-01-01',
@@ -391,10 +391,10 @@ class TstFunction(TstLambdas):
                     'familyName': family_name,
                     'givenName': given_name,
                     'middleName': name_faker.unique.first_name(),
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'jurisdiction': home,
                     'licenseNumber': f'TEST-{ssn_serial}',
-                    'licenseType': 'speech-language pathologist',
+                    'licenseType': 'dietitian',
                     'status': 'active',
                     'dateOfIssuance': '2020-01-01',
                     'dateOfExpiration': '2050-01-01',
@@ -429,7 +429,7 @@ class TstFunction(TstLambdas):
                     self.mock_context,
                 )
                 # we need to get the provider id from the ssn table so it can be used in the ingest message
-                provider_id = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{ssn}', 'sk': f'aslp#SSN#{ssn}'})['Item'][
+                provider_id = self._ssn_table.get_item(Key={'pk': f'diet#SSN#{ssn}', 'sk': f'diet#SSN#{ssn}'})['Item'][
                     'providerId'
                 ]
 
@@ -444,19 +444,19 @@ class TstFunction(TstLambdas):
 
             # Add a privilege
             provider_user_records = data_client.get_provider_user_records(
-                compact='aslp',
+                compact='diet',
                 provider_id=provider_id,
             )
             if privilege_jurisdiction:
                 data_client.create_provider_privileges(
-                    compact='aslp',
+                    compact='diet',
                     provider_id=provider_id,
                     provider_record=provider_user_records.get_provider_record(),
                     jurisdiction_postal_abbreviations=[privilege_jurisdiction],
                     license_expiration_date=date(2050, 6, 6),
                     compact_transaction_id='1234567890',
                     existing_privileges_for_license=[],
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     # This attestation id/version pair is defined in the 'privilege.json' file under the
                     # common/tests/resources/dynamo directory
                     attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],

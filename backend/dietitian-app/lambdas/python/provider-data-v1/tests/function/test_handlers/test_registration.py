@@ -9,9 +9,9 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT_ABBR = 'aslp'
-TEST_COMPACT_NAME = 'Audiology and Speech Language Pathology'
-TEST_LICENSE_TYPE = 'speech-language pathologist'
+TEST_COMPACT_ABBR = 'diet'
+TEST_COMPACT_NAME = 'Dietitian'
+TEST_LICENSE_TYPE = 'dietitian'
 
 MOCK_SSN_LAST_FOUR = '1234'
 MOCK_GIVEN_NAME = 'Joe'
@@ -151,18 +151,6 @@ class TestProviderRegistration(TstFunction):
         return event
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_returns_400_if_compact_is_not_configured(self, mock_verify_recaptcha):
-        mock_verify_recaptcha.return_value = True
-        from handlers.registration import register_provider
-
-        response = register_provider(self._get_test_event(body_overrides={'compact': 'coun'}), self.mock_context)
-        self.assertEqual(400, response['statusCode'])
-        self.assertEqual(
-            {'message': 'Registration is not currently available for the specified license type.'},
-            json.loads(response['body']),
-        )
-
-    @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_400_if_compact_is_not_enabled_for_registration(self, mock_verify_recaptcha):
         compact_config_overrides = generate_default_compact_config_overrides()
         # in this case, no environments are enabled for registration
@@ -175,8 +163,7 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual(400, response['statusCode'])
         self.assertEqual(
             {
-                'message': 'Registration is not currently available for the Audiology and '
-                + 'Speech Language Pathology compact.'
+                'message': 'Registration is not currently available for the Dietitian compact.'
             },
             json.loads(response['body']),
         )
@@ -494,7 +481,7 @@ class TestProviderRegistration(TstFunction):
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_license_type_does_not_match(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
-        self._add_mock_provider_records(license_data_overrides={'licenseType': 'audiologist'})
+        self._add_mock_provider_records(license_data_overrides={'licenseType': 'dietitian'})
         from handlers.registration import register_provider
 
         response = register_provider(self._get_test_event(), self.mock_context)

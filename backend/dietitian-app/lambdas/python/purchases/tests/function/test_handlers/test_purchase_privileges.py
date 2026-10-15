@@ -9,7 +9,7 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'diet'
 # this value is defined in the provider.json file
 TEST_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
@@ -31,7 +31,7 @@ ALL_ATTESTATION_IDS = [
 
 TEST_EMAIL = 'testRegisteredEmail@example.com'
 
-TEST_LICENSE_TYPE = 'speech-language pathologist'
+TEST_LICENSE_TYPE = 'dietitian'
 MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': '1', 'unitPrice': '55.5', 'description': 'Fee for Alaska'}]
 
 
@@ -120,8 +120,8 @@ class TestPostPurchasePrivileges(TstFunction):
             # swap out the jurisdiction postal abbreviation for ky
             jurisdiction['postalAbbreviation'] = 'ky'
             jurisdiction['jurisdictionName'] = 'Kentucky'
-            jurisdiction['pk'] = 'aslp#CONFIGURATION'
-            jurisdiction['sk'] = 'aslp#JURISDICTION#ky'
+            jurisdiction['pk'] = 'diet#CONFIGURATION'
+            jurisdiction['sk'] = 'diet#JURISDICTION#ky'
             self.config.compact_configuration_table.put_item(Item=jurisdiction)
 
     def _when_testing_provider_user_event_with_custom_claims(
@@ -189,7 +189,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 for jurisdiction in purchase_client_call_kwargs['selected_jurisdictions']
             ],
         )
-        self.assertEqual('slp', purchase_client_call_kwargs['license_type_abbreviation'])
+        self.assertEqual('diet', purchase_client_call_kwargs['license_type_abbreviation'])
         # in this test, the user had an empty list of military affiliations, so this should be false
         self.assertEqual(False, purchase_client_call_kwargs['user_active_military'])
 
@@ -425,15 +425,15 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_event_bus.publish_privilege_purchase_event.assert_called_once_with(
             source='org.compactconnect.purchases',
             jurisdiction='oh',
-            compact='aslp',
+            compact='diet',
             provider_email='björkRegisteredEmail@example.com',
             privileges=[
                 {
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                     'jurisdiction': 'ky',
-                    'licenseTypeAbbrev': 'slp',
-                    'privilegeId': 'SLP-KY-1',
+                    'licenseTypeAbbrev': 'diet',
+                    'privilegeId': 'DIET-KY-1',
                 }
             ],
             total_cost='55.5',
@@ -458,7 +458,7 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_event_bus.publish_privilege_issued_event.assert_called_once_with(
             source='org.compactconnect.purchases',
             jurisdiction='ky',
-            compact='aslp',
+            compact='diet',
             provider_email='björkRegisteredEmail@example.com',
         )
 
@@ -485,7 +485,7 @@ class TestPostPurchasePrivileges(TstFunction):
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
             privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
-            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/slp#'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/diet#'
             # in this case, the user is purchasing the privilege for the first time
             # so the date of renewal is the same as the date of issuance
             privilege_record['dateOfRenewal'] = test_issuance_date
@@ -501,7 +501,7 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_event_bus.publish_privilege_renewed_event.assert_called_once_with(
             source='org.compactconnect.purchases',
             jurisdiction='ky',
-            compact='aslp',
+            compact='diet',
             provider_email='björkRegisteredEmail@example.com',
         )
 
@@ -621,8 +621,8 @@ class TestPostPurchasePrivileges(TstFunction):
 
         # now make the same call with the same jurisdiction, but for a different license type
         # a new privilege record should be generated for that specific license type
-        self._load_license_data(expiration_date=test_license_expiration_date, license_type='audiologist')
-        event['body'] = _generate_test_request_body(license_type='audiologist')
+        self._load_license_data(expiration_date=test_license_expiration_date, license_type='dietitian')
+        event['body'] = _generate_test_request_body(license_type='dietitian')
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
 
@@ -632,7 +632,7 @@ class TestPostPurchasePrivileges(TstFunction):
         privilege_records_license_types = set(
             [record['licenseType'] for record in provider_records['items'] if record['type'] == 'privilege']
         )
-        self.assertEqual({'audiologist', 'speech-language pathologist'}, privilege_records_license_types)
+        self.assertEqual({'dietitian', 'dietitian'}, privilege_records_license_types)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_matches_but_is_inactive(
@@ -654,7 +654,7 @@ class TestPostPurchasePrivileges(TstFunction):
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
             privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
-            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/slp#'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/diet#'
             # in this case, the user is purchasing the privilege for the first time
             # so the date of renewal is the same as the date of issuance
             privilege_record['dateOfRenewal'] = test_issuance_date
@@ -698,7 +698,7 @@ class TestPostPurchasePrivileges(TstFunction):
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
             privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
-            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/slp#'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/diet#'
             # in this case, the user is purchasing the privilege for the first time
             # so the date of renewal is the same as the date of issuance
             privilege_record['dateOfRenewal'] = test_issuance_date
@@ -824,7 +824,7 @@ class TestPostPurchasePrivileges(TstFunction):
         # make sure we are tracking the transaction id
         self.assertEqual(MOCK_TRANSACTION_ID, privilege_record['compactTransactionId'])
         # verify the privilegeId is formatted correctly
-        self.assertEqual('SLP-KY-1', privilege_record['privilegeId'])
+        self.assertEqual('DIET-KY-1', privilege_record['privilegeId'])
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('handlers.privileges.config.data_client')

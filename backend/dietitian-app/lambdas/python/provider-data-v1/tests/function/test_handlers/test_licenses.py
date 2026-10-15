@@ -26,7 +26,7 @@ class TestLicenses(TstFunction):
             self.public_key_pem = f.read()
 
         # Load signature public key into the compact configuration table for functional testing
-        self._load_signature_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_signature_public_key('diet', 'oh', 'test-key-001', self.public_key_pem)
 
     def _load_signature_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
         """Load a signature public key into the compact configuration table."""
@@ -71,9 +71,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
@@ -90,7 +90,7 @@ class TestLicenses(TstFunction):
 
         expected_message = json.loads(event['body'])[0]
         # add the compact, jurisdiction, and eventTime to the expected message
-        expected_message['compact'] = 'aslp'
+        expected_message['compact'] = 'diet'
         expected_message['jurisdiction'] = 'oh'
         expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
         self.assertEqual(expected_message, json.loads(queue_messages[0].body))
@@ -102,9 +102,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         license_data['previousSSN'] = '123-12-9876'
@@ -143,13 +143,13 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         # Test case where request body attempts to specify a different compact and jurisdiction
-        license_data.update({'compact': 'coun', 'jurisdiction': 'ne'})
+        license_data.update({'compact': 'diet', 'jurisdiction': 'ne'})
         event['body'] = json.dumps(
             [
                 license_data,
@@ -169,7 +169,7 @@ class TestLicenses(TstFunction):
 
         expected_message = json.loads(event['body'])[0]
         # the expected compact and jurisdiction from the path parameters should not be modified
-        expected_message['compact'] = 'aslp'
+        expected_message['compact'] = 'diet'
         expected_message['jurisdiction'] = 'oh'
         expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
         self.assertEqual(expected_message, json.loads(queue_messages[0].body))
@@ -180,12 +180,12 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
-        license_data['licenseType'] = 'occupational therapist'
+        license_data['licenseType'] = 'not-a-license-type'
         event['body'] = json.dumps([license_data])
 
         # Add signature authentication headers
@@ -197,7 +197,7 @@ class TestLicenses(TstFunction):
         self.assertEqual(
             {
                 'message': 'Invalid license records in request. See errors for more detail.',
-                'errors': {'0': {'licenseType': ['Must be one of: audiologist, speech-language pathologist.']}},
+                'errors': {'0': {'licenseType': ['Must be one of: dietitian.']}},
             },
             json.loads(resp['body']),
         )
@@ -208,9 +208,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
@@ -246,9 +246,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
@@ -294,9 +294,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         # Test case where request body is not a list
         event['body'] = json.dumps({'message': 'hi'})
@@ -315,9 +315,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         # Test case where request body is not deserializable
         event['body'] = 'hello'
@@ -338,9 +338,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         # Test case where request body is not deserializable
         event['body'] = None
@@ -362,9 +362,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
             license_data['someOtherField'] = 'foobar'
@@ -390,9 +390,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
             license_data['licenseStatusName'] = None
@@ -421,9 +421,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         event['body'] = json.dumps([license_data, license_data])
@@ -445,37 +445,6 @@ class TestLicenses(TstFunction):
             json.loads(resp['body']),
         )
 
-    def test_post_licenses_succeeds_with_same_ssn_different_license_types(self):
-        from handlers.licenses import post_licenses
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
-
-        with open('../common/tests/resources/api/license-post.json') as f:
-            license_data_1 = json.load(f)
-
-        # Create second license with same SSN but different license type
-        license_data_2 = license_data_1.copy()
-        license_data_1['licenseType'] = 'audiologist'
-        license_data_2['licenseType'] = 'speech-language pathologist'
-
-        event['body'] = json.dumps([license_data_1, license_data_2])
-
-        # Add signature authentication headers
-        event = self._create_signed_event(event)
-
-        resp = post_licenses(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        # assert that the messages were sent to the preprocessing queue
-        queue_messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
-        self.assertEqual(2, len(queue_messages))
-
     def test_post_licenses_strips_whitespace_from_string_fields(self):
         """Test that whitespace is stripped from all string fields in license data."""
         from handlers.licenses import post_licenses
@@ -483,9 +452,9 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         # Load base license data and add whitespace to string fields
         with open('../common/tests/resources/api/license-post.json') as f:
@@ -546,16 +515,16 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
         # Do NOT add signature authentication headers - this should succeed when no keys are configured
         # First, remove any existing signature keys for this jurisdiction
         self._compact_configuration_table.delete_item(
-            Key={'pk': 'aslp#SIGNATURE_KEYS#oh', 'sk': 'aslp#JURISDICTION#oh#test-key-001'}
+            Key={'pk': 'diet#SIGNATURE_KEYS#oh', 'sk': 'diet#JURISDICTION#oh#test-key-001'}
         )
 
         resp = post_licenses(event, self.mock_context)
@@ -568,7 +537,7 @@ class TestLicenses(TstFunction):
 
         expected_message = json.loads(event['body'])[0]
         # add the compact, jurisdiction, and eventTime to the expected message
-        expected_message['compact'] = 'aslp'
+        expected_message['compact'] = 'diet'
         expected_message['jurisdiction'] = 'oh'
         expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
         self.assertEqual(expected_message, json.loads(queue_messages[0].body))
@@ -591,10 +560,10 @@ class TestPostLicensesWithoutSsn(TstFunction):
             public_key_pem = f.read()
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#oh',
-                'sk': 'aslp#JURISDICTION#oh#test-key-001',
+                'pk': 'diet#SIGNATURE_KEYS#oh',
+                'sk': 'diet#JURISDICTION#oh#test-key-001',
                 'publicKey': public_key_pem,
-                'compact': 'aslp',
+                'compact': 'diet',
                 'jurisdiction': 'oh',
                 'keyId': 'test-key-001',
                 'createdAt': '2024-01-01T00:00:00Z',
@@ -609,12 +578,12 @@ class TestPostLicensesWithoutSsn(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps(license_records)
         # this endpoint's signature auth is optional and only enforced when keys are configured
         self._compact_configuration_table.delete_item(
-            Key={'pk': 'aslp#SIGNATURE_KEYS#oh', 'sk': 'aslp#JURISDICTION#oh#test-key-001'}
+            Key={'pk': 'diet#SIGNATURE_KEYS#oh', 'sk': 'diet#JURISDICTION#oh#test-key-001'}
         )
         return event
 
@@ -686,7 +655,7 @@ class TestPostLicensesWithoutSsn(TstFunction):
         existing_license = self._seed_existing_license()
         self._seed_existing_license(
             providerId='2d3f1b0e-4c5a-4d6b-8e7f-9a0b1c2d3e4f',
-            licenseType='audiologist',
+            licenseType='dietitian',
         )
 
         with self.assertRaises(CCAmbiguousLicenseNumberException):
@@ -714,30 +683,12 @@ class TestPostLicensesWithoutSsn(TstFunction):
         )
         self.assertEqual([], self._published_ingest_events())
 
-    def test_accepts_the_same_license_number_for_two_license_types(self):
-        """
-        Rows sharing a license number but differing in license type write different license records, so
-        they are not duplicates of each other.
-        """
-        existing_license = self._seed_existing_license()
-        self._seed_existing_license(licenseType='audiologist')
-
-        resp = self._post(
-            [
-                self._license_without_ssn(licenseNumber=existing_license.licenseNumber),
-                self._license_without_ssn(licenseNumber=existing_license.licenseNumber, licenseType='audiologist'),
-            ]
-        )
-
-        self.assertEqual(200, resp['statusCode'])
-        self.assertEqual(2, len(self._published_ingest_events()))
-
     def test_processes_a_mixed_batch_down_both_paths(self):
         existing_license = self._seed_existing_license()
 
         with open('../common/tests/resources/api/license-post.json') as f:
             license_with_ssn = json.load(f)
-        license_with_ssn['licenseType'] = 'audiologist'
+        license_with_ssn['licenseType'] = 'dietitian'
 
         resp = self._post([license_with_ssn, self._license_without_ssn(licenseNumber=existing_license.licenseNumber)])
 
@@ -748,7 +699,7 @@ class TestPostLicensesWithoutSsn(TstFunction):
         self.assertEqual(
             [
                 {
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'compactEligibility': 'eligible',
                     'dateOfBirth': '1985-06-06',
                     'dateOfExpiration': '2025-04-04',
@@ -767,7 +718,7 @@ class TestPostLicensesWithoutSsn(TstFunction):
                     'licenseNumber': 'A0608337260',
                     'licenseStatus': 'active',
                     'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                    'licenseType': 'speech-language pathologist',
+                    'licenseType': 'dietitian',
                     'middleName': 'Gunnar',
                     'npi': '0608337260',
                     'phoneNumber': '+13213214321',

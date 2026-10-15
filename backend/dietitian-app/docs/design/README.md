@@ -175,30 +175,30 @@ Each jurisdiction has its own resource server with scopes that control access to
 different compacts. For example, the Kentucky (KY) resource server would have scopes like:
 
 ```
-ky/aslp.admin
-ky/aslp.write
-ky/aslp.readPrivate
-ky/aslp.readSSN
-ky/octp.admin
-ky/octp.write
-ky/octp.readPrivate
-ky/octp.readSSN
+ky/diet.admin
+ky/diet.write
+ky/diet.readPrivate
+ky/diet.readSSN
+ky/diet.admin
+ky/diet.write
+ky/diet.readPrivate
+ky/diet.readSSN
 ```
 
-If a user has the `ky/aslp.admin` scope, for example, they will be able to perform any admin action within the Kentucky
-jurisdiction within the ASLP compact.
+If a user has the `ky/diet.admin` scope, for example, they will be able to perform any admin action within the Kentucky
+jurisdiction within the DIET compact.
 
 Each compact also has its own resource server with compact-wide scopes, which are used to control access to data across
 all jurisdictions within a compact:
 
 ```
-aslp/admin
-aslp/readGeneral
-aslp/readPrivate
-aslp/readSSN
+diet/admin
+diet/readGeneral
+diet/readPrivate
+diet/readSSN
 ```
 
-If a user has the `aslp/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
+If a user has the `diet/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
 within the compact.
 
 Staff users in a compact will also be implicitly granted the `readGeneral` scope for the associated compact,
@@ -247,7 +247,7 @@ pattern. This approach optimizes for:
 ### Key Structure and Record Types
 
 Each provider is assigned a unique partition key in the format: `{compact}#PROVIDER#{providerId}` (example:
-`"pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570"`). Within this partition, multiple record types are stored
+`"pk": "diet#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570"`). Within this partition, multiple record types are stored
 with different sort keys:
 
 ```
@@ -326,14 +326,14 @@ system.
 CompactConnect maintains a comprehensive historical record of each provider from their first addition to the system.
 Any change to a provider's status, dates, or demographic information creates a supporting record that tracks the change.
 
-For license changes, records use sort keys like `aslp#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
+For license changes, records use sort keys like `diet#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
 contains:
 - The jurisdiction (e.g., "oh")
 - "UPDATE" indicator
 - POSIX timestamp of the change
 - A hash of the previous and updated values for uniqueness
 
-Similarly, privilege changes use sort keys like `aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
+Similarly, privilege changes use sort keys like `diet#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
 
 This historical tracking allows authorized users to determine a provider's practice eligibility status in any member
 state for any point in time since they entered the system.
@@ -701,7 +701,7 @@ The search infrastructure consists of several key components:
 ### Index Structure
 
 Provider documents are stored in compact-specific indices with the naming convention: `compact_{compact}_providers_{version}`
-(e.g., `compact_aslp_providers_v1`). We use index aliases to provide a stable reference to the current version of each index (e.g., `compact_aslp_providers`), allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See [OpenSearch index alias documentation](https://docs.opensearch.org/latest/im-plugin/index-alias/) for more information.
+(e.g., `compact_diet_providers_v1`). We use index aliases to provide a stable reference to the current version of each index (e.g., `compact_diet_providers`), allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See [OpenSearch index alias documentation](https://docs.opensearch.org/latest/im-plugin/index-alias/) for more information.
 
 #### Index Management
 
@@ -755,7 +755,7 @@ The function:
 
 ```json
 {
-  "startingCompact": "aslp",
+  "startingCompact": "diet",
   "startingLastKey": {"pk": "...", "sk": "..."}
 }
 ```

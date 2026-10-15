@@ -7,7 +7,7 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'diet'
 TEST_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 MOCK_SSN = '123-12-1234'
 MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
@@ -52,7 +52,7 @@ MOCK_MILITARY_AFFILIATION_S3_COPY_EVENT = {
                 },
                 'object': {
                     'key': (
-                        'compact/coun/provider/64ddb6f5-8710-49b5-bc41-43d37e392a85/document-type/'
+                        'compact/diet/provider/64ddb6f5-8710-49b5-bc41-43d37e392a85/document-type/'
                         'military-affiliations/2026-07-15T04%3A19%3A32%2B00%3A00/'
                         'b05a9032-3eda-4006-a5a6-9de4ace8f1c7%23military_affiliation.pdf'
                     ),

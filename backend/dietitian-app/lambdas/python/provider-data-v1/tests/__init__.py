@@ -36,7 +36,7 @@ class TstLambdas(TestCase):
                 'USER_POOL_ID': 'us-east-1-12345',
                 'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
                 'PROVIDER_USER_BUCKET_NAME': 'provider-user-bucket',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["diet"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -96,15 +96,9 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        'diet': [
+                            {'name': 'dietitian', 'abbreviation': 'diet'},
                         ],
-                        'octp': [
-                            {'name': 'occupational therapist', 'abbreviation': 'ot'},
-                            {'name': 'occupational therapy assistant', 'abbreviation': 'ota'},
-                        ],
-                        'coun': [{'name': 'licensed professional counselor', 'abbreviation': 'lpc'}],
                     },
                 ),
             },

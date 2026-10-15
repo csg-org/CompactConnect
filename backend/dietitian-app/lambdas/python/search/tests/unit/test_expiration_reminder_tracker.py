@@ -17,7 +17,7 @@ class TestExpirationReminderTracker(TstLambdas):
             from expiration_reminder_tracker import ExpirationEventType, ExpirationReminderTracker
 
             tracker = ExpirationReminderTracker(
-                compact='aslp',
+                compact='diet',
                 provider_id=uuid4(),
                 expiration_date='2026-02-16',
                 event_type=ExpirationEventType.PRIVILEGE_EXPIRATION_30_DAY,
@@ -35,7 +35,7 @@ class TestExpirationReminderTracker(TstLambdas):
             from expiration_reminder_tracker import ExpirationEventType, ExpirationReminderTracker
 
             tracker = ExpirationReminderTracker(
-                compact='aslp',
+                compact='diet',
                 provider_id=uuid4(),
                 expiration_date='2026-02-16',
                 event_type=ExpirationEventType.PRIVILEGE_EXPIRATION_30_DAY,
@@ -53,7 +53,7 @@ class TestExpirationReminderTracker(TstLambdas):
             from expiration_reminder_tracker import ExpirationEventType, ExpirationReminderTracker
 
             tracker = ExpirationReminderTracker(
-                compact='aslp',
+                compact='diet',
                 provider_id=uuid4(),
                 expiration_date='2026-02-16',
                 event_type=ExpirationEventType.PRIVILEGE_EXPIRATION_7_DAY,
@@ -73,7 +73,7 @@ class TestExpirationReminderTracker(TstLambdas):
 
             provider_id = uuid4()
             tracker = ExpirationReminderTracker(
-                compact='aslp',
+                compact='diet',
                 provider_id=provider_id,
                 expiration_date='2026-02-16',
                 event_type=ExpirationEventType.PRIVILEGE_EXPIRATION_DAY_OF,
@@ -84,7 +84,7 @@ class TestExpirationReminderTracker(TstLambdas):
             mock_event_state_table.put_item.assert_called_once()
             call_kwargs = mock_event_state_table.put_item.call_args.kwargs
             item = call_kwargs['Item']
-            self.assertEqual(item['pk'], f'aslp#EXPIRATION_REMINDER#{provider_id}')
+            self.assertEqual(item['pk'], f'diet#EXPIRATION_REMINDER#{provider_id}')
             self.assertEqual(item['sk'], f'{ExpirationEventType.PRIVILEGE_EXPIRATION_DAY_OF}#2026-02-16')
             self.assertEqual(item['status'], 'SUCCESS')
             self.assertIn('ttl', item)
@@ -99,7 +99,7 @@ class TestExpirationReminderTracker(TstLambdas):
             from expiration_reminder_tracker import ExpirationEventType, ExpirationReminderTracker
 
             tracker = ExpirationReminderTracker(
-                compact='aslp',
+                compact='diet',
                 provider_id=uuid4(),
                 expiration_date='2026-02-16',
                 event_type=ExpirationEventType.PRIVILEGE_EXPIRATION_30_DAY,
@@ -133,13 +133,13 @@ class TestExpirationReminderTracker(TstLambdas):
             provider_id = uuid4()
 
             tracker_30 = ExpirationReminderTracker(
-                compact='aslp',
+                compact='diet',
                 provider_id=provider_id,
                 expiration_date='2026-02-16',
                 event_type=ExpirationEventType.PRIVILEGE_EXPIRATION_30_DAY,
             )
             tracker_7 = ExpirationReminderTracker(
-                compact='aslp',
+                compact='diet',
                 provider_id=provider_id,
                 expiration_date='2026-02-16',
                 event_type=ExpirationEventType.PRIVILEGE_EXPIRATION_7_DAY,

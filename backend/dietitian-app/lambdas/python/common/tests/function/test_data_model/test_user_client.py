@@ -23,7 +23,7 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        user = client.get_user_in_compact(compact='aslp', user_id=user_id)
+        user = client.get_user_in_compact(compact='diet', user_id=user_id)
 
         # Verify that we're getting the expected fields
         self.assertEqual(
@@ -40,30 +40,29 @@ class TestClient(TstFunction):
 
         # This user isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
-            client.get_user_in_compact(compact='aslp', user_id='123')
+            client.get_user_in_compact(compact='diet', user_id='123')
 
     def test_get_compact_users_by_family_name(self):
         jurisdiction_list = ['oh', 'ne', 'ky']
-        # One user with compact-staff-like permissions in aslp
-        self._create_compact_staff_user(compacts=['aslp'])
-        # One user with compact-staff-like permissions in octp
-        self._create_compact_staff_user(compacts=['octp'])
-        # One user with board-staff-like permissions in aslp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp'], jurisdiction_list=jurisdiction_list)
-        # One user with board-staff-like permissions in aslp and octp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp', 'octp'], jurisdiction_list=jurisdiction_list)
-        # One user with board-staff-like permissions in octp in each jurisdiction
-        self._create_board_staff_users(compacts=['octp'], jurisdiction_list=jurisdiction_list)
+        # One user with compact-staff-like permissions in diet
+        self._create_compact_staff_user(compacts=['diet'])
+        # One user with compact-staff-like permissions in diet
+        self._create_compact_staff_user(compacts=['diet'])
+        # One user with board-staff-like permissions in diet in each jurisdiction
+        self._create_board_staff_users(compacts=['diet'], jurisdiction_list=jurisdiction_list)
+        # One user with board-staff-like permissions in diet in each jurisdiction
+        self._create_board_staff_users(compacts=['diet'], jurisdiction_list=jurisdiction_list)
+        # One user with board-staff-like permissions in diet in each jurisdiction
+        self._create_board_staff_users(compacts=['diet'], jurisdiction_list=jurisdiction_list)
 
         from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
-        resp = client.get_users_sorted_by_family_name(compact='aslp')
+        resp = client.get_users_sorted_by_family_name(compact='diet')
 
-        # We created two users that have aslp permissions in each jurisdiction and one aslp compact-staff user
-        # so those are what we should get back
-        self.assertEqual(2 * len(jurisdiction_list) + 1, len(resp['items']))
+        # Two compact-staff users plus three board users in each jurisdiction, all in diet
+        self.assertEqual(2 + 3 * len(jurisdiction_list), len(resp['items']))
 
         # Verify that we're getting the expected fields
         for user in resp['items']:
@@ -79,12 +78,12 @@ class TestClient(TstFunction):
     def test_get_jurisdictions_users_by_family_name(self):
         jurisdiction_list = ['oh', 'ne', 'ky']
 
-        # One user with compact-staff-like permissions in aslp
-        self._create_compact_staff_user(compacts=['aslp'])
-        # One user with board-staff-like permissions in aslp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp'], jurisdiction_list=jurisdiction_list)
-        # One user with board-staff-like permissions in aslp and octp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp', 'octp'], jurisdiction_list=jurisdiction_list)
+        # One user with compact-staff-like permissions in diet
+        self._create_compact_staff_user(compacts=['diet'])
+        # One user with board-staff-like permissions in diet in each jurisdiction
+        self._create_board_staff_users(compacts=['diet'], jurisdiction_list=jurisdiction_list)
+        # One user with board-staff-like permissions in diet in each jurisdiction
+        self._create_board_staff_users(compacts=['diet'], jurisdiction_list=jurisdiction_list)
 
         from cc_common.data_model.user_client import UserClient
 
@@ -92,12 +91,12 @@ class TestClient(TstFunction):
 
         # Provide a client filter that will filter out users without permissions in the jurisdiction we're looking for
         resp = client.get_users_sorted_by_family_name(
-            compact='aslp',
+            compact='diet',
             # All three jurisdictions, this time
             jurisdictions=['oh', 'ne', 'ky'],
         )
 
-        # We created two board users that have aslp permissions in each jurisdiction so those are what we should get
+        # We created two board users that have diet permissions in each jurisdiction so those are what we should get
         # back
         self.assertEqual(2 * len(jurisdiction_list), len(resp['items']))
 
@@ -113,24 +112,24 @@ class TestClient(TstFunction):
         self.assertEqual(sorted_family_names, family_names)
 
     def test_get_one_jurisdiction_users_by_family_name(self):
-        # One user with compact-staff-like permissions in aslp
-        self._create_compact_staff_user(compacts=['aslp'])
-        # One user with board-staff-like permissions in aslp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp'])
-        # One user with board-staff-like permissions in aslp and octp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp', 'octp'])
+        # One user with compact-staff-like permissions in diet
+        self._create_compact_staff_user(compacts=['diet'])
+        # One user with board-staff-like permissions in diet in each jurisdiction
+        self._create_board_staff_users(compacts=['diet'])
+        # One user with board-staff-like permissions in diet in each jurisdiction
+        self._create_board_staff_users(compacts=['diet'])
 
         from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
         resp = client.get_users_sorted_by_family_name(
-            compact='aslp',
+            compact='diet',
             # Only oh this time
             jurisdictions=['oh'],
         )
 
-        # We created two board users that have aslp permissions in oh so those are what we should get back
+        # We created two board users that have diet permissions in oh so those are what we should get back
         self.assertEqual(2, len(resp['items']))
 
         # Verify that we're getting the expected fields
@@ -152,7 +151,7 @@ class TestClient(TstFunction):
 
         with self.assertRaises(CCNotFoundException):
             client.update_user_permissions(
-                compact='aslp',
+                compact='diet',
                 user_id='does-not-exist',
                 jurisdiction_action_additions={'oh': {'admin'}},
                 jurisdiction_action_removals={'oh': {'write'}},
@@ -166,7 +165,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.update_user_permissions(
-            compact='aslp',
+            compact='diet',
             user_id=user_id,
             jurisdiction_action_additions={'oh': {'admin'}, 'ky': {'write'}},
             jurisdiction_action_removals={'oh': {'write'}},
@@ -183,7 +182,7 @@ class TestClient(TstFunction):
         )
 
     def test_update_user_permissions_board_to_compact_admin(self):
-        # The sample user looks like board staff in aslp/oh
+        # The sample user looks like board staff in diet/oh
         user_id = UUID(self._load_user_data())
 
         from cc_common.data_model.user_client import UserClient
@@ -191,7 +190,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.update_user_permissions(
-            compact='aslp',
+            compact='diet',
             user_id=user_id,
             compact_action_additions={'admin'},
             jurisdiction_action_removals={'oh': {'write'}},
@@ -220,7 +219,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.update_user_permissions(
-            compact='aslp',
+            compact='diet',
             user_id=user_id,
             compact_action_removals={'admin'},
             jurisdiction_action_additions={'oh': {'write', 'admin'}},
@@ -251,14 +250,14 @@ class TestClient(TstFunction):
 
         with self.assertRaises(CCInvalidRequestException):
             client.update_user_permissions(
-                compact='aslp',
+                compact='diet',
                 user_id=str(user_id),
                 compact_action_removals=set(),
                 jurisdiction_action_additions={},
             )
 
     def test_update_user_attributes(self):
-        # The sample user looks like board staff in aslp/oh
+        # The sample user looks like board staff in diet/oh
         user_id = UUID(self._load_user_data())
 
         from cc_common.data_model.user_client import UserClient
@@ -295,7 +294,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.create_user(
-            compact='aslp',
+            compact='diet',
             attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
@@ -309,26 +308,24 @@ class TestClient(TstFunction):
         self.assertEqual({'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}}, resp['permissions'])
 
     def test_create_existing_user(self):
-        """In the case that two compact admins invite the same individual to their respective compacts, we want there to
-        only be a single Cognito user created, but two database records for that user (one for each compact). So what
-        we're looking at here is that we have two sets of permissions (DB records, internally) but that they share the
-        same userId.
+        """Inviting someone who already has a diet user record merges the new jurisdiction onto that record.
+        There is one Cognito user and one diet permissions record.
         """
         from cc_common.data_model.schema.common import StaffUserStatus
         from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
-        # Create an aslp/oh board admin
+        # Create an diet/oh board admin
         first_user = client.create_user(
-            compact='aslp',
+            compact='diet',
             attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
 
-        # Create them again as an octp/ne board admin
+        # Create them again as an diet/ne board admin
         second_user = client.create_user(
-            compact='octp',
+            compact='diet',
             attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             permissions={'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}},
         )
@@ -342,9 +339,11 @@ class TestClient(TstFunction):
             {'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             second_user['attributes'],
         )
-        # The second user should see the second compact permissions, not the first, since they are presented separately
-        self.assertEqual('octp', second_user['compact'])
-        self.assertEqual({'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}}, second_user['permissions'])
+        self.assertEqual('diet', second_user['compact'])
+        self.assertEqual(
+            {'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}, 'ne': {'write', 'admin'}}},
+            second_user['permissions'],
+        )
         self.assertEqual(StaffUserStatus.INACTIVE.value, second_user['status'])
 
     def test_create_existing_user_same_compact(self):
@@ -354,20 +353,20 @@ class TestClient(TstFunction):
 
         # Create an oh board admin
         first_user = client.create_user(
-            compact='aslp',
+            compact='diet',
             attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
 
         # Create them again in the same compact
         second_user = client.create_user(
-            compact='aslp',
+            compact='diet',
             attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             permissions={'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}},
         )
 
         # The second user should now have permissions in both jurisdictions
-        self.assertEqual('aslp', second_user['compact'])
+        self.assertEqual('diet', second_user['compact'])
         self.assertEqual(first_user['userId'], second_user['userId'])
         self.assertEqual(
             {'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}, 'ne': {'write', 'admin'}}},
@@ -381,7 +380,7 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        client.delete_user(compact='aslp', user_id=user_id)
+        client.delete_user(compact='diet', user_id=user_id)
 
     def test_delete_user_in_compact_not_found(self):
         """User ID not found should raise an exception"""
@@ -392,10 +391,10 @@ class TestClient(TstFunction):
 
         # This user isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
-            client.get_user_in_compact(compact='aslp', user_id='123')
+            client.get_user_in_compact(compact='diet', user_id='123')
 
     def test_reinvite_new_user(self):
-        user_id = self._create_compact_staff_user(compacts=['aslp'])
+        user_id = self._create_compact_staff_user(compacts=['diet'])
 
         from cc_common.data_model.user_client import UserClient
 
@@ -418,7 +417,7 @@ class TestClient(TstFunction):
         self.assertEqual('FORCE_CHANGE_PASSWORD', user_data['UserStatus'])
 
     def test_reinvite_existing_user(self):
-        user_id = self._create_compact_staff_user(compacts=['aslp'])
+        user_id = self._create_compact_staff_user(compacts=['diet'])
 
         from cc_common.data_model.user_client import UserClient
 

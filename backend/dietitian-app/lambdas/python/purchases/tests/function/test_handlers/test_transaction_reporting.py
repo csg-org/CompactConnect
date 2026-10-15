@@ -11,8 +11,8 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
-TEST_AUD_LICENSE_TYPE_ABBR = 'aud'
+TEST_COMPACT = 'diet'
+TEST_LICENSE_TYPE_ABBR = 'diet'
 # Test transaction data
 MOCK_TRANSACTION_ID = 'mockTransactionIdPlaceholder'
 MOCK_BATCH_ID = '67890'
@@ -28,9 +28,9 @@ MOCK_JURISDICTION_FEE = '100'
 MOCK_TRANSACTION_FEE = '3.00'
 
 # these are used to generate jurisdiction data in the DB
-OHIO_JURISDICTION = {'postalAbbreviation': 'oh', 'jurisdictionName': 'ohio', 'sk': 'aslp#JURISDICTION#oh'}
-KENTUCKY_JURISDICTION = {'postalAbbreviation': 'ky', 'jurisdictionName': 'kentucky', 'sk': 'aslp#JURISDICTION#ky'}
-NEBRASKA_JURISDICTION = {'postalAbbreviation': 'ne', 'jurisdictionName': 'nebraska', 'sk': 'aslp#JURISDICTION#ne'}
+OHIO_JURISDICTION = {'postalAbbreviation': 'oh', 'jurisdictionName': 'ohio', 'sk': 'diet#JURISDICTION#oh'}
+KENTUCKY_JURISDICTION = {'postalAbbreviation': 'ky', 'jurisdictionName': 'kentucky', 'sk': 'diet#JURISDICTION#ky'}
+NEBRASKA_JURISDICTION = {'postalAbbreviation': 'ne', 'jurisdictionName': 'nebraska', 'sk': 'diet#JURISDICTION#ne'}
 
 # mock privilege ids
 MOCK_OHIO_PRIVILEGE_ID = 'mock-privilege-id-oh'
@@ -77,7 +77,7 @@ def _generate_mock_transaction(
     line_items = [
         {
             'description': f'Compact Privilege for {jurisdiction.upper()}',
-            'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}-{TEST_AUD_LICENSE_TYPE_ABBR}',
+            'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}-{TEST_LICENSE_TYPE_ABBR}',
             'name': f'{jurisdiction.upper()} Compact Privilege',
             # setting this as '1.0' to simulate behavior we've seen returned from authorize.net
             'quantity': '1.0',
@@ -93,7 +93,7 @@ def _generate_mock_transaction(
         {
             'description': 'Compact fee applied for each privilege purchased',
             'itemId': f'{TEST_COMPACT}-compact-fee',
-            'name': 'ASLP Compact Fee',
+            'name': 'Dietitian Compact Fee',
             'quantity': str(len(jurisdictions)),  # One fee per privilege
             'taxable': 'False',
             'unitPrice': MOCK_COMPACT_FEE,

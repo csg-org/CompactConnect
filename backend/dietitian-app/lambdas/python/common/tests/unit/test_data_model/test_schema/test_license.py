@@ -13,7 +13,7 @@ class TestLicensePostSchema(TstLambdas):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 
         with open('tests/resources/api/license-post.json') as f:
-            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
+            LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **json.load(f)})
 
     def test_validate_post_without_ssn(self):
         """
@@ -26,7 +26,7 @@ class TestLicensePostSchema(TstLambdas):
             license_data = json.load(f)
         license_data.pop('ssn')
 
-        result = LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+        result = LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_data})
 
         self.assertNotIn('ssn', result)
         self.assertEqual('A0608337260', result['licenseNumber'])
@@ -41,7 +41,7 @@ class TestLicensePostSchema(TstLambdas):
         license_data.pop('licenseNumber')
 
         with self.assertRaises(ValidationError) as context:
-            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+            LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_data})
 
         self.assertEqual(
             {'ssn': ['ssn is required when licenseNumber is not provided.']},
@@ -57,7 +57,7 @@ class TestLicensePostSchema(TstLambdas):
         license_data['compactEligibility'] = 'eligible'
 
         with self.assertRaises(ValidationError):
-            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+            LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_data})
 
     def test_validate_post_with_previous_ssn(self):
         """previousSSN is an optional field used to trigger an SSN-correction migration."""
@@ -67,7 +67,7 @@ class TestLicensePostSchema(TstLambdas):
             license_data = json.load(f)
         license_data['previousSSN'] = '123-12-9876'
 
-        result = LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+        result = LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_data})
 
         self.assertEqual('123-12-9876', result['previousSSN'])
 
@@ -78,7 +78,7 @@ class TestLicensePostSchema(TstLambdas):
         with open('tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
 
-        result = LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+        result = LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_data})
 
         self.assertNotIn('previousSSN', result)
 
@@ -90,7 +90,7 @@ class TestLicensePostSchema(TstLambdas):
         license_data['previousSSN'] = '123129876'
 
         with self.assertRaises(ValidationError):
-            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+            LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_data})
 
     def test_previous_ssn_without_ssn_rejected(self):
         """
@@ -105,7 +105,7 @@ class TestLicensePostSchema(TstLambdas):
         license_data['previousSSN'] = '123-12-9876'
 
         with self.assertRaises(ValidationError) as context:
-            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+            LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_data})
 
         self.assertEqual(
             {'previousSSN': ['previousSSN may only be provided together with ssn.']},
@@ -167,14 +167,14 @@ class TestLicenseRecordSchema(TstLambdas):
         license_record['ssnLastFour'] = license_record['ssn'][-4:]
         license_record['providerId'] = expected_license_record['providerId']
         del license_record['ssn']
-        license_data = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+        license_data = LicenseIngestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_record})
 
         # Provider will normally be looked up / generated internally, not come from the client
         provider_id = expected_license_record['providerId']
 
         license_record = LicenseRecordSchema().dump(
             {
-                'compact': 'aslp',
+                'compact': 'diet',
                 'jurisdiction': 'co',
                 'providerId': UUID(provider_id),
                 'ssnLastFour': '1234',
@@ -280,9 +280,9 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             {
                 'type': 'licenseUpdate',
                 'providerId': uuid4(),
-                'compact': 'aslp',
+                'compact': 'diet',
                 'jurisdiction': 'ky',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'dietitian',
                 'updateType': loaded_record['updateType'],
                 'createDate': loaded_record['createDate'],
                 # These two fields should determine the change hash:
@@ -309,9 +309,9 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
         alternate_record = {
             'type': 'licenseUpdate',
             'providerId': uuid4(),
-            'compact': 'aslp',
+            'compact': 'diet',
             'jurisdiction': 'ky',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'dietitian',
             'updateType': loaded_record['updateType'],
             'createDate': loaded_record['createDate'],
             # These two fields should determine the change hash:
@@ -355,7 +355,7 @@ class TestLicenseIngestSchema(TstLambdas):
             license_record['providerId'] = uuid4()
             del license_record['ssn']
 
-            result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+            result = LicenseIngestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_record})
             # Verify that the `licenseStatus` and `compactEligibility` fields are renamed to `jurisdictionUploaded*`
             self.assertEqual('active', result['jurisdictionUploadedLicenseStatus'])
             self.assertEqual('eligible', result['jurisdictionUploadedCompactEligibility'])
@@ -376,7 +376,7 @@ class TestLicenseIngestSchema(TstLambdas):
         license_record['compactEligibility'] = 'eligible'
 
         with self.assertRaises(ValidationError):
-            LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+            LicenseIngestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_record})
 
     def test_previous_provider_id_survives_load(self):
         """The preprocessor forwards previousProviderId for SSN-correction migrations; the ingest schema must
@@ -394,7 +394,7 @@ class TestLicenseIngestSchema(TstLambdas):
         previous_provider_id = uuid4()
         license_record['previousProviderId'] = previous_provider_id
 
-        result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+        result = LicenseIngestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **license_record})
 
         self.assertEqual(previous_provider_id, result['previousProviderId'])
 
@@ -413,9 +413,9 @@ class TestLicenseGeneralResponseSchemaExpirationCheck(TstLambdas):
             'providerId': 'a4182428-d061-701c-82e5-a3d1d547d797',
             'type': 'license',
             'dateOfUpdate': '2024-01-01T00:00:00+00:00',
-            'compact': 'aslp',
+            'compact': 'diet',
             'jurisdiction': 'oh',
-            'licenseType': 'audiologist',
+            'licenseType': 'dietitian',
             'licenseStatus': license_status,
             'jurisdictionUploadedLicenseStatus': 'active',
             'compactEligibility': 'eligible',

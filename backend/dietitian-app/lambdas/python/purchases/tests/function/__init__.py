@@ -183,8 +183,8 @@ class TstFunction(TstLambdas):
                     record['dateOfExpiration'] = expiration_date
                 if license_type:
                     # add the abbreviation to the sk
-                    license_type_abbr = self.config.license_type_abbreviations['aslp'][license_type]
-                    record['sk'] = f'aslp#PROVIDER#license/oh/{license_type_abbr}#'
+                    license_type_abbr = self.config.license_type_abbreviations['diet'][license_type]
+                    record['sk'] = f'diet#PROVIDER#license/oh/{license_type_abbr}#'
                     record['licenseType'] = license_type
 
             logger.debug('Loading resource, %s: %s', resource, str(record))

@@ -65,7 +65,7 @@ class TestTransactionClient(TstFunction):
 
         # Query the transactions in the window
         transactions = client.get_transactions_in_range(
-            compact='aslp',
+            compact='diet',
             start_epoch=int(start_time.timestamp()),
             end_epoch=int(end_time.timestamp()),
         )
@@ -98,7 +98,7 @@ class TestTransactionClient(TstFunction):
 
         client = TransactionClient(self.config)
 
-        compact = 'aslp'
+        compact = 'diet'
         transaction_id = 'test-tx-123'
         transaction_date = datetime.now(UTC).isoformat()
 
@@ -130,11 +130,11 @@ class TestTransactionClient(TstFunction):
         # This should not raise an exception even with invalid date format
         # The schema validation will fail, but the method catches the exception and logs it
         client.store_unsettled_transaction(
-            compact='aslp', transaction_id='test-tx-123', transaction_date='invalid-date'
+            compact='diet', transaction_id='test-tx-123', transaction_date='invalid-date'
         )
 
         # Verify the record was not stored
-        pk = 'COMPACT#aslp#UNSETTLED_TRANSACTIONS'
+        pk = 'COMPACT#diet#UNSETTLED_TRANSACTIONS'
         response = self._transaction_history_table.query(
             KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
         )
@@ -147,12 +147,12 @@ class TestTransactionClient(TstFunction):
         client = TransactionClient(self.config)
 
         settled_transactions = [
-            {'transactionId': 'tx-1', 'compact': 'aslp'},
-            {'transactionId': 'tx-2', 'compact': 'aslp'},
+            {'transactionId': 'tx-1', 'compact': 'diet'},
+            {'transactionId': 'tx-2', 'compact': 'diet'},
         ]
 
         # Should not raise any errors
-        result = client.reconcile_unsettled_transactions(compact='aslp', settled_transactions=settled_transactions)
+        result = client.reconcile_unsettled_transactions(compact='diet', settled_transactions=settled_transactions)
 
         self.assertEqual([], result)
 
@@ -163,7 +163,7 @@ class TestTransactionClient(TstFunction):
         client = TransactionClient(self.config)
 
         # Create some unsettled transactions
-        compact = 'aslp'
+        compact = 'diet'
         transaction_date = datetime.now(UTC).isoformat()
         client.store_unsettled_transaction(compact=compact, transaction_id='tx-1', transaction_date=transaction_date)
         client.store_unsettled_transaction(compact=compact, transaction_id='tx-2', transaction_date=transaction_date)
@@ -200,7 +200,7 @@ class TestTransactionClient(TstFunction):
         client = TransactionClient(self.config)
 
         # Create an old unsettled transaction (50 hours ago)
-        compact = 'aslp'
+        compact = 'diet'
         old_transaction_date = (datetime.now(UTC) - timedelta(hours=50)).isoformat()
         client.store_unsettled_transaction(
             compact=compact, transaction_id='old-tx-1', transaction_date=old_transaction_date
@@ -228,7 +228,7 @@ class TestTransactionClient(TstFunction):
         client = TransactionClient(self.config)
 
         # Create unsettled transactions
-        compact = 'aslp'
+        compact = 'diet'
         recent_date = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
         old_date = (datetime.now(UTC) - timedelta(hours=50)).isoformat()
 
@@ -270,7 +270,7 @@ class TestTransactionClient(TstFunction):
         client = TransactionClient(self.config)
 
         # Create some unsettled transactions
-        compact = 'aslp'
+        compact = 'diet'
         transaction_date = datetime.now(UTC).isoformat()
         client.store_unsettled_transaction(
             compact=compact, transaction_id='tx-unsettled-1', transaction_date=transaction_date
@@ -320,7 +320,7 @@ class TestTransactionClient(TstFunction):
 
         client = TransactionClient(self.config)
 
-        compact = 'aslp'
+        compact = 'diet'
 
         # Create transactions in the current month (November 2024)
         # Format datetime as ISO string with Z suffix (e.g., '2024-11-01T00:00:00.000Z')
@@ -358,7 +358,7 @@ class TestTransactionClient(TstFunction):
 
         client = TransactionClient(self.config)
 
-        compact = 'aslp'
+        compact = 'diet'
 
         # Create a transaction in the previous month (October 2024)
         # Format datetime as ISO string with Z suffix (e.g., '2024-10-15T00:00:00.000Z')
@@ -387,7 +387,7 @@ class TestTransactionClient(TstFunction):
         """Test that get_most_recent_transaction_for_compact raises ValueError when no transactions are found"""
         from cc_common.data_model.transaction_client import TransactionClient
 
-        compact = 'aslp'
+        compact = 'diet'
 
         # Mock the query method to return empty results and track calls
         # Create a mock table that returns empty results
@@ -407,7 +407,7 @@ class TestTransactionClient(TstFunction):
                 client.get_most_recent_transaction_for_compact(compact=compact)
 
         # Verify ValueError is raised with correct message
-        self.assertIn('No transactions found for compact: aslp', str(context.exception))
+        self.assertIn('No transactions found for compact: diet', str(context.exception))
 
         # Verify query was called 3 times (once for each month)
         self.assertEqual(3, mock_table.query.call_count)
@@ -442,7 +442,7 @@ NEW_LICENSEE_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 class TestUpdateLicenseeIdForTransactions(TstFunction):
     """Tests for re-pointing a transaction's licenseeId after an SSN-correction migration."""
 
-    def _store_transaction(self, transaction_id: str, compact: str = 'aslp'):
+    def _store_transaction(self, transaction_id: str, compact: str = 'diet'):
         return self.test_data_generator.put_default_transaction_in_transaction_history_table(
             {'transactionId': transaction_id, 'compact': compact}
         )
@@ -459,7 +459,7 @@ class TestUpdateLicenseeIdForTransactions(TstFunction):
         self.assertEqual(1, len(records), f'Expected exactly one settled record for {transaction_id}')
         return records[0]
 
-    def _update(self, transaction_ids: set[str], compact: str = 'aslp', new_licensee_id: str = NEW_LICENSEE_ID):
+    def _update(self, transaction_ids: set[str], compact: str = 'diet', new_licensee_id: str = NEW_LICENSEE_ID):
         with patch('cc_common.config._Config.current_standard_datetime', UPDATED_AT):
             return self.config.transaction_client.update_licensee_id_for_transactions(
                 compact=compact,
@@ -475,7 +475,7 @@ class TestUpdateLicenseeIdForTransactions(TstFunction):
 
         response = self.config.transaction_history_table.query(
             IndexName=self.config.transaction_history_transaction_id_gsi_name,
-            KeyConditionExpression=Key('transactionId').eq('123') & Key('compact').eq('aslp'),
+            KeyConditionExpression=Key('transactionId').eq('123') & Key('compact').eq('diet'),
         )
 
         self.assertEqual(1, len(response['Items']))
@@ -509,24 +509,10 @@ class TestUpdateLicenseeIdForTransactions(TstFunction):
         for transaction_id in ('123', '456', '789'):
             self.assertEqual(NEW_LICENSEE_ID, self._get_settled_record(transaction_id)['licenseeId'])
 
-    def test_does_not_touch_a_transaction_in_another_compact(self):
-        self._store_transaction('123', compact='aslp')
-        self._store_transaction('123', compact='octp')
-        octp_licensee_id = [record for record in self._get_all_records() if record['compact'] == 'octp'][0][
-            'licenseeId'
-        ]
-
-        updated_count = self._update({'123'}, compact='aslp')
-
-        self.assertEqual(1, updated_count)
-        records_by_compact = {record['compact']: record for record in self._get_all_records()}
-        self.assertEqual(NEW_LICENSEE_ID, records_by_compact['aslp']['licenseeId'])
-        self.assertEqual(octp_licensee_id, records_by_compact['octp']['licenseeId'])
-
     def test_does_not_touch_the_unsettled_record_for_the_same_transaction_id(self):
         self._store_transaction('123')
         self.config.transaction_client.store_unsettled_transaction(
-            compact='aslp', transaction_id='123', transaction_date=STORED_AT.isoformat()
+            compact='diet', transaction_id='123', transaction_date=STORED_AT.isoformat()
         )
         unsettled_record = next(
             record for record in self._get_all_records() if record['type'] == 'unsettled_transaction'
@@ -562,7 +548,7 @@ class TestUpdateLicenseeIdForTransactions(TstFunction):
             'cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-10T12:00:00+00:00')
         ):
             updated_count = self.config.transaction_client.update_licensee_id_for_transactions(
-                compact='aslp',
+                compact='diet',
                 transaction_ids={'123'},
                 new_licensee_id=NEW_LICENSEE_ID,
             )
@@ -572,7 +558,7 @@ class TestUpdateLicenseeIdForTransactions(TstFunction):
     def test_empty_transaction_ids_makes_no_calls(self):
         with patch('cc_common.config._Config.transaction_history_table') as mock_table:
             updated_count = self.config.transaction_client.update_licensee_id_for_transactions(
-                compact='aslp',
+                compact='diet',
                 transaction_ids=set(),
                 new_licensee_id=NEW_LICENSEE_ID,
             )

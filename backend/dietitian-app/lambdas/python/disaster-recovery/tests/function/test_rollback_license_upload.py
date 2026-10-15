@@ -39,7 +39,7 @@ class TestRollbackLicenseUpload(TstFunction):
         """Set up test fixtures before each test method."""
         super().setUp()
         # Create sample test data
-        self.compact = 'aslp'
+        self.compact = 'diet'
         self.license_jurisdiction = 'oh'
         self.provider_id = MOCK_PROVIDER_ID
         # default upload time between start and end time
@@ -844,7 +844,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the sha here will need to be updated
                         'updatesDeleted': [
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                            'diet#UPDATE#3#license/oh/diet/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
                         ],
                     }
                 ],
@@ -917,8 +917,8 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the shas here will need to be updated
                         'updatesDeleted': [
-                            'aslp#UPDATE#1#privilege/ne/slp/2025-10-23T07:15:00+00:00/06b886756a79b796ad10b17bd67057e6',
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6',
+                            'diet#UPDATE#1#privilege/ne/diet/2025-10-23T07:15:00+00:00/46258ef7061900f8a377c599c79ab359',
+                            'diet#UPDATE#3#license/oh/diet/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6',
                         ],
                     }
                 ],
@@ -1141,7 +1141,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             'typeOfUpdate': 'ENCUMBRANCE',
                             'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                             'reason': 'Existing ineligible update reason',
-                            'licenseType': 'audiologist',
+                            'licenseType': 'dietitian',
                         }
                     ],
                 }
@@ -1158,7 +1158,7 @@ class TestRollbackLicenseUpload(TstFunction):
                     'licensesReverted': [
                         {
                             'jurisdiction': 'tx',
-                            'licenseType': 'audiologist',
+                            'licenseType': 'dietitian',
                             'action': 'REVERT',
                         }
                     ],
@@ -1192,7 +1192,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'typeOfUpdate': 'ENCUMBRANCE',
                                 'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                                 'reason': 'Existing ineligible update reason',
-                                'licenseType': 'audiologist',
+                                'licenseType': 'dietitian',
                             }
                         ],
                     }
@@ -1209,7 +1209,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'licensesReverted': [
                             {
                                 'jurisdiction': 'tx',
-                                'licenseType': 'audiologist',
+                                'licenseType': 'dietitian',
                                 'action': 'REVERT',
                             }
                         ],
@@ -1312,13 +1312,13 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
-                                'licenseType': 'speech-language pathologist',
+                                'licenseType': 'dietitian',
                             }
                         ],
                         'privilegesReverted': [],
                         'providerId': mock_first_provider_id,
                         'updatesDeleted': [
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                            'diet#UPDATE#3#license/oh/diet/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
                         ],
                     },
                     {
@@ -1326,13 +1326,13 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
-                                'licenseType': 'speech-language pathologist',
+                                'licenseType': 'dietitian',
                             }
                         ],
                         'privilegesReverted': [],
                         'providerId': mock_second_provider_id,
                         'updatesDeleted': [
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                            'diet#UPDATE#3#license/oh/diet/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
                         ],
                     },
                 ],

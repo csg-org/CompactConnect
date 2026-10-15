@@ -36,7 +36,7 @@ class TstLambdas(TestCase):
                 'USER_POOL_ID': 'us-east-1-12345',
                 'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
                 'PROVIDER_USER_BUCKET_NAME': 'provider-user-bucket',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["diet"]',
                 'JURISDICTIONS': """[
                   "al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl",
                   "ga", "hi", "id", "il", "in", "ia", "ks", "ky", "la", "me",
@@ -47,9 +47,8 @@ class TstLambdas(TestCase):
                 ]""",
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        'diet': [
+                            {'name': 'dietitian', 'abbreviation': 'diet'},
                         ],
                     },
                 ),

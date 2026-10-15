@@ -654,7 +654,7 @@ class TestDataGenerator:
         """Generate a default compact configuration"""
         default_compact_config = {
             'compactAbbr': DEFAULT_COMPACT,
-            'compactName': 'Audiology and Speech Language Pathology',
+            'compactName': 'Dietitian',
             'compactCommissionFee': {
                 'feeAmount': Decimal('10.00'),
                 'feeType': 'FLAT_RATE',
@@ -702,12 +702,11 @@ class TestDataGenerator:
     ) -> JurisdictionConfigurationData:
         """Generate a default jurisdiction configuration"""
         default_jurisdiction_config = {
-            'compact': 'aslp',
+            'compact': 'diet',
             'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
             'privilegeFees': [
-                {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
-                {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
+                {'licenseTypeAbbreviation': 'diet', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
             ],
             'jurisprudenceRequirements': {
                 'required': True,

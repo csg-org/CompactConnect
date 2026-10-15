@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from decimal import Decimal
 
 import boto3
 from moto import mock_aws
@@ -24,6 +25,10 @@ class TstFunction(TstLambdas):
         self.addCleanup(self.delete_resources)
         # this must be imported here as the import relies on env variables being set by the parent class
         from common_test.test_data_generator import TestDataGenerator
+
+        # The shared generator still defaults to the compact-connect diet fixture.
+        # This suite is dietitian-only, so force those defaults to diet.
+        self._use_dietitian_compact_fixtures(TestDataGenerator)
 
         # Helper class used to generate test objects
         self.test_data_generator = TestDataGenerator()
@@ -52,8 +57,52 @@ class TstFunction(TstLambdas):
                 # strip off the pk and sk, then using schema to add them
                 json_data.pop('pk')
                 json_data.pop('sk')
+                json_data['compact'] = 'diet'
                 serialized_data = AttestationRecordSchema().dump(json_data)
                 self._compact_configuration_table.put_item(Item=serialized_data)
 
     def delete_resources(self):
         self._compact_configuration_table.delete()
+
+    def _use_dietitian_compact_fixtures(self, test_data_generator):
+        original_compact = test_data_generator.generate_default_compact_configuration
+        original_jurisdiction = test_data_generator.generate_default_jurisdiction_configuration
+
+        def generate_default_compact_configuration(value_overrides=None):
+            overrides = dict(value_overrides or {})
+            overrides['compactAbbr'] = 'diet'
+            overrides['compactName'] = 'Dietitian'
+            return original_compact(overrides)
+
+        def generate_default_jurisdiction_configuration(value_overrides=None):
+            overrides = {
+                'privilegeFees': [
+                    {
+                        'licenseTypeAbbreviation': 'diet',
+                        'amount': Decimal('50.00'),
+                        'militaryRate': Decimal('50.00'),
+                    },
+                ],
+            }
+            if value_overrides:
+                overrides.update(value_overrides)
+            overrides['compact'] = 'diet'
+            return original_jurisdiction(overrides)
+
+        test_data_generator.generate_default_compact_configuration = staticmethod(
+            generate_default_compact_configuration
+        )
+        test_data_generator.generate_default_jurisdiction_configuration = staticmethod(
+            generate_default_jurisdiction_configuration
+        )
+        self.addCleanup(
+            self._restore_compact_fixtures,
+            test_data_generator,
+            original_compact,
+            original_jurisdiction,
+        )
+
+    @staticmethod
+    def _restore_compact_fixtures(test_data_generator, original_compact, original_jurisdiction):
+        test_data_generator.generate_default_compact_configuration = staticmethod(original_compact)
+        test_data_generator.generate_default_jurisdiction_configuration = staticmethod(original_jurisdiction)

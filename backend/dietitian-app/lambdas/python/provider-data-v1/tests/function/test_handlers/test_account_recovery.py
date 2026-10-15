@@ -7,9 +7,9 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT_ABBR = 'aslp'
-TEST_COMPACT_NAME = 'Audiology and Speech Language Pathology'
-TEST_LICENSE_TYPE = 'speech-language pathologist'
+TEST_COMPACT_ABBR = 'diet'
+TEST_COMPACT_NAME = 'Dietitian'
+TEST_LICENSE_TYPE = 'dietitian'
 
 MOCK_SSN_LAST_FOUR = '1234'
 MOCK_GIVEN_NAME = 'Joe'

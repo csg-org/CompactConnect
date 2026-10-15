@@ -5,7 +5,7 @@ from cc_common.exceptions import CCAmbiguousLicenseNumberException, CCInvalidReq
 
 from tests import TstLambdas
 
-COMPACT = 'aslp'
+COMPACT = 'diet'
 JURISDICTION = 'oh'
 PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 SSN_LAST_FOUR = '1234'
@@ -18,7 +18,7 @@ def _license(**overrides) -> dict:
         'compact': COMPACT,
         'jurisdiction': JURISDICTION,
         'licenseNumber': 'A0608337260',
-        'licenseType': 'speech-language pathologist',
+        'licenseType': 'dietitian',
         'licenseStatus': 'active',
         'compactEligibility': 'eligible',
         'givenName': 'Björk',
@@ -95,18 +95,6 @@ class TestPartitionLicensesBySsnPresence(TstLambdas):
 
 
 class TestLicenseNumberDedupeKey(TstLambdas):
-    def test_key_distinguishes_license_type(self):
-        """
-        A state may legitimately hold one license number across license types for one practitioner, so
-        the key must not treat those rows as duplicates of each other.
-        """
-        from license_upload_without_ssn import license_number_dedupe_key
-
-        self.assertNotEqual(
-            license_number_dedupe_key(_license(licenseType='speech-language pathologist')),
-            license_number_dedupe_key(_license(licenseType='audiologist')),
-        )
-
     def test_key_matches_for_the_same_number_and_license_type(self):
         from license_upload_without_ssn import license_number_dedupe_key
 
@@ -149,7 +137,7 @@ class TestResolveLicenseWithoutSsn(TstLambdas):
         """
         self._mock_lookup_result(mock_config)
 
-        _resolve(_license(compact='octp', jurisdiction='ne'))
+        _resolve(_license(compact='diet', jurisdiction='ne'))
 
         mock_config.data_client.find_provider_by_license_number.assert_called_once_with(
             compact=COMPACT,
@@ -200,16 +188,6 @@ class TestResolveLicenseWithoutSsn(TstLambdas):
             _resolve(_license(), record_position=2, seen_license_keys=seen_license_keys)
 
         self.assertIn('matches with record 1', context.exception.message)
-
-    def test_allows_the_same_license_number_for_a_different_license_type(self, mock_config):
-        self._mock_lookup_result(mock_config)
-        seen_license_keys = {}
-
-        _resolve(_license(), record_position=1, seen_license_keys=seen_license_keys)
-        resolved = _resolve(_license(licenseType='audiologist'), record_position=2, seen_license_keys=seen_license_keys)
-
-        self.assertEqual(PROVIDER_ID, resolved['providerId'])
-
 
 @patch('license_upload_without_ssn.metrics')
 @patch('license_upload_without_ssn.config')

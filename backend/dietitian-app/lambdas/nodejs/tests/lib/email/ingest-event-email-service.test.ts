@@ -68,7 +68,7 @@ describe('IngestEventEmailService', () => {
                 ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
                 validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
             },
-            'Audiology and Speech Language Pathology',
+            'Dietitian',
             'Ohio'
         );
 
@@ -83,7 +83,7 @@ describe('IngestEventEmailService', () => {
                 ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
                 validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
             },
-            'Audiology and Speech Language Pathology',
+            'Dietitian',
             'Ohio',
             [
                 'operations@example.com'
@@ -107,7 +107,7 @@ describe('IngestEventEmailService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'License Data Error Summary: Audiology and Speech Language Pathology / Ohio'
+                            Data: 'License Data Error Summary: Dietitian / Ohio'
                         }
                     }
                 },
@@ -132,7 +132,7 @@ describe('IngestEventEmailService', () => {
 
     it('should send an alls well email', async () => {
         const messageId = await emailService.sendAllsWellEmail(
-            'Audiology and Speech Language Pathology',
+            'Dietitian',
             'Ohio',
             [ 'operations@example.com' ]
         );
@@ -154,7 +154,7 @@ describe('IngestEventEmailService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'License Data Summary: Audiology and Speech Language Pathology / Ohio'
+                            Data: 'License Data Summary: Dietitian / Ohio'
                         }
                     }
                 },
@@ -165,7 +165,7 @@ describe('IngestEventEmailService', () => {
 
     it('should send a "no license updates" email with expected image url', async () => {
         const messageId = await emailService.sendNoLicenseUpdatesEmail(
-            'Audiology and Speech Language Pathology',
+            'Dietitian',
             'Ohio',
             [ 'operations@example.com' ]
         );
@@ -187,7 +187,7 @@ describe('IngestEventEmailService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'No License Updates for Last 7 Days: Audiology and Speech Language Pathology / Ohio'
+                            Data: 'No License Updates for Last 7 Days: Dietitian / Ohio'
                         }
                     }
                 },

@@ -1,15 +1,15 @@
 {
    "detail": {
-      "compact": "aslp",
+      "compact": "diet",
       "jurisdiction": "ky",
       "eventTime": "2024-11-08T23:59:59+00:00",
       "providerEmail": "bjork@example.com",
       "privileges": [{
-          "compact": "aslp",
+          "compact": "diet",
           "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
           "jurisdiction": "ky",
-          "licenseTypeAbbrev":"slp",
-          "privilegeId": "SLP-KY-1"
+          "licenseTypeAbbrev":"diet",
+          "privilegeId": "DIET-KY-1"
       }],
       "totalCost": "2608.5",
       "costLineItems": [{

@@ -18,8 +18,8 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {'actions': {'read', 'admin', 'readPrivate', 'readSSN'}, 'jurisdictions': {}},
             }
         )
@@ -29,10 +29,10 @@ class TestGetUserScopesFromDB(TstLambdas):
         self.assertEqual(
             {
                 'profile',
-                'aslp/admin',
-                'aslp/readGeneral',
-                'aslp/readSSN',
-                'aslp/readPrivate',
+                'diet/admin',
+                'diet/readGeneral',
+                'diet/readSSN',
+                'diet/readPrivate',
             },
             user_data.scopes,
         )
@@ -44,8 +44,8 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin', 'readPrivate', 'readSSN'}}},
             }
         )
@@ -55,11 +55,11 @@ class TestGetUserScopesFromDB(TstLambdas):
         self.assertEqual(
             {
                 'profile',
-                'aslp/readGeneral',
-                'al/aslp.admin',
-                'al/aslp.write',
-                'al/aslp.readPrivate',
-                'al/aslp.readSSN',
+                'diet/readGeneral',
+                'al/diet.admin',
+                'al/diet.write',
+                'al/diet.readPrivate',
+                'al/diet.readSSN',
             },
             user_data.scopes,
         )
@@ -75,16 +75,16 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#octp',
-                'compact': 'octp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
@@ -94,12 +94,12 @@ class TestGetUserScopesFromDB(TstLambdas):
         self.assertEqual(
             {
                 'profile',
-                'aslp/readGeneral',
-                'al/aslp.admin',
-                'al/aslp.write',
-                'octp/readGeneral',
-                'al/octp.admin',
-                'al/octp.write',
+                'diet/readGeneral',
+                'al/diet.admin',
+                'al/diet.write',
+                'diet/readGeneral',
+                'al/diet.admin',
+                'al/diet.write',
             },
             user_data.scopes,
         )
@@ -111,11 +111,11 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {
                     'jurisdictions': {
-                        'al': {'write'}  # should correspond to the 'al/aslp.write' scope
+                        'al': {'write'}  # should correspond to the 'al/diet.write' scope
                     },
                 },
             }
@@ -123,7 +123,7 @@ class TestGetUserScopesFromDB(TstLambdas):
 
         user_data = UserData(self._user_sub)
 
-        self.assertEqual({'profile', 'aslp/readGeneral', 'al/aslp.write'}, user_data.scopes)
+        self.assertEqual({'profile', 'diet/readGeneral', 'al/diet.write'}, user_data.scopes)
 
     def test_missing_user(self):
         from user_data import UserData
@@ -143,15 +143,15 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
+                'sk': 'COMPACT#diet',
                 'compact': 'abc',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
             }
@@ -171,8 +171,8 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {
                     # Write is jurisdiction-specific
                     'actions': {'write'},
@@ -195,8 +195,8 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {'jurisdictions': {'ab': {'write', 'admin'}}},
             }
         )
@@ -215,8 +215,8 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#diet',
+                'compact': 'diet',
                 'permissions': {'jurisdictions': {'al': {'write', 'hack'}}},
             }
         )

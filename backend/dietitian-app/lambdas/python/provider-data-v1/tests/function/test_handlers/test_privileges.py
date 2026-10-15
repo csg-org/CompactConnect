@@ -19,9 +19,9 @@ DEACTIVATION_EVENT = {
     'type': 'privilegeUpdate',
     'updateType': 'deactivation',
     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-    'compact': 'aslp',
+    'compact': 'diet',
     'jurisdiction': 'ne',
-    'licenseType': 'speech-language pathologist',
+    'licenseType': 'dietitian',
     'createDate': '2024-11-08T23:59:59+00:00',
     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
     'effectiveDate': '2024-11-08T23:59:59+00:00',
@@ -37,7 +37,7 @@ DEACTIVATION_EVENT = {
         'dateOfExpiration': '2025-04-04',
         'dateOfUpdate': '2020-05-05T12:59:59+00:00',
         'compactTransactionId': '1234567890',
-        'privilegeId': 'SLP-NE-1',
+        'privilegeId': 'DIET-NE-1',
         'administratorSetStatus': 'active',
         'licenseJurisdiction': 'oh',
     },
@@ -77,12 +77,12 @@ class TestDeactivatePrivilege(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral ne/aslp.readPrivate'
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral ne/diet.readPrivate'
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'diet',
             'providerId': expected_provider['providerId'],
-            'licenseType': 'aud',
+            'licenseType': 'diet',
         }
 
         resp = get_provider(event, self.mock_context)
@@ -110,10 +110,10 @@ class TestDeactivatePrivilege(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = scopes
         event['requestContext']['authorizer']['claims']['sub'] = TEST_STAFF_USER_ID
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'diet',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
             'jurisdiction': 'ne',
-            'licenseType': 'slp',
+            'licenseType': 'diet',
         }
         event['body'] = json.dumps({'deactivationNote': TEST_NOTE})
 
@@ -127,8 +127,8 @@ class TestDeactivatePrivilege(TstFunction):
         """
         self._load_provider_data()
 
-        # The user has admin permission for aslp
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/admin')
+        # The user has admin permission for diet
+        resp = self._request_deactivation_with_scopes('openid email diet/admin diet/admin')
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
@@ -144,7 +144,7 @@ class TestDeactivatePrivilege(TstFunction):
                     'Detail': json.dumps(
                         {
                             'eventTime': '2024-11-08T23:59:59+00:00',
-                            'compact': 'aslp',
+                            'compact': 'diet',
                             'jurisdiction': 'ne',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                         }
@@ -162,7 +162,7 @@ class TestDeactivatePrivilege(TstFunction):
         self._load_provider_data()
 
         # The user has admin permission for ne
-        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        resp = self._request_deactivation_with_scopes('openid email ne/diet.admin')
         self.assertEqual(403, resp['statusCode'])
         self.assertEqual({'message': 'Access denied'}, json.loads(resp['body']))
 
@@ -174,20 +174,20 @@ class TestDeactivatePrivilege(TstFunction):
 
         # The user has admin permission for ne
         with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
-            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+            resp = self._request_deactivation_with_scopes('openid email diet/admin')
 
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
         mock_email_service_client.send_provider_privilege_deactivation_email.assert_called_once_with(
-            compact='aslp',
+            compact='diet',
             provider_email='björkRegisteredEmail@example.com',
-            privilege_id='SLP-NE-1',
+            privilege_id='DIET-NE-1',
         )
         mock_email_service_client.send_jurisdiction_privilege_deactivation_email.assert_called_once_with(
-            compact='aslp',
+            compact='diet',
             jurisdiction='ne',
-            privilege_id='SLP-NE-1',
+            privilege_id='DIET-NE-1',
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
         )
@@ -204,7 +204,7 @@ class TestDeactivatePrivilege(TstFunction):
             privilege['administratorSetStatus'] = 'inactive'
             self.config.provider_table.put_item(Item=privilege)
         # calling deactivation on privilege that is already deactivated
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+        resp = self._request_deactivation_with_scopes('openid email diet/admin')
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
@@ -224,21 +224,21 @@ class TestDeactivatePrivilege(TstFunction):
                 'email failed to send'
             )
             # We expect the handler to still return a 200, since the privilege was deactivated
-            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+            resp = self._request_deactivation_with_scopes('openid email diet/admin')
 
         self.assertEqual(200, resp['statusCode'])
 
         # Even though the first notification failed, the handler should still have attempted to send both
         # notifications
         mock_email_service_client.send_provider_privilege_deactivation_email.assert_called_once_with(
-            compact='aslp',
+            compact='diet',
             provider_email='björkRegisteredEmail@example.com',
-            privilege_id='SLP-NE-1',
+            privilege_id='DIET-NE-1',
         )
         mock_email_service_client.send_jurisdiction_privilege_deactivation_email.assert_called_once_with(
-            compact='aslp',
+            compact='diet',
             jurisdiction='ne',
-            privilege_id='SLP-NE-1',
+            privilege_id='DIET-NE-1',
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
         )
@@ -260,7 +260,7 @@ class TestDeactivatePrivilege(TstFunction):
                 mock_email_service_client.send_jurisdiction_privilege_deactivation_email
             ).side_effect = CCInternalException('email failed to send')
             # We expect the handler to still return a 200, since the privilege was deactivated
-            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+            resp = self._request_deactivation_with_scopes('openid email diet/admin')
 
         self.assertEqual(200, resp['statusCode'])
 
@@ -275,8 +275,8 @@ class TestDeactivatePrivilege(TstFunction):
         """
         self._load_provider_data()
 
-        # The user has read permission for aslp
-        resp = self._request_deactivation_with_scopes('openid email aslp/readGeneral ne/aslp.readPrivate')
+        # The user has read permission for diet
+        resp = self._request_deactivation_with_scopes('openid email diet/readGeneral ne/diet.readPrivate')
         self.assertEqual(403, resp['statusCode'])
 
     def test_deactivate_privilege_not_found(self):
@@ -284,7 +284,7 @@ class TestDeactivatePrivilege(TstFunction):
         If a privilege is not found, the response should be a 404
         """
         # Note lack of self._load_provider_data() here - we're _not_ loading the provider in this case
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+        resp = self._request_deactivation_with_scopes('openid email diet/admin')
         self.assertEqual(404, resp['statusCode'])
 
     def test_privilege_purchase_message_handler_sends_email(self):
@@ -315,13 +315,13 @@ class TestDeactivatePrivilege(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/admin'
         event['requestContext']['authorizer']['claims']['sub'] = TEST_STAFF_USER_ID
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'diet',
             'providerId': DEFAULT_PROVIDER_ID,
             'jurisdiction': 'ne',
-            'licenseType': 'slp',
+            'licenseType': 'diet',
         }
         event['body'] = json.dumps({'deactivationNote': TEST_NOTE})
 
@@ -330,8 +330,8 @@ class TestDeactivatePrivilege(TstFunction):
 
         provider_record = self._provider_table.get_item(
             Key={
-                'pk': f'aslp#PROVIDER#{DEFAULT_PROVIDER_ID}',
-                'sk': 'aslp#PROVIDER',
+                'pk': f'diet#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'sk': 'diet#PROVIDER',
             }
         )['Item']
 

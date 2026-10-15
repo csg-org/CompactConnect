@@ -7,7 +7,7 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'diet'
 MOCK_SSN = '123-12-1234'
 MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
 
@@ -39,7 +39,7 @@ class TestGetProvider(TstFunction):
             event['resource'] = '/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
-            event['pathParameters'] = {'jurisdiction': 'ne', 'licenseType': 'slp'}
+            event['pathParameters'] = {'jurisdiction': 'ne', 'licenseType': 'diet'}
 
         return event
 
@@ -66,7 +66,7 @@ class TestGetProvider(TstFunction):
             )
             event['pathParameters'] = {
                 'jurisdiction': 'ne',
-                'licenseType': 'slp',
+                'licenseType': 'diet',
                 'compact': test_provider.compact,
                 'providerId': test_provider.providerId,
             }
@@ -96,7 +96,7 @@ class TestGetProvider(TstFunction):
             )
             event['pathParameters'] = {
                 'jurisdiction': 'ne',
-                'licenseType': 'slp',
+                'licenseType': 'diet',
                 'compact': test_provider.compact,
                 'providerId': test_provider.providerId,
             }
@@ -110,7 +110,7 @@ class TestGetProvider(TstFunction):
 
         event = self._when_testing_provider_user_event_with_custom_claims()
 
-        event['pathParameters'] = {'jurisdiction': 'ma', 'licenseType': 'slp'}
+        event['pathParameters'] = {'jurisdiction': 'ma', 'licenseType': 'diet'}
 
         resp = privilege_history_handler(event, self.mock_context)
 
@@ -130,9 +130,7 @@ class TestGetProvider(TstFunction):
         from handlers.privilege_history import privilege_history_handler
 
         event = self._when_testing_staff_endpoint()
-        # change the compact to a different compact
-        # to simulate a staff user attempting to access a different compact
-        event['pathParameters']['compact'] = 'coun'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email'
 
         resp = privilege_history_handler(event, self.mock_context)
 
@@ -159,7 +157,7 @@ class TestGetProvider(TstFunction):
         history_data = json.loads(resp['body'])
 
         expected_history = {
-            'compact': 'aslp',
+            'compact': 'diet',
             'events': [
                 {
                     'createDate': '2016-05-05T12:59:59+00:00',
@@ -185,8 +183,8 @@ class TestGetProvider(TstFunction):
                 },
             ],
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
-            'privilegeId': 'SLP-NE-1',
+            'licenseType': 'dietitian',
+            'privilegeId': 'DIET-NE-1',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 
@@ -203,7 +201,7 @@ class TestGetProvider(TstFunction):
         history_data = json.loads(resp['body'])
 
         expected_history = {
-            'compact': 'aslp',
+            'compact': 'diet',
             'events': [
                 {
                     'createDate': '2016-05-05T12:59:59+00:00',
@@ -228,8 +226,8 @@ class TestGetProvider(TstFunction):
                 },
             ],
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
-            'privilegeId': 'SLP-NE-1',
+            'licenseType': 'dietitian',
+            'privilegeId': 'DIET-NE-1',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 
@@ -246,7 +244,7 @@ class TestGetProvider(TstFunction):
         history_data = json.loads(resp['body'])
 
         expected_history = {
-            'compact': 'aslp',
+            'compact': 'diet',
             'events': [
                 {
                     'createDate': '2016-05-05T12:59:59+00:00',
@@ -272,8 +270,8 @@ class TestGetProvider(TstFunction):
                 },
             ],
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
-            'privilegeId': 'SLP-NE-1',
+            'licenseType': 'dietitian',
+            'privilegeId': 'DIET-NE-1',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 

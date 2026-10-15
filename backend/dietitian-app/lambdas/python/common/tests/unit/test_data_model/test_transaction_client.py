@@ -49,8 +49,8 @@ class TestTransactionClient(TstLambdas):
         expected_item = mock_transaction.to_dict().copy()
         expected_item.update(
             {
-                'pk': 'COMPACT#aslp#TRANSACTIONS#MONTH#2024-01',
-                'sk': f'COMPACT#aslp#TIME#{expected_epoch}#BATCH#batch456#TX#tx123',
+                'pk': 'COMPACT#diet#TRANSACTIONS#MONTH#2024-01',
+                'sk': f'COMPACT#diet#TIME#{expected_epoch}#BATCH#batch456#TX#tx123',
                 'transactionProcessor': 'authorize.net',
                 'transactionId': 'tx123',
                 'dateOfUpdate': ANY,
@@ -105,9 +105,9 @@ class TestTransactionClient(TstLambdas):
 
         # Test data
         priv_line_ca = deepcopy(DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM)
-        priv_line_ca.update({'itemId': 'priv:aslp-CA', 'unitPrice': 100})
+        priv_line_ca.update({'itemId': 'priv:diet-CA', 'unitPrice': 100})
         priv_line_ny = deepcopy(DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM)
-        priv_line_ny.update({'itemId': 'priv:aslp-NY', 'unitPrice': 200})
+        priv_line_ny.update({'itemId': 'priv:diet-NY', 'unitPrice': 200})
         priv_line_fee = deepcopy(DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM)
         priv_line_fee.update({'itemId': 'credit-card-transaction-fee', 'unitPrice': 50})
         test_transactions = [
@@ -121,12 +121,12 @@ class TestTransactionClient(TstLambdas):
         ]
 
         # Call the method
-        result = self.client.add_privilege_information_to_transactions('aslp', test_transactions)
+        result = self.client.add_privilege_information_to_transactions('diet', test_transactions)
 
         # Verify the GSI query was called with correct parameters
         self.mock_config.provider_table.query.assert_called_once_with(
             IndexName='compactTransactionIdGSI',
-            KeyConditionExpression=Key('compactTransactionIdGSIPK').eq('COMPACT#aslp#TX#tx123#'),
+            KeyConditionExpression=Key('compactTransactionIdGSIPK').eq('COMPACT#diet#TX#tx123#'),
         )
 
         # Verify privilege IDs were added to correct line items
@@ -153,7 +153,7 @@ class TestTransactionClient(TstLambdas):
 
         # Test data
         line_item_ca = deepcopy(DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM)
-        line_item_ca.update({'itemId': 'priv:aslp-CA', 'unitPrice': 100})
+        line_item_ca.update({'itemId': 'priv:diet-CA', 'unitPrice': 100})
         line_item_fee = deepcopy(DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM)
         line_item_fee.update({'itemId': 'credit-card-transaction-fee', 'unitPrice': 50})
         test_transactions = [
@@ -167,12 +167,12 @@ class TestTransactionClient(TstLambdas):
         ]
 
         # Call the method
-        result = self.client.add_privilege_information_to_transactions('aslp', test_transactions)
+        result = self.client.add_privilege_information_to_transactions('diet', test_transactions)
 
         # Verify the GSI query was called with correct parameters
         self.mock_config.provider_table.query.assert_called_once_with(
             IndexName='compactTransactionIdGSI',
-            KeyConditionExpression=Key('compactTransactionIdGSIPK').eq('COMPACT#aslp#TX#tx123#'),
+            KeyConditionExpression=Key('compactTransactionIdGSIPK').eq('COMPACT#diet#TX#tx123#'),
         )
 
         # Verify the correct provider ID was added to the transaction

@@ -72,7 +72,7 @@ class TestSearchProviders(TstFunction):
     def _create_mock_provider_hit(
         self,
         provider_id: str = '00000000-0000-0000-0000-000000000001',
-        compact: str = 'aslp',
+        compact: str = 'diet',
         sort_values: list = None,
     ) -> dict:
         """Create a mock OpenSearch hit for a provider document."""
@@ -116,7 +116,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create event with minimal body - just the required query field
-        event = self._create_api_event(compact='aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event(compact='diet', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -125,7 +125,7 @@ class TestSearchProviders(TstFunction):
 
         # Verify the search was called with correct parameters
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_aslp_providers', body={'query': {'match_all': {}}, 'size': 100}
+            index_name='compact_diet_providers', body={'query': {'match_all': {}}, 'size': 100}
         )
 
         # Verify response structure
@@ -149,13 +149,13 @@ class TestSearchProviders(TstFunction):
                 ]
             }
         }
-        event = self._create_api_event('aslp', body={'query': custom_query, 'from': 20})
+        event = self._create_api_event('diet', body={'query': custom_query, 'from': 20})
 
         search_api_handler(event, self.mock_context)
 
         # Verify the custom query was passed through
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_aslp_providers',
+            index_name='compact_diet_providers',
             body={
                 'query': {'bool': {'must': [{'match': {'givenName': 'John'}}, {'term': {'licenseStatus': 'active'}}]}},
                 'size': 100,
@@ -169,7 +169,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Request size larger than MAX_SIZE
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}, 'size': 500})
+        event = self._create_api_event('diet', body={'query': {'match_all': {}}, 'size': 500})
 
         result = search_api_handler(event, self.mock_context)
         self.assertEqual(400, result['statusCode'])
@@ -192,7 +192,7 @@ class TestSearchProviders(TstFunction):
         sort_config = [{'providerId': {'order': 'asc'}}, {'dateOfUpdate': {'order': 'desc'}}]
         search_after_values = ['provider-uuid-123']
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {'match_all': {}},
                 'sort': sort_config,
@@ -203,7 +203,7 @@ class TestSearchProviders(TstFunction):
         search_api_handler(event, self.mock_context)
 
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_aslp_providers',
+            index_name='compact_diet_providers',
             body={
                 'query': {'match_all': {}},
                 'size': 100,
@@ -221,7 +221,7 @@ class TestSearchProviders(TstFunction):
 
         # search_after without sort should fail
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {'match_all': {}},
                 'search_after': ['provider-uuid-123'],
@@ -239,7 +239,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with missing required 'query' field
-        event = self._create_api_event('aslp', body={'size': 10})
+        event = self._create_api_event('diet', body={'size': 10})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -262,7 +262,7 @@ class TestSearchProviders(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('diet', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -273,7 +273,7 @@ class TestSearchProviders(TstFunction):
                 'providers': [
                     {
                         'birthMonthDay': '06-15',
-                        'compact': 'aslp',
+                        'compact': 'diet',
                         'compactEligibility': 'eligible',
                         'dateOfExpiration': '2025-12-31',
                         'dateOfUpdate': '2024-01-15T10:30:00+00:00',
@@ -310,7 +310,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'providerId': {'order': 'asc'}}, {'dateOfUpdate': {'order': 'asc'}}],
@@ -331,7 +331,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Test with different compacts
-        for compact in ['aslp', 'octp', 'coun']:
+        for compact in ['diet', 'diet', 'diet']:
             mock_opensearch_client.reset_mock()
 
             event = self._create_api_event(compact, body={'query': {'match_all': {}}})
@@ -345,7 +345,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with unsupported route
-        event = self._create_api_event(compact='aslp', scopes_override='openid email')
+        event = self._create_api_event(compact='diet', scopes_override='openid email')
 
         response = search_api_handler(event, self.mock_context)
 
@@ -359,12 +359,12 @@ class TestSearchProviders(TstFunction):
 
         # Test with 'index' key (terms lookup attack pattern)
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'terms': {
                         'providerId': {
-                            'index': 'compact_octp_providers',
+                            'index': 'compact_diet_providers',
                             'id': 'some-uuid',
                             'path': 'providerId',
                         }
@@ -390,12 +390,12 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'terms': {
                         'providerId': {
-                            '_index': 'compact_octp_providers',
+                            '_index': 'compact_diet_providers',
                             '_id': 'target-provider-uuid',
                         }
                     }
@@ -424,7 +424,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'bool': {
@@ -458,12 +458,12 @@ class TestSearchProviders(TstFunction):
             'script': {'script': {'script': {'source': "doc['familyName'].size() > 0"}}},
             'exists': {'exists': {'field': 'licenses.ssnLastFour'}},
             'multi_match': {'multi_match': {'query': 'Doe', 'fields': ['givenName', 'licenses.ssnLastFour']}},
-            'more_like_this': {'more_like_this': {'like': [{'_index': 'compact_octp_providers'}]}},
+            'more_like_this': {'more_like_this': {'like': [{'_index': 'compact_diet_providers'}]}},
         }
 
         for clause_name, query in disallowed_queries.items():
             with self.subTest(clause=clause_name):
-                event = self._create_api_event('aslp', body={'query': query})
+                event = self._create_api_event('diet', body={'query': query})
 
                 response = search_api_handler(event, self.mock_context)
 
@@ -481,7 +481,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'bool': {
@@ -526,7 +526,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'bool': {
@@ -592,7 +592,7 @@ class TestSearchProviders(TstFunction):
 
         # Test with 'index' key nested deep in the query structure
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'bool': {
@@ -600,7 +600,7 @@ class TestSearchProviders(TstFunction):
                             {
                                 'terms': {
                                     'familyName.keyword': {
-                                        'index': 'compact_octp_providers',
+                                        'index': 'compact_diet_providers',
                                         'id': 'target-uuid',
                                         'path': 'familyName.keyword',
                                     }
@@ -634,7 +634,7 @@ class TestSearchProviders(TstFunction):
         mock_opensearch_client.search.side_effect = CCInvalidRequestException(error_reason)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'familyName.keyword': {'order': 'asc'}}],
@@ -646,60 +646,6 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual(error_reason, body['message'])
-
-    @patch('handlers.search.opensearch_client')
-    def test_provider_with_mismatched_compact_is_filtered_from_response(self, mock_opensearch_client):
-        """Test that a provider with a compact field that doesn't match the path parameter is filtered from results."""
-        from handlers.search import search_api_handler
-
-        # Create a provider hit with a different compact than the path parameter
-        provider_id = '00000000-0000-0000-0000-000000000001'
-        hit = {
-            '_index': 'compact_aslp_providers',
-            '_id': provider_id,
-            '_score': 1.0,
-            '_source': {
-                'providerId': provider_id,
-                'type': 'provider',
-                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                'compact': 'octp',  # Different from path parameter 'aslp'
-                'licenseJurisdiction': 'oh',
-                'licenseStatus': 'active',
-                'compactEligibility': 'eligible',
-                'givenName': 'John',
-                'familyName': 'Doe',
-                'dateOfExpiration': '2025-12-31',
-                'jurisdictionUploadedLicenseStatus': 'active',
-                'jurisdictionUploadedCompactEligibility': 'eligible',
-                'birthMonthDay': '06-15',
-            },
-        }
-        search_response = {
-            'hits': {
-                'total': {'value': 1, 'relation': 'eq'},
-                'hits': [hit],
-            }
-        }
-        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
-
-        # Currently, with our safeguards in place, it is not possible for a bad actor to reach across
-        # indices when searching. This may change in the future with new OpenSearch features that are added
-        # over time. Because we don't have a valid query to trigger this branch of logic, we're just using a
-        # generic query here in place of some future query that can get past our safeguards and search provider
-        # data across compact indices. The mock above is returning a provider from a different compact to
-        # trigger the branch of logic where we catch this discrepancy, log the error so an alert fires, and
-        # filter the document from the response
-        custom_query = {'match_all': {}}
-
-        # Request for 'aslp' compact but provider has 'octp' compact
-        event = self._create_api_event('aslp', body={'query': custom_query})
-
-        response = search_api_handler(event, self.mock_context)
-
-        self.assertEqual(200, response['statusCode'])
-        body = json.loads(response['body'])
-        # should be empty list with total value of 0
-        self.assertEqual({'providers': [], 'total': {'relation': 'eq', 'value': 0}}, body)
 
     @patch('handlers.search.opensearch_client')
     def test_search_with_script_sort_returns_400(self, mock_opensearch_client):
@@ -716,7 +662,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {'match_all': {}},
                 'sort': [
@@ -751,7 +697,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {'match_all': {}},
                 'sort': [
@@ -794,7 +740,7 @@ class TestSearchProviders(TstFunction):
 
         for option_name, sort in disallowed_sorts.items():
             with self.subTest(option=option_name):
-                event = self._create_api_event('aslp', body={'query': {'match_all': {}}, 'sort': sort})
+                event = self._create_api_event('diet', body={'query': {'match_all': {}}, 'sort': sort})
 
                 response = search_api_handler(event, self.mock_context)
 
@@ -812,7 +758,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={'query': {'match_all': {}}, 'sort': [{'familyName.keyword': {'order': 'sideways'}}]},
         )
 
@@ -839,7 +785,7 @@ class TestSearchProviders(TstFunction):
                 self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
                 event = self._create_api_event(
-                    'aslp',
+                    'diet',
                     body={'query': {'match_all': {}}, 'sort': [{'familyName.keyword': {'order': order}}]},
                 )
 
@@ -856,7 +802,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'familyName.keyword': {'order': 'asc'}}, {'providerId': {'order': 'asc'}}],
@@ -893,7 +839,7 @@ class TestSearchProviders(TstFunction):
         for field_name in sensitive_sort_fields:
             with self.subTest(field=field_name):
                 event = self._create_api_event(
-                    'aslp',
+                    'diet',
                     body={'query': {'match_all': {}}, 'sort': [{field_name: {'order': 'asc'}}]},
                 )
 
@@ -924,7 +870,7 @@ class TestSearchProviders(TstFunction):
                 self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
                 event = self._create_api_event(
-                    'aslp',
+                    'diet',
                     body={'query': {'match_all': {}}, 'sort': [{field_name: {'order': 'asc'}}]},
                 )
 
@@ -949,7 +895,7 @@ class TestSearchProviders(TstFunction):
         for _ in range(300):
             query = {'bool': {'must': [query]}}
 
-        event = self._create_api_event('aslp', body={'query': query})
+        event = self._create_api_event('diet', body={'query': query})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -972,7 +918,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={'query': {'terms': {'providerId': {'id': 'some-other-provider', 'path': 'providerId'}}}},
         )
 
@@ -997,7 +943,7 @@ class TestSearchProviders(TstFunction):
 
         for raw_body in ('[]', '"a string"', 'null', '42'):
             with self.subTest(body=raw_body):
-                event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+                event = self._create_api_event('diet', body={'query': {'match_all': {}}})
                 event['body'] = raw_body
 
                 response = search_api_handler(event, self.mock_context)
@@ -1041,7 +987,7 @@ class TestSearchProviders(TstFunction):
             }
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'bool': {

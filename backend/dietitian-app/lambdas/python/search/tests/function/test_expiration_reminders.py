@@ -70,10 +70,10 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
         first_call_kwargs = mock_client.search_with_retry.call_args_list[0].kwargs
         second_call_kwargs = mock_client.search_with_retry.call_args_list[1].kwargs
 
-        self.assertEqual('compact_aslp_providers', first_call_kwargs['index_name'])
+        self.assertEqual('compact_diet_providers', first_call_kwargs['index_name'])
         self.assertNotIn('search_after', first_call_kwargs['body'])
 
-        self.assertEqual('compact_aslp_providers', second_call_kwargs['index_name'])
+        self.assertEqual('compact_diet_providers', second_call_kwargs['index_name'])
         self.assertEqual(['p2'], second_call_kwargs['body']['search_after'])
 
     @patch('handlers.expiration_reminders.ProviderGeneralResponseSchema')
@@ -121,14 +121,14 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
             {
                 'privilegeId': 'a',
                 'jurisdiction': 'oh',
-                'licenseType': 'aud',
+                'licenseType': 'diet',
                 'dateOfExpiration': '2026-02-16',
                 'status': 'active',
             },
             {
                 'privilegeId': 'b',
                 'jurisdiction': 'ky',
-                'licenseType': 'slp',
+                'licenseType': 'diet',
                 'dateOfExpiration': '2026-03-01',
                 'status': 'active',
             },
@@ -188,7 +188,7 @@ class TestProcessExpirationReminders(TstLambdas):
                     'dateOfExpiration': '2026-02-16',
                     'status': 'active',
                     'jurisdiction': 'oh',
-                    'licenseType': 'aud',
+                    'licenseType': 'diet',
                 },
             ],
         }
@@ -230,7 +230,7 @@ class TestProcessExpirationReminders(TstLambdas):
                     'compact': DEFAULT_COMPACT,
                     'jurisdiction': 'oh',
                     'licenseJurisdiction': 'oh',
-                    'licenseType': 'aud',
+                    'licenseType': 'diet',
                     'dateOfIssuance': '2025-01-01',
                     'dateOfRenewal': '2025-01-01',
                     'dateOfExpiration': '2026-02-16',
@@ -333,7 +333,7 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertEqual(1, len(tv.privileges))
         priv = tv.privileges[0]
         self.assertEqual('Ohio', priv['jurisdiction'], 'jurisdiction must be full state name')
-        self.assertEqual('aud', priv['licenseType'])
+        self.assertEqual('diet', priv['licenseType'])
         self.assertEqual('a', priv['privilegeId'])
         self.assertEqual('2026-02-16', priv['dateOfExpiration'], 'dateOfExpiration must be ISO 8601')
         mock_tracker_instance.record_success.assert_called_once()
@@ -660,14 +660,14 @@ class TestProcessExpirationReminders(TstLambdas):
                 'dateOfExpiration': '2026-02-16',
                 'status': 'inactive',  # Encumbered - results in inactive status
                 'jurisdiction': 'oh',
-                'licenseType': 'aud',
+                'licenseType': 'diet',
             },
             {
                 'privilegeId': 'active-expiring-priv',
                 'dateOfExpiration': '2026-02-16',
                 'status': 'active',  # Active privilege expiring on target date
                 'jurisdiction': 'ne',
-                'licenseType': 'aud',
+                'licenseType': 'diet',
             },
         ]
         provider_doc = self._make_provider_doc(privileges=privileges)
@@ -704,7 +704,7 @@ class TestProcessExpirationReminders(TstLambdas):
         priv = tv.privileges[0]
         self.assertEqual('active-expiring-priv', priv['privilegeId'])
         self.assertEqual('Nebraska', priv['jurisdiction'])
-        self.assertEqual('aud', priv['licenseType'])
+        self.assertEqual('diet', priv['licenseType'])
         self.assertEqual('2026-02-16', priv['dateOfExpiration'])
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
@@ -726,14 +726,14 @@ class TestProcessExpirationReminders(TstLambdas):
                 'dateOfExpiration': target,
                 'status': 'active',
                 'jurisdiction': 'oh',
-                'licenseType': 'aud',
+                'licenseType': 'diet',
             },
             {
                 'privilegeId': 'p1-priv-2',
                 'dateOfExpiration': target,
                 'status': 'active',
                 'jurisdiction': 'ky',
-                'licenseType': 'slp',
+                'licenseType': 'diet',
             },
         ]
         # Provider 2: one privilege expiring on target, one on another date (only first counts)
@@ -743,14 +743,14 @@ class TestProcessExpirationReminders(TstLambdas):
                 'dateOfExpiration': target,
                 'status': 'active',
                 'jurisdiction': 'ne',
-                'licenseType': 'aud',
+                'licenseType': 'diet',
             },
             {
                 'privilegeId': 'p2-priv-2',
                 'dateOfExpiration': '2026-03-01',
                 'status': 'active',
                 'jurisdiction': 'oh',
-                'licenseType': 'slp',
+                'licenseType': 'diet',
             },
         ]
         doc1 = self._make_provider_doc(provider_id='p1', privileges=privileges_p1)

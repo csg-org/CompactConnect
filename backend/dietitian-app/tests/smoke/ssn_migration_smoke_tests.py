@@ -1209,8 +1209,11 @@ def test_partial_ssn_migration():
                 f'leave with the old provider: {inherited_person_level_fields}'
             )
         # and the OT license's records must have arrived intact, not just present
+        migrated_license_records = [
+            record for record in pre_migration_records if record.get('licenseType') == MIGRATED_LICENSE_TYPE
+        ]
         _verify_all_records_migrated(
-            source_records=[record for record in pre_migration_records if record.get('licenseType') == MIGRATED_LICENSE_TYPE],
+            source_records=migrated_license_records,
             source_provider_id=old_provider_id,
             target_records=new_provider_records,
             target_provider_id=new_provider_id,

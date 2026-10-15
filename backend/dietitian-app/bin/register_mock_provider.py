@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: T201 we use print statements for scripts run locally
 """Register an already-uploaded sandbox provider without the frontend.
 
 Looks up the provider by id, creates a Cognito user bound to that id, sets a permanent
@@ -22,7 +23,7 @@ from botocore.exceptions import ClientError
 
 APP_ROOT = Path(__file__).resolve().parent.parent
 SMOKE_ENV_PATH = APP_ROOT / 'tests' / 'smoke' / 'smoke_tests_env.json'
-DEFAULT_PASSWORD = 'TestPass123!'
+DEFAULT_PASSWORD = 'TestPass123!'  # noqa: S105 sandbox login password
 
 
 def _load_smoke_env() -> dict:
@@ -70,7 +71,7 @@ def _create_or_reuse_cognito_user(
             raise SystemExit(
                 f'{email} already exists and is bound to provider {bound_provider_id}, not {provider_id}. '
                 'custom:providerId cannot be changed. Delete that Cognito user or pass a different --email.'
-            )
+            ) from None
         print(f'Cognito user {email} already exists and is bound to this provider')
 
     try:
@@ -85,7 +86,11 @@ def main() -> None:
     parser.add_argument('--provider-id', required=True, help='Provider UUID from the uploaded license')
     parser.add_argument('--compact', default='diet', choices=compacts)
     parser.add_argument('--email', default=None, help='Login email. Defaults to provider-<id>@example.com')
-    parser.add_argument('--password', default=DEFAULT_PASSWORD, help=f'Permanent password (default: {DEFAULT_PASSWORD})')
+    parser.add_argument(
+        '--password',
+        default=DEFAULT_PASSWORD,
+        help=f'Permanent password (default: {DEFAULT_PASSWORD})',
+    )
     args = parser.parse_args()
 
     email = args.email or f'provider-{args.provider_id}@example.com'

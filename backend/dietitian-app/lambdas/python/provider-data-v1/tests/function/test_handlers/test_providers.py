@@ -20,9 +20,9 @@ class TestQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral diet/readPrivate'
+        event['pathParameters'] = {'compact': 'diet'}
         event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
 
         resp = query_providers(event, self.mock_context)
@@ -52,9 +52,9 @@ class TestQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral diet/readPrivate'
+        event['pathParameters'] = {'compact': 'diet'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
@@ -96,9 +96,9 @@ class TestQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
@@ -130,9 +130,9 @@ class TestQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet'}
         event['body'] = json.dumps(
             {
                 'sorting': {'key': 'familyName'},
@@ -162,9 +162,9 @@ class TestQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet'}
         event['body'] = json.dumps(
             {
                 'sorting': {'key': 'familyName'},
@@ -188,9 +188,9 @@ class TestQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet'}
         event['body'] = json.dumps({'query': {}})
 
         resp = query_providers(event, self.mock_context)
@@ -216,9 +216,9 @@ class TestQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet'}
         event['body'] = json.dumps({'query': {'jurisdiction': 'oh'}, 'sorting': {'key': 'invalid'}})
 
         resp = query_providers(event, self.mock_context)
@@ -241,9 +241,9 @@ class TestQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet'}
 
         # Test multiple fields with whitespace
         event['body'] = json.dumps(
@@ -283,9 +283,9 @@ class TestGetProvider(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
+        # The user has read permission for diet
         event['requestContext']['authorizer']['claims']['scope'] = scopes
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['pathParameters'] = {'compact': 'diet', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
         resp = get_provider(event, self.mock_context)
@@ -314,23 +314,23 @@ class TestGetProvider(TstFunction):
 
     def test_get_provider_with_compact_level_read_private_access(self):
         self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email aslp/readGeneral aslp/readPrivate',
+            scopes='openid email diet/readGeneral diet/readPrivate',
         )
 
     def test_get_provider_with_matching_license_jurisdiction_level_read_private_access(self):
         # test provider has a license in oh and a privilege in ne
         self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email aslp/readGeneral oh/aslp.readPrivate'
+            scopes='openid email diet/readGeneral oh/diet.readPrivate'
         )
 
     def test_get_provider_with_matching_privilege_jurisdiction_level_read_private_access(self):
         # test provider has a license in oh and a privilege in ne
         self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email aslp/readGeneral ne/aslp.readPrivate'
+            scopes='openid email diet/readGeneral ne/diet.readPrivate'
         )
 
     def test_get_provider_wrong_compact(self):
-        """Provider detail response"""
+        """A caller without diet read access cannot load a diet provider."""
         self._load_provider_data()
 
         from handlers.providers import get_provider
@@ -338,9 +338,8 @@ class TestGetProvider(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'octp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email'
+        event['pathParameters'] = {'compact': 'diet', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
         resp = get_provider(event, self.mock_context)
@@ -353,10 +352,10 @@ class TestGetProvider(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
         # providerId _should_ be included in these pathParameters. We're leaving it out for this test.
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'diet'}
         event['queryStringParameters'] = None
 
         resp = get_provider(event, self.mock_context)
@@ -377,14 +376,14 @@ class TestGetProvider(TstFunction):
             del expected_provider['militaryStatusNote']
 
         self._when_testing_get_provider_response_based_on_read_access(
-            scopes='openid email aslp/readGeneral', expected_provider=expected_provider
+            scopes='openid email diet/readGeneral', expected_provider=expected_provider
         )
 
     def test_get_provider_returns_expected_download_links_when_caller_is_compact_admin(self):
         self._load_provider_data()
 
         provider_data = self._call_get_provider_and_return_provider_data(
-            scopes='openid email aslp/readGeneral aslp/admin aslp/readPrivate'
+            scopes='openid email diet/readGeneral diet/admin diet/readPrivate'
         )
 
         self.assertEqual(
@@ -420,7 +419,7 @@ class TestGetProviderSSN(TstFunction):
                     'pk': 'READ_SSN_REQUESTS',
                     # separate each attempt by one minute
                     'sk': f'TIME#{(now_datetime - timedelta(minutes=attempt)).timestamp()}#REQUEST#{uuid.uuid4()}',
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'providerId': provider_id,
                     'staffUserId': user_id,
                 }
@@ -442,9 +441,9 @@ class TestGetProviderSSN(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readSSN'
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral diet/readSSN'
+        event['pathParameters'] = {'compact': 'diet', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
 
         resp = get_provider_ssn(event, self.mock_context)
 
@@ -462,9 +461,9 @@ class TestGetProviderSSN(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.readSSN'
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.readSSN'
+        event['pathParameters'] = {'compact': 'diet', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
 
         resp = get_provider_ssn(event, self.mock_context)
 
@@ -482,9 +481,9 @@ class TestGetProviderSSN(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral ne/aslp.readSSN'
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral ne/diet.readSSN'
+        event['pathParameters'] = {'compact': 'diet', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
 
         resp = get_provider_ssn(event, self.mock_context)
 
@@ -502,9 +501,9 @@ class TestGetProviderSSN(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ky/aslp.readSSN'
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ky/diet.readSSN'
+        event['pathParameters'] = {'compact': 'diet', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
 
         resp = get_provider_ssn(event, self.mock_context)
 
@@ -525,9 +524,9 @@ class TestGetProviderSSN(TstFunction):
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['sub'] = staff_user_id
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readSSN'
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': test_provider_id}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral diet/readSSN'
+        event['pathParameters'] = {'compact': 'diet', 'providerId': test_provider_id}
 
         # the fifth request should succeed, being right at the limit
         resp = self._make_ssn_request_with_unique_request_id(event)
@@ -567,9 +566,9 @@ class TestGetProviderSSN(TstFunction):
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['sub'] = staff_user_id
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readSSN'
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': test_provider_id}
+        # The user has read permission for diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral diet/readSSN'
+        event['pathParameters'] = {'compact': 'diet', 'providerId': test_provider_id}
 
         # request should be throttled
         self.mock_context.function_name = 'testLambdaName'

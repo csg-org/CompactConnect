@@ -27,9 +27,9 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/diet.write'
 
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -57,31 +57,6 @@ class TestPostLicenses(TstLambdas):
     # don't intend to set for these tests.
     @patch('handlers.licenses.config', autospec=False)
     @patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction')
-    def test_cross_compact(self, mock_get_configured_keys, mock_config):
-        from handlers.licenses import post_licenses
-
-        # Mock signature authentication to return no configured keys (allows request to proceed without signature)
-        mock_get_configured_keys.return_value = {}
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # The user has scopes for aslp, not octp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
-
-        event['pathParameters'] = {'compact': 'octp', 'jurisdiction': 'oh'}
-
-        with open('../common/tests/resources/api/license-post.json') as f:
-            event['body'] = json.dumps([json.load(f)])
-
-        resp = post_licenses(event, self.mock_context)
-
-        self.assertEqual(403, resp['statusCode'])
-
-    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
-    # don't intend to set for these tests.
-    @patch('handlers.licenses.config', autospec=False)
-    @patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction')
     def test_wrong_jurisdiction(self, mock_get_configured_keys, mock_config):  # noqa: ARG001 unused-argument
         from handlers.licenses import post_licenses
 
@@ -92,9 +67,9 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh, not ne
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/diet.write'
 
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne'}
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'ne'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -124,9 +99,9 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/diet.write'
 
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])

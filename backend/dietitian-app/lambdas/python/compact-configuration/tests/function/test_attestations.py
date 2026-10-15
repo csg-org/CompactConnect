@@ -14,7 +14,7 @@ class TestGetAttestation(TstFunction):
             event = json.load(f)
             event['httpMethod'] = method
             event['pathParameters'] = {
-                'compact': 'aslp',
+                'compact': 'diet',
                 'attestationId': attestation_type,
             }
 
@@ -35,7 +35,7 @@ class TestGetAttestation(TstFunction):
         self.assertEqual(
             {
                 'attestationId': 'jurisprudence-confirmation',
-                'compact': 'aslp',
+                'compact': 'diet',
                 'dateCreated': '2024-06-06T23:59:59+00:00',
                 # this field is dynamic, so setting it to match the actual response
                 'dateOfUpdate': response_body['dateOfUpdate'],

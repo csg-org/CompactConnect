@@ -71,7 +71,7 @@ python3 bin/create_app_client.py -u <user_pool_id>
 **Interactive Process:**
 The script will prompt you for:
 - App client name (e.g., "example-ky-app-client-v1")
-- Compact (aslp, octp, coun)
+- Compact (diet, diet, diet)
 - State postal abbreviation (e.g., "ky", "la")
 - Additional scopes (optional)
 
@@ -162,7 +162,7 @@ python3 bin/manage_signature_keys.py create -t <compact_configuration_table_name
 
 **Interactive Process:**
 The script will prompt you for:
-- Compact (aslp, octp, coun)
+- Compact (diet, diet, diet)
 - State postal abbreviation (e.g., "ky", "la")
 - Key ID (e.g., "client-org-prod-key-001")
 

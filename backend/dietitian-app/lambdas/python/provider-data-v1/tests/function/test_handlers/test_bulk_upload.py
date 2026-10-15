@@ -23,8 +23,8 @@ class TestBulkUpload(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         resp = bulk_upload_url_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
@@ -37,8 +37,8 @@ class TestBulkUpload(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
         # User has permission in ne, not oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff ne/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff ne/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         resp = bulk_upload_url_handler(event, self.mock_context)
 
@@ -52,7 +52,7 @@ class TestProcessObjects(TstFunction):
         from handlers.bulk_upload import parse_bulk_upload_file
 
         # Upload a bulk license csv file
-        object_key = f'aslp/co/{uuid4().hex}'
+        object_key = f'diet/co/{uuid4().hex}'
         self._bucket.upload_file('../common/tests/resources/licenses.csv', object_key)
 
         # Simulate the s3 bucket event
@@ -76,7 +76,7 @@ class TestProcessObjects(TstFunction):
         from handlers.bulk_upload import parse_bulk_upload_file
 
         # Upload a bulk license csv file
-        object_key = f'aslp/oh/{uuid4().hex}'
+        object_key = f'diet/oh/{uuid4().hex}'
         self._bucket.upload_file('../common/tests/resources/licenses.csv', object_key)
 
         # Simulate the s3 bucket event
@@ -102,7 +102,7 @@ class TestProcessObjects(TstFunction):
             reader = csv.DictReader(f)
             for row in reader:
                 # add compact and jurisdiction to each row since this is injected into the sqs message
-                row['compact'] = 'aslp'
+                row['compact'] = 'diet'
                 row['jurisdiction'] = 'oh'
                 # the event time comes from the test put-event.json file
                 row['eventTime'] = '1970-01-01T00:00:00+00:00'
@@ -125,10 +125,10 @@ class TestProcessObjects(TstFunction):
             ',homeAddressCity,homeAddressState,homeAddressPostalCode,licenseType\n'
             '123-45-6789,123-45-9876,LICENSE123,John,Doe,1990-01-01,2020-01-01'
             ',2030-01-01,active,eligible,123 Main St'
-            ',Columbus,OH,43215,audiologist'
+            ',Columbus,OH,43215,dietitian'
         )
 
-        object_key = f'aslp/oh/{uuid4().hex}'
+        object_key = f'diet/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         with open('../common/tests/resources/put-event.json') as f:
@@ -192,12 +192,12 @@ class TestProcessObjects(TstFunction):
             '  43215  ,'
             '  test@example.com,'
             '+15551234567,'
-            '  audiologist  ,'
+            '  dietitian  ,'
             '  Active  '
         )
 
         # Upload the CSV content directly to the mock S3 bucket
-        object_key = f'aslp/oh/{uuid4().hex}'
+        object_key = f'diet/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         # Simulate the s3 bucket event
@@ -231,11 +231,11 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('OH', message_data['homeAddressState'])  # Should be trimmed
         self.assertEqual('43215', message_data['homeAddressPostalCode'])  # Should be trimmed
         self.assertEqual('test@example.com', message_data['emailAddress'])  # Should be trimmed
-        self.assertEqual('audiologist', message_data['licenseType'])  # Should be trimmed
+        self.assertEqual('dietitian', message_data['licenseType'])  # Should be trimmed
         self.assertEqual('Active', message_data['licenseStatusName'])  # Should be trimmed
 
         # Verify that other fields remain unchanged
-        self.assertEqual('aslp', message_data['compact'])
+        self.assertEqual('diet', message_data['compact'])
         self.assertEqual('oh', message_data['jurisdiction'])
         self.assertEqual('123-45-6789', message_data['ssn'])
         self.assertEqual('1234567890', message_data['npi'])
@@ -258,13 +258,13 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseStatusName,compact,jurisdiction\n'
             '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,dietitian,Active,'
             'malicious_compact,malicious_jurisdiction'
         )
 
         # Upload the CSV content directly to the mock S3 bucket
-        # URL path indicates aslp/oh, but CSV contains malicious_compact/malicious_jurisdiction
-        object_key = f'aslp/oh/{uuid4().hex}'
+        # URL path indicates diet/oh, but CSV contains malicious_compact/malicious_jurisdiction
+        object_key = f'diet/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         # Simulate the s3 bucket event
@@ -300,11 +300,11 @@ class TestProcessObjects(TstFunction):
                 'Detail': json.dumps(
                     {
                         'eventTime': VALIDATION_ERROR_EVENT_TIME,
-                        'compact': 'aslp',
+                        'compact': 'diet',
                         'jurisdiction': 'oh',
                         'recordNumber': 1,
                         'validData': {
-                            'licenseType': 'audiologist',
+                            'licenseType': 'dietitian',
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
                             'compactEligibility': 'eligible',
@@ -342,13 +342,13 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
             '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active\n'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,dietitian,Active\n'
             '123-45-6789,1234567890,LICENSE456,Jane,Middle,Smith,,1995-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,dietitian,Active'
         )
 
         # Upload the CSV content directly to the mock S3 bucket
-        object_key = f'aslp/oh/{uuid4().hex}'
+        object_key = f'diet/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         # Simulate the s3 bucket event
@@ -384,11 +384,11 @@ class TestProcessObjects(TstFunction):
                 'Detail': json.dumps(
                     {
                         'eventTime': VALIDATION_ERROR_EVENT_TIME,
-                        'compact': 'aslp',
+                        'compact': 'diet',
                         'jurisdiction': 'oh',
                         'recordNumber': 2,
                         'validData': {
-                            'licenseType': 'audiologist',
+                            'licenseType': 'dietitian',
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
                             'compactEligibility': 'eligible',
@@ -403,7 +403,7 @@ class TestProcessObjects(TstFunction):
                         },
                         'errors': {
                             '_schema': [
-                                'Duplicate License SSN detected for license type audiologist. '
+                                'Duplicate License SSN detected for license type dietitian. '
                                 'SSN matches with record 1. Every record must have a unique SSN per'
                                 ' license type within the same file.'
                             ]
@@ -415,56 +415,6 @@ class TestProcessObjects(TstFunction):
 
             self.assertEqual(expected_entry, call_args)
 
-    def test_bulk_upload_allows_repeated_ssns_for_different_license_types(self):
-        """Test that duplicate SSNs within a CSV upload are allowed if the license types are different."""
-        from handlers.bulk_upload import parse_bulk_upload_file
-
-        # Create CSV content that includes duplicate SSNs but different license types
-        csv_content = (
-            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
-            ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
-            ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
-            ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
-            '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active\n'
-            '123-45-6789,1234567890,LICENSE456,John,Middle,Doe,Jr.,1990-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,speech-language pathologist,'
-            'Active'
-        )
-
-        # Upload the CSV content directly to the mock S3 bucket
-        object_key = f'aslp/oh/{uuid4().hex}'
-        self._bucket.put_object(Key=object_key, Body=csv_content)
-
-        # Simulate the s3 bucket event
-        with open('../common/tests/resources/put-event.json') as f:
-            event = json.load(f)
-
-        event['Records'][0]['s3']['bucket'] = {
-            'name': self._bucket.name,
-            'arn': f'arn:aws:s3:::{self._bucket.name}',
-            'ownerIdentity': {'principalId': 'ASDFG123'},
-        }
-        event['Records'][0]['s3']['object']['key'] = object_key
-
-        parse_bulk_upload_file(event, self.mock_context)
-
-        # Verify that both messages were sent to the preprocessing queue
-        messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
-        self.assertEqual(2, len(messages))
-
-        message_data_1 = json.loads(messages[0].body)
-        message_data_2 = json.loads(messages[1].body)
-
-        # Verify the license types are correct
-        # Messages might not be in order, so we check both
-        license_types = {message_data_1['licenseType'], message_data_2['licenseType']}
-        self.assertEqual({'audiologist', 'speech-language pathologist'}, license_types)
-
-        # Verify SSNs are the same
-        self.assertEqual(message_data_1['ssn'], '123-45-6789')
-        self.assertEqual(message_data_2['ssn'], '123-45-6789')
-
     def test_bulk_upload_handles_bom_character(self):
         """Test that CSV files with BOM characters are handled correctly."""
         from handlers.bulk_upload import parse_bulk_upload_file
@@ -474,13 +424,13 @@ class TestProcessObjects(TstFunction):
             'dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,'
             'licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,'
             'dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal\n'
-            '2024-06-30,0608337260,BOM0608337260,2024-06-30,speech-language pathologist,TestFamily,Columbus,'
+            '2024-06-30,0608337260,BOM0608337260,2024-06-30,dietitian,TestFamily,Columbus,'
             'TestMiddle,active,ACTIVE,eligible,529-31-5413,123 BOM Test St.,Apt 1,2024-06-30,oh,43215,'
             'TestGiven,2024-06-30'
         )
 
         # Upload the CSV content with BOM added at byte level (simulates real BOM files)
-        object_key = f'aslp/oh/{uuid4().hex}'
+        object_key = f'diet/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content.encode('utf-8-sig'))
 
         # Simulate the s3 bucket event
@@ -512,7 +462,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('Apt 1', message_data['homeAddressStreet2'])
         self.assertEqual('oh', message_data['homeAddressState'])
         self.assertEqual('43215', message_data['homeAddressPostalCode'])
-        self.assertEqual('speech-language pathologist', message_data['licenseType'])
+        self.assertEqual('dietitian', message_data['licenseType'])
         self.assertEqual('active', message_data['licenseStatus'])
         self.assertEqual('ACTIVE', message_data['licenseStatusName'])
         self.assertEqual('eligible', message_data['compactEligibility'])
@@ -520,7 +470,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('0608337260', message_data['npi'])
 
         # Verify injected fields
-        self.assertEqual('aslp', message_data['compact'])
+        self.assertEqual('diet', message_data['compact'])
         self.assertEqual('oh', message_data['jurisdiction'])
         self.assertEqual('1970-01-01T00:00:00+00:00', message_data['eventTime'])
 
@@ -551,7 +501,7 @@ class TestBulkUploadWithoutSsn(TstFunction):
         *,
         ssn: str = '',
         license_number: str = 'A0608337260',
-        license_type: str = 'speech-language pathologist',
+        license_type: str = 'dietitian',
         family_name: str = 'Guðmundsdóttir',
     ) -> str:
         return (
@@ -567,7 +517,7 @@ class TestBulkUploadWithoutSsn(TstFunction):
         from handlers import bulk_upload
 
         csv_content = '\n'.join([self.CSV_HEADER, *rows])
-        object_key = f'aslp/oh/{uuid4().hex}'
+        object_key = f'diet/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         with open('../common/tests/resources/put-event.json') as f:
@@ -639,16 +589,16 @@ class TestBulkUploadWithoutSsn(TstFunction):
         other practitioner in what can be a very large upload.
         """
         existing_license = self._seed_existing_license()
-        self._seed_existing_license(
-            providerId='2d3f1b0e-4c5a-4d6b-8e7f-9a0b1c2d3e4f',
-            licenseType='audiologist',
+        self._seed_existing_license(providerId='2d3f1b0e-4c5a-4d6b-8e7f-9a0b1c2d3e4f')
+        other_license = self._seed_existing_license(
+            providerId='3e4f2c1d-5d6b-4e7c-9f8a-0b1c2d3e4f50',
+            licenseNumber='B0608337260',
         )
-        other_license = self._seed_existing_license(licenseNumber='B0608337260', licenseType='audiologist')
 
         _, entries = self._process_csv(
             [
                 self._csv_row(license_number=existing_license.licenseNumber),
-                self._csv_row(license_number=other_license.licenseNumber, license_type='audiologist'),
+                self._csv_row(license_number=other_license.licenseNumber),
             ]
         )
 
@@ -703,26 +653,12 @@ class TestBulkUploadWithoutSsn(TstFunction):
         self.assertIn('matches with record 1', validation_errors[1]['errors']['_schema'][0])
         self.assertEqual([], self._details_of_type(entries, 'license.ingest'))
 
-    def test_accepts_the_same_license_number_for_two_license_types(self):
-        existing_license = self._seed_existing_license()
-        self._seed_existing_license(licenseType='audiologist')
-
-        _, entries = self._process_csv(
-            [
-                self._csv_row(license_number=existing_license.licenseNumber),
-                self._csv_row(license_number=existing_license.licenseNumber, license_type='audiologist'),
-            ]
-        )
-
-        self.assertEqual([], self._details_of_type(entries, 'license.validation-error'))
-        self.assertEqual(2, len(self._details_of_type(entries, 'license.ingest')))
-
     def test_processes_a_mixed_file_down_both_paths(self):
         existing_license = self._seed_existing_license()
 
         _, entries = self._process_csv(
             [
-                self._csv_row(ssn='123-45-6789', license_number='C0608337260', license_type='audiologist'),
+                self._csv_row(ssn='123-45-6789', license_number='C0608337260', license_type='dietitian'),
                 self._csv_row(license_number=existing_license.licenseNumber),
             ]
         )

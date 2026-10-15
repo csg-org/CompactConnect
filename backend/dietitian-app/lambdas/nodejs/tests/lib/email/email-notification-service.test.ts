@@ -16,15 +16,15 @@ import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globa
 jest.mock('nodemailer');
 
 const SAMPLE_COMPACT_CONFIG = {
-    pk: 'aslp#CONFIGURATION',
-    sk: 'aslp#CONFIGURATION',
+    pk: 'diet#CONFIGURATION',
+    sk: 'diet#CONFIGURATION',
     compactAdverseActionsNotificationEmails: ['adverse@example.com'],
     compactCommissionFee: {
         feeAmount: 3.5,
         feeType: 'FLAT_RATE'
     },
-    compactAbbr: 'aslp',
-    compactName: 'Audiology and Speech Language Pathology',
+    compactAbbr: 'diet',
+    compactName: 'Dietitian',
     compactOperationsTeamEmails: ['operations@example.com'],
     compactSummaryReportNotificationEmails: ['summary@example.com'],
     dateOfUpdate: '2024-12-10T19:27:28+00:00',
@@ -32,11 +32,11 @@ const SAMPLE_COMPACT_CONFIG = {
 };
 
 const SAMPLE_JURISDICTION_CONFIG = {
-    pk: 'aslp#CONFIGURATION',
-    sk: 'aslp#JURISDICTION#OH',
+    pk: 'diet#CONFIGURATION',
+    sk: 'diet#JURISDICTION#OH',
     jurisdictionName: 'Ohio',
     postalAbbreviation: 'OH',
-    compact: 'aslp',
+    compact: 'diet',
     jurisdictionOperationsTeamEmails: ['oh-ops@example.com'],
     jurisdictionAdverseActionsNotificationEmails: ['oh-adverse@example.com'],
     jurisdictionSummaryReportNotificationEmails: ['oh-summary@example.com']
@@ -120,7 +120,7 @@ describe('EmailNotificationService', () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
             await emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'diet',
                 'COMPACT_OPERATIONS_TEAM'
             );
 
@@ -140,7 +140,7 @@ describe('EmailNotificationService', () => {
                             },
                             Subject: {
                                 Charset: 'UTF-8',
-                                Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
+                                Data: 'Transactions Failed to Settle for Dietitian Payment Processor'
                             }
                         }
                     },
@@ -153,7 +153,7 @@ describe('EmailNotificationService', () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
             await emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'diet',
                 'SPECIFIC',
                 ['specific@example.com']
             );
@@ -174,7 +174,7 @@ describe('EmailNotificationService', () => {
                             },
                             Subject: {
                                 Charset: 'UTF-8',
-                                Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
+                                Data: 'Transactions Failed to Settle for Dietitian Payment Processor'
                             }
                         }
                     },
@@ -190,21 +190,21 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'diet',
                 'COMPACT_OPERATIONS_TEAM'
-            )).rejects.toThrow('No recipients found for compact aslp with recipient type COMPACT_OPERATIONS_TEAM');
+            )).rejects.toThrow('No recipients found for compact diet with recipient type COMPACT_OPERATIONS_TEAM');
         });
 
         it('should throw error for specific recipient type without emails', async () => {
             await expect(emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'diet',
                 'SPECIFIC'
             )).rejects.toThrow('SPECIFIC recipientType requested but no specific email addresses provided');
         });
 
         it('should throw error for unsupported recipient type', async () => {
             await expect(emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'diet',
                 'JURISDICTION_OPERATIONS_TEAM'
             )).rejects.toThrow('Unsupported recipient type for compact configuration: JURISDICTION_OPERATIONS_TEAM');
         });
@@ -213,7 +213,7 @@ describe('EmailNotificationService', () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
             await emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'diet',
                 'COMPACT_OPERATIONS_TEAM'
             );
 
@@ -233,7 +233,7 @@ describe('EmailNotificationService', () => {
                             },
                             Subject: {
                                 Charset: 'UTF-8',
-                                Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
+                                Data: 'Transactions Failed to Settle for Dietitian Payment Processor'
                             }
                         }
                     },
@@ -248,7 +248,7 @@ describe('EmailNotificationService', () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
             await emailService.sendPrivilegeDeactivationProviderNotificationEmail(
-                'aslp',
+                'diet',
                 ['specific@example.com'],
                 'some-privilege-id'
             );
@@ -280,7 +280,7 @@ describe('EmailNotificationService', () => {
 
         it('should throw error when no recipients provided for provider privilege deactivation notification email', async () => {
             await expect(emailService.sendPrivilegeDeactivationProviderNotificationEmail(
-                'aslp',
+                'diet',
                 undefined,
                 'some-privilege-id'
             )).rejects.toThrow('No recipients specified for provider privilege deactivation notification email');
@@ -293,7 +293,7 @@ describe('EmailNotificationService', () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'JURISDICTION_SUMMARY_REPORT',
                 'some-privilege-id',
@@ -317,7 +317,7 @@ describe('EmailNotificationService', () => {
                             },
                             Subject: {
                                 Charset: 'UTF-8',
-                                Data: `A Privilege was Deactivated in the Audiology and Speech Language Pathology Compact`
+                                Data: `A Privilege was Deactivated in the Dietitian Compact`
                             }
                         }
                     },
@@ -333,13 +333,13 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'JURISDICTION_SUMMARY_REPORT',
                 'some-privilege-id',
                 'John',
                 'Doe'
-            )).rejects.toThrow('No recipients found for jurisdiction oh in compact aslp');
+            )).rejects.toThrow('No recipients found for jurisdiction oh in compact diet');
         });
     });
 
@@ -365,8 +365,8 @@ describe('EmailNotificationService', () => {
 
         it('should send email with zip attachment', async () => {
             await emailService.sendCompactTransactionReportEmail(
-                'aslp',
-                'compact/aslp/reports/test-report.zip',
+                'diet',
+                'compact/diet/reports/test-report.zip',
                 'weekly',
                 '2024-03-01',
                 '2024-03-07'
@@ -375,7 +375,7 @@ describe('EmailNotificationService', () => {
             // Verify S3 was queried for the report
             expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
                 Bucket: 'test-transaction-reports-bucket',
-                Key: 'compact/aslp/reports/test-report.zip'
+                Key: 'compact/diet/reports/test-report.zip'
             });
 
             // Verify nodemailer transport was created with correct SES config
@@ -390,7 +390,7 @@ describe('EmailNotificationService', () => {
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith({
                 from: 'CompactConnect <noreply@example.org>',
                 to: ['summary@example.com'],
-                subject: 'Weekly Report for Audiology and Speech Language Pathology',
+                subject: 'Weekly Report for Dietitian',
                 html: expect.any(String),
                 attachments: [
                     {
@@ -413,8 +413,8 @@ describe('EmailNotificationService', () => {
 
         it('should use monthly subject when reporting cycle is monthly', async () => {
             await emailService.sendCompactTransactionReportEmail(
-                'aslp',
-                'test-bucket/compact/aslp/reports/test-report.zip',
+                'diet',
+                'test-bucket/compact/diet/reports/test-report.zip',
                 'monthly',
                 '2024-03-01',
                 '2024-03-31'
@@ -422,7 +422,7 @@ describe('EmailNotificationService', () => {
 
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    subject: 'Monthly Report for Audiology and Speech Language Pathology',
+                    subject: 'Monthly Report for Dietitian',
                     html: expect.any(String)
                 })
             );
@@ -442,12 +442,12 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendCompactTransactionReportEmail(
-                'aslp',
-                'test-bucket/compact/aslp/reports/test-report.zip',
+                'diet',
+                'test-bucket/compact/diet/reports/test-report.zip',
                 'weekly',
                 '2024-03-01',
                 '2024-03-07'
-            )).rejects.toThrow('No recipients found for compact aslp with recipient type COMPACT_SUMMARY_REPORT');
+            )).rejects.toThrow('No recipients found for compact diet with recipient type COMPACT_SUMMARY_REPORT');
 
             // Verify no email was sent
             expect(MOCK_TRANSPORT.sendMail).not.toHaveBeenCalled();
@@ -459,12 +459,12 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendCompactTransactionReportEmail(
-                'aslp',
-                'test-bucket/compact/aslp/reports/test-report.zip',
+                'diet',
+                'test-bucket/compact/diet/reports/test-report.zip',
                 'weekly',
                 '2024-03-01',
                 '2024-03-07'
-            )).rejects.toThrow('Failed to retrieve report from S3: test-bucket/compact/aslp/reports/test-report.zip');
+            )).rejects.toThrow('Failed to retrieve report from S3: test-bucket/compact/diet/reports/test-report.zip');
 
             // Verify no email was sent
             expect(MOCK_TRANSPORT.sendMail).not.toHaveBeenCalled();
@@ -494,7 +494,7 @@ describe('EmailNotificationService', () => {
 
         it('should send email with zip attachment', async () => {
             await emailService.sendJurisdictionTransactionReportEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'jurisdiction/oh/reports/test-report.zip',
                 'weekly',
@@ -520,7 +520,7 @@ describe('EmailNotificationService', () => {
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith({
                 from: 'CompactConnect <noreply@example.org>',
                 to: ['oh-summary@example.com'],
-                subject: 'Ohio Weekly Report for Audiology and Speech Language Pathology',
+                subject: 'Ohio Weekly Report for Dietitian',
                 html: expect.any(String),
                 attachments: [
                     {
@@ -541,7 +541,7 @@ describe('EmailNotificationService', () => {
 
         it('should use monthly subject when reporting cycle is monthly', async () => {
             await emailService.sendJurisdictionTransactionReportEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'test-bucket/jurisdiction/oh/reports/test-report.zip',
                 'monthly',
@@ -551,7 +551,7 @@ describe('EmailNotificationService', () => {
 
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    subject: 'Ohio Monthly Report for Audiology and Speech Language Pathology',
+                    subject: 'Ohio Monthly Report for Dietitian',
                     html: expect.any(String)
                 })
             );
@@ -571,13 +571,13 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendJurisdictionTransactionReportEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'test-bucket/jurisdiction/oh/reports/test-report.zip',
                 'weekly',
                 '2024-03-01',
                 '2024-03-07'
-            )).rejects.toThrow('No recipients found for jurisdiction oh in compact aslp');
+            )).rejects.toThrow('No recipients found for jurisdiction oh in compact diet');
 
             // Verify no email was sent
             expect(MOCK_TRANSPORT.sendMail).not.toHaveBeenCalled();
@@ -589,7 +589,7 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendJurisdictionTransactionReportEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'test-bucket/jurisdiction/oh/reports/test-report.zip',
                 'weekly',
@@ -605,7 +605,7 @@ describe('EmailNotificationService', () => {
     describe('Multiple Registration Attempt Notification', () => {
         it('should send multiple registration attempt notification email with expected content', async () => {
             await emailService.sendMultipleRegistrationAttemptNotificationEmail(
-                'aslp',
+                'diet',
                 ['user@example.com']
             );
 
@@ -637,7 +637,7 @@ describe('EmailNotificationService', () => {
 
         it('should include login URL in email content', async () => {
             await emailService.sendMultipleRegistrationAttemptNotificationEmail(
-                'aslp',
+                'diet',
                 ['user@example.com']
             );
 
@@ -665,7 +665,7 @@ describe('EmailNotificationService', () => {
 
         it('should include registration temp login instructions', async () => {
             await emailService.sendMultipleRegistrationAttemptNotificationEmail(
-                'aslp',
+                'diet',
                 ['user@example.com']
             );
 
@@ -693,14 +693,14 @@ describe('EmailNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(emailService.sendMultipleRegistrationAttemptNotificationEmail(
-                'aslp',
+                'diet',
                 []
             )).rejects.toThrow('No recipients found for multiple registration attempt notification email');
         });
 
         it('should throw error when recipients is undefined', async () => {
             await expect(emailService.sendMultipleRegistrationAttemptNotificationEmail(
-                'aslp',
+                'diet',
                 undefined
             )).rejects.toThrow('No recipients found for multiple registration attempt notification email');
         });
@@ -713,14 +713,14 @@ describe('EmailNotificationService', () => {
                 [
                     {
                         jurisdiction: 'OH',
-                        licenseTypeAbbrev: 'OTA',
-                        privilegeId: 'OTA-OH-019'
+                        licenseTypeAbbrev: 'diet',
+                        privilegeId: 'DIET-OH-019'
                     }
                 ],
                 '45.0',
                 [
                     {
-                        name: 'OH OTA fee', quantity: '2', unitPrice: '45'
+                        name: 'OH diet fee', quantity: '2', unitPrice: '45'
                     },
                     {
                         name: 'cc fees', quantity: '1', unitPrice: '3.5'
@@ -760,14 +760,14 @@ describe('EmailNotificationService', () => {
                 [
                     {
                         jurisdiction: 'OH',
-                        licenseTypeAbbrev: 'OTA',
-                        privilegeId: 'OTA-OH-019'
+                        licenseTypeAbbrev: 'diet',
+                        privilegeId: 'DIET-OH-019'
                     }
                 ],
                 '45.0',
                 [
                     {
-                        name: 'OH OTA fee', quantity: '2', unitPrice: '45'
+                        name: 'OH diet fee', quantity: '2', unitPrice: '45'
                     },
                     {
                         name: 'cc fees', quantity: '1', unitPrice: '3.5'
@@ -783,7 +783,7 @@ describe('EmailNotificationService', () => {
             const verificationCode = '1234';
 
             await emailService.sendProviderEmailVerificationCode(
-                'aslp',
+                'diet',
                 'newuser@example.com',
                 verificationCode
             );
@@ -827,7 +827,7 @@ describe('EmailNotificationService', () => {
     describe('Provider Email Change Notification', () => {
         it('should send email change notification with all expected content', async () => {
             await emailService.sendProviderEmailChangeNotification(
-                'aslp',
+                'diet',
                 'olduser@example.com',
                 'newuser@example.com'
             );
@@ -872,7 +872,7 @@ describe('EmailNotificationService', () => {
             const recoveryToken = 'secure-recovery-token-abc123';
 
             await emailService.sendProviderAccountRecoveryConfirmationEmail(
-                'aslp',
+                'diet',
                 ['user@example.com'],
                 providerId,
                 recoveryToken
@@ -910,7 +910,7 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toContain('Confirm Account Recovery');
 
             // Verify recovery URL is correctly formatted (HTML encoded in email)
-            const expectedRecoveryUrl = `https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=aslp&amp;providerId=${providerId}&amp;recoveryId=${recoveryToken}`;
+            const expectedRecoveryUrl = `https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=diet&amp;providerId=${providerId}&amp;recoveryId=${recoveryToken}`;
 
             expect(htmlContent).toContain(expectedRecoveryUrl);
 
@@ -922,7 +922,7 @@ describe('EmailNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(emailService.sendProviderAccountRecoveryConfirmationEmail(
-                'aslp',
+                'diet',
                 [],
                 'provider-123',
                 'recovery-token'
@@ -931,7 +931,7 @@ describe('EmailNotificationService', () => {
 
         it('should throw error when recipients is undefined', async () => {
             await expect(emailService.sendProviderAccountRecoveryConfirmationEmail(
-                'aslp',
+                'diet',
                 undefined,
                 'provider-123',
                 'recovery-token'
@@ -940,7 +940,7 @@ describe('EmailNotificationService', () => {
 
         it('should include reset password URL in security warning', async () => {
             await emailService.sendProviderAccountRecoveryConfirmationEmail(
-                'aslp',
+                'diet',
                 ['user@example.com'],
                 'provider-123',
                 'recovery-token'
@@ -962,7 +962,7 @@ describe('EmailNotificationService', () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await emailService.sendHomeJurisdictionChangeStateNotificationEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'John',
                 'Doe',
@@ -971,7 +971,7 @@ describe('EmailNotificationService', () => {
                 'OH'
             );
 
-            expect(mockJurisdictionClient.getJurisdictionConfiguration).toHaveBeenCalledWith('aslp', 'oh');
+            expect(mockJurisdictionClient.getJurisdictionConfiguration).toHaveBeenCalledWith('diet', 'oh');
 
             expect(mockSESClient).toHaveReceivedCommandWith(
                 SendEmailCommand,
@@ -989,7 +989,7 @@ describe('EmailNotificationService', () => {
                             },
                             Subject: {
                                 Charset: 'UTF-8',
-                                Data: 'Practitioner Home State Change - Audiology and Speech Language Pathology'
+                                Data: 'Practitioner Home State Change - Dietitian'
                             }
                         }
                     },
@@ -1003,7 +1003,7 @@ describe('EmailNotificationService', () => {
 
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('This is to notify you that John Doe has changed their home state from TX to OH.');
-            expect(htmlContent).toContain('https://app.test.compactconnect.org/aslp/Licensing/provider-123');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/diet/Licensing/provider-123');
         });
 
         it('should throw error when no recipients found for jurisdiction', async () => {
@@ -1013,14 +1013,14 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendHomeJurisdictionChangeStateNotificationEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'John',
                 'Doe',
                 'provider-123',
                 'TX',
                 'OH'
-            )).rejects.toThrow('No recipients found for jurisdiction oh in compact aslp');
+            )).rejects.toThrow('No recipients found for jurisdiction oh in compact diet');
         });
 
         it('should convert previous jurisdiction "other" to "an unlisted jurisdiction" in email content', async () => {
@@ -1028,7 +1028,7 @@ describe('EmailNotificationService', () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await emailService.sendHomeJurisdictionChangeStateNotificationEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'Jane',
                 'Smith',
@@ -1050,7 +1050,7 @@ describe('EmailNotificationService', () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await emailService.sendHomeJurisdictionChangeStateNotificationEmail(
-                'aslp',
+                'diet',
                 'oh',
                 'Bob',
                 'Johnson',
@@ -1071,21 +1071,21 @@ describe('EmailNotificationService', () => {
     describe('Privilege Expiration Reminder', () => {
         it('should send privilege expiration reminder email with expected subject and content', async () => {
             await emailService.sendPrivilegeExpirationReminderEmail(
-                'aslp',
+                'diet',
                 ['provider@example.com'],
                 'John',
                 '2026-02-16',
                 [
                     {
                         jurisdiction: 'Ohio',
-                        licenseType: 'audiologist',
-                        privilegeId: 'AUD-OH-001',
+                        licenseType: 'dietitian',
+                        privilegeId: 'DIET-OH-001',
                         dateOfExpiration: '2026-02-16',
                     },
                     {
                         jurisdiction: 'Kentucky',
-                        licenseType: 'speech-language pathologist',
-                        privilegeId: 'SLP-KY-002',
+                        licenseType: 'dietitian',
+                        privilegeId: 'DIET-KY-002',
                         dateOfExpiration: '2026-03-01',
                     },
                 ]
@@ -1122,10 +1122,10 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toContain('Hi John,');
             expect(htmlContent).toContain('Your compact privilege(s) to practice expires on');
             expect(htmlContent).toContain('02/16/2026');
-            expect(htmlContent).toContain('Ohio, audiologist');
-            expect(htmlContent).toContain('#AUD-OH-001');
-            expect(htmlContent).toContain('Kentucky, speech-language pathologist');
-            expect(htmlContent).toContain('#SLP-KY-002');
+            expect(htmlContent).toContain('Ohio, dietitian');
+            expect(htmlContent).toContain('#DIET-OH-001');
+            expect(htmlContent).toContain('Kentucky, dietitian');
+            expect(htmlContent).toContain('#DIET-KY-002');
             expect(htmlContent).toContain('03/01/2026');
             // Verify two-column table headers
             expect(htmlContent).toContain('Privilege');
@@ -1138,15 +1138,15 @@ describe('EmailNotificationService', () => {
         it('should throw error when no recipients provided', async () => {
             await expect(
                 emailService.sendPrivilegeExpirationReminderEmail(
-                    'aslp',
+                    'diet',
                     [],
                     'John',
                     '2026-02-16',
                     [
                         {
                             jurisdiction: 'Ohio',
-                            licenseType: 'aud',
-                            privilegeId: 'AUD-OH-001',
+                            licenseType: 'diet',
+                            privilegeId: 'DIET-OH-001',
                             dateOfExpiration: '2026-02-16',
                         },
                     ]
@@ -1157,7 +1157,7 @@ describe('EmailNotificationService', () => {
         it('should throw error when no privileges provided', async () => {
             await expect(
                 emailService.sendPrivilegeExpirationReminderEmail(
-                    'aslp',
+                    'diet',
                     ['provider@example.com'],
                     'John',
                     '2026-02-16',
@@ -1168,15 +1168,15 @@ describe('EmailNotificationService', () => {
 
         it('should send email with single privilege', async () => {
             await emailService.sendPrivilegeExpirationReminderEmail(
-                'aslp',
+                'diet',
                 ['provider@example.com'],
                 'Jane',
                 '2026-03-01',
                 [
                     {
                         jurisdiction: 'Nebraska',
-                        licenseType: 'speech-language pathologist',
-                        privilegeId: 'SLP-NE-123',
+                        licenseType: 'dietitian',
+                        privilegeId: 'DIET-NE-123',
                         dateOfExpiration: '2026-03-01',
                     },
                 ]
@@ -1189,8 +1189,8 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toContain('Hi Jane,');
             expect(htmlContent).toContain('Your compact privilege(s) to practice expires on');
             expect(htmlContent).toContain('03/01/2026');
-            expect(htmlContent).toContain('Nebraska, speech-language pathologist');
-            expect(htmlContent).toContain('#SLP-NE-123');
+            expect(htmlContent).toContain('Nebraska, dietitian');
+            expect(htmlContent).toContain('#DIET-NE-123');
             expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard');
         });
     });

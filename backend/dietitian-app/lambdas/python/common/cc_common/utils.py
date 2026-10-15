@@ -252,7 +252,7 @@ class logger_inject_kwargs:  # noqa: N801 invalid-name
 
 class authorize_compact_level_only_action:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope limited to compact level
-    (i.e. aslp/admin).
+    (i.e. diet/admin).
 
     This wrapper should be used when we want to explicitly restrict access to callers with permission scopes
      at the compact level.
@@ -332,7 +332,7 @@ class authorize_compact:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope
 
     This wrapper checks if the caller has the permission at either the compact or jurisdiction level for the compact
-    (i.e. aslp/write or oh/aslp.write).
+    (i.e. diet/write or oh/diet.write).
     """
 
     def __init__(self, action: str):
@@ -382,15 +382,15 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
 
     ReadGeneral - granted at compact level, allows read access to all generally available (not private) jurisdiction
     data within the compact.
-    i.e. aslp/readGeneral would allow read access to all generally available jurisdiction data within the aslp compact.
+    i.e. diet/readGeneral would allow read access to all generally available jurisdiction data within the diet compact.
 
     Write - granted at jurisdiction level, allows write access to a specific jurisdiction within the compact.
-    i.e. oh/aslp.write would allow write access to the ohio jurisdiction within the aslp compact.
+    i.e. oh/diet.write would allow write access to the ohio jurisdiction within the diet compact.
 
     Admin - granted at compact level and jurisdiction level, allows administrative access to either a specific
     compact or a specific jurisdiction within the compact.
-    i.e. 'aslp/admin' would allow administrative access to the aslp compact. 'oh/aslp.admin' would allow
-    administrative access to the ohio jurisdiction within the aslp compact.
+    i.e. 'diet/admin' would allow administrative access to the diet compact. 'oh/diet.admin' would allow
+    administrative access to the ohio jurisdiction within the diet compact.
 
     :param dict event: The event object passed to the lambda function.
     :param str resource_parameter: The value of the resource parameter in the path.
@@ -426,7 +426,7 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
 class authorize_compact_jurisdiction:  # noqa: N801 invalid-name
     """
     Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope.
-    (i.e. oh/aslp.write)
+    (i.e. oh/diet.write)
     """
 
     def __init__(self, action: str):

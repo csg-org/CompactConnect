@@ -42,9 +42,9 @@ class TestTransformations(TstFunction):
         event['body'] = json.dumps([license_post])
 
         # Compact and jurisdiction are provided via path parameters
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         # Authorize ourselves to write the license
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/diet.write'
 
         from handlers.licenses import post_licenses
 
@@ -87,12 +87,12 @@ class TestTransformations(TstFunction):
 
         # We'll fetch the provider id from the ssn table
         client = DataClient(self.config)
-        provider_id = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{license_ssn}', 'sk': f'aslp#SSN#{license_ssn}'})[
+        provider_id = self._ssn_table.get_item(Key={'pk': f'diet#SSN#{license_ssn}', 'sk': f'diet#SSN#{license_ssn}'})[
             'Item'
         ]['providerId']
         self.assertEqual(expected_provider_id, provider_id)
         provider_user_records: ProviderUserRecords = client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id
+            compact='diet', provider_id=provider_id
         )
 
         # Expected representation of each record in the database
@@ -113,7 +113,7 @@ class TestTransformations(TstFunction):
 
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
-            compact='aslp',
+            compact='diet',
             provider_id=provider_id,
             provider_record=provider_user_records.get_provider_record(),
             # using values in expected privilege json file
@@ -121,7 +121,7 @@ class TestTransformations(TstFunction):
             license_expiration_date=date(2025, 4, 4),
             compact_transaction_id='1234567890',
             existing_privileges_for_license=[],
-            license_type='speech-language pathologist',
+            license_type='dietitian',
             attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
@@ -129,7 +129,7 @@ class TestTransformations(TstFunction):
 
         # Add a military affiliation
         client.create_military_affiliation(
-            compact='aslp',
+            compact='diet',
             provider_id=provider_id,
             affiliation_type=MilitaryAffiliationType.MILITARY_MEMBER,
             file_names=['military-waiver.pdf'],
@@ -140,7 +140,7 @@ class TestTransformations(TstFunction):
 
         # Get the provider and all update records straight from the table, to inspect them
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='diet', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
         # One record for each of: provider, providerUpdate, license,
@@ -157,9 +157,9 @@ class TestTransformations(TstFunction):
             expected_license['licenseStatus'] = 'active'
             expected_license['compactEligibility'] = 'eligible'
             expected_license['firstUploadDate'] = MOCK_CURRENT_DATETIME_STRING
-            expected_license['licenseUploadDateGSIPK'] = 'C#aslp#J#oh#D#2024-11'
+            expected_license['licenseUploadDateGSIPK'] = 'C#diet#J#oh#D#2024-11'
             expected_license['licenseUploadDateGSISK'] = (
-                'TIME#1731110399#LT#slp#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
+                'TIME#1731110399#LT#diet#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
             )
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
@@ -204,8 +204,8 @@ class TestTransformations(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
+        event['pathParameters'] = {'compact': 'diet', 'providerId': provider_id}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral diet/readPrivate'
 
         resp = get_provider(event, self.mock_context)
 

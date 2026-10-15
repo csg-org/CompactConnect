@@ -615,7 +615,7 @@ class DataClient:
         :param existing_privileges_for_license: The list of existing privileges for the specified license.
         Used to track the original issuance date of the privilege.
         :param attestations: List of attestations that were accepted when purchasing the privileges
-        :param license_type: The type of license (e.g. audiologist, speech-language-pathologist)
+        :param license_type: The type of license (e.g. dietitian, speech-language-pathologist)
         """
         logger.info(
             'Creating provider privileges',

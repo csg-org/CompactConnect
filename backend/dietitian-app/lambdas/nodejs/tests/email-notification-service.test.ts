@@ -12,13 +12,13 @@ import { describe, it, beforeAll, beforeEach, jest } from '@jest/globals';
 const SAMPLE_EVENT: EmailNotificationEvent = {
     template: 'transactionBatchSettlementFailure',
     recipientType: 'COMPACT_OPERATIONS_TEAM',
-    compact: 'aslp',
+    compact: 'diet',
     templateVariables: {}
 };
 
 const SAMPLE_COMPACT_CONFIGURATION = {
-    'pk': { S: 'aslp#CONFIGURATION' },
-    'sk': { S: 'aslp#CONFIGURATION' },
+    'pk': { S: 'diet#CONFIGURATION' },
+    'sk': { S: 'diet#CONFIGURATION' },
     'compactAdverseActionsNotificationEmails': { L: [{ S: 'adverse@example.com' }]},
     'compactCommissionFee': {
         M: {
@@ -26,8 +26,8 @@ const SAMPLE_COMPACT_CONFIGURATION = {
             'feeType': { S: 'FLAT_RATE' }
         }
     },
-    'compactAbbr': { S: 'aslp' },
-    'compactName': { S: 'Audiology and Speech Language Pathology' },
+    'compactAbbr': { S: 'diet' },
+    'compactName': { S: 'Dietitian' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
     'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }]},
     'dateOfUpdate': { S: '2024-12-10T19:27:28+00:00' },
@@ -35,8 +35,8 @@ const SAMPLE_COMPACT_CONFIGURATION = {
 };
 
 const SAMPLE_JURISDICTION_CONFIGURATION = {
-    'pk': { S: 'aslp#CONFIGURATION' },
-    'sk': { S: 'aslp#JURISDICTION#oh' },
+    'pk': { S: 'diet#CONFIGURATION' },
+    'sk': { S: 'diet#JURISDICTION#oh' },
     'jurisdictionName': { S: 'Ohio' },
     'jurisdictionSummaryReportNotificationEmails': { L: [{ S: 'ohio@example.com' }]},
     'type': { S: 'jurisdiction' }
@@ -81,11 +81,11 @@ describe('EmailNotificationServiceLambda', () => {
         mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
             const key = input.Key;
 
-            if (key.sk.S === 'aslp#CONFIGURATION') {
+            if (key.sk.S === 'diet#CONFIGURATION') {
                 return Promise.resolve({
                     Item: SAMPLE_COMPACT_CONFIGURATION
                 });
-            } else if (key.sk.S === 'aslp#JURISDICTION#oh') {
+            } else if (key.sk.S === 'diet#JURISDICTION#oh') {
                 return Promise.resolve({
                     Item: SAMPLE_JURISDICTION_CONFIGURATION
                 });
@@ -146,8 +146,8 @@ describe('EmailNotificationServiceLambda', () => {
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
             TableName: 'compact-table',
             Key: {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#CONFIGURATION' }
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#CONFIGURATION' }
             }
         });
 
@@ -166,7 +166,7 @@ describe('EmailNotificationServiceLambda', () => {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
+                        Data: 'Transactions Failed to Settle for Dietitian Payment Processor'
                     }
                 }
             },
@@ -251,9 +251,9 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
             template: 'CompactTransactionReporting',
             recipientType: 'COMPACT_SUMMARY_REPORT',
-            compact: 'aslp',
+            compact: 'diet',
             templateVariables: {
-                reportS3Path: 'compact/aslp/reports/test-report.zip',
+                reportS3Path: 'compact/diet/reports/test-report.zip',
                 reportingCycle: 'weekly',
                 startDate: '2024-03-01',
                 endDate: '2024-03-07'
@@ -271,15 +271,15 @@ describe('EmailNotificationServiceLambda', () => {
             expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#CONFIGURATION' }
+                    'pk': { S: 'diet#CONFIGURATION' },
+                    'sk': { S: 'diet#CONFIGURATION' }
                 }
             });
 
             // Verify S3 was queried for the report
             expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
                 Bucket: 'test-transaction-reports-bucket',
-                Key: 'compact/aslp/reports/test-report.zip'
+                Key: 'compact/diet/reports/test-report.zip'
             });
 
             // Verify email was sent with correct parameters
@@ -301,9 +301,9 @@ describe('EmailNotificationServiceLambda', () => {
             expect(rawEmailString).toContain('name=settled-transaction-report-2024-03-01--2024-03-07.zip');
             expect(rawEmailString).toContain('Content-Disposition: attachment;');
             expect(rawEmailString).toContain('filename=settled-transaction-report-2024-03-01--2024-03-07.zip');
-            expect(rawEmailString).toContain('Weekly Report for Audiology and Speech Language Pathology');
+            expect(rawEmailString).toContain('Weekly Report for Dietitian');
             expect(rawEmailString).toContain('Please find');
-            expect(rawEmailString).toContain('attached the weekly settled transaction reports for the compact');
+            expect(rawEmailString).toContain('transaction reports for the compact');
             expect(rawEmailString).toContain('2024-03-01');
             expect(rawEmailString).toContain('2024-03-07');
             expect(rawEmailString).toContain('To: summary@example.com');
@@ -320,7 +320,7 @@ describe('EmailNotificationServiceLambda', () => {
 
             await expect(lambda.handler(SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
-                .toThrow('No recipients found for compact aslp with recipient type COMPACT_SUMMARY_REPORT');
+                .toThrow('No recipients found for compact diet with recipient type COMPACT_SUMMARY_REPORT');
         });
 
         it('should throw error when required template variables are missing', async () => {
@@ -341,7 +341,7 @@ describe('EmailNotificationServiceLambda', () => {
 
             await expect(lambda.handler(SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
-                .toThrow('Failed to retrieve report from S3: compact/aslp/reports/test-report.zip');
+                .toThrow('Failed to retrieve report from S3: compact/diet/reports/test-report.zip');
         });
     });
 
@@ -349,10 +349,10 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
             template: 'JurisdictionTransactionReporting',
             recipientType: 'JURISDICTION_SUMMARY_REPORT',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'oh',
             templateVariables: {
-                reportS3Path: 'compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip',
+                reportS3Path: 'compact/diet/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip',
                 reportingCycle: 'weekly',
                 startDate: '2024-03-01',
                 endDate: '2024-03-07'
@@ -370,15 +370,15 @@ describe('EmailNotificationServiceLambda', () => {
             expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                    'pk': { S: 'diet#CONFIGURATION' },
+                    'sk': { S: 'diet#JURISDICTION#oh' }
                 }
             });
 
             // Verify S3 was queried for the report
             expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
                 Bucket: 'test-transaction-reports-bucket',
-                Key: 'compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip'
+                Key: 'compact/diet/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip'
             });
 
             // Verify email was sent with correct parameters
@@ -400,9 +400,9 @@ describe('EmailNotificationServiceLambda', () => {
             expect(rawEmailString).toContain('name=oh-settled-transaction-report-2024-03-01--2024-03-07.zip');
             expect(rawEmailString).toContain('Content-Disposition: attachment;');
             expect(rawEmailString).toContain('filename=oh-settled-transaction-report-2024-03-01--2024-03-07.zip');
-            expect(rawEmailString).toContain('Ohio Weekly Report for Audiology and Speech Language Pathology');
+            expect(rawEmailString).toContain('Ohio Weekly Report for Dietitian');
             expect(rawEmailString).toContain('Please find attached the');
-            expect(rawEmailString).toContain('weekly settled transaction report for your jurisdiction');
+            expect(rawEmailString).toContain('transaction report for your jurisdiction');
             expect(rawEmailString).toContain('2024-03-01');
             expect(rawEmailString).toContain('2024-03-07');
             expect(rawEmailString).toContain('To: ohio@example.com');
@@ -419,7 +419,7 @@ describe('EmailNotificationServiceLambda', () => {
 
             await expect(lambda.handler(SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
-                .toThrow('No recipients found for jurisdiction oh in compact aslp');
+                .toThrow('No recipients found for jurisdiction oh in compact diet');
         });
 
         it('should throw error when required template variables are missing', async () => {
@@ -451,7 +451,7 @@ describe('EmailNotificationServiceLambda', () => {
 
             await expect(lambda.handler(SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
-                .toThrow('Failed to retrieve report from S3: compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip');
+                .toThrow('Failed to retrieve report from S3: compact/diet/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip');
         });
     });
 
@@ -459,7 +459,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_DEACTIVATION_JURISDICTION_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeDeactivationJurisdictionNotification',
             recipientType: 'JURISDICTION_SUMMARY_REPORT',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'oh',
             templateVariables: {
                 privilegeId: '123',
@@ -480,8 +480,8 @@ describe('EmailNotificationServiceLambda', () => {
             expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                    'pk': { S: 'diet#CONFIGURATION' },
+                    'sk': { S: 'diet#JURISDICTION#oh' }
                 }
             });
 
@@ -500,7 +500,7 @@ describe('EmailNotificationServiceLambda', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'A Privilege was Deactivated in the Audiology and Speech Language Pathology Compact'
+                            Data: 'A Privilege was Deactivated in the Dietitian Compact'
                         }
                     }
                 },
@@ -514,7 +514,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_DEACTIVATION_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeDeactivationProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['specific@example.com'],
             templateVariables: {
                 privilegeId: '123',
@@ -568,21 +568,21 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegePurchaseProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 transactionDate: '12/12/2004',
                 privileges: [
                     {
-                        privilegeId: 'OTA-OH-019',
+                        privilegeId: 'DIET-OH-019',
                         jurisdiction: 'OH',
-                        licenseTypeAbbrev: 'OTA'
+                        licenseTypeAbbrev: 'diet'
                     }
                 ],
                 totalCost: '45.0',
                 costLineItems: [
                     {
-                        name: 'OH OTA fee', quantity: '2', unitPrice: '45'
+                        name: 'OH diet fee', quantity: '2', unitPrice: '45'
                     },
                     {
                         name: 'cc fees', quantity: '1', unitPrice: '3.5'
@@ -635,7 +635,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT: EmailNotificationEvent = {
             template: 'privilegeExpirationReminder',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'Mary',
@@ -643,14 +643,14 @@ describe('EmailNotificationServiceLambda', () => {
                 privileges: [
                     {
                         jurisdiction: 'Ohio',
-                        licenseType: 'audiologist',
-                        privilegeId: 'AUD-OH-001',
+                        licenseType: 'dietitian',
+                        privilegeId: 'DIET-OH-001',
                         dateOfExpiration: '2026-02-16',
                     },
                     {
                         jurisdiction: 'Kentucky',
-                        licenseType: 'speech-language pathologist',
-                        privilegeId: 'SLP-KY-002',
+                        licenseType: 'dietitian',
+                        privilegeId: 'DIET-KY-002',
                         dateOfExpiration: '2026-03-01',
                     },
                 ],
@@ -675,10 +675,10 @@ describe('EmailNotificationServiceLambda', () => {
             expect(htmlData).toContain('Hi Mary,');
             expect(htmlData).toContain('Your compact privilege(s) to practice expires on');
             expect(htmlData).toContain('02/16/2026');
-            expect(htmlData).toContain('Ohio, audiologist');
-            expect(htmlData).toContain('#AUD-OH-001');
-            expect(htmlData).toContain('Kentucky, speech-language pathologist');
-            expect(htmlData).toContain('#SLP-KY-002');
+            expect(htmlData).toContain('Ohio, dietitian');
+            expect(htmlData).toContain('#DIET-OH-001');
+            expect(htmlData).toContain('Kentucky, dietitian');
+            expect(htmlData).toContain('#DIET-KY-002');
             expect(htmlData).toContain('03/01/2026');
             // Verify two-column table headers are present
             expect(htmlData).toContain('Privilege');
@@ -729,13 +729,13 @@ describe('EmailNotificationServiceLambda', () => {
                     privileges: [
                         {
                             jurisdiction: 'Ohio',
-                            licenseType: 'audiologist',
-                            privilegeId: 'AUD-OH-001',
+                            licenseType: 'dietitian',
+                            privilegeId: 'DIET-OH-001',
                             dateOfExpiration: '2026-02-16',
                         },
                         {
                             jurisdiction: 'Kentucky',
-                            privilegeId: 'SLP-KY-002',
+                            privilegeId: 'DIET-KY-002',
                             dateOfExpiration: '2026-03-01',
                             // missing licenseType
                         },
@@ -753,7 +753,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_MULTIPLE_REGISTRATION_ATTEMPT_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'multipleRegistrationAttemptNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['user@example.com'],
             templateVariables: {}
         };
@@ -804,7 +804,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_SSN_CORRECTION_REREGISTRATION_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'ssnCorrectionReregistrationNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['user@example.com'],
             templateVariables: {}
         };
@@ -855,7 +855,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -911,7 +911,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -925,15 +925,15 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license encumbrance state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionName': { S: 'California' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -969,14 +969,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should include provider detail link with correct environment URL', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -987,7 +987,7 @@ describe('EmailNotificationServiceLambda', () => {
             const emailData = mockSESClient.commandCalls(
                 SendEmailCommand)[0].args[0].input.Content?.Simple?.Body?.Html?.Data;
 
-            expect(emailData).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
+            expect(emailData).toContain('Provider Details: <a href="https://app.test.compactconnect.org/diet/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/diet/Licensing/provider-123</a>');
         });
 
         it('should throw error when required template variables are missing', async () => {
@@ -1017,7 +1017,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceLiftingProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -1075,7 +1075,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceLiftingStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1089,14 +1089,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license encumbrance lifting state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1159,7 +1159,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -1215,7 +1215,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1229,14 +1229,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege encumbrance state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1297,7 +1297,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceLiftingProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -1355,7 +1355,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceLiftingStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1369,14 +1369,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege encumbrance lifting state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1438,7 +1438,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PROVIDER_EMAIL_VERIFICATION_CODE_EVENT: EmailNotificationEvent = {
             template: 'providerEmailVerificationCode',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['newuser@example.com'],
             templateVariables: {
                 verificationCode: '1234'
@@ -1513,7 +1513,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PROVIDER_EMAIL_CHANGE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'providerEmailChangeNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['olduser@example.com'],
             templateVariables: {
                 newEmailAddress: 'newuser@example.com'
@@ -1584,7 +1584,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PROVIDER_ACCOUNT_RECOVERY_CONFIRMATION_EVENT: EmailNotificationEvent = {
             template: 'providerAccountRecoveryConfirmation',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['user@example.com'],
             templateVariables: {
                 providerId: 'provider-123',
@@ -1629,7 +1629,7 @@ describe('EmailNotificationServiceLambda', () => {
             expect(htmlContent).toContain('Confirm Account Recovery');
 
             // Verify recovery URL is correctly formatted (HTML encoded in email)
-            const expectedRecoveryUrl = 'https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=aslp&amp;providerId=provider-123&amp;recoveryId=secure-recovery-token-abc123';
+            const expectedRecoveryUrl = 'https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=diet&amp;providerId=provider-123&amp;recoveryId=secure-recovery-token-abc123';
 
             expect(htmlContent).toContain(expectedRecoveryUrl);
         });
@@ -1676,7 +1676,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_MILITARY_AUDIT_APPROVED_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'militaryAuditApprovedNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['provider@example.com'],
             templateVariables: {}
         };
@@ -1735,7 +1735,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_MILITARY_AUDIT_DECLINED_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'militaryAuditDeclinedNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'diet',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 auditNote: 'The documentation provided was incomplete and did not meet the required standards.'
@@ -1797,7 +1797,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseInvestigationStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1810,23 +1810,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license investigation state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'diet#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1887,7 +1887,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseInvestigationClosedStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1900,23 +1900,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license investigation closed state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'diet#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1979,7 +1979,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeInvestigationStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1992,23 +1992,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege investigation state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'diet#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -2069,7 +2069,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeInvestigationClosedStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -2082,23 +2082,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege investigation closed state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'pk': { S: 'diet#CONFIGURATION' },
+                'sk': { S: 'diet#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'diet#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'diet#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -2161,7 +2161,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_HOME_JURISDICTION_CHANGE_NEW_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'homeJurisdictionChangeNewStateNotification',
             recipientType: 'JURISDICTION_OPERATIONS_TEAM',
-            compact: 'aslp',
+            compact: 'diet',
             jurisdiction: 'oh',
             templateVariables: {
                 providerFirstName: 'John',

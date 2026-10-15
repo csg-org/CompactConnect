@@ -13,7 +13,7 @@ from moto import mock_aws
 from tests.function import TstFunction
 
 OTHER_PROVIDER_ID = '2d3f1b0e-4c5a-4d6b-8e7f-9a0b1c2d3e4f'
-OTHER_LICENSE_TYPE = 'audiologist'
+THIRD_PROVIDER_ID = '3e4f2c1d-5d6b-4e7c-9f8a-0b1c2d3e4f50'
 
 
 @mock_aws
@@ -44,22 +44,6 @@ class TestFindProviderByLicenseNumber(TstFunction):
         self.assertEqual(DEFAULT_PROVIDER_ID, result.provider_id)
         self.assertEqual(DEFAULT_SSN_LAST_FOUR, result.ssn_last_four)
 
-    def test_returns_single_provider_when_one_provider_holds_the_number_for_two_license_types(self):
-        """
-        Entries that agree on the practitioner resolve, however many of them there are: the index only
-        has to identify who the license number belongs to.
-        """
-        self.test_data_generator.put_default_license_record_in_provider_table()
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={'licenseType': OTHER_LICENSE_TYPE}
-        )
-
-        result = self._lookup()
-
-        self.assertIsNotNone(result)
-        self.assertEqual(DEFAULT_PROVIDER_ID, result.provider_id)
-        self.assertEqual(DEFAULT_SSN_LAST_FOUR, result.ssn_last_four)
-
     def test_raises_when_the_same_number_maps_to_two_providers(self):
         """
         A license number is expected to identify exactly one practitioner within a jurisdiction. If it
@@ -67,20 +51,7 @@ class TestFindProviderByLicenseNumber(TstFunction):
         """
         self.test_data_generator.put_default_license_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={'providerId': OTHER_PROVIDER_ID, 'licenseType': OTHER_LICENSE_TYPE}
-        )
-
-        with self.assertRaises(CCAmbiguousLicenseNumberException):
-            self._lookup()
-
-    def test_raises_when_matches_disagree_on_ssn_last_four(self):
-        """
-        Defensive: one provider's license records should always agree on ssnLastFour. If they don't, we
-        would be guessing which value to forward to the ingest handler.
-        """
-        self.test_data_generator.put_default_license_record_in_provider_table()
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={'licenseType': OTHER_LICENSE_TYPE, 'ssnLastFour': '9999'}
+            value_overrides={'providerId': OTHER_PROVIDER_ID}
         )
 
         with self.assertRaises(CCAmbiguousLicenseNumberException):
@@ -88,18 +59,6 @@ class TestFindProviderByLicenseNumber(TstFunction):
 
     def test_does_not_match_a_license_number_in_a_different_jurisdiction(self):
         self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={'jurisdiction': 'ne'})
-
-        self.assertIsNone(self._lookup())
-
-    def test_does_not_match_a_license_number_in_a_different_compact(self):
-        """
-        The index partition key scopes matches to one compact and jurisdiction. The record is written
-        with its GSI key overridden directly, because only one compact is configured in these tests.
-        """
-        license_record = self.test_data_generator.generate_default_license().serialize_to_database_record()
-        license_record['pk'] = license_record['pk'].replace(DEFAULT_COMPACT, 'octp')
-        license_record['licenseGSIPK'] = f'C#octp#J#{DEFAULT_LICENSE_JURISDICTION}'
-        self.test_data_generator.store_record_in_provider_table(license_record)
 
         self.assertIsNone(self._lookup())
 
@@ -155,33 +114,11 @@ class TestLoadLicenseNumberLookup(TstFunction):
         self.assertEqual(DEFAULT_PROVIDER_ID, result.provider_id)
         self.assertEqual(DEFAULT_SSN_LAST_FOUR, result.ssn_last_four)
 
-    def test_resolves_when_one_provider_holds_the_number_for_two_license_types(self):
-        """Two license records for the same practitioner are two index entries, but one identity."""
-        self.test_data_generator.put_default_license_record_in_provider_table()
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={'licenseType': OTHER_LICENSE_TYPE}
-        )
-
-        result = self._load().get(DEFAULT_LICENSE_NUMBER)
-
-        self.assertEqual(DEFAULT_PROVIDER_ID, result.provider_id)
-
     def test_raises_when_a_license_number_maps_to_two_providers(self):
         """The ambiguity must survive the bulk load rather than one entry silently overwriting the other."""
         self.test_data_generator.put_default_license_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={'providerId': OTHER_PROVIDER_ID, 'licenseType': OTHER_LICENSE_TYPE}
-        )
-
-        lookup = self._load()
-
-        with self.assertRaises(CCAmbiguousLicenseNumberException):
-            lookup.get(DEFAULT_LICENSE_NUMBER)
-
-    def test_raises_when_entries_disagree_on_ssn_last_four(self):
-        self.test_data_generator.put_default_license_record_in_provider_table()
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={'licenseType': OTHER_LICENSE_TYPE, 'ssnLastFour': '9999'}
+            value_overrides={'providerId': OTHER_PROVIDER_ID}
         )
 
         lookup = self._load()
@@ -193,15 +130,15 @@ class TestLoadLicenseNumberLookup(TstFunction):
         """One bad license number must not stop the other rows in a file from resolving."""
         self.test_data_generator.put_default_license_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={'providerId': OTHER_PROVIDER_ID, 'licenseType': OTHER_LICENSE_TYPE}
+            value_overrides={'providerId': OTHER_PROVIDER_ID}
         )
         self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={'licenseNumber': 'UNAMBIGUOUS-1', 'licenseType': OTHER_LICENSE_TYPE}
+            value_overrides={'providerId': THIRD_PROVIDER_ID, 'licenseNumber': 'UNAMBIGUOUS-1'}
         )
 
         lookup = self._load()
 
-        self.assertEqual(DEFAULT_PROVIDER_ID, lookup.get('UNAMBIGUOUS-1').provider_id)
+        self.assertEqual(THIRD_PROVIDER_ID, lookup.get('UNAMBIGUOUS-1').provider_id)
         with self.assertRaises(CCAmbiguousLicenseNumberException):
             lookup.get(DEFAULT_LICENSE_NUMBER)
 

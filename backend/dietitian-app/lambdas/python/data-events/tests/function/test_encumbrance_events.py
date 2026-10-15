@@ -170,7 +170,7 @@ class TestEncumbranceEvents(TstFunction):
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': 'ky',  # Different jurisdiction
-                'licenseTypeAbbreviation': 'aud',  # Different license type
+                'licenseTypeAbbreviation': 'diet',  # Different license type
                 # note there is no encumberedStatus present
             }
         )
@@ -619,60 +619,6 @@ class TestEncumbranceEvents(TstFunction):
         for privilege in privileges:
             self.assertEqual(PrivilegeEncumberedStatusEnum.UNENCUMBERED, privilege.encumberedStatus)
 
-    def test_license_encumbrance_listener_handles_mixed_license_types(self):
-        """Test that license encumbrance event only affects privileges with matching license type."""
-        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
-        from handlers.encumbrance_events import license_encumbrance_listener
-
-        # Set up test data
-        self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Create privilege with matching license type
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-                'jurisdiction': 'ne',
-            }
-        )
-
-        # Create privilege with different license type
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': 'audiologist',  # Different license type
-                'jurisdiction': 'ky',
-            }
-        )
-
-        # add adverse action item for license
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
-            value_overrides={'actionAgainst': 'license'}
-        )
-
-        message = self._generate_license_encumbrance_message()
-        event = self._create_sqs_event(message)
-
-        # Execute the handler
-        license_encumbrance_listener(event, self.mock_context)
-
-        # Verify only the matching privilege was encumbered
-        provider_records = self.config.data_client.get_provider_user_records(
-            compact=DEFAULT_COMPACT,
-            provider_id=DEFAULT_PROVIDER_ID,
-        )
-
-        privileges = provider_records.get_privilege_records()
-
-        matching_privilege_after = next(p for p in privileges if p.jurisdiction == 'ne')
-        different_type_privilege_after = next(p for p in privileges if p.jurisdiction == 'ky')
-
-        self.assertEqual(PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, matching_privilege_after.encumberedStatus)
-        self.assertIsNone(
-            different_type_privilege_after.encumberedStatus,
-            f'licenseEncumbered is not None: {different_type_privilege_after.encumberedStatus}',
-        )
-
     def test_license_encumbrance_listener_handles_mixed_license_jurisdictions(self):
         """Test that license encumbrance event only affects privileges with matching license jurisdiction."""
         from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
@@ -793,77 +739,6 @@ class TestEncumbranceEvents(TstFunction):
         # Different jurisdiction privilege should remain license encumbered
         self.assertEqual(
             PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, different_jurisdiction_privilege_after.encumberedStatus
-        )
-
-    def test_license_encumbrance_lifted_listener_handles_mixed_license_types(self):
-        """Test that license encumbrance lifting event only affects privileges with matching license type."""
-        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
-        from handlers.encumbrance_events import license_encumbrance_lifted_listener
-
-        # Set up test data
-        self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Set up license record that is unencumbered (so privileges should be unencumbered)
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-                'encumberedStatus': 'unencumbered',  # License is unencumbered
-            }
-        )
-
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
-            value_overrides={
-                'actionAgainst': 'license',
-                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-            }
-        )
-
-        # Create privilege with matching license type (should be unencumbered)
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-                'encumberedStatus': 'licenseEncumbered',
-                'jurisdiction': 'ne',
-            }
-        )
-
-        # Create privilege with different license type (should remain encumbered)
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': 'audiologist',  # Different license type
-                'encumberedStatus': 'licenseEncumbered',
-                'jurisdiction': 'ky',
-            }
-        )
-
-        message = self._generate_license_encumbrance_lifting_message()
-        event = self._create_sqs_event(message)
-
-        # Execute the handler
-        license_encumbrance_lifted_listener(event, self.mock_context)
-
-        # Verify only the matching privilege was unencumbered
-        provider_records = self.config.data_client.get_provider_user_records(
-            compact=DEFAULT_COMPACT,
-            provider_id=DEFAULT_PROVIDER_ID,
-        )
-
-        privileges = provider_records.get_privilege_records()
-
-        matching_privilege_after = next(p for p in privileges if p.jurisdiction == 'ne')
-        different_type_privilege_after = next(p for p in privileges if p.jurisdiction == 'ky')
-
-        # Matching privilege should be unencumbered
-        self.assertEqual(PrivilegeEncumberedStatusEnum.UNENCUMBERED, matching_privilege_after.encumberedStatus)
-        # Different license type privilege should remain license encumbered
-        self.assertEqual(
-            PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, different_type_privilege_after.encumberedStatus
         )
 
     def test_license_encumbrance_lifted_listener_does_not_unencumber_when_license_remains_encumbered(self):
@@ -992,7 +867,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='ne',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -1003,7 +878,7 @@ class TestEncumbranceEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
+            license_type='dietitian',
             effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
@@ -1011,7 +886,7 @@ class TestEncumbranceEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
+            license_type='dietitian',
             effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
@@ -1019,7 +894,7 @@ class TestEncumbranceEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
+            license_type='dietitian',
             effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
@@ -1111,7 +986,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1174,7 +1049,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='ne',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -1197,7 +1072,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1275,7 +1150,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='ne',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -1298,7 +1173,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1362,7 +1237,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='ne',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -1385,7 +1260,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1455,7 +1330,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='ne',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -1478,7 +1353,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1553,7 +1428,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1633,7 +1508,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='ne',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -1656,7 +1531,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1753,7 +1628,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='ne',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=license_effective_lift_date,
                 provider_id=None,
             ),
@@ -1776,7 +1651,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=license_effective_lift_date,
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1861,7 +1736,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='ne',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=license_effective_lift_date,
                 provider_id=None,
             ),
@@ -1884,7 +1759,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=license_effective_lift_date,
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1953,7 +1828,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -1976,7 +1851,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -2034,7 +1909,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -2097,7 +1972,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -2120,7 +1995,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -2198,7 +2073,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -2221,7 +2096,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -2285,7 +2160,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -2308,7 +2183,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -2376,7 +2251,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -2399,7 +2274,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -2471,7 +2346,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -2548,7 +2423,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -2570,7 +2445,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='speech-language pathologist',
+                    license_type='dietitian',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -2664,7 +2539,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -2678,7 +2553,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=UUID(DEFAULT_PROVIDER_ID),
             ),
@@ -2692,7 +2567,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=None,
             ),
@@ -2706,7 +2581,7 @@ class TestEncumbranceEvents(TstFunction):
                 provider_first_name='Björk',
                 provider_last_name='Guðmundsdóttir',
                 encumbered_jurisdiction='oh',
-                license_type='speech-language pathologist',
+                license_type='dietitian',
                 effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 provider_id=UUID(DEFAULT_PROVIDER_ID),
             ),

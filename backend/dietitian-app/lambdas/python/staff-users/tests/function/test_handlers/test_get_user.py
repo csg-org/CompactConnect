@@ -13,9 +13,9 @@ class TestGetUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        # The user has admin permission for all of diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/admin'
+        event['pathParameters'] = {'compact': 'diet', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -31,9 +31,9 @@ class TestGetUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        # The user has admin permission for all of diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/admin'
+        event['pathParameters'] = {'compact': 'diet', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = get_one_user(event, self.mock_context)
@@ -56,9 +56,9 @@ class TestGetUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        # The user has admin permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/diet.admin'
+        event['pathParameters'] = {'compact': 'diet', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = get_one_user(event, self.mock_context)
@@ -80,9 +80,9 @@ class TestGetUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for aslp/ne, user does not have aslp/oh permissions
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/aslp.admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        # The user has admin permission for diet/ne, user does not have diet/oh permissions
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/diet.admin'
+        event['pathParameters'] = {'compact': 'diet', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = get_one_user(event, self.mock_context)

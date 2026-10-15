@@ -1,18 +1,13 @@
 {
-  "pk": "aslp#CONFIGURATION",
-  "sk": "aslp#JURISDICTION#oh",
+  "pk": "diet#CONFIGURATION",
+  "sk": "diet#JURISDICTION#oh",
   "type": "jurisdiction",
-  "compact": "aslp",
+  "compact": "diet",
   "jurisdictionName": "ohio",
   "postalAbbreviation": "oh",
   "privilegeFees": [
     {
-      "licenseTypeAbbreviation": "aud",
-      "amount": 100,
-      "militaryRate": 40
-    },
-    {
-      "licenseTypeAbbreviation": "slp",
+      "licenseTypeAbbreviation": "diet",
       "amount": 100,
       "militaryRate": 40
     }

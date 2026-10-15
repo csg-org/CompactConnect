@@ -1,6 +1,6 @@
 {
-  "pk": "COMPACT#aslp#TRANSACTIONS#MONTH#2024-01",
-  "sk": "COMPACT#aslp#TIME#1704067200#BATCH#67890#TX#mockTransactionIdPlaceholder",
+  "pk": "COMPACT#diet#TRANSACTIONS#MONTH#2024-01",
+  "sk": "COMPACT#diet#TIME#1704067200#BATCH#67890#TX#mockTransactionIdPlaceholder",
   "type": "transaction",
   "dateOfUpdate": "2024-01-02T15:13:58+00:00",
   "transactionProcessor": "authorize.net",
@@ -14,7 +14,7 @@
   "lineItems": [
     {
       "description": "Compact Privilege for Ohio",
-      "itemId": "priv:aslp-oh",
+      "itemId": "priv:diet-oh",
       "name": "Ohio Compact Privilege",
       "quantity": "1.0",
       "taxable": "False",
@@ -23,8 +23,8 @@
     },
     {
       "description": "Compact fee applied for each privilege purchased",
-      "itemId": "aslp-compact-fee",
-      "name": "ASLP Compact Fee",
+      "itemId": "diet-compact-fee",
+      "name": "Dietitian Compact Fee",
       "quantity": "1",
       "taxable": "False",
       "unitPrice": "10.50"
@@ -38,7 +38,7 @@
       "unitPrice": "3.00"
     }
   ],
-  "compact": "aslp",
+  "compact": "diet",
   "licenseeId": "12345",
   "responseCode": "1",
   "settleAmount": "113.50",

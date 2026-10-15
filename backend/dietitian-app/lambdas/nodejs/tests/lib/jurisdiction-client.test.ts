@@ -9,13 +9,13 @@ import { describe, it, beforeAll, beforeEach, jest } from '@jest/globals';
 const SAMPLE_JURISDICTION_ITEMS = [
     {
         'pk': {
-            'S': 'aslp#CONFIGURATION'
+            'S': 'diet#CONFIGURATION'
         },
         'sk': {
-            'S': 'aslp#JURISDICTION#oh'
+            'S': 'diet#JURISDICTION#oh'
         },
         'compact': {
-            'S': 'aslp'
+            'S': 'diet'
         },
         'dateOfUpdate': {
             'S': '2024-11-14'
@@ -28,7 +28,7 @@ const SAMPLE_JURISDICTION_ITEMS = [
                 {
                     'M': {
                         'licenseTypeAbbreviation': {
-                            'S': 'aud'
+                            'S': 'diet'
                         },
                         'amount': {
                             'N': '100'
@@ -38,7 +38,7 @@ const SAMPLE_JURISDICTION_ITEMS = [
                 {
                     'M': {
                         'licenseTypeAbbreviation': {
-                            'S': 'slp'
+                            'S': 'diet'
                         },
                         'amount': {
                             'N': '100'
@@ -76,13 +76,13 @@ const SAMPLE_JURISDICTION_ITEMS = [
     },
     {
         'pk': {
-            'S': 'aslp#CONFIGURATION'
+            'S': 'diet#CONFIGURATION'
         },
         'sk': {
-            'S': 'aslp#JURISDICTION#ne'
+            'S': 'diet#JURISDICTION#ne'
         },
         'compact': {
-            'S': 'aslp'
+            'S': 'diet'
         },
         'dateOfUpdate': {
             'S': '2024-11-14'
@@ -95,7 +95,7 @@ const SAMPLE_JURISDICTION_ITEMS = [
                 {
                     'M': {
                         'licenseTypeAbbreviation': {
-                            'S': 'aud'
+                            'S': 'diet'
                         },
                         'amount': {
                             'N': '100'
@@ -105,7 +105,7 @@ const SAMPLE_JURISDICTION_ITEMS = [
                 {
                     'M': {
                         'licenseTypeAbbreviation': {
-                            'S': 'slp'
+                            'S': 'diet'
                         },
                         'amount': {
                             'N': '100'
@@ -158,7 +158,7 @@ describe('JurisdictionClient', () => {
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
-        process.env.COMPACTS = '["aslp", "octp", "coun"]';
+        process.env.COMPACTS = '["diet"]';
         process.env.DATA_EVENT_TABLE_NAME = 'data-table';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';
@@ -182,7 +182,7 @@ describe('JurisdictionClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const jurisdictions = await jurisdictionClient.getJurisdictionConfigurations('aslp');
+        const jurisdictions = await jurisdictionClient.getJurisdictionConfigurations('diet');
 
         expect(jurisdictions).toHaveLength(2);
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(
@@ -191,8 +191,8 @@ describe('JurisdictionClient', () => {
                 TableName: 'compact-table',
                 KeyConditionExpression: 'pk = :pk and begins_with (sk, :sk)',
                 ExpressionAttributeValues: {
-                    ':pk': { 'S': 'aslp#CONFIGURATION' },
-                    ':sk': { 'S': 'aslp#JURISDICTION#' }
+                    ':pk': { 'S': 'diet#CONFIGURATION' },
+                    ':sk': { 'S': 'diet#JURISDICTION#' }
                 }
             }
         );
@@ -211,7 +211,7 @@ describe('JurisdictionClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const jurisdictions = await jurisdictionClient.getJurisdictionConfigurations('aslp');
+        const jurisdictions = await jurisdictionClient.getJurisdictionConfigurations('diet');
 
         expect(jurisdictions).toEqual([]);
     });
@@ -228,15 +228,15 @@ describe('JurisdictionClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const jurisdiction = await jurisdictionClient.getJurisdictionConfiguration('aslp', 'oh');
+        const jurisdiction = await jurisdictionClient.getJurisdictionConfiguration('diet', 'oh');
 
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(
             GetItemCommand,
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                    'pk': { S: 'diet#CONFIGURATION' },
+                    'sk': { S: 'diet#JURISDICTION#oh' }
                 }
             }
         );
@@ -257,7 +257,7 @@ describe('JurisdictionClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        await expect(jurisdictionClient.getJurisdictionConfiguration('aslp', 'xx'))
+        await expect(jurisdictionClient.getJurisdictionConfiguration('diet', 'xx'))
             .rejects
             .toThrow('Jurisdiction configuration not found for xx');
     });
@@ -274,15 +274,15 @@ describe('JurisdictionClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        await jurisdictionClient.getJurisdictionConfiguration('aslp', 'OH');
+        await jurisdictionClient.getJurisdictionConfiguration('diet', 'OH');
 
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(
             GetItemCommand,
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                    'pk': { S: 'diet#CONFIGURATION' },
+                    'sk': { S: 'diet#JURISDICTION#oh' }
                 }
             }
         );

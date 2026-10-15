@@ -13,8 +13,8 @@ class TestCollectChanges(TstLambdas):
         from cc_common.utils import collect_and_authorize_changes
 
         resp = collect_and_authorize_changes(
-            path_compact='aslp',
-            scopes={'openid', 'email', 'aslp/admin'},
+            path_compact='diet',
+            scopes={'openid', 'email', 'diet/admin'},
             compact_changes={'actions': {'admin': True, 'readPrivate': False}, 'jurisdictions': {}},
         )
         self.assertEqual(
@@ -34,8 +34,8 @@ class TestCollectChanges(TstLambdas):
         self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
-            path_compact='aslp',
-            scopes={'openid', 'email', 'oh/aslp.admin'},
+            path_compact='diet',
+            scopes={'openid', 'email', 'oh/diet.admin'},
             compact_changes={'jurisdictions': {'oh': {'actions': {'admin': True, 'write': False}}}},
         )
         self.assertEqual(
@@ -54,8 +54,8 @@ class TestCollectChanges(TstLambdas):
 
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
-                path_compact='aslp',
-                scopes={'openid', 'email', 'oh/aslp.admin'},
+                path_compact='diet',
+                scopes={'openid', 'email', 'oh/diet.admin'},
                 compact_changes={'jurisdictions': {'ne': {'actions': {'admin': True, 'write': False}}}},
             )
 
@@ -65,8 +65,8 @@ class TestCollectChanges(TstLambdas):
 
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
-                path_compact='aslp',
-                scopes={'openid', 'email', 'oh/aslp.admin'},
+                path_compact='diet',
+                scopes={'openid', 'email', 'oh/diet.admin'},
                 compact_changes={'actions': {'admin': True}, 'jurisdictions': {}},
             )
 
@@ -76,8 +76,8 @@ class TestCollectChanges(TstLambdas):
 
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
-                path_compact='aslp',
-                scopes={'openid', 'email', 'oh/aslp.admin'},
+                path_compact='diet',
+                scopes={'openid', 'email', 'oh/diet.admin'},
                 compact_changes={'actions': {'readSSN': True}, 'jurisdictions': {}},
             )
 
@@ -88,8 +88,8 @@ class TestCollectChanges(TstLambdas):
         self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
-            path_compact='aslp',
-            scopes={'openid', 'email', 'aslp/admin'},
+            path_compact='diet',
+            scopes={'openid', 'email', 'diet/admin'},
             compact_changes={
                 'actions': {'admin': True, 'readPrivate': False},
                 'jurisdictions': {'oh': {'actions': {'admin': True, 'write': False}}},
@@ -112,8 +112,8 @@ class TestCollectChanges(TstLambdas):
         self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
-            path_compact='aslp',
-            scopes={'openid', 'email', 'oh/aslp.admin'},
+            path_compact='diet',
+            scopes={'openid', 'email', 'oh/diet.admin'},
             compact_changes={'jurisdictions': {'oh': {'actions': {'admin': True}}}},
         )
         self.assertEqual(

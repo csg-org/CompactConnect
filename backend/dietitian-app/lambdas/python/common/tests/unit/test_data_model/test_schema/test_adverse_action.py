@@ -58,7 +58,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
 
         # setting to an invalid license type name, with a valid abbreviation
         adverse_action_data.licenseType = 'foobar'
-        adverse_action_data.license_abbreviation = 'slp'
+        adverse_action_data.license_abbreviation = 'diet'
 
         with self.assertRaises(ValidationError):
             AdverseActionData.from_database_record(adverse_action_data.serialize_to_database_record())
@@ -69,7 +69,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
         # setting to a valid license type name, and an invalid abbreviation
-        adverse_action_data.licenseType = 'speech-language pathologist'
+        adverse_action_data.licenseType = 'dietitian'
         adverse_action_data.licenseTypeAbbreviation = 'foo'
 
         with self.assertRaises(ValidationError):
@@ -112,15 +112,15 @@ class TestAdverseActionDataClass(TstLambdas):
                 'adverseActionId': '98765432-9876-9876-9876-987654321098',
                 'encumbranceType': 'suspension',
                 'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
-                'compact': 'aslp',
+                'compact': 'diet',
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'effectiveStartDate': '2024-02-15',
                 'jurisdiction': 'ne',
-                'licenseType': 'speech-language pathologist',
-                'licenseTypeAbbreviation': 'slp',
-                'pk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'licenseType': 'dietitian',
+                'licenseTypeAbbreviation': 'diet',
+                'pk': 'diet#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                'sk': 'aslp#PROVIDER#privilege/ne/slp#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
+                'sk': 'diet#PROVIDER#privilege/ne/diet#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
                 'submittingUser': '12a6377e-c3a5-40e5-bca5-317ec854c556',
                 'type': 'adverseAction',
             },

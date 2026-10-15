@@ -89,7 +89,7 @@ def process_expiration_reminders(event: dict, context: LambdaContext):
     Event format:
         {
             "daysBefore": 30,                # Days before expiration (30, 7, or 0) - required
-            "compact": "aslp",               # Compact to process - required
+            "compact": "diet",               # Compact to process - required
             "targetDate": "2026-02-16",      # Optional: Expiration date to process
                                             # (if not provided, calculated as today + daysBefore)
             "scheduledTime": "2026-01-17..." # Optional: When rule triggered (for logging, defaults to current time)

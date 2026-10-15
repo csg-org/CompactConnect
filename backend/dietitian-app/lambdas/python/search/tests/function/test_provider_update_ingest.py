@@ -13,16 +13,14 @@ from moto import mock_aws
 
 from . import TstFunction
 
-MOCK_ASLP_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
-MOCK_OCTP_PROVIDER_ID = '00000000-0000-0000-0000-000000000002'
+MOCK_DIET_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
+SECOND_DIET_PROVIDER_ID = '00000000-0000-0000-0000-000000000002'
 
 TEST_LICENSE_TYPE_MAPPING = {
-    'aslp': 'audiologist',
-    'octp': 'occupational therapist',
+    'diet': 'dietitian',
 }
 TEST_PROVIDER_ID_MAPPING = {
-    'aslp': MOCK_ASLP_PROVIDER_ID,
-    'octp': MOCK_OCTP_PROVIDER_ID,
+    'diet': MOCK_DIET_PROVIDER_ID,
 }
 
 
@@ -193,7 +191,7 @@ class TestProviderUpdateIngest(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records in DynamoDB
-        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet')
 
         # Create an SQS event with DynamoDB stream record in the body
         event = {
@@ -202,8 +200,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
                     ),
@@ -220,8 +218,8 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify the call arguments
         call_args = mock_opensearch_client.bulk_index.call_args
-        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
-        self.assertEqual([self._generate_expected_document('aslp')], call_args.kwargs['documents'])
+        self.assertEqual('compact_diet_providers', call_args.kwargs['index_name'])
+        self.assertEqual([self._generate_expected_document('diet')], call_args.kwargs['documents'])
 
         # Verify no batch item failures
         self.assertEqual({'batchItemFailures': []}, result)
@@ -235,7 +233,7 @@ class TestProviderUpdateIngest(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records in DynamoDB
-        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet')
 
         # Create multiple SQS records for the SAME provider (simulating multiple updates)
         event = {
@@ -244,8 +242,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-1',
                             event_name='INSERT',
                         )
@@ -255,8 +253,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12346',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-2',
                             event_name='MODIFY',
                         )
@@ -266,8 +264,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12347',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-3',
                             event_name='MODIFY',
                         )
@@ -286,7 +284,7 @@ class TestProviderUpdateIngest(TstFunction):
         # Verify only ONE document was indexed (deduplication worked)
         call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual(1, len(call_args.kwargs['documents']))
-        self.assertEqual(MOCK_ASLP_PROVIDER_ID, call_args.kwargs['documents'][0]['providerId'])
+        self.assertEqual(MOCK_DIET_PROVIDER_ID, call_args.kwargs['documents'][0]['providerId'])
 
         # Verify no batch item failures
         self.assertEqual({'batchItemFailures': []}, result)
@@ -301,8 +299,8 @@ class TestProviderUpdateIngest(TstFunction):
 
         provider = self.test_data_generator.generate_default_provider(
             value_overrides={
-                'compact': 'aslp',
-                'providerId': MOCK_ASLP_PROVIDER_ID,
+                'compact': 'diet',
+                'providerId': MOCK_DIET_PROVIDER_ID,
                 'givenName': 'testGivenName',
                 'familyName': 'testFamilyName',
             }
@@ -319,8 +317,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
                     ),
@@ -347,16 +345,16 @@ class TestProviderUpdateIngest(TstFunction):
             'items': [
                 {
                     'index': {
-                        '_id': MOCK_ASLP_PROVIDER_ID,
-                        '_index': 'compact_aslp_providers',
+                        '_id': MOCK_DIET_PROVIDER_ID,
+                        '_index': 'compact_diet_providers',
                         'status': 201,
                         'result': 'created',
                     }
                 },
                 {
                     'index': {
-                        '_id': MOCK_OCTP_PROVIDER_ID,
-                        '_index': 'compact_octp_providers',
+                        '_id': SECOND_DIET_PROVIDER_ID,
+                        '_index': 'compact_diet_providers',
                         'status': 400,
                         'error': {
                             'type': 'mapper_parsing_exception',
@@ -367,9 +365,9 @@ class TestProviderUpdateIngest(TstFunction):
             ],
         }
 
-        # Create provider and license records in DynamoDB for both compacts
-        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
-        self._put_test_provider_and_license_record_in_dynamodb_table('octp')
+        # Create provider and license records in DynamoDB for both diet providers
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet', provider_id=MOCK_DIET_PROVIDER_ID)
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet', provider_id=SECOND_DIET_PROVIDER_ID)
 
         # Create SQS events with DynamoDB stream records in the body for both providers
         event = {
@@ -378,8 +376,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-1',
                         )
                     ),
@@ -388,8 +386,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12346',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='octp',
-                            provider_id=MOCK_OCTP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=SECOND_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-2',
                         )
                     ),
@@ -414,9 +412,9 @@ class TestProviderUpdateIngest(TstFunction):
         # Set up mock OpenSearch client to raise an exception
         mock_opensearch_client.bulk_index.side_effect = CCInternalException('Connection timeout after 5 retries')
 
-        # Create provider and license records in DynamoDB for both compacts
-        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
-        self._put_test_provider_and_license_record_in_dynamodb_table('octp')
+        # Create provider and license records in DynamoDB for both diet providers
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet', provider_id=MOCK_DIET_PROVIDER_ID)
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet', provider_id=SECOND_DIET_PROVIDER_ID)
 
         # Create SQS events with DynamoDB stream records in the body for both providers
         event = {
@@ -425,8 +423,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-1',
                         )
                     ),
@@ -435,8 +433,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12346',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='octp',
-                            provider_id=MOCK_OCTP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=SECOND_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-2',
                         )
                     ),
@@ -454,26 +452,23 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual('12346', result['batchItemFailures'][1]['itemIdentifier'])
 
     @patch('handlers.provider_update_ingest.opensearch_client')
-    def test_multiple_compacts_indexed_separately(self, mock_opensearch_client):
-        """Test that providers from different compacts are indexed in their respective indices."""
+    def test_two_diet_providers_are_indexed_together(self, mock_opensearch_client):
+        """Two diet providers in one batch are indexed together in the diet index."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
-        # Create provider and license records for two different compacts
-        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
-        self._put_test_provider_and_license_record_in_dynamodb_table('octp')
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet', provider_id=MOCK_DIET_PROVIDER_ID)
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet', provider_id=SECOND_DIET_PROVIDER_ID)
 
-        # Create SQS events with DynamoDB stream records in the body for both compacts
         event = {
             'Records': [
                 {
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-1',
                         )
                     ),
@@ -482,8 +477,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12346',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='octp',
-                            provider_id=MOCK_OCTP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=SECOND_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number-2',
                         )
                     ),
@@ -491,26 +486,13 @@ class TestProviderUpdateIngest(TstFunction):
             ]
         }
 
-        # Run the handler
-        mock_context = MagicMock()
-        result = provider_update_ingest_handler(event, mock_context)
+        result = provider_update_ingest_handler(event, MagicMock())
 
-        # Assert that bulk_index was called for each compact that had providers
-        # Note: The handler iterates over all compacts, but only calls bulk_index if there are documents
         call_args_list = mock_opensearch_client.bulk_index.call_args_list
-
-        # Find the calls for aslp and octp
-        aslp_calls = [c for c in call_args_list if c.kwargs['index_name'] == 'compact_aslp_providers']
-        octp_calls = [c for c in call_args_list if c.kwargs['index_name'] == 'compact_octp_providers']
-
-        self.assertEqual(1, len(aslp_calls))
-        self.assertEqual(1, len(octp_calls))
-
-        # Verify each call has the correct document
-        self.assertEqual([self._generate_expected_document('aslp')], aslp_calls[0].kwargs['documents'])
-        self.assertEqual([self._generate_expected_document('octp')], octp_calls[0].kwargs['documents'])
-
-        # Verify no batch item failures
+        self.assertEqual(1, len(call_args_list))
+        self.assertEqual('compact_diet_providers', call_args_list[0].kwargs['index_name'])
+        indexed_ids = {document['providerId'] for document in call_args_list[0].kwargs['documents']}
+        self.assertEqual({MOCK_DIET_PROVIDER_ID, SECOND_DIET_PROVIDER_ID}, indexed_ids)
         self.assertEqual({'batchItemFailures': []}, result)
 
     @patch('handlers.provider_update_ingest.opensearch_client')
@@ -543,7 +525,7 @@ class TestProviderUpdateIngest(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records in DynamoDB
-        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet')
 
         # Create an SQS event with DynamoDB stream record in the body for INSERT (no OldImage)
         event = {
@@ -552,8 +534,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                             event_name='INSERT',
                             include_old_image=False,  # INSERT events don't have OldImage
@@ -572,8 +554,8 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify the call arguments
         call_args = mock_opensearch_client.bulk_index.call_args
-        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
-        self.assertEqual([self._generate_expected_document('aslp')], call_args.kwargs['documents'])
+        self.assertEqual('compact_diet_providers', call_args.kwargs['index_name'])
+        self.assertEqual([self._generate_expected_document('diet')], call_args.kwargs['documents'])
 
         # Verify no batch item failures for INSERT event
         self.assertEqual({'batchItemFailures': []}, result)
@@ -626,7 +608,7 @@ class TestProviderUpdateIngest(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records in DynamoDB
-        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
+        self._put_test_provider_and_license_record_in_dynamodb_table('diet')
 
         # Create an SQS event with DynamoDB stream record in the body for REMOVE (only OldImage, no NewImage)
         event = {
@@ -635,8 +617,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record_with_old_image_only(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
                     ),
@@ -653,8 +635,8 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify the call arguments
         call_args = mock_opensearch_client.bulk_index.call_args
-        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
-        self.assertEqual([self._generate_expected_document('aslp')], call_args.kwargs['documents'])
+        self.assertEqual('compact_diet_providers', call_args.kwargs['index_name'])
+        self.assertEqual([self._generate_expected_document('diet')], call_args.kwargs['documents'])
 
         # Verify no batch item failures for REMOVE event
         self.assertEqual({'batchItemFailures': []}, result)
@@ -682,8 +664,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                             event_name='REMOVE',
                             include_old_image=False,
@@ -703,8 +685,8 @@ class TestProviderUpdateIngest(TstFunction):
         # Assert that bulk_delete WAS called with the correct parameters
         self.assertEqual(1, mock_opensearch_client.bulk_delete.call_count)
         call_args = mock_opensearch_client.bulk_delete.call_args
-        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
-        self.assertEqual([MOCK_ASLP_PROVIDER_ID], call_args.kwargs['document_ids'])
+        self.assertEqual('compact_diet_providers', call_args.kwargs['index_name'])
+        self.assertEqual([MOCK_DIET_PROVIDER_ID], call_args.kwargs['document_ids'])
 
         # Verify no batch item failures (deletion is expected behavior, not a failure)
         self.assertEqual({'batchItemFailures': []}, result)
@@ -727,8 +709,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                             event_name='REMOVE',
                             include_old_image=False,
@@ -770,8 +752,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='aslp',
-                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            compact='diet',
+                            provider_id=MOCK_DIET_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                             event_name='REMOVE',
                             include_old_image=False,
@@ -802,16 +784,16 @@ class TestProviderUpdateIngest(TstFunction):
             'awsRegion': 'us-east-1',
             'dynamodb': {
                 'ApproximateCreationDateTime': 1767934990,
-                'Keys': {'sk': {'S': 'coun#PRIVILEGE_COUNT'}, 'pk': {'S': 'coun#PRIVILEGE_COUNT'}},
+                'Keys': {'sk': {'S': 'diet#PRIVILEGE_COUNT'}, 'pk': {'S': 'diet#PRIVILEGE_COUNT'}},
                 'NewImage': {
                     'privilegeCount': {'N': '322'},
-                    'sk': {'S': 'coun#PRIVILEGE_COUNT'},
-                    'pk': {'S': 'coun#PRIVILEGE_COUNT'},
+                    'sk': {'S': 'diet#PRIVILEGE_COUNT'},
+                    'pk': {'S': 'diet#PRIVILEGE_COUNT'},
                 },
                 'OldImage': {
                     'privilegeCount': {'N': '321'},
-                    'sk': {'S': 'coun#PRIVILEGE_COUNT'},
-                    'pk': {'S': 'coun#PRIVILEGE_COUNT'},
+                    'sk': {'S': 'diet#PRIVILEGE_COUNT'},
+                    'pk': {'S': 'diet#PRIVILEGE_COUNT'},
                 },
                 'SequenceNumber': '1275112700001832307719225248',
                 'SizeBytes': 166,

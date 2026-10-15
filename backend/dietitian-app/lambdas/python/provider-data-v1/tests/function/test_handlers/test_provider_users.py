@@ -13,7 +13,7 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'diet'
 MOCK_SSN = '123-12-1234'
 MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
 

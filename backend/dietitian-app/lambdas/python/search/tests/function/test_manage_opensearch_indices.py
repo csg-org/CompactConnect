@@ -91,31 +91,22 @@ class TestOpenSearchIndexManager(TstFunction):
         mock_opensearch_client.assert_called_once()
 
         # Assert that alias_exists was called for each compact
-        expected_alias_exists_calls = [
-            call('compact_aslp_providers'),
-            call('compact_octp_providers'),
-            call('compact_coun_providers'),
-        ]
+        expected_alias_exists_calls = [call('compact_diet_providers')]
         mock_client_instance.alias_exists.assert_has_calls(expected_alias_exists_calls, any_order=False)
-        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
+        self.assertEqual(1, mock_client_instance.alias_exists.call_count)
 
-        # Assert that create_index was called for each compact with versioned names
-        self.assertEqual(3, mock_client_instance.create_index.call_count)
+        # Assert that create_index was called for the diet compact with a versioned name
+        self.assertEqual(1, mock_client_instance.create_index.call_count)
 
         # Verify the versioned index names in create_index calls
         create_index_calls = mock_client_instance.create_index.call_args_list
         index_names_created = [call_args[0][0] for call_args in create_index_calls]
-        self.assertEqual(
-            ['compact_aslp_providers_v1', 'compact_octp_providers_v1', 'compact_coun_providers_v1'],
-            index_names_created,
-        )
+        self.assertEqual(['compact_diet_providers_v1'], index_names_created)
 
-        # Assert that create_alias was called for each compact
-        self.assertEqual(3, mock_client_instance.create_alias.call_count)
+        # Assert that create_alias was called for the diet compact
+        self.assertEqual(1, mock_client_instance.create_alias.call_count)
         expected_alias_calls = [
-            call('compact_aslp_providers_v1', 'compact_aslp_providers'),
-            call('compact_octp_providers_v1', 'compact_octp_providers'),
-            call('compact_coun_providers_v1', 'compact_coun_providers'),
+            call('compact_diet_providers_v1', 'compact_diet_providers'),
         ]
         mock_client_instance.create_alias.assert_has_calls(expected_alias_calls, any_order=False)
 
@@ -361,8 +352,8 @@ class TestOpenSearchIndexManager(TstFunction):
         # Assert that the OpenSearchClient was instantiated
         mock_opensearch_client.assert_called_once()
 
-        # Assert that alias_exists was called for each compact
-        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
+        # Assert that alias_exists was called for the diet compact
+        self.assertEqual(1, mock_client_instance.alias_exists.call_count)
 
         # Assert that index_exists was NOT called since aliases already exist
         mock_client_instance.index_exists.assert_not_called()
@@ -374,50 +365,6 @@ class TestOpenSearchIndexManager(TstFunction):
         mock_client_instance.create_alias.assert_not_called()
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
-    def test_on_create_only_creates_missing_indices_and_aliases(self, mock_opensearch_client):
-        """Test that on_create only creates indices and aliases that don't exist."""
-        from handlers.manage_opensearch_indices import on_event
-
-        # Set up the mock opensearch client - only aslp alias exists
-        mock_client_instance = self._when_testing_mock_opensearch_client(
-            mock_opensearch_client,
-            alias_exists_return_value={
-                'compact_aslp_providers': True,
-                'compact_octp_providers': False,
-                'compact_coun_providers': False,
-            },
-            index_exists_return_value=False,
-        )
-
-        # Create the event for a 'Create' request
-        event = self._create_event('Create')
-
-        # Call the handler
-        on_event(event, self.mock_context)
-
-        # Assert that alias_exists was called for each compact
-        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
-
-        # Assert that index_exists was called only for missing aliases (octp and coun)
-        self.assertEqual(2, mock_client_instance.index_exists.call_count)
-
-        # Assert that create_index was called only for missing indices (octp and coun)
-        self.assertEqual(2, mock_client_instance.create_index.call_count)
-
-        # Verify the correct versioned indices were created
-        create_index_calls = mock_client_instance.create_index.call_args_list
-        index_names_created = [call_args[0][0] for call_args in create_index_calls]
-        self.assertEqual(['compact_octp_providers_v1', 'compact_coun_providers_v1'], index_names_created)
-
-        # Assert that create_alias was called only for missing aliases (octp and coun)
-        self.assertEqual(2, mock_client_instance.create_alias.call_count)
-        expected_alias_calls = [
-            call('compact_octp_providers_v1', 'compact_octp_providers'),
-            call('compact_coun_providers_v1', 'compact_coun_providers'),
-        ]
-        mock_client_instance.create_alias.assert_has_calls(expected_alias_calls, any_order=False)
-
-    @patch('handlers.manage_opensearch_indices.OpenSearchClient')
     def test_on_create_creates_alias_only_when_index_exists_but_alias_does_not(self, mock_opensearch_client):
         """Test that on_create creates only the alias when the index exists but the alias doesn't."""
         from handlers.manage_opensearch_indices import on_event
@@ -427,9 +374,7 @@ class TestOpenSearchIndexManager(TstFunction):
             mock_opensearch_client,
             alias_exists_return_value=False,
             index_exists_return_value={
-                'compact_aslp_providers_v1': True,
-                'compact_octp_providers_v1': True,
-                'compact_coun_providers_v1': True,
+                'compact_diet_providers_v1': True,
             },
         )
 
@@ -439,21 +384,15 @@ class TestOpenSearchIndexManager(TstFunction):
         # Call the handler
         on_event(event, self.mock_context)
 
-        # Assert that alias_exists was called for each compact
-        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
-
-        # Assert that index_exists was called for each compact
-        self.assertEqual(3, mock_client_instance.index_exists.call_count)
+        self.assertEqual(1, mock_client_instance.alias_exists.call_count)
+        self.assertEqual(1, mock_client_instance.index_exists.call_count)
 
         # Assert that create_index was NOT called since indices already exist
         mock_client_instance.create_index.assert_not_called()
 
-        # Assert that create_alias was called for each compact (to create the missing aliases)
-        self.assertEqual(3, mock_client_instance.create_alias.call_count)
+        self.assertEqual(1, mock_client_instance.create_alias.call_count)
         expected_alias_calls = [
-            call('compact_aslp_providers_v1', 'compact_aslp_providers'),
-            call('compact_octp_providers_v1', 'compact_octp_providers'),
-            call('compact_coun_providers_v1', 'compact_coun_providers'),
+            call('compact_diet_providers_v1', 'compact_diet_providers'),
         ]
         mock_client_instance.create_alias.assert_has_calls(expected_alias_calls, any_order=False)
 
@@ -514,16 +453,8 @@ class TestOpenSearchIndexManager(TstFunction):
         # Set up the mock opensearch client - all aliases exist, current replicas is 0
         mock_client_instance = self._configure_mock_for_update(
             mock_opensearch_client,
-            alias_exists_return_value={
-                'compact_aslp_providers': True,
-                'compact_octp_providers': True,
-                'compact_coun_providers': True,
-            },
-            current_replicas={
-                'compact_aslp_providers': 0,
-                'compact_octp_providers': 0,
-                'compact_coun_providers': 0,
-            },
+            alias_exists_return_value={'compact_diet_providers': True},
+            current_replicas={'compact_diet_providers': 0},
         )
 
         # Create the event for an 'Update' request with new replica count
@@ -535,21 +466,14 @@ class TestOpenSearchIndexManager(TstFunction):
         # Assert that the OpenSearchClient was instantiated
         mock_opensearch_client.assert_called_once()
 
-        # Assert that alias_exists was called for each compact
-        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
-
-        # Assert that get_index_settings was called for each compact
-        self.assertEqual(3, mock_client_instance.get_index_settings.call_count)
-
-        # Assert that update_index_settings was called for each compact
-        self.assertEqual(3, mock_client_instance.update_index_settings.call_count)
+        self.assertEqual(1, mock_client_instance.alias_exists.call_count)
+        self.assertEqual(1, mock_client_instance.get_index_settings.call_count)
+        self.assertEqual(1, mock_client_instance.update_index_settings.call_count)
 
         # Verify the correct settings were passed
         expected_settings = {'index': {'number_of_replicas': 1}}
         expected_calls = [
-            call('compact_aslp_providers', expected_settings),
-            call('compact_octp_providers', expected_settings),
-            call('compact_coun_providers', expected_settings),
+            call('compact_diet_providers', expected_settings),
         ]
         mock_client_instance.update_index_settings.assert_has_calls(expected_calls, any_order=False)
 
@@ -561,16 +485,8 @@ class TestOpenSearchIndexManager(TstFunction):
         # Set up the mock opensearch client - all aliases exist, current replicas is already 1
         mock_client_instance = self._configure_mock_for_update(
             mock_opensearch_client,
-            alias_exists_return_value={
-                'compact_aslp_providers': True,
-                'compact_octp_providers': True,
-                'compact_coun_providers': True,
-            },
-            current_replicas={
-                'compact_aslp_providers': 1,
-                'compact_octp_providers': 1,
-                'compact_coun_providers': 1,
-            },
+            alias_exists_return_value={'compact_diet_providers': True},
+            current_replicas={'compact_diet_providers': 1},
         )
 
         # Create the event for an 'Update' request with same replica count
@@ -583,93 +499,29 @@ class TestOpenSearchIndexManager(TstFunction):
         mock_opensearch_client.assert_called_once()
 
         # Assert that alias_exists was called for each compact
-        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
-
-        # Assert that get_index_settings was called for each compact
-        self.assertEqual(3, mock_client_instance.get_index_settings.call_count)
+        self.assertEqual(1, mock_client_instance.alias_exists.call_count)
+        self.assertEqual(1, mock_client_instance.get_index_settings.call_count)
 
         # Assert that update_index_settings was NOT called since replicas are already correct
         mock_client_instance.update_index_settings.assert_not_called()
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
     def test_on_update_skips_missing_aliases(self, mock_opensearch_client):
-        """Test that on_update skips aliases that don't exist."""
+        """An update does nothing when the diet index alias is not present."""
         from handlers.manage_opensearch_indices import on_event
 
-        # Set up the mock opensearch client - only aslp alias exists
         mock_client_instance = self._configure_mock_for_update(
             mock_opensearch_client,
-            alias_exists_return_value={
-                'compact_aslp_providers': True,
-                'compact_octp_providers': False,
-                'compact_coun_providers': False,
-            },
-            current_replicas={
-                'compact_aslp_providers': 0,
-                'compact_octp_providers': 0,
-                'compact_coun_providers': 0,
-            },
+            alias_exists_return_value={'compact_diet_providers': False},
+            current_replicas={'compact_diet_providers': 0},
         )
 
-        # Create the event for an 'Update' request
         event = self._create_event('Update', {'numberOfReplicas': 1})
-
-        # Call the handler
         on_event(event, self.mock_context)
 
-        # Assert that alias_exists was called for each compact
-        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
-
-        # Assert that get_index_settings was called only for existing alias
-        self.assertEqual(1, mock_client_instance.get_index_settings.call_count)
-        mock_client_instance.get_index_settings.assert_called_with('compact_aslp_providers')
-
-        # Assert that update_index_settings was called only for existing alias
-        self.assertEqual(1, mock_client_instance.update_index_settings.call_count)
-        mock_client_instance.update_index_settings.assert_called_with(
-            'compact_aslp_providers',
-            {'index': {'number_of_replicas': 1}},
-        )
-
-    @patch('handlers.manage_opensearch_indices.OpenSearchClient')
-    def test_on_update_only_updates_indices_needing_change(self, mock_opensearch_client):
-        """Test that on_update only updates indices where replica count differs."""
-        from handlers.manage_opensearch_indices import on_event
-
-        # Set up the mock opensearch client - different replica counts per index
-        mock_client_instance = self._configure_mock_for_update(
-            mock_opensearch_client,
-            alias_exists_return_value={
-                'compact_aslp_providers': True,
-                'compact_octp_providers': True,
-                'compact_coun_providers': True,
-            },
-            current_replicas={
-                'compact_aslp_providers': 0,  # Needs update
-                'compact_octp_providers': 1,  # Already correct
-                'compact_coun_providers': 0,  # Needs update
-            },
-        )
-
-        # Create the event for an 'Update' request
-        event = self._create_event('Update', {'numberOfReplicas': 1})
-
-        # Call the handler
-        on_event(event, self.mock_context)
-
-        # Assert that get_index_settings was called for each compact
-        self.assertEqual(3, mock_client_instance.get_index_settings.call_count)
-
-        # Assert that update_index_settings was called only for indices needing update
-        self.assertEqual(2, mock_client_instance.update_index_settings.call_count)
-
-        # Verify the correct aliases were updated
-        expected_settings = {'index': {'number_of_replicas': 1}}
-        expected_calls = [
-            call('compact_aslp_providers', expected_settings),
-            call('compact_coun_providers', expected_settings),
-        ]
-        mock_client_instance.update_index_settings.assert_has_calls(expected_calls, any_order=False)
+        self.assertEqual(1, mock_client_instance.alias_exists.call_count)
+        mock_client_instance.get_index_settings.assert_not_called()
+        mock_client_instance.update_index_settings.assert_not_called()
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
     def test_on_delete_is_noop(self, mock_opensearch_client):

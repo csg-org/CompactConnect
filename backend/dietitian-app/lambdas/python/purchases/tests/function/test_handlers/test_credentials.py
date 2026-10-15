@@ -6,7 +6,7 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'diet'
 # this value is defined in the provider.json file
 TEST_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
@@ -31,7 +31,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is a compact admin with admin scoped permissions
-            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/admin'
             event['body'] = _generate_test_request_body()
 
         return event
@@ -41,7 +41,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is an admin with jurisdiction scoped permissions
-            event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/diet.admin'
             event['body'] = _generate_test_request_body()
 
         return event

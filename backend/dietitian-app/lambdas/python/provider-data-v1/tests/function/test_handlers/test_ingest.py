@@ -62,9 +62,9 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
+        event['pathParameters'] = {'compact': 'diet', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = (
-            'openid email stuff aslp/readGeneral aslp/readPrivate'
+            'openid email stuff diet/readGeneral diet/readPrivate'
         )
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
@@ -283,11 +283,11 @@ class TestIngest(TstFunction):
                     'DetailType': 'license.deactivation',
                     'Detail': json.dumps(
                         {
-                            'compact': 'aslp',
+                            'compact': 'diet',
                             'jurisdiction': 'oh',
                             'eventTime': '2024-11-08T23:59:59+00:00',
                             'providerId': provider_id,
-                            'licenseType': 'speech-language pathologist',
+                            'licenseType': 'dietitian',
                         }
                     ),
                     'EventBusName': 'license-data-events',
@@ -535,7 +535,7 @@ class TestIngest(TstFunction):
         from boto3.dynamodb.conditions import Key
 
         return self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}'), ConsistentRead=True
+            KeyConditionExpression=Key('pk').eq(f'diet#PROVIDER#{provider_id}'), ConsistentRead=True
         )['Items']
 
     def _get_license_record(self, provider_id: str) -> dict:
@@ -613,7 +613,7 @@ class TestIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
 
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='diet', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         self.assertEqual(1, len(provider_user_records._license_update_records))  # noqa: SLF001
         update_record = provider_user_records._license_update_records[0]  # noqa: SLF001
@@ -636,7 +636,7 @@ class TestIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, ingest_license_message(event, self.mock_context))
 
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='diet', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         self.assertEqual([], provider_user_records._license_update_records)  # noqa: SLF001
 
@@ -703,7 +703,7 @@ class TestIngest(TstFunction):
         test_ssn = '123-12-1234'
 
         # Before running method under test, ensure the provider ssn record does not exist
-        provider = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{test_ssn}', 'sk': f'aslp#SSN#{test_ssn}'})
+        provider = self._ssn_table.get_item(Key={'pk': f'diet#SSN#{test_ssn}', 'sk': f'diet#SSN#{test_ssn}'})
         self.assertNotIn('Item', provider)
 
         with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
@@ -717,7 +717,7 @@ class TestIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, resp)
 
         # Find the provider's id from their ssn
-        provider = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{test_ssn}', 'sk': f'aslp#SSN#{test_ssn}'})['Item']
+        provider = self._ssn_table.get_item(Key={'pk': f'diet#SSN#{test_ssn}', 'sk': f'diet#SSN#{test_ssn}'})['Item']
         provider_id = provider['providerId']
         # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
         self.assertIsNotNone(provider_id)
@@ -752,20 +752,20 @@ class TestIngest(TstFunction):
 
         # Add an inactive privilege record for this provider in a different jurisdiction (ky)
         inactive_privilege = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ky#',
+            'pk': f'diet#PROVIDER#{provider_id}',
+            'sk': 'diet#PROVIDER#privilege/ky#',
             'type': 'privilege',
             'providerId': provider_id,
-            'compact': 'aslp',
+            'compact': 'diet',
             'jurisdiction': 'ky',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'dietitian',
             'licenseJurisdiction': 'oh',
             'dateOfIssuance': '2023-01-01',
             'dateOfRenewal': '2023-01-01',
             'dateOfExpiration': '2025-01-01',
             'dateOfUpdate': '2025-01-01T12:59:59+00:00',
             'compactTransactionId': '1234567890',
-            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'compactTransactionIdGSIPK': 'COMPACT#diet#TX#1234567890#',
             'privilegeId': 'test-privilege-id',
             'administratorSetStatus': 'inactive',  # This privilege is inactive
             'attestations': [],
@@ -790,99 +790,21 @@ class TestIngest(TstFunction):
         # and the inactive privilege we just added
         self.assertEqual({'ky', 'ne'}, set(provider_data['privilegeJurisdictions']))
 
-    def test_multiple_license_types_same_jurisdiction(self):
-        """
-        Test that multiple license types in the same jurisdiction are handled correctly.
-
-        This test:
-        1. Ingests a first active license with licenseType: speech-language pathologist
-        2. For the same provider, ingests a second active license with licenseType: audiologist and a newer
-           dateOfIssuance
-        3. Verifies that both licenses are present and that the provider data was copied from the audiologist license
-        """
-        from handlers.ingest import ingest_license_message
-
-        # First, ingest a speech-language pathologist license
-        provider_id = self._with_ingested_license()
-
-        # Get the provider data after the first license ingest
-        provider_data_after_first_license = self._get_provider_via_api(provider_id)
-
-        # Verify the first license was ingested correctly
-        self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('speech-language pathologist', provider_data_after_first_license['licenses'][0]['licenseType'])
-        self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
-        self.assertEqual('Björk', provider_data_after_first_license['givenName'])
-
-        # Now ingest a second license for the same provider but with a different license type
-        # and a newer issuance date
-        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
-            message = json.load(f)
-
-        # Update the message to be for an audiologist license with a newer issuance date
-        # and a different givenName to track which license is used for provider data
-        message['detail'].update(
-            {
-                'licenseType': 'audiologist',
-                'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
-                'licenseNumber': 'B0608337260',  # Different license number
-                'givenName': 'Audrey',  # Different name to track which license is used
-            }
-        )
-
-        # Ingest the second license
-        event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
-        resp = ingest_license_message(event, self.mock_context)
-        self.assertEqual({'batchItemFailures': []}, resp)
-
-        # Get the updated provider data
-        provider_data = self._get_provider_via_api(provider_id)
-
-        # Verify that both licenses are present
-        self.assertEqual(2, len(provider_data['licenses']))
-
-        # Find each license by type
-        slp_license = next(
-            (lic for lic in provider_data['licenses'] if lic['licenseType'] == 'speech-language pathologist'), None
-        )
-        aud_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'audiologist'), None)
-
-        # Verify both licenses exist
-        self.assertIsNotNone(slp_license, 'Speech-language pathologist license not found')
-        self.assertIsNotNone(aud_license, 'Audiologist license not found')
-
-        # Verify license details
-        self.assertEqual('A0608337260', slp_license['licenseNumber'])
-        self.assertEqual('2010-06-06', slp_license['dateOfIssuance'])
-        self.assertEqual('oh', slp_license['jurisdiction'])
-        self.assertEqual('Björk', slp_license['givenName'])
-
-        self.assertEqual('B0608337260', aud_license['licenseNumber'])
-        self.assertEqual('2020-06-06', aud_license['dateOfIssuance'])
-        self.assertEqual('oh', aud_license['jurisdiction'])
-        self.assertEqual('Audrey', aud_license['givenName'])
-
-        # Verify that the provider data was copied from the audiologist license (newer issuance date)
-        # by checking the givenName
-        self.assertEqual('oh', provider_data['licenseJurisdiction'])
-        self.assertEqual('Audrey', provider_data['givenName'])
-        self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
-
     def test_multiple_license_types_with_home_jurisdiction(self):
         """
         Test that multiple license types with a home jurisdiction selection are handled correctly.
 
         This test:
-        1. Ingests a first active license with licenseType: speech-language pathologist in 'oh'
+        1. Ingests a first active license with licenseType: dietitian in 'oh'
         2. Sets a home jurisdiction selection for 'oh'
-        3. For the same provider, ingests a second active license with licenseType: audiologist in 'ky'
+        3. For the same provider, ingests a second active license with licenseType: dietitian in 'ky'
            with a newer dateOfIssuance
         4. Verifies that both licenses are present but the provider data still comes from the 'oh' license
            because of the home jurisdiction selection, even though the 'ky' license is newer
         """
         from handlers.ingest import ingest_license_message
 
-        # First, ingest a speech-language pathologist license in 'oh'
+        # First, ingest a dietitian license in 'oh'
         provider_id = self._with_ingested_license()
 
         # Get the provider data after the first license ingest
@@ -890,7 +812,7 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('speech-language pathologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('dietitian', provider_data_after_first_license['licenses'][0]['licenseType'])
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -904,11 +826,11 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Update the message to be for an audiologist license in 'ky' with a newer issuance date
+        # Update the message to be for an dietitian license in 'ky' with a newer issuance date
         # and a different givenName to track which license is used for provider data
         message['detail'].update(
             {
-                'licenseType': 'audiologist',
+                'licenseType': 'dietitian',
                 'jurisdiction': 'ky',  # Different jurisdiction from home selection (oh)
                 'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
                 'licenseNumber': 'B0608337260',  # Different license number
@@ -936,12 +858,12 @@ class TestIngest(TstFunction):
         self.assertIsNotNone(ky_license, 'Kentucky license not found')
 
         # Verify license details
-        self.assertEqual('speech-language pathologist', oh_license['licenseType'])
+        self.assertEqual('dietitian', oh_license['licenseType'])
         self.assertEqual('A0608337260', oh_license['licenseNumber'])
         self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
         self.assertEqual('Björk', oh_license['givenName'])
 
-        self.assertEqual('audiologist', ky_license['licenseType'])
+        self.assertEqual('dietitian', ky_license['licenseType'])
         self.assertEqual('B0608337260', ky_license['licenseNumber'])
         self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
         self.assertEqual('Audrey', ky_license['givenName'])
@@ -961,13 +883,13 @@ class TestIngest(TstFunction):
         Test that multiple license types in different jurisdictions are handled correctly.
 
         This test:
-        1. Ingests a first active license with licenseType: speech-language pathologist in 'oh'
-        2. For the same provider, ingests a second active license with licenseType: audiologist in 'ky'
+        1. Ingests a first active license with licenseType: dietitian in 'oh'
+        2. For the same provider, ingests a second active license with licenseType: dietitian in 'ky'
         3. Verifies that both licenses are present and the provider data is from the most recently issued license
         """
         from handlers.ingest import ingest_license_message
 
-        # First, ingest a speech-language pathologist license in 'oh'
+        # First, ingest a dietitian license in 'oh'
         provider_id = self._with_ingested_license()
 
         # Get the provider data after the first license ingest
@@ -975,7 +897,7 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('speech-language pathologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('dietitian', provider_data_after_first_license['licenses'][0]['licenseType'])
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -984,11 +906,11 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Update the message to be for an audiologist license in 'ky' with a newer issuance date
+        # Update the message to be for an dietitian license in 'ky' with a newer issuance date
         # and a different givenName to track which license is used for provider data
         message['detail'].update(
             {
-                'licenseType': 'audiologist',
+                'licenseType': 'dietitian',
                 'jurisdiction': 'ky',
                 'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
                 'licenseNumber': 'B0608337260',  # Different license number
@@ -1016,17 +938,17 @@ class TestIngest(TstFunction):
         self.assertIsNotNone(ky_license, 'Kentucky license not found')
 
         # Verify license details
-        self.assertEqual('speech-language pathologist', oh_license['licenseType'])
+        self.assertEqual('dietitian', oh_license['licenseType'])
         self.assertEqual('A0608337260', oh_license['licenseNumber'])
         self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
         self.assertEqual('Björk', oh_license['givenName'])
 
-        self.assertEqual('audiologist', ky_license['licenseType'])
+        self.assertEqual('dietitian', ky_license['licenseType'])
         self.assertEqual('B0608337260', ky_license['licenseNumber'])
         self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
         self.assertEqual('Audrey', ky_license['givenName'])
 
-        # Verify that the provider data was copied from the audiologist license in 'ky'
+        # Verify that the provider data was copied from the dietitian license in 'ky'
         # because it has a newer issuance date. We can verify this by checking the givenName.
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
@@ -1047,7 +969,7 @@ class TestIngestSsnCorrection(TstFunction):
     NEW_SSN_LAST_FOUR = '6789'
     OLD_REGISTERED_EMAIL = 'old-provider@example.com'
     # the license type on the corrected upload, from the event-bridge-message.json fixture
-    MIGRATED_LICENSE_TYPE = 'speech-language pathologist'
+    MIGRATED_LICENSE_TYPE = 'dietitian'
     # firstUploadDate tracks when a license was first uploaded; migration must carry it forward unchanged
     LICENSE_FIRST_UPLOAD_DATE = datetime.fromisoformat('2020-01-01T00:00:00+00:00')
 
@@ -1089,7 +1011,7 @@ class TestIngestSsnCorrection(TstFunction):
         ]
         if with_second_license:
             stored_records.append(
-                self.test_data_generator.put_default_license_record_in_provider_table({'licenseType': 'audiologist'})
+                self.test_data_generator.put_default_license_record_in_provider_table({'jurisdiction': 'ky'})
             )
         return stored_records
 
@@ -1130,7 +1052,7 @@ class TestIngestSsnCorrection(TstFunction):
     def _get_provider_records(self, provider_id: str) -> list[dict]:
         from boto3.dynamodb.conditions import Key
 
-        return self.config.provider_table.query(KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}'))[
+        return self.config.provider_table.query(KeyConditionExpression=Key('pk').eq(f'diet#PROVIDER#{provider_id}'))[
             'Items'
         ]
 
@@ -1141,7 +1063,7 @@ class TestIngestSsnCorrection(TstFunction):
         from cc_common.utils import ResponseEncoder
 
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='aslp',
+            compact='diet',
             provider_id=provider_id,
         )
         return json.loads(json.dumps(provider_user_records.generate_api_response_object(), cls=ResponseEncoder))
@@ -1245,7 +1167,7 @@ class TestIngestSsnCorrection(TstFunction):
         self.assertEqual({'batchItemFailures': []}, resp)
 
         self._mock_send_reregistration_email.assert_called_once_with(
-            compact='aslp',
+            compact='diet',
             provider_email=self.OLD_REGISTERED_EMAIL,
         )
 
@@ -1360,7 +1282,7 @@ class TestIngestSsnCorrection(TstFunction):
         self.assertEqual({'batchItemFailures': []}, resp)
 
         self._mock_send_reregistration_email.assert_called_once_with(
-            compact='aslp',
+            compact='diet',
             provider_email=self.OLD_REGISTERED_EMAIL,
         )
         # the migration itself still completed, despite the email failure
@@ -1398,9 +1320,9 @@ class TestIngestSsnCorrection(TstFunction):
         self.test_data_generator.put_default_license_record_in_provider_table()
 
         old_documents = {
-            f'compact/aslp/provider/{self.OLD_PROVIDER_ID}/document-type/military-affiliations'
+            f'compact/diet/provider/{self.OLD_PROVIDER_ID}/document-type/military-affiliations'
             f'/2024-07-08T23:59:59+00:00/1234#military-waiver.pdf': b'waiver-document-content',
-            f'compact/aslp/provider/{self.OLD_PROVIDER_ID}/document-type/military-affiliations'
+            f'compact/diet/provider/{self.OLD_PROVIDER_ID}/document-type/military-affiliations'
             f'/2024-08-08T23:59:59+00:00/5678#military-orders.pdf': b'orders-document-content',
         }
         for date_of_upload, (document_key, document_body) in zip(
@@ -1451,13 +1373,13 @@ class TestIngestSsnCorrection(TstFunction):
 
         # an object under the old provider's keyspace with no corresponding DynamoDB record referencing it
         # (e.g. a future/unsupported document type)
-        untracked_key = f'compact/aslp/provider/{self.OLD_PROVIDER_ID}/document-type/some-future-type/file.pdf'
+        untracked_key = f'compact/diet/provider/{self.OLD_PROVIDER_ID}/document-type/some-future-type/file.pdf'
         self._provider_user_bucket.put_object(Key=untracked_key, Body=b'untracked-document-content')
 
         resp = self._run_ingest_with_previous_provider_id()
         self.assertEqual({'batchItemFailures': []}, resp)
 
         # only the provider id segment of the keyspace changes; everything after it is preserved verbatim
-        new_key = f'compact/aslp/provider/{self.NEW_PROVIDER_ID}/document-type/some-future-type/file.pdf'
+        new_key = f'compact/diet/provider/{self.NEW_PROVIDER_ID}/document-type/some-future-type/file.pdf'
         self.assertIsNone(self._s3_object_body(untracked_key))
         self.assertEqual(b'untracked-document-content', self._s3_object_body(new_key))

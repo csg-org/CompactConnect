@@ -100,7 +100,7 @@ class TestIngest(TstLambdas):
         detail = self._run_preprocessor_with_previous_ssn(mock_config, ssn='123-12-1234', previous_ssn='123-12-1234')
 
         # only the current ssn should have been resolved; a matching previousSSN is a no-op
-        mock_config.data_client.get_or_create_provider_id.assert_called_once_with(compact='aslp', ssn='123-12-1234')
+        mock_config.data_client.get_or_create_provider_id.assert_called_once_with(compact='diet', ssn='123-12-1234')
         self.assertNotIn('previousProviderId', detail)
         self.assertNotIn('ssn', detail)
         self.assertNotIn('previousSSN', detail)

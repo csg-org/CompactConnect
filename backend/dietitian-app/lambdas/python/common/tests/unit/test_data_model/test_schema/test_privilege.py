@@ -45,8 +45,8 @@ class TestPrivilegeRecordSchema(TstLambdas):
 
         with open('tests/resources/dynamo/privilege.json') as f:
             privilege_data = json.load(f)
-        # This privilege is in the ASLP compact, not Counseling
-        privilege_data['licenseType'] = 'occupational therapist'
+        # This privilege is for the diet compact, so a different profession is invalid
+        privilege_data['licenseType'] = 'licensed professional counselor'
 
         with self.assertRaises(ValidationError):
             PrivilegeRecordSchema().load(privilege_data)
@@ -169,8 +169,8 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
 
         with open('tests/resources/dynamo/privilege-update.json') as f:
             privilege_data = json.load(f)
-        # This privilege is in the ASLP compact, not Counseling
-        privilege_data['licenseType'] = 'occupational therapist'
+        # This privilege is for the diet compact, so a different profession is invalid
+        privilege_data['licenseType'] = 'licensed professional counselor'
 
         with self.assertRaises(ValidationError):
             PrivilegeUpdateRecordSchema().load(privilege_data)
@@ -237,10 +237,10 @@ class TestPrivilegeGeneralResponseSchemaExpirationCheck(TstLambdas):
         return {
             'type': 'privilege',
             'providerId': 'a4182428-d061-701c-82e5-a3d1d547d797',
-            'compact': 'aslp',
+            'compact': 'diet',
             'jurisdiction': 'oh',
             'licenseJurisdiction': 'ne',
-            'licenseType': 'audiologist',
+            'licenseType': 'dietitian',
             'dateOfIssuance': '2024-01-01',
             'dateOfRenewal': '2024-01-01',
             'dateOfExpiration': date_of_expiration,

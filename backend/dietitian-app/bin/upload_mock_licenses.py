@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: T201 we use print statements for scripts run locally
 """Create valid mock licenses and upload them to a sandbox State API.
 
 Run from backend/dietitian-app (AWS credentials must be able to create a Cognito app client
@@ -25,6 +26,7 @@ import boto3
 import requests
 from botocore.exceptions import ClientError
 from faker import Faker
+from marshmallow import ValidationError
 
 APP_ROOT = Path(__file__).resolve().parent.parent
 SMOKE_ENV_PATH = APP_ROOT / 'tests' / 'smoke' / 'smoke_tests_env.json'
@@ -97,8 +99,8 @@ def _validate_licenses(licenses: list[dict], compact: str, jurisdiction: str) ->
     for index, license_record in enumerate(licenses):
         try:
             schema.load({**license_record, 'compact': compact, 'jurisdiction': jurisdiction})
-        except Exception as error:  # marshmallow ValidationError
-            errors[index] = getattr(error, 'messages', str(error))
+        except ValidationError as error:
+            errors[index] = error.messages
     if errors:
         raise SystemExit(f'Generated licenses failed schema validation: {json.dumps(errors, default=str)}')
 

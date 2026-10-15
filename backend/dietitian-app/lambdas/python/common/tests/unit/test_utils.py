@@ -21,7 +21,7 @@ class TestUtils(TstLambdas):
 
         with open('tests/resources/api/license-post.json') as f:
             license_record = json.load(f)
-            license_record['compact'] = 'aslp'
+            license_record['compact'] = 'diet'
             license_record['jurisdiction'] = 'oh'
 
         # generate 5 records and ensure the system processes all the failures
@@ -29,7 +29,7 @@ class TestUtils(TstLambdas):
         for i in range(5):
             with open('tests/resources/api/license-post.json') as f:
                 license_record = json.load(f)
-                license_record['compact'] = 'aslp'
+                license_record['compact'] = 'diet'
                 license_record['jurisdiction'] = 'oh'
                 license_record['licenseNumber'] = f'licenseNumber-{i}'
                 licenses_data.append(license_record)
@@ -66,11 +66,11 @@ class TestLoggerInjectKwargs(TstLambdas):
         def decorated(*, compact, provider_id):  # noqa: ARG001 read from kwargs by the decorator
             return 'done'
 
-        with logger.append_context_keys(compact='aslp', provider_id='caller-provider-id'):
-            decorated(compact='aslp', provider_id='callee-provider-id')
+        with logger.append_context_keys(compact='diet', provider_id='caller-provider-id'):
+            decorated(compact='diet', provider_id='callee-provider-id')
 
             self.assertEqual(
-                {'compact': 'aslp', 'provider_id': 'caller-provider-id'},
+                {'compact': 'diet', 'provider_id': 'caller-provider-id'},
                 self._context_keys(logger, 'compact', 'provider_id'),
                 "The caller's context keys must survive a call into a decorated method",
             )
@@ -105,11 +105,11 @@ class TestLoggerInjectKwargs(TstLambdas):
         def decorated(*, compact):  # noqa: ARG001 read from kwargs by the decorator
             raise ValueError('boom')
 
-        with logger.append_context_keys(compact='aslp'):
+        with logger.append_context_keys(compact='diet'):
             with self.assertRaises(ValueError):
-                decorated(compact='aslp')
+                decorated(compact='diet')
 
-            self.assertEqual({'compact': 'aslp'}, self._context_keys(logger, 'compact'))
+            self.assertEqual({'compact': 'diet'}, self._context_keys(logger, 'compact'))
 
     def test_injected_keys_are_still_removed_when_the_caller_never_set_them(self):
         """Keys the caller did not own must not leak out of the decorated call."""
@@ -122,7 +122,7 @@ class TestLoggerInjectKwargs(TstLambdas):
         def decorated(*, compact):
             return compact
 
-        decorated(compact='aslp')
+        decorated(compact='diet')
 
         self.assertEqual({}, self._context_keys(logger, 'compact'))
 
@@ -138,7 +138,7 @@ class TestLoggerInjectKwargs(TstLambdas):
         def decorated(*, compact, provider_id):  # noqa: ARG001 read from kwargs by the decorator
             observed.update(self._context_keys(logger, 'compact', 'provider_id'))
 
-        with logger.append_context_keys(compact='aslp', provider_id='caller-provider-id'):
-            decorated(compact='aslp', provider_id='callee-provider-id')
+        with logger.append_context_keys(compact='diet', provider_id='caller-provider-id'):
+            decorated(compact='diet', provider_id='callee-provider-id')
 
-        self.assertEqual({'compact': 'aslp', 'provider_id': 'callee-provider-id'}, observed)
+        self.assertEqual({'compact': 'diet', 'provider_id': 'callee-provider-id'}, observed)

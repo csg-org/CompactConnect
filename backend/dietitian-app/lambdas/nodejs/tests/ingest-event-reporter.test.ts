@@ -79,7 +79,7 @@ describe('Frequent runs', () => {
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
-        process.env.COMPACTS = '["aslp", "octp", "coun"]';
+        process.env.COMPACTS = '["diet"]';
         process.env.DATA_EVENT_TABLE_NAME = 'data-table';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';
@@ -174,7 +174,7 @@ describe('Frequent runs', () => {
                 ingestFailures: [expect.objectContaining({ eventType: 'license.ingest-failure' })],
                 validationErrors: [expect.objectContaining({ eventType: 'license.validation-error' })]
             }),
-            'Audiology and Speech Language Pathology', // compactName instead of abbreviation
+            'Dietitian', // compactName instead of abbreviation
             'Ohio', // jurisdictionName
             ['justin@inspiringapps.com'] // jurisdiction operations emails
         );
@@ -271,7 +271,7 @@ describe('Frequent runs', () => {
         const mockS3Client = mockClient(S3Client);
 
         // Mock GetItemCommand to reject with "not found" error for compact configuration
-        mockDynamoDBClient.on(GetItemCommand).rejects(new Error('No configuration found for compact: aslp'));
+        mockDynamoDBClient.on(GetItemCommand).rejects(new Error('No configuration found for compact: diet'));
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
@@ -299,7 +299,7 @@ describe('Weekly runs', () => {
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
-        process.env.COMPACTS = '["aslp", "octp", "coun"]';
+        process.env.COMPACTS = '["diet"]';
         process.env.DATA_EVENT_TABLE_NAME = 'data-table';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';
@@ -384,7 +384,7 @@ describe('Weekly runs', () => {
         // Verify an "All's Well" email was sent with correct parameters
         expect(mockSendReportEmail).not.toHaveBeenCalled();
         expect(mockSendAllsWellEmail).toHaveBeenCalledWith(
-            'Audiology and Speech Language Pathology', // compactName instead of abbreviation
+            'Dietitian', // compactName instead of abbreviation
             'Ohio', // jurisdictionName
             ['justin@inspiringapps.com'] // jurisdiction operations emails
         );
@@ -443,8 +443,8 @@ describe('Weekly runs', () => {
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#CONFIGURATION' }
+                    'pk': { S: 'diet#CONFIGURATION' },
+                    'sk': { S: 'diet#CONFIGURATION' }
                 }
             }
         );
@@ -453,7 +453,7 @@ describe('Weekly runs', () => {
         expect(mockSendReportEmail).not.toHaveBeenCalled();
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
         expect(mockSendNoLicenseUpdatesEmail).toHaveBeenCalledWith(
-            'Audiology and Speech Language Pathology', // compactName instead of abbreviation
+            'Dietitian', // compactName instead of abbreviation
             'Ohio', // jurisdictionName
             ['justin@inspiringapps.com', 'compact-ops@example.com'] // combined jurisdiction and compact operations emails
         );

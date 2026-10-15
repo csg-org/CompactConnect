@@ -26,9 +26,9 @@ class SignatureTestBase(TstFunction):
 
     def _setup_signature_keys(self):
         """Setup signature keys for testing. Override in subclasses to customize key setup."""
-        # Default setup - load keys for 'aslp' compact with 'oh' and 'ne' jurisdictions
-        self._load_signature_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
-        self._load_signature_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
+        # Default setup - load keys for 'diet' compact with 'oh' and 'ne' jurisdictions
+        self._load_signature_public_key('diet', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_signature_public_key('diet', 'ne', 'test-key-001', self.public_key_pem)
 
     def _load_signature_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
         """Load a signature public key into the compact configuration table."""
@@ -122,7 +122,7 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
                     'providerId': provider_id,
                     'jurisdiction': privilege_jurisdiction,
                     'licenseJurisdiction': license_jurisdiction,
-                    'privilegeId': f'SLP-{privilege_jurisdiction.upper()}-{start_serial - i}',
+                    'privilegeId': f'DIET-{privilege_jurisdiction.upper()}-{start_serial - i}',
                 },
                 date_of_update_override=date_of_update.isoformat(),
             )
@@ -159,8 +159,8 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
             event = json.load(f)
 
         query = {'startDateTime': date_of_update.isoformat(), 'endDateTime': date_of_update.isoformat()}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps(
             {'query': query, 'pagination': {'pageSize': 30}, 'sorting': {'direction': 'ascending'}}
         )
@@ -186,8 +186,8 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps({'invalid': 'field'})
 
         # Add signature authentication headers
@@ -202,8 +202,8 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps(
             {
                 'query': {'startDateTime': '2024-11-09T12:00:00+00:00'},
@@ -224,8 +224,8 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps(
             {
                 'query': {'endDateTime': '2024-11-08T12:00:00+00:00'},
@@ -278,8 +278,8 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps(
             {
                 'query': {
@@ -318,8 +318,8 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps(
             {
                 'query': {'startDateTime': 'invalid-date-format', 'endDateTime': 'invalid-date-format'},
@@ -339,8 +339,8 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps(
             {
                 'query': {'startDateTime': '2024-11-08T12:00:00+00:00', 'endDateTime': '2024-11-15T12:01:00+00:00'},
@@ -362,8 +362,8 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
         event['body'] = json.dumps({'query': {}, 'pagination': {'pageSize': 30}, 'sorting': {'direction': 'ascending'}})
 
         # Do NOT add signature authentication headers - this should cause the request to be rejected
@@ -411,7 +411,7 @@ class TestGetProvider(SignatureTestBase):
                 'providerId': str(provider.providerId),
                 'jurisdiction': privilege_jurisdiction,
                 'licenseJurisdiction': license_jurisdiction,
-                'privilegeId': f'SLP-{privilege_jurisdiction.upper()}-1',
+                'privilegeId': f'DIET-{privilege_jurisdiction.upper()}-1',
             }
         )
 
@@ -430,8 +430,8 @@ class TestGetProvider(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'ne', 'providerId': provider_id}
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -448,10 +448,10 @@ class TestGetProvider(SignatureTestBase):
                 {
                     'type': 'statePrivilege',
                     'providerId': provider_id,
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'jurisdiction': 'ne',
-                    'licenseType': 'speech-language pathologist',
-                    'privilegeId': 'SLP-NE-1',
+                    'licenseType': 'dietitian',
+                    'privilegeId': 'DIET-NE-1',
                     'licenseNumber': 'A0608337260',
                     'npi': '0608337260',
                     'status': 'active',
@@ -469,7 +469,7 @@ class TestGetProvider(SignatureTestBase):
                     # Private fields should NOT be present
                 }
             ],
-            'providerUIUrl': f'https://app.compactconnect.org/aslp/Licensing/{provider_id}',
+            'providerUIUrl': f'https://app.compactconnect.org/diet/Licensing/{provider_id}',
         }
 
         self.maxDiff = None
@@ -498,8 +498,8 @@ class TestGetProvider(SignatureTestBase):
             event = json.load(f)
 
         # Grant private read permissions
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral diet/readPrivate'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'ne', 'providerId': provider_id}
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -516,10 +516,10 @@ class TestGetProvider(SignatureTestBase):
                 {
                     'type': 'statePrivilege',
                     'providerId': provider_id,
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'jurisdiction': 'ne',
-                    'licenseType': 'speech-language pathologist',
-                    'privilegeId': 'SLP-NE-1',
+                    'licenseType': 'dietitian',
+                    'privilegeId': 'DIET-NE-1',
                     'status': 'active',
                     'compactEligibility': 'eligible',
                     'dateOfExpiration': '2025-04-04',
@@ -547,7 +547,7 @@ class TestGetProvider(SignatureTestBase):
                     'licenseNumber': 'A0608337260',
                 }
             ],
-            'providerUIUrl': f'https://app.compactconnect.org/aslp/Licensing/{provider_id}',
+            'providerUIUrl': f'https://app.compactconnect.org/diet/Licensing/{provider_id}',
         }
 
         self.maxDiff = None
@@ -566,8 +566,8 @@ class TestGetProvider(SignatureTestBase):
             event = json.load(f)
 
         # Grant jurisdiction-specific private read permissions for 'oh' (license jurisdiction)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.readPrivate'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.readPrivate'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'ne', 'providerId': provider_id}
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -594,8 +594,8 @@ class TestGetProvider(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'ne', 'providerId': provider_id}
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -624,8 +624,8 @@ class TestGetProvider(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh', 'providerId': provider_id}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh', 'providerId': provider_id}
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -641,8 +641,8 @@ class TestGetProvider(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': 'nonexistent-provider'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'ne', 'providerId': 'nonexistent-provider'}
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -658,8 +658,8 @@ class TestGetProvider(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp'}  # Missing jurisdiction and providerId
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet'}  # Missing jurisdiction and providerId
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -675,8 +675,8 @@ class TestGetProvider(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': 'test-provider-id'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'ne', 'providerId': 'test-provider-id'}
 
         # Do NOT add signature authentication headers - this should cause the request to be rejected
         # since @required_signature_auth is used
@@ -697,7 +697,7 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
     def _setup_signature_keys(self):
         """Setup signature keys for testing. Only need 'oh' jurisdiction for this test."""
 
-        self._load_signature_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_signature_public_key('diet', 'oh', 'test-key-001', self.public_key_pem)
 
     def test_bulk_upload_url_handler_success(self):
         """Test successful bulk upload URL generation with optional signature authentication."""
@@ -706,9 +706,9 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -731,7 +731,7 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
 
         # Verify the key follows the expected pattern: compact/jurisdiction/uuid
         key = upload['fields']['key']
-        self.assertTrue(key.startswith('aslp/oh/'))
+        self.assertTrue(key.startswith('diet/oh/'))
         self.assertEqual(len(key.split('/')), 3)
 
     def test_bulk_upload_url_handler_missing_signature_rejected(self):
@@ -744,9 +744,9 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        # The user has write permission for diet/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/readGeneral oh/diet.write'
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'oh'}
 
         # Do NOT add signature authentication headers - this should cause the request to be rejected
         # since signature keys are configured for this compact/jurisdiction

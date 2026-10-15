@@ -36,7 +36,7 @@ class TstLambdas(TestCase):
                 'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'LICENSE_NUMBER_GSI_NAME': 'licenseNumberGSI',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["diet"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -96,10 +96,9 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
-                        ]
+                        'diet': [
+                            {'name': 'dietitian', 'abbreviation': 'diet'},
+                        ],
                     },
                 ),
             },

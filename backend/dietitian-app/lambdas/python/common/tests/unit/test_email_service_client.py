@@ -6,7 +6,7 @@ from cc_common.config import logger
 
 from tests import TstLambdas
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'diet'
 TEST_JURISDICTION = 'oh'
 
 
@@ -257,14 +257,14 @@ class TestEmailServiceClient(TstLambdas):
         privileges = [
             {
                 'jurisdiction': 'Ohio',
-                'licenseType': 'aud',
-                'privilegeId': 'AUD-OH-001',
+                'licenseType': 'diet',
+                'privilegeId': 'DIET-OH-001',
                 'dateOfExpiration': '2026-02-16',
             },
             {
                 'jurisdiction': 'Kentucky',
-                'licenseType': 'slp',
-                'privilegeId': 'SLP-KY-002',
+                'licenseType': 'diet',
+                'privilegeId': 'DIET-KY-002',
                 'dateOfExpiration': '2026-03-01',
             },
         ]

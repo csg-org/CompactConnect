@@ -9,7 +9,7 @@
   },
   "status": "inactive",
   "permissions": {
-    "aslp": {
+    "diet": {
       "actions": {
         "readPrivate": true
       },

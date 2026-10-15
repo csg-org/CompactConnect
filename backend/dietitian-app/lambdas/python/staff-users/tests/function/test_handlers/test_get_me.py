@@ -13,8 +13,8 @@ class TestGetMe(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        # The user has admin permission for all of diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/admin'
         event['pathParameters'] = {}
         event['body'] = None
 
@@ -24,16 +24,15 @@ class TestGetMe(TstFunction):
         self.assertEqual(404, resp['statusCode'])
 
     def test_get_me(self):
-        # Using a compact staff user method because it creates a single user that spans multiple compacts
-        user_id = self._create_compact_staff_user(compacts=['aslp', 'octp'])
+        user_id = self._create_compact_staff_user(compacts=['diet'])
 
         from handlers.me import get_me
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        # The user has admin permission for all of diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/admin'
         event['requestContext']['authorizer']['claims']['sub'] = user_id
         event['pathParameters'] = {}
         event['body'] = None
@@ -45,11 +44,9 @@ class TestGetMe(TstFunction):
         body = json.loads(resp['body'])
 
         self.assertEqual({'type', 'dateOfUpdate', 'userId', 'attributes', 'permissions', 'status'}, body.keys())
-        # Verify we've successfully merged permissions from two compacts
         self.assertEqual(
             {
-                'aslp': {'actions': {'read': True}, 'jurisdictions': {}},
-                'octp': {'actions': {'read': True}, 'jurisdictions': {}},
+                'diet': {'actions': {'read': True}, 'jurisdictions': {}},
             },
             body['permissions'],
         )

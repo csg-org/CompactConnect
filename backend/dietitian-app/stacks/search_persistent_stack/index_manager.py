@@ -31,8 +31,8 @@ class IndexManagerCustomResource(Construct):
     Custom resource for managing OpenSearch indices.
 
     This construct creates a CloudFormation custom resource that populates the OpenSearch Domain with the needed
-    provider indices. Indices are created with versioned names (e.g., compact_aslp_providers_v1) and aliases
-    (e.g., compact_aslp_providers) to enable safe blue-green migrations in the future.
+    provider indices. Indices are created with versioned names (e.g., compact_diet_providers_v1) and aliases
+    (e.g., compact_diet_providers) to enable safe blue-green migrations in the future.
     """
 
     def __init__(
@@ -174,8 +174,8 @@ class IndexManagerCustomResource(Construct):
         )
 
         # Create custom resource for managing indices
-        # This custom resource will create versioned indices (e.g., 'compact_aslp_providers_v1')
-        # with aliases (e.g., 'compact_aslp_providers') for each compact.
+        # This custom resource will create versioned indices (e.g., 'compact_diet_providers_v1')
+        # with aliases (e.g., 'compact_diet_providers') for each compact.
         # The alias abstraction enables safe blue-green migrations for future mapping changes.
         self.index_manager = CustomResource(
             self,

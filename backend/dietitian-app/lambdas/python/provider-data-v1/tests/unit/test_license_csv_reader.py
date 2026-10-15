@@ -13,7 +13,7 @@ class TestCSVParser(TstLambdas):
         with open('../common/tests/resources/licenses.csv') as f:
             reader = LicenseCSVReader()
             for license_row in reader.licenses(f):
-                validated = schema.load({'compact': 'aslp', 'jurisdiction': 'oh', **license_row})
+                validated = schema.load({'compact': 'diet', 'jurisdiction': 'oh', **license_row})
                 logger.debug('Read validated license', license_data=reader.schema.dump(validated))
 
     def test_csv_parser_treats_a_blank_ssn_column_as_omitted(self):
@@ -39,7 +39,7 @@ class TestCSVParser(TstLambdas):
         self.assertEqual(1, len(rows))
         self.assertNotIn('ssn', rows[0])
 
-        validated = LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **rows[0]})
+        validated = LicensePostRequestSchema().load({'compact': 'diet', 'jurisdiction': 'oh', **rows[0]})
 
         self.assertNotIn('ssn', validated)
         self.assertEqual('A0608337260', validated['licenseNumber'])

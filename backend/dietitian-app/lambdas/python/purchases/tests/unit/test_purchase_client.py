@@ -14,7 +14,7 @@ from tests import TstLambdas
 
 MOCK_LOGIN_ID = 'mock_login_id'
 MOCK_TRANSACTION_KEY = 'R2d237rZu59q123'
-MOCK_ASLP_SECRET = {
+MOCK_DIET_SECRET = {
     'processor': 'authorize.net',
     'api_login_id': MOCK_LOGIN_ID,
     'transaction_key': MOCK_TRANSACTION_KEY,
@@ -28,7 +28,7 @@ MOCK_LICENSEE_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
 MOCK_LICENSEE_TRANSACTION_FEE_AMOUNT = 5
 
-MOCK_LICENSE_TYPE_ABBR = 'slp'
+MOCK_LICENSE_TYPE_ABBR = 'diet'
 
 # Test constants for transaction history tests
 MOCK_BATCH_ID = '12345'
@@ -89,7 +89,7 @@ def _generate_default_order_information():
     return {'opaqueData': {'dataDescriptor': MOCK_DATA_DESCRIPTOR, 'dataValue': MOCK_DATA_VALUE}}
 
 
-def _generate_aslp_compact_configuration(include_licensee_charges: bool = False):
+def _generate_diet_compact_configuration(include_licensee_charges: bool = False):
     from cc_common.data_model.schema.compact import Compact
 
     with open('../common/tests/resources/dynamo/compact.json') as f:
@@ -176,17 +176,17 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         )
 
         def get_secret_value_side_effect(SecretId):  # noqa: N803 invalid-name required for mock
-            if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
-                return {'SecretString': json.dumps(MOCK_ASLP_SECRET)}
+            if SecretId == 'compact-connect/env/test/compact/diet/credentials/payment-processor':
+                return {'SecretString': json.dumps(MOCK_DIET_SECRET)}
             raise config.secrets_manager_client.exceptions.ResourceNotFoundException(
                 {'Error': {'Code': 'ResourceNotFoundException'}},
                 operation_name='get_secret_value',
             )
 
         def describe_secret_side_effect(SecretId):  # noqa: N803 invalid-name required for mock
-            if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
+            if SecretId == 'compact-connect/env/test/compact/diet/credentials/payment-processor':
                 # add other fields here if needed
-                return {'Name': 'compact-connect/env/test/compact/aslp/credentials/payment-processor'}
+                return {'Name': 'compact-connect/env/test/compact/diet/credentials/payment-processor'}
             raise config.secrets_manager_client.exceptions.ResourceNotFoundException(
                 {'Error': {'Code': 'ResourceNotFoundException'}},
                 operation_name='describe_secret',
@@ -304,7 +304,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         response = test_purchase_client.process_charge_for_licensee_privileges(
             licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
-            compact_configuration=_generate_aslp_compact_configuration(),
+            compact_configuration=_generate_diet_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
             license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
@@ -316,7 +316,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 'lineItems': [
                     {
                         'description': 'Compact Privilege for Ohio',
-                        'itemId': 'priv:aslp-oh-slp',
+                        'itemId': 'priv:diet-oh-diet',
                         'name': 'Ohio Compact Privilege',
                         'quantity': '1',
                         'taxable': 'None',
@@ -324,8 +324,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                     },
                     {
                         'description': 'Compact fee applied for each privilege purchased',
-                        'itemId': 'aslp-compact-fee',
-                        'name': 'ASLP Compact Fee',
+                        'itemId': 'diet-compact-fee',
+                        'name': 'Dietitian Compact Fee',
                         'quantity': '1',
                         'taxable': 'None',
                         'unitPrice': '50.5',
@@ -351,7 +351,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         response = test_purchase_client.process_charge_for_licensee_privileges(
             licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
-            compact_configuration=_generate_aslp_compact_configuration(),
+            compact_configuration=_generate_diet_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
             license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
@@ -364,7 +364,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             response['lineItems'],
             [
                 {
-                    'itemId': 'priv:aslp-oh-slp',
+                    'itemId': 'priv:diet-oh-diet',
                     'name': 'Ohio Compact Privilege',
                     'unitPrice': '100',
                     'quantity': '1',
@@ -372,8 +372,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                     'taxable': 'None',
                 },
                 {
-                    'itemId': 'aslp-compact-fee',
-                    'name': 'ASLP Compact Fee',
+                    'itemId': 'diet-compact-fee',
+                    'name': 'Dietitian Compact Fee',
                     'unitPrice': '50.5',
                     'quantity': '1',
                     'description': 'Compact fee applied for each privilege purchased',
@@ -398,7 +398,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client.process_charge_for_licensee_privileges(
             licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
-            compact_configuration=_generate_aslp_compact_configuration(),
+            compact_configuration=_generate_diet_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
             license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
@@ -442,7 +442,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client.process_charge_for_licensee_privileges(
             licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
-            compact_configuration=_generate_aslp_compact_configuration(),
+            compact_configuration=_generate_diet_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
             license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
@@ -454,7 +454,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(2, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
         # first line item is the jurisdiction fee
-        self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:diet-oh-diet', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(100.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
@@ -462,8 +462,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             'Compact Privilege for Ohio', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description
         )
         # second line item is the compact fee
-        self.assertEqual('aslp-compact-fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
-        self.assertEqual('ASLP Compact Fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].name)
+        self.assertEqual('diet-compact-fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
+        self.assertEqual('Dietitian Compact Fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].name)
         self.assertEqual(50.50, api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].quantity)
         self.assertEqual(
@@ -495,7 +495,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client.process_charge_for_licensee_privileges(
             licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
-            compact_configuration=_generate_aslp_compact_configuration(include_licensee_charges=True),
+            compact_configuration=_generate_diet_compact_configuration(include_licensee_charges=True),
             selected_jurisdictions=_generate_selected_jurisdictions(test_jurisdictions),
             license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
@@ -507,7 +507,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(4, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
         # first line item is the jurisdiction fee
-        self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:diet-oh-diet', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(50.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
@@ -515,7 +515,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             'Compact Privilege for Ohio', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description
         )
         # the second line item is the jurisdiction fee for kentucky
-        self.assertEqual('priv:aslp-ky-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
+        self.assertEqual('priv:diet-ky-diet', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
         self.assertEqual(
             'Kentucky Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].name
         )
@@ -526,7 +526,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         )
 
         # third line item is the compact fee
-        self.assertEqual('aslp-compact-fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[2].itemId)
+        self.assertEqual('diet-compact-fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[2].itemId)
         self.assertEqual(2, api_contract_v1_obj.transactionRequest.lineItems.lineItem[2].quantity)
         self.assertEqual(50.50, api_contract_v1_obj.transactionRequest.lineItems.lineItem[2].unitPrice)
         # fourth line item is the licensee charge
@@ -563,7 +563,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client.process_charge_for_licensee_privileges(
             licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
-            compact_configuration=_generate_aslp_compact_configuration(),
+            compact_configuration=_generate_diet_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
             license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
@@ -590,7 +590,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client.process_charge_for_licensee_privileges(
             licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
-            compact_configuration=_generate_aslp_compact_configuration(),
+            compact_configuration=_generate_diet_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
             license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=True,
@@ -601,7 +601,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(2, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
         # verify jurisdiction fee line item with military rate
-        self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:diet-oh-diet', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(40.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
@@ -642,7 +642,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client.process_charge_for_licensee_privileges(
             licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
-            compact_configuration=_generate_aslp_compact_configuration(),
+            compact_configuration=_generate_diet_compact_configuration(),
             selected_jurisdictions=jurisdiction_configurations,
             license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=True,
@@ -652,7 +652,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         api_contract_v1_obj = call_args[0]
 
         # verify jurisdiction fee line item uses standard rate when no military rate present
-        self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:diet-oh-diet', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(100.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(
@@ -680,7 +680,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             test_purchase_client.process_charge_for_licensee_privileges(
                 licensee_id=MOCK_LICENSEE_ID,
                 order_information=_generate_default_order_information(),
-                compact_configuration=_generate_aslp_compact_configuration(),
+                compact_configuration=_generate_diet_compact_configuration(),
                 selected_jurisdictions=_generate_selected_jurisdictions(),
                 license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
                 user_active_military=False,
@@ -701,7 +701,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             test_purchase_client.process_charge_for_licensee_privileges(
                 licensee_id=MOCK_LICENSEE_ID,
                 order_information=_generate_default_order_information(),
-                compact_configuration=_generate_aslp_compact_configuration(),
+                compact_configuration=_generate_diet_compact_configuration(),
                 selected_jurisdictions=_generate_selected_jurisdictions(),
                 license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
                 user_active_military=False,
@@ -726,7 +726,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             test_purchase_client.process_charge_for_licensee_privileges(
                 licensee_id=MOCK_LICENSEE_ID,
                 order_information=_generate_default_order_information(),
-                compact_configuration=_generate_aslp_compact_configuration(),
+                compact_configuration=_generate_diet_compact_configuration(),
                 selected_jurisdictions=_generate_selected_jurisdictions(),
                 license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
                 user_active_military=False,
@@ -751,7 +751,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         result = test_purchase_client.void_privilege_purchase_transaction(
-            compact_abbr='aslp',
+            compact_abbr='diet',
             order_information={'transactionId': MOCK_TRANSACTION_ID},
         )
 
@@ -782,7 +782,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInternalException):
             test_purchase_client.void_privilege_purchase_transaction(
-                compact_abbr='aslp',
+                compact_abbr='diet',
                 order_information={'transactionId': MOCK_TRANSACTION_ID},
             )
 
@@ -801,7 +801,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCFailedTransactionException):
             test_purchase_client.void_privilege_purchase_transaction(
-                compact_abbr='aslp',
+                compact_abbr='diet',
                 order_information={'transactionId': MOCK_TRANSACTION_ID},
             )
 
@@ -852,7 +852,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         result = test_purchase_client.validate_and_store_credentials(
-            compact_abbr='aslp', credentials=self._generate_test_credentials_object()
+            compact_abbr='diet', credentials=self._generate_test_credentials_object()
         )
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
@@ -873,20 +873,20 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         )
         self._when_compact_configuration_exists(
             value_overrides={
-                'compactAbbr': 'octp',
+                'compactAbbr': 'diet',
             }
         )
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         result = test_purchase_client.validate_and_store_credentials(
-            compact_abbr='octp', credentials=self._generate_test_credentials_object()
+            compact_abbr='diet', credentials=self._generate_test_credentials_object()
         )
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
 
         mock_secrets_manager_client.create_secret.assert_called_once_with(
-            Name='compact-connect/env/test/compact/octp/credentials/payment-processor',
+            Name='compact-connect/env/test/compact/diet/credentials/payment-processor',
             SecretString=json.dumps(
                 {
                     'processor': 'authorize.net',
@@ -908,16 +908,16 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
-        # In this case, the 'aslp' compact has an existing secret in place
+        # In this case, the 'diet' compact has an existing secret in place
         # so if a compact admin uploads new credentials, the existing secret should be updated
         result = test_purchase_client.validate_and_store_credentials(
-            compact_abbr='aslp', credentials=self._generate_test_credentials_object()
+            compact_abbr='diet', credentials=self._generate_test_credentials_object()
         )
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
 
         mock_secrets_manager_client.put_secret_value.assert_called_once_with(
-            SecretId='compact-connect/env/test/compact/aslp/credentials/payment-processor',
+            SecretId='compact-connect/env/test/compact/diet/credentials/payment-processor',
             SecretString=json.dumps(
                 {
                     'processor': 'authorize.net',
@@ -939,13 +939,13 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         )
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
-        # In this case, the 'aslp' compact has not configured their compact configuration, which is a pre-requisite to
+        # In this case, the 'diet' compact has not configured their compact configuration, which is a pre-requisite to
         # setting the payment processor public values, as we store these fields in that object.
         # The exception message should give them clear instructions to set that configuration up and then try
         # to upload the credentials again.
         with self.assertRaises(CCInvalidRequestException) as context:
             test_purchase_client.validate_and_store_credentials(
-                compact_abbr='aslp', credentials=self._generate_test_credentials_object()
+                compact_abbr='diet', credentials=self._generate_test_credentials_object()
             )
 
         self.assertEqual(
@@ -970,7 +970,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInvalidRequestException):
             test_purchase_client.validate_and_store_credentials(
-                compact_abbr='aslp',
+                compact_abbr='diet',
                 credentials={
                     'processor': 'stripe',
                     'apiLoginId': 'mock_login_id',
@@ -991,7 +991,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInvalidRequestException) as context:
             test_purchase_client.validate_and_store_credentials(
-                compact_abbr='aslp', credentials=self._generate_test_credentials_object()
+                compact_abbr='diet', credentials=self._generate_test_credentials_object()
             )
 
         self.assertIn('Failed to verify credentials', str(context.exception.message))
@@ -1097,7 +1097,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
         response = test_purchase_client.get_settled_transactions(
-            compact='aslp',
+            compact='diet',
             start_time='2024-01-01T00:00:00Z',
             end_time='2024-01-02T00:00:00Z',
             transaction_limit=500,
@@ -1114,7 +1114,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         transaction = response['transactions'][0]
 
         self.assertEqual(transaction.transactionId, MOCK_TRANSACTION_ID)
-        self.assertEqual(transaction.compact, 'aslp')
+        self.assertEqual(transaction.compact, 'diet')
         self.assertEqual(transaction.licenseeId, MOCK_LICENSEE_ID)
         self.assertEqual(transaction.batch['batchId'], MOCK_BATCH_ID)
         self.assertEqual(len(transaction.lineItems), 1)
@@ -1186,7 +1186,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
         response = test_purchase_client.get_settled_transactions(
-            compact='aslp',
+            compact='diet',
             start_time='2024-01-01T00:00:00Z',
             end_time='2024-01-02T00:00:00Z',
             transaction_limit=2,
@@ -1203,7 +1203,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         # now fetch the remaining results
         response = test_purchase_client.get_settled_transactions(
-            compact='aslp',
+            compact='diet',
             start_time='2024-01-01T00:00:00Z',
             end_time='2024-01-02T00:00:00Z',
             transaction_limit=2,
@@ -1240,7 +1240,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
         response = test_purchase_client.get_settled_transactions(
-            compact='aslp',
+            compact='diet',
             start_time='2024-01-01T00:00:00Z',
             end_time='2024-01-02T00:00:00Z',
             transaction_limit=500,
@@ -1283,7 +1283,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
         response = test_purchase_client.get_settled_transactions(
-            compact='aslp',
+            compact='diet',
             start_time='2024-01-01T00:00:00Z',
             end_time='2024-01-02T00:00:00Z',
             transaction_limit=500,
@@ -1360,7 +1360,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
         response = test_purchase_client.get_settled_transactions(
-            compact='aslp',
+            compact='diet',
             start_time='2024-01-01T00:00:00Z',
             end_time='2024-01-02T00:00:00Z',
             transaction_limit=500,

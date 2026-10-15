@@ -5,8 +5,8 @@ import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { CompactConfigurationClient } from '../../lib/compact-configuration-client';
 
 const SAMPLE_COMPACT_CONFIGURATION = {
-    'pk': { S: 'aslp#CONFIGURATION' },
-    'sk': { S: 'aslp#CONFIGURATION' },
+    'pk': { S: 'diet#CONFIGURATION' },
+    'sk': { S: 'diet#CONFIGURATION' },
     'compactAdverseActionsNotificationEmails': { L: [{ S: 'adverse@example.com' }]},
     'compactCommissionFee': {
         M: {
@@ -14,8 +14,8 @@ const SAMPLE_COMPACT_CONFIGURATION = {
             'feeType': { S: 'FLAT_RATE' }
         }
     },
-    'compactAbbr': { S: 'aslp' },
-    'compactName': { S: 'Audiology and Speech Language Pathology' },
+    'compactAbbr': { S: 'diet' },
+    'compactName': { S: 'Dietitian' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
     'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }]},
     'dateOfUpdate': { S: '2024-12-10T19:27:28+00:00' },
@@ -53,29 +53,29 @@ describe('CompactConfigurationClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const config = await compactConfigurationClient.getCompactConfiguration('aslp');
+        const config = await compactConfigurationClient.getCompactConfiguration('diet');
 
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(
             GetItemCommand,
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#CONFIGURATION' }
+                    'pk': { S: 'diet#CONFIGURATION' },
+                    'sk': { S: 'diet#CONFIGURATION' }
                 }
             }
         );
 
         expect(config).toEqual({
-            pk: 'aslp#CONFIGURATION',
-            sk: 'aslp#CONFIGURATION',
+            pk: 'diet#CONFIGURATION',
+            sk: 'diet#CONFIGURATION',
             compactAdverseActionsNotificationEmails: ['adverse@example.com'],
             compactCommissionFee: {
                 feeAmount: 3.5,
                 feeType: 'FLAT_RATE'
             },
-            compactAbbr: 'aslp',
-            compactName: 'Audiology and Speech Language Pathology',
+            compactAbbr: 'diet',
+            compactName: 'Dietitian',
             compactOperationsTeamEmails: ['operations@example.com'],
             compactSummaryReportNotificationEmails: ['summary@example.com'],
             dateOfUpdate: '2024-12-10T19:27:28+00:00',

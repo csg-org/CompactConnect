@@ -58,9 +58,7 @@
         "security": [
           {
             "TestBackendPipelineStackTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer39D6272D": [
-              "aslp/readGeneral",
-              "octp/readGeneral",
-              "coun/readGeneral"
+              "diet/readGeneral"
             ]
           }
         ]
@@ -111,9 +109,7 @@
         "security": [
           {
             "TestBackendPipelineStackTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer39D6272D": [
-              "aslp/readGeneral",
-              "octp/readGeneral",
-              "coun/readGeneral"
+              "diet/readGeneral"
             ]
           }
         ]
@@ -292,9 +288,9 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "diet",
+                          "diet",
+                          "diet"
                         ]
                       },
                       "jurisdiction": {
@@ -400,9 +396,9 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "diet",
+                                "diet",
+                                "diet"
                               ]
                             },
                             "providerId": {
@@ -562,9 +558,9 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "diet",
+                                "diet",
+                                "diet"
                               ]
                             },
                             "jurisdiction": {
@@ -757,9 +753,9 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
+                    "diet",
+                    "diet",
+                    "diet"
                   ]
                 },
                 "npi": {
@@ -948,9 +944,9 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "diet",
+                          "diet",
+                          "diet"
                         ]
                       },
                       "homeAddressStreet2": {
@@ -1046,9 +1042,9 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "diet",
+                                "diet",
+                                "diet"
                               ]
                             },
                             "providerId": {
@@ -1275,9 +1271,9 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "diet",
+                                "diet",
+                                "diet"
                               ]
                             },
                             "jurisdiction": {
@@ -1429,9 +1425,9 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "diet",
+                          "diet",
+                          "diet"
                         ]
                       },
                       "providerId": {

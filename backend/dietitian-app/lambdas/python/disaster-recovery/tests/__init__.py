@@ -29,7 +29,7 @@ class TstLambdas(TestCase):
                 'LICENSE_UPLOAD_DATE_INDEX_NAME': 'licenseUploadDateGSI',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'SSN_INDEX_NAME': 'ssnIndex',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["diet"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -89,9 +89,8 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        'diet': [
+                            {'name': 'dietitian', 'abbreviation': 'diet'},
                         ],
                     },
                 ),

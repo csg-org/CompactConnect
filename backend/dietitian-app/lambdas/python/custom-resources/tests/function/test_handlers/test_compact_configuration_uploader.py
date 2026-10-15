@@ -11,8 +11,7 @@ from .. import TstFunction
 TEST_ENVIRONMENT_NAME = 'test'
 MOCK_CURRENT_TIMESTAMP = '2024-11-08T23:59:59+00:00'
 
-ASLP_COMPACT_ABBREVIATION = 'aslp'
-OT_COMPACT_ABBREVIATION = 'octp'
+DIET_COMPACT_ABBREVIATION = 'diet'
 
 
 def generate_mock_attestation():
@@ -43,7 +42,7 @@ class TestCompactConfigurationUploader(TstFunction):
             'RequestType': 'Create',
             'ResourceProperties': {
                 'active_compact_member_jurisdictions': json.dumps(
-                    {ASLP_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne'], OT_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne']}
+                    {DIET_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne']}
                 ),
                 'attestations': json.dumps(generate_mock_attestations()),
             },
@@ -51,19 +50,19 @@ class TestCompactConfigurationUploader(TstFunction):
 
         on_event(event, self.mock_context)
 
-        # Query for all attestations in the aslp compact
+        # Query for all attestations in the diet compact
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-            & Key('sk').begins_with('COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
+            KeyConditionExpression=Key('pk').eq('COMPACT#diet#ATTESTATIONS')
+            & Key('sk').begins_with('COMPACT#diet#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
         )
 
         self.assertEqual(1, len(attestation_response['Items']))
         attestation = attestation_response['Items'][0]
 
         expected_attestation = {
-            'pk': 'COMPACT#aslp#ATTESTATIONS',
-            'sk': 'COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation#VERSION#1',
+            'pk': 'COMPACT#diet#ATTESTATIONS',
+            'sk': 'COMPACT#diet#LOCALE#en#ATTESTATION#jurisprudence-confirmation#VERSION#1',
             'type': 'attestation',
             'attestationId': 'jurisprudence-confirmation',
             'displayName': 'Jurisprudence Confirmation',
@@ -75,7 +74,7 @@ class TestCompactConfigurationUploader(TstFunction):
             'states you are purchasing privileges for.',
             'required': True,
             'locale': 'en',
-            'compact': ASLP_COMPACT_ABBREVIATION,
+            'compact': DIET_COMPACT_ABBREVIATION,
         }
 
         self.assertEqual(expected_attestation, attestation)
@@ -91,7 +90,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'active_compact_member_jurisdictions': json.dumps({DIET_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(mock_attestations),
             },
         }
@@ -107,7 +106,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'active_compact_member_jurisdictions': json.dumps({DIET_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(generate_mock_attestations()),
             },
         }
@@ -120,17 +119,17 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Update',
             'ResourceProperties': {
-                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'active_compact_member_jurisdictions': json.dumps({DIET_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(mock_attestations),
             },
         }
         on_event(event, self.mock_context)
 
-        # Query for all attestations in the aslp compact
+        # Query for all attestations in the diet compact
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-            & Key('sk').begins_with('COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
+            KeyConditionExpression=Key('pk').eq('COMPACT#diet#ATTESTATIONS')
+            & Key('sk').begins_with('COMPACT#diet#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
         )
 
         # Should have two versions
@@ -171,7 +170,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'active_compact_member_jurisdictions': json.dumps({DIET_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(generate_mock_attestations()),
             },
         }
@@ -181,7 +180,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Update',
             'ResourceProperties': {
-                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'active_compact_member_jurisdictions': json.dumps({DIET_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(generate_mock_attestations()),
             },
         }
@@ -190,8 +189,8 @@ class TestCompactConfigurationUploader(TstFunction):
         # Query for attestations
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-            & Key('sk').begins_with('COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
+            KeyConditionExpression=Key('pk').eq('COMPACT#diet#ATTESTATIONS')
+            & Key('sk').begins_with('COMPACT#diet#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
         )
 
         # Should still only have one version
@@ -203,8 +202,7 @@ class TestCompactConfigurationUploader(TstFunction):
         from handlers.compact_config_uploader import on_event
 
         member_jurisdictions = {
-            ASLP_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne'],
-            OT_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne', 'wi'],
+            DIET_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne'],
         }
 
         event = {
@@ -217,11 +215,11 @@ class TestCompactConfigurationUploader(TstFunction):
 
         on_event(event, self.mock_context)
 
-        # Check active member jurisdictions for ASLP
+        # Check active member jurisdictions for DIET
         active_member_response = self.config.compact_configuration_table.get_item(
             Key={
-                'pk': f'COMPACT#{ASLP_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
-                'sk': f'COMPACT#{ASLP_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
+                'pk': f'COMPACT#{DIET_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
+                'sk': f'COMPACT#{DIET_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
             }
         )
 
@@ -236,26 +234,5 @@ class TestCompactConfigurationUploader(TstFunction):
             self.assertIn('postalAbbreviation', jurisdiction)
             self.assertIn('jurisdictionName', jurisdiction)
             self.assertIn('compact', jurisdiction)
-            self.assertEqual(ASLP_COMPACT_ABBREVIATION, jurisdiction['compact'])
-            self.assertIn(jurisdiction['postalAbbreviation'], member_jurisdictions[ASLP_COMPACT_ABBREVIATION])
-
-        # Check active member jurisdictions for OT
-        active_member_response = self.config.compact_configuration_table.get_item(
-            Key={
-                'pk': f'COMPACT#{OT_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
-                'sk': f'COMPACT#{OT_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
-            }
-        )
-
-        self.assertIn('active_member_jurisdictions', active_member_response['Item'])
-
-        active_members = active_member_response['Item']['active_member_jurisdictions']
-        self.assertEqual(
-            [
-                {'compact': 'octp', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
-                {'compact': 'octp', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
-                {'compact': 'octp', 'jurisdictionName': 'Nebraska', 'postalAbbreviation': 'ne'},
-                {'compact': 'octp', 'jurisdictionName': 'Wisconsin', 'postalAbbreviation': 'wi'},
-            ],
-            active_members,
-        )
+            self.assertEqual(DIET_COMPACT_ABBREVIATION, jurisdiction['compact'])
+            self.assertIn(jurisdiction['postalAbbreviation'], member_jurisdictions[DIET_COMPACT_ABBREVIATION])

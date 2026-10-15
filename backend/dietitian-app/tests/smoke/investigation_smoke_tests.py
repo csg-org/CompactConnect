@@ -7,7 +7,7 @@ including creating investigations and closing them through the API endpoints.
 """
 
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 import requests
 from smoke_common import (
@@ -25,6 +25,7 @@ from smoke_common import (
     logger,
 )
 
+# isort: split
 # smoke_common adds the common library to sys.path before cc_common can be imported
 from cc_common.data_model.schema.common import ActiveInactiveStatus  # noqa: E402
 from cc_common.data_model.schema.privilege import PrivilegeData  # noqa: E402
@@ -144,7 +145,7 @@ def ensure_test_privilege():
     )
     compact = provider_data['compact']
     provider_id = provider_data['providerId']
-    now = datetime.now(timezone.utc).replace(microsecond=0)
+    now = datetime.now(UTC).replace(microsecond=0)
     expiration = license_record.get('dateOfExpiration')
     expiration_date = date.fromisoformat(expiration) if expiration else (now + timedelta(days=365)).date()
 

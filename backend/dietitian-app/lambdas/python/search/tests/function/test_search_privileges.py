@@ -73,7 +73,7 @@ class TestExportPrivileges(TstFunction):
     def _create_mock_provider_hit_with_privileges(
         self,
         provider_id: str = '00000000-0000-0000-0000-000000000001',
-        compact: str = 'aslp',
+        compact: str = 'diet',
         sort_values: list = None,
     ) -> dict:
         """Create a mock OpenSearch hit for a provider document with privileges and licenses."""
@@ -102,7 +102,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfUpdate': '2024-01-15T10:30:00+00:00',
                         'compact': compact,
                         'jurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'licenseStatus': 'active',
                         'compactEligibility': 'eligible',
                         'jurisdictionUploadedLicenseStatus': 'active',
@@ -113,7 +113,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
                         'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
+                        'licenseNumber': 'DIET-12345',
                     }
                 ],
                 'privileges': [
@@ -123,7 +123,7 @@ class TestExportPrivileges(TstFunction):
                         'compact': compact,
                         'jurisdiction': 'ky',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'dateOfIssuance': '2024-01-15',
                         'dateOfRenewal': '2024-01-15',
                         'dateOfExpiration': '2025-01-15',
@@ -154,7 +154,7 @@ class TestExportPrivileges(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('diet', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -166,7 +166,7 @@ class TestExportPrivileges(TstFunction):
         self.assertIsInstance(body['fileUrl'], str)
         # Verify the URL contains expected parts
         self.assertIn('test-export-results-bucket', body['fileUrl'])
-        self.assertIn('compact/aslp/privilegeSearch', body['fileUrl'])
+        self.assertIn('compact/diet/privilegeSearch', body['fileUrl'])
         self.assertIn('test-user-id', body['fileUrl'])  # caller user id from event
         self.assertIn('export.csv', body['fileUrl'])
 
@@ -175,7 +175,7 @@ class TestExportPrivileges(TstFunction):
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
-            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+            Bucket='test-export-results-bucket', Prefix='compact/diet/privilegeSearch/caller/test-user-id'
         )
         self.assertEqual(1, response['KeyCount'])
 
@@ -203,7 +203,7 @@ class TestExportPrivileges(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('diet', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -219,7 +219,7 @@ class TestExportPrivileges(TstFunction):
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
-            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+            Bucket='test-export-results-bucket', Prefix='compact/diet/privilegeSearch/caller/test-user-id'
         )
         # Should have no objects
         self.assertEqual(0, response.get('KeyCount', 0))
@@ -231,14 +231,14 @@ class TestExportPrivileges(TstFunction):
 
         # Create a provider hit without privileges
         hit = {
-            '_index': 'compact_aslp_providers',
+            '_index': 'compact_diet_providers',
             '_id': 'provider-1',
             '_score': 1.0,
             '_source': {
                 'providerId': 'provider-1',
                 'type': 'provider',
                 'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                'compact': 'aslp',
+                'compact': 'diet',
                 'licenseJurisdiction': 'oh',
                 'licenseStatus': 'active',
                 'compactEligibility': 'eligible',
@@ -260,7 +260,7 @@ class TestExportPrivileges(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('diet', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -275,7 +275,7 @@ class TestExportPrivileges(TstFunction):
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
-            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+            Bucket='test-export-results-bucket', Prefix='compact/diet/privilegeSearch/caller/test-user-id'
         )
         # Should have no objects
         self.assertEqual(0, response.get('KeyCount', 0))
@@ -289,7 +289,7 @@ class TestExportPrivileges(TstFunction):
         from handlers.search import search_api_handler
 
         provider_id = '00000000-0000-0000-0000-000000000001'
-        compact = 'aslp'
+        compact = 'diet'
 
         # Create a provider with multiple privileges, inner_hits matches two of them
         hit = {
@@ -317,7 +317,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfUpdate': '2024-01-15T10:30:00+00:00',
                         'compact': compact,
                         'jurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'licenseStatus': 'active',
                         'compactEligibility': 'eligible',
                         'jurisdictionUploadedLicenseStatus': 'active',
@@ -328,7 +328,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
                         'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
+                        'licenseNumber': 'DIET-12345',
                     }
                 ],
                 # Provider has THREE privileges
@@ -339,7 +339,7 @@ class TestExportPrivileges(TstFunction):
                         'compact': compact,
                         'jurisdiction': 'ky',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'dateOfIssuance': '2024-01-15',
                         'dateOfRenewal': '2024-01-15',
                         'dateOfExpiration': '2025-01-15',
@@ -354,7 +354,7 @@ class TestExportPrivileges(TstFunction):
                         'compact': compact,
                         'jurisdiction': 'ne',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'dateOfIssuance': '2024-02-01',
                         'dateOfRenewal': '2024-02-01',
                         'dateOfExpiration': '2025-02-01',
@@ -369,7 +369,7 @@ class TestExportPrivileges(TstFunction):
                         'compact': compact,
                         'jurisdiction': 'co',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'dateOfIssuance': '2024-03-01',
                         'dateOfRenewal': '2024-03-01',
                         'dateOfExpiration': '2025-03-01',
@@ -397,7 +397,7 @@ class TestExportPrivileges(TstFunction):
                                     'compact': compact,
                                     'jurisdiction': 'ky',
                                     'licenseJurisdiction': 'oh',
-                                    'licenseType': 'audiologist',
+                                    'licenseType': 'dietitian',
                                     'dateOfIssuance': '2024-01-15',
                                     'dateOfRenewal': '2024-01-15',
                                     'dateOfExpiration': '2025-01-15',
@@ -418,7 +418,7 @@ class TestExportPrivileges(TstFunction):
                                     'compact': compact,
                                     'jurisdiction': 'ne',
                                     'licenseJurisdiction': 'oh',
-                                    'licenseType': 'audiologist',
+                                    'licenseType': 'dietitian',
                                     'dateOfIssuance': '2024-02-01',
                                     'dateOfRenewal': '2024-02-01',
                                     'dateOfExpiration': '2025-02-01',
@@ -442,7 +442,7 @@ class TestExportPrivileges(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('diet', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -457,7 +457,7 @@ class TestExportPrivileges(TstFunction):
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
-            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+            Bucket='test-export-results-bucket', Prefix='compact/diet/privilegeSearch/caller/test-user-id'
         )
         key = response['Contents'][0]['Key']
         csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
@@ -470,11 +470,11 @@ class TestExportPrivileges(TstFunction):
             lines[0],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ky,audiologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,diet,ky,dietitian,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,DIET-12345,1234567890\r',
             lines[1],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ne,audiologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,AUD-12345,1234567890',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,diet,ne,dietitian,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,DIET-12345,1234567890',
             lines[2],
         )
 
@@ -484,7 +484,7 @@ class TestExportPrivileges(TstFunction):
         from handlers.search import search_api_handler
 
         provider_id = '00000000-0000-0000-0000-000000000001'
-        compact = 'aslp'
+        compact = 'diet'
 
         # Create a provider with multiple privileges and NO inner_hits
         hit = {
@@ -512,7 +512,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfUpdate': '2024-01-15T10:30:00+00:00',
                         'compact': compact,
                         'jurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'licenseStatus': 'active',
                         'compactEligibility': 'eligible',
                         'jurisdictionUploadedLicenseStatus': 'active',
@@ -523,7 +523,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
                         'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
+                        'licenseNumber': 'DIET-12345',
                     }
                 ],
                 # Provider has THREE privileges
@@ -534,7 +534,7 @@ class TestExportPrivileges(TstFunction):
                         'compact': compact,
                         'jurisdiction': 'ky',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'dateOfIssuance': '2024-01-15',
                         'dateOfRenewal': '2024-01-15',
                         'dateOfExpiration': '2025-01-15',
@@ -549,7 +549,7 @@ class TestExportPrivileges(TstFunction):
                         'compact': compact,
                         'jurisdiction': 'ne',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'dateOfIssuance': '2024-02-01',
                         'dateOfRenewal': '2024-02-01',
                         'dateOfExpiration': '2025-02-01',
@@ -564,7 +564,7 @@ class TestExportPrivileges(TstFunction):
                         'compact': compact,
                         'jurisdiction': 'co',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
+                        'licenseType': 'dietitian',
                         'dateOfIssuance': '2024-03-01',
                         'dateOfRenewal': '2024-03-01',
                         'dateOfExpiration': '2025-03-01',
@@ -586,7 +586,7 @@ class TestExportPrivileges(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('diet', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -601,7 +601,7 @@ class TestExportPrivileges(TstFunction):
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
-            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+            Bucket='test-export-results-bucket', Prefix='compact/diet/privilegeSearch/caller/test-user-id'
         )
         key = response['Contents'][0]['Key']
         csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
@@ -614,15 +614,15 @@ class TestExportPrivileges(TstFunction):
             lines[0],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ky,audiologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,diet,ky,dietitian,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,DIET-12345,1234567890\r',
             lines[1],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ne,audiologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,diet,ne,dietitian,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,DIET-12345,1234567890\r',
             lines[2],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,co,audiologist,PRIV-CO-001,inactive,eligible,2025-03-01,2024-03-01,2024-03-01,Doe,John,,,oh,active,,AUD-12345,1234567890',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,diet,co,dietitian,PRIV-CO-001,inactive,eligible,2025-03-01,2024-03-01,2024-03-01,Doe,John,,,oh,active,,DIET-12345,1234567890',
             lines[3],
         )
 
@@ -631,7 +631,7 @@ class TestExportPrivileges(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with unsupported route
-        event = self._create_api_event(compact='aslp', resource_override='/v1/compacts/aslp/unknown/search')
+        event = self._create_api_event(compact='diet', resource_override='/v1/compacts/diet/unknown/search')
 
         response = search_api_handler(event, self.mock_context)
 
@@ -644,7 +644,7 @@ class TestExportPrivileges(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with unsupported route
-        event = self._create_api_event(compact='aslp', scopes_override='openid email')
+        event = self._create_api_event(compact='diet', scopes_override='openid email')
 
         response = search_api_handler(event, self.mock_context)
 
@@ -658,12 +658,12 @@ class TestExportPrivileges(TstFunction):
 
         # Test with 'index' key (terms lookup attack pattern)
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'terms': {
                         'providerId': {
-                            'index': 'compact_octp_providers',
+                            'index': 'compact_diet_providers',
                             'id': 'some-uuid',
                             'path': 'providerId',
                         }
@@ -691,12 +691,12 @@ class TestExportPrivileges(TstFunction):
         from handlers.search import search_api_handler
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'terms': {
                         'providerId': {
-                            '_index': 'compact_octp_providers',
+                            '_index': 'compact_diet_providers',
                             '_id': 'target-provider-uuid',
                         }
                     }
@@ -727,12 +727,12 @@ class TestExportPrivileges(TstFunction):
             'script': {'script': {'script': {'source': "doc['familyName'].size() > 0"}}},
             'exists': {'exists': {'field': 'licenses.ssnLastFour'}},
             'multi_match': {'multi_match': {'query': 'Doe', 'fields': ['givenName', 'licenses.ssnLastFour']}},
-            'more_like_this': {'more_like_this': {'like': [{'_index': 'compact_octp_providers'}]}},
+            'more_like_this': {'more_like_this': {'like': [{'_index': 'compact_diet_providers'}]}},
         }
 
         for clause_name, query in disallowed_queries.items():
             with self.subTest(clause=clause_name):
-                event = self._create_api_event('aslp', body={'query': query})
+                event = self._create_api_event('diet', body={'query': query})
 
                 response = search_api_handler(event, self.mock_context)
 
@@ -748,7 +748,7 @@ class TestExportPrivileges(TstFunction):
 
         # Test with 'index' key nested deep in the query structure
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={
                 'query': {
                     'bool': {
@@ -756,7 +756,7 @@ class TestExportPrivileges(TstFunction):
                             {
                                 'terms': {
                                     'familyName.keyword': {
-                                        'index': 'compact_octp_providers',
+                                        'index': 'compact_diet_providers',
                                         'id': 'target-uuid',
                                         'path': 'familyName.keyword',
                                     }
@@ -776,97 +776,6 @@ class TestExportPrivileges(TstFunction):
         self.assertIn("'index'", body['message'])
 
     @patch('handlers.search.opensearch_client')
-    def test_privilege_with_mismatched_compact_is_filtered_from_response(self, mock_opensearch_client):
-        """Test that a privilege with a compact field that doesn't match the path parameter is filtered from results."""
-        from handlers.search import search_api_handler
-
-        provider_id = '00000000-0000-0000-0000-000000000001'
-        # Create a provider hit with a privilege that has a different compact than the path parameter
-        hit = {
-            '_index': 'compact_aslp_providers',
-            '_id': provider_id,
-            '_score': 1.0,
-            '_source': {
-                'providerId': provider_id,
-                'type': 'provider',
-                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                'compact': 'aslp',
-                'licenseJurisdiction': 'oh',
-                'licenseStatus': 'active',
-                'compactEligibility': 'eligible',
-                'givenName': 'John',
-                'familyName': 'Doe',
-                'dateOfExpiration': '2025-12-31',
-                'jurisdictionUploadedLicenseStatus': 'active',
-                'jurisdictionUploadedCompactEligibility': 'eligible',
-                'birthMonthDay': '06-15',
-                'licenses': [
-                    {
-                        'providerId': provider_id,
-                        'type': 'license-home',
-                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                        'compact': 'aslp',
-                        'jurisdiction': 'oh',
-                        'licenseType': 'audiologist',
-                        'licenseStatus': 'active',
-                        'compactEligibility': 'eligible',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'John',
-                        'familyName': 'Doe',
-                        'dateOfIssuance': '2020-01-01',
-                        'dateOfRenewal': '2024-01-01',
-                        'dateOfExpiration': '2025-12-31',
-                        'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
-                    }
-                ],
-                'privileges': [
-                    {
-                        'type': 'privilege',
-                        'providerId': provider_id,
-                        'compact': 'octp',  # Different from path parameter 'aslp'
-                        'jurisdiction': 'ky',
-                        'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
-                        'dateOfIssuance': '2024-01-15',
-                        'dateOfRenewal': '2024-01-15',
-                        'dateOfExpiration': '2025-01-15',
-                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                        'administratorSetStatus': 'active',
-                        'privilegeId': 'PRIV-001',
-                        'status': 'active',
-                    }
-                ],
-            },
-        }
-        search_response = {
-            'hits': {
-                'total': {'value': 1, 'relation': 'eq'},
-                'hits': [hit],
-            }
-        }
-        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
-
-        # Currently, with our safeguards in place, it is not possible for a bad actor to reach across
-        # indices when searching. This may change in the future with new OpenSearch features that are added
-        # over time. Because we don't have a valid query to trigger this branch of logic, we're just using a
-        # generic query here in place of some future query that can get past our safeguards and search provider
-        # data across compact indices. The mock above is returning a provider from a different compact to
-        # trigger the branch of logic where we catch this discrepancy, log the error so an alert fires, and
-        # filter the document from the response
-        custom_query = {'match_all': {}}
-
-        # Request for 'aslp' compact but privilege has 'octp' compact
-        event = self._create_api_event('aslp', body={'query': custom_query})
-
-        response = search_api_handler(event, self.mock_context)
-
-        self.assertEqual(404, response['statusCode'])
-        body = json.loads(response['body'])
-        self.assertEqual('The search parameters did not match any privileges.', body['message'])
-
-    @patch('handlers.search.opensearch_client')
     def test_export_with_excessively_nested_query_returns_400(self, mock_opensearch_client):
         """The export endpoint uses its own request schema, so it must apply the same depth guard."""
         from handlers.search import search_api_handler
@@ -875,7 +784,7 @@ class TestExportPrivileges(TstFunction):
         for _ in range(300):
             query = {'bool': {'must': [query]}}
 
-        event = self._create_api_event('aslp', body={'query': query})
+        event = self._create_api_event('diet', body={'query': query})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -890,7 +799,7 @@ class TestExportPrivileges(TstFunction):
         from handlers.search import search_api_handler
 
         event = self._create_api_event(
-            'aslp',
+            'diet',
             body={'query': {'terms': {'providerId': {'id': 'some-other-provider', 'path': 'providerId'}}}},
         )
 

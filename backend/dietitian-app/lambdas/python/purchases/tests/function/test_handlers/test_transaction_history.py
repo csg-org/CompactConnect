@@ -6,8 +6,8 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
-TEST_AUD_LICENSE_TYPE_ABBR = 'aud'
+TEST_COMPACT = 'diet'
+TEST_LICENSE_TYPE_ABBR = 'diet'
 
 # Test transaction data
 MOCK_TRANSACTION_ID = '12345'
@@ -46,7 +46,7 @@ def _generate_mock_transaction(
     for jurisdiction in jurisdictions:
         line_items.append(
             {
-                'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}-{TEST_AUD_LICENSE_TYPE_ABBR}',
+                'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}-{TEST_LICENSE_TYPE_ABBR}',
                 'name': f'{jurisdiction.upper()} Compact Privilege',
                 'description': f'Compact Privilege for {jurisdiction}',
                 'quantity': '1',
@@ -268,7 +268,7 @@ class TestProcessSettledTransactions(TstFunction):
 
         self.assertEqual(
             {
-                'compact': 'aslp',
+                'compact': 'diet',
                 'scheduledTime': MOCK_SCHEDULED_TIME,
                 'startTime': expected_start_time,
                 'endTime': expected_end_time,
@@ -350,7 +350,7 @@ class TestProcessSettledTransactions(TstFunction):
                     'lineItems': [
                         {
                             'description': 'Compact Privilege for oh',
-                            'itemId': 'priv:aslp-oh-aud',
+                            'itemId': 'priv:diet-oh-diet',
                             'name': 'OH Compact Privilege',
                             'quantity': '1',
                             'taxable': 'False',
@@ -804,7 +804,7 @@ class TestProcessSettledTransactions(TstFunction):
             [
                 {
                     'description': 'Compact Privilege for ky',
-                    'itemId': 'priv:aslp-ky-aud',
+                    'itemId': 'priv:diet-ky-diet',
                     'name': 'KY Compact Privilege',
                     'privilegeId': latest_transaction_privilege_id,
                     'quantity': '1',
@@ -820,7 +820,7 @@ class TestProcessSettledTransactions(TstFunction):
             [
                 {
                     'description': 'Compact Privilege for ky',
-                    'itemId': 'priv:aslp-ky-aud',
+                    'itemId': 'priv:diet-ky-diet',
                     'name': 'KY Compact Privilege',
                     'privilegeId': original_transaction_privilege_id,
                     'quantity': '1',
@@ -878,7 +878,7 @@ class TestProcessSettledTransactions(TstFunction):
             [
                 {
                     'description': 'Compact Privilege for oh',
-                    'itemId': 'priv:aslp-oh-aud',
+                    'itemId': 'priv:diet-oh-diet',
                     'name': 'OH Compact Privilege',
                     'privilegeId': privilege_id_oh,
                     'quantity': '1',
@@ -887,7 +887,7 @@ class TestProcessSettledTransactions(TstFunction):
                 },
                 {
                     'description': 'Compact Privilege for ky',
-                    'itemId': 'priv:aslp-ky-aud',
+                    'itemId': 'priv:diet-ky-diet',
                     'name': 'KY Compact Privilege',
                     'privilegeId': privilege_id_ky,
                     'quantity': '1',
@@ -896,7 +896,7 @@ class TestProcessSettledTransactions(TstFunction):
                 },
                 {
                     'description': 'Compact Privilege for ne',
-                    'itemId': 'priv:aslp-ne-aud',
+                    'itemId': 'priv:diet-ne-diet',
                     'name': 'NE Compact Privilege',
                     'privilegeId': privilege_id_ne,
                     'quantity': '1',

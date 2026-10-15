@@ -13,8 +13,8 @@ class TestPatchMe(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        # The user has admin permission for all of diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/admin'
         event['pathParameters'] = {}
         event['body'] = json.dumps({'attributes': {'givenName': 'George'}})
 
@@ -31,8 +31,8 @@ class TestPatchMe(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        # The user has admin permission for all of diet
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email diet/admin'
         event['requestContext']['authorizer']['claims']['sub'] = user_id
         event['pathParameters'] = {}
         event['body'] = json.dumps({'attributes': {'givenName': 'George'}})

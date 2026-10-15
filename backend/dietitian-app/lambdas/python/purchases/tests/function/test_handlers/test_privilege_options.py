@@ -5,7 +5,7 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'diet'
 TEST_PROVIDER_ID = 'some-provider-id'
 
 MOCK_PUBLIC_CLIENT_KEY = 'some-public-client-key'
@@ -66,7 +66,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         jurisdiction_option = jurisdiction_options[0]
         self.assertEqual(
             {
-                'compact': 'aslp',
+                'compact': 'diet',
                 'jurisdictionName': 'Kentucky',
                 'jurisprudenceRequirements': {
                     'linkToDocumentation': 'https://example.com/jurisprudence',
@@ -74,8 +74,8 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
                 },
                 'postalAbbreviation': 'ky',
                 'privilegeFees': [
-                    {'amount': 50, 'licenseTypeAbbreviation': 'slp', 'militaryRate': 50},
-                    {'amount': 50, 'licenseTypeAbbreviation': 'aud', 'militaryRate': 50},
+                    {'amount': 50, 'licenseTypeAbbreviation': 'diet', 'militaryRate': 50},
+                    {'amount': 50, 'licenseTypeAbbreviation': 'diet', 'militaryRate': 50},
                 ],
                 'type': 'jurisdiction',
             },
@@ -100,9 +100,9 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         compact_option = compact_options[0]
         self.assertEqual(
             {
-                'compactAbbr': 'aslp',
+                'compactAbbr': 'diet',
                 'compactCommissionFee': {'feeAmount': 10, 'feeType': 'FLAT_RATE'},
-                'compactName': 'Audiology and Speech Language Pathology',
+                'compactName': 'Dietitian',
                 'isSandbox': True,
                 'paymentProcessorPublicFields': {
                     'apiLoginId': 'some-api-login-id',
@@ -177,9 +177,9 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         self.assertEqual(
             [
                 {
-                    'compactAbbr': 'aslp',
+                    'compactAbbr': 'diet',
                     'compactCommissionFee': {'feeAmount': 10, 'feeType': 'FLAT_RATE'},
-                    'compactName': 'Audiology and Speech Language Pathology',
+                    'compactName': 'Dietitian',
                     'isSandbox': True,
                     'paymentProcessorPublicFields': {
                         'apiLoginId': 'some-api-login-id',
@@ -191,7 +191,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
                     'type': 'compact',
                 },
                 {
-                    'compact': 'aslp',
+                    'compact': 'diet',
                     'jurisdictionName': 'Kentucky',
                     'jurisprudenceRequirements': {
                         'linkToDocumentation': 'https://example.com/jurisprudence',
@@ -199,8 +199,8 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
                     },
                     'postalAbbreviation': 'ky',
                     'privilegeFees': [
-                        {'amount': 50, 'licenseTypeAbbreviation': 'slp', 'militaryRate': 50},
-                        {'amount': 50, 'licenseTypeAbbreviation': 'aud', 'militaryRate': 50},
+                        {'amount': 50, 'licenseTypeAbbreviation': 'diet', 'militaryRate': 50},
+                        {'amount': 50, 'licenseTypeAbbreviation': 'diet', 'militaryRate': 50},
                     ],
                     'type': 'jurisdiction',
                 },

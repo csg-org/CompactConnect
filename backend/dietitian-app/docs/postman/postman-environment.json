@@ -34,7 +34,7 @@
 		},
 		{
 			"key": "m2mScopes",
-			"value": "ky/aslp.write ky/aslp.readPrivate aslp/readGeneral",
+			"value": "ky/diet.write ky/diet.readPrivate diet/readGeneral",
 			"type": "default",
 			"enabled": true
 		}

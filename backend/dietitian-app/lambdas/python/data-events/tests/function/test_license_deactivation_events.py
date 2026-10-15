@@ -105,7 +105,7 @@ class TestLicenseDeactivationEvents(TstFunction):
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': 'ky',  # Different jurisdiction
-                'licenseType': 'audiologist',  # Different license type
+                'licenseType': 'dietitian',  # Different license type
                 # note there is no licenseDeactivatedStatus present
             }
         )
@@ -168,57 +168,6 @@ class TestLicenseDeactivationEvents(TstFunction):
 
         for privilege in privileges:
             self.assertEqual(LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED, privilege.licenseDeactivatedStatus)
-
-    def test_license_deactivation_listener_handles_mixed_license_types(self):
-        """Test that license deactivation event only affects privileges with matching license type."""
-        from cc_common.data_model.schema.common import LicenseDeactivatedStatusEnum
-        from handlers.license_deactivation_events import license_deactivation_listener
-
-        # Set up test data
-        self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Create privilege with matching license type
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-                'jurisdiction': 'ne',
-            }
-        )
-
-        # Create privilege with different license type
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': 'audiologist',  # Different license type
-                'jurisdiction': 'ky',
-            }
-        )
-
-        message = self._generate_license_deactivation_message()
-        event = self._create_sqs_event(message)
-
-        # Execute the handler
-        license_deactivation_listener(event, self.mock_context)
-
-        # Verify only the matching privilege was deactivated
-        provider_records = self.config.data_client.get_provider_user_records(
-            compact=DEFAULT_COMPACT,
-            provider_id=DEFAULT_PROVIDER_ID,
-        )
-
-        privileges = provider_records.get_privilege_records()
-
-        matching_privilege_after = next(p for p in privileges if p.jurisdiction == 'ne')
-        different_type_privilege_after = next(p for p in privileges if p.jurisdiction == 'ky')
-
-        self.assertEqual(
-            LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED, matching_privilege_after.licenseDeactivatedStatus
-        )
-        self.assertIsNone(
-            different_type_privilege_after.licenseDeactivatedStatus,
-            f'licenseDeactivatedStatus is not None: {different_type_privilege_after.licenseDeactivatedStatus}',
-        )
 
     def test_license_deactivation_listener_handles_mixed_license_jurisdictions(self):
         """Test that license deactivation event only affects privileges with matching license jurisdiction."""
