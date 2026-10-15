@@ -55,6 +55,12 @@
 - `tests/helpers/setup.ts` provides a global `beforeEach`/`afterEach` that forces the `en` locale, recreates the `$api` sinon stub, calls. `sinon.restore()`, and unmounts tracked wrappers. Do not duplicate that teardown in specs.
 - Console errors containing `Vue warn` or `unhandledRejection` fail the test. A mysterious failure is usually an unhandled prop / type warning, not a bad assertion.
 - In the test environment `@network/data.api` is aliased to `src/network/mocks/mock.data.api`; tests never hit a real API
+- The global `beforeEach` forces `setAppMode(JCC)` and `setCurrentCompact(null)`. Specs that need PsyPact must opt in after that reset.
+- Do not use `reset` / `user/resetStoreUser` to “clean” app mode or compact. Those actions re-derive the same host-based PsyPact defaults.
+- File-level Mocha `before()` runs before `setup.ts` and is overwritten. Seed compact, user, or app mode in `beforeEach`.
+- `@tests/mocks/mockEnvConfig`: Toggle mock API via `mockEnvConfig.isUsingMockApi`. Components read `$envConfig` / that mock, not the plugin `envConfig` singleton.
+- The store is Vuex-strict and a shared singleton. Dispatch actions (`loginSuccess`, `logoutRequest`); do not assign `state.user.isLoggedIn = true`. Specs that touch auth stash or login flags should clear those keys in `afterEach`.
+- If you stub `Component.methods.foo` before mount, `created()` binds the stub onto the instance. After `restore()`, call `Component.methods.foo.call(component)`.
 - When testing models, always follow the existing pattern of:
     - Test all fields and methods with expected defaults.
     - Test all fields and methods with specific values.
@@ -90,6 +96,32 @@
 ## Internationalization
 - No hardcoded user-facing strings; add keys to `src/locales/en.json` and reference via `$t` / `$tm`
 - Key names must match exactly across all locale files. When adding a key to `en.json`, add the same key to `es.json` (an untranslated English value is acceptable; a missing key is not) — see `src/locales/readme.txt`
+
+---
+
+## App modes and host pinning
+- `src/utils/compactConfig.ts` is the source of truth for compact ↔ app mode, host lists, and lock. Do not fork hostname or mode checks into pages.
+- Deployed compact-specific hosts: `getLockedAppMode()` pins the mode; the router refuses other compact routes; `setAppMode` ignores runtime switches.
+- Localhost / `isAppLocal`: lock is null. `AppTypeSelector` on PublicDashboard switches CompactConnect ↔ PsyPact for local/mock only.
+- `user/setCurrentCompact` is the only `memberStates` loader. Host-seeded defaults skip that action, so `App.ensureCompactStates()` must fetch them.
+- Adding a compact or a host-pinned domain: follow `/docs/ADD_COMPACT.md`.
+
+---
+
+## Auth
+- Real logout is a full-page Cognito redirect (timers die with the page). Mock logout stays in the SPA (`DashboardPublic`). Clear inactivity / refresh timeouts and `isLoggedInAsStaff` / `isLoggedInAsLicensee` *before* store reset. `STORE_RESET_USER` must `clearTimeout` before nulling timeout ids, or the “Are you still there?” modal can appear on PublicDashboard.
+- App login watchers (`isLoggedInAsStaff` / `isLoggedInAsLicensee`) only fire on change. If logout leaves those flags true, the next mock login will not run `handleAuth()`.
+
+### Auth: Login stash
+- Three `authStorage` keys, different jobs:
+    - `login_goto` — real return path from an interrupted session
+    - `login_goto_auth_type` — which auth type that path belongs to
+    - `login_goto_compact` — compact the user picked at login
+- Do not invent `login_goto` as `/{compact}/Licensing` from a dashboard login click.
+- `AppTypeSelector` runs `clearStashIfIncompatibleWithAppMode` on created/change only.
+- Logout does not clear stash (local mock smoke tests rely on leftovers).
+- `Home` prefers `login_goto_compact` over leftover `currentCompact` and does not
+consume the key. `App.setCurrentCompact` consumes it and applies permissions.
 
 ---
 
@@ -157,6 +189,7 @@ and do not proceed with anything on this list that has no conservative fallback.
 - Changing a model serializer's server-side field mapping, which implies a backend contract change.
 - Renaming or removing existing locale keys, which breaks in-flight translation bundles.
 - Adding, renaming, or removing environment variables.
+- Changing getLockedAppMode, appModeHostnames, or stash-key semantics.
 - Any change to the Content Security Policy.
 - Editing `README.md`, `AGENTS.md`, or `/docs/ADD_COMPACT.md`.
 - Touching anything outside `/webroot`.

@@ -72,7 +72,7 @@ export default class CompactSettings extends Vue {
     }
 
     get shouldShowPaymentConfig(): boolean {
-        return this.globalStore.appGroupMode === AppGroupModes.PRIVILEGE_PURCHASE;
+        return this.globalStore.appGroupMode === AppGroupModes.PRIVILEGE_PURCHASE || this.$isAppModePsyPact;
     }
 
     get isCompactAdmin(): boolean {
@@ -96,7 +96,7 @@ export default class CompactSettings extends Vue {
     }
 
     get shouldShowStateList(): boolean {
-        return this.isCompactAdmin || this.isStateAdminMultiple;
+        return (this.isCompactAdmin || this.isStateAdminMultiple) && !this.$isAppModePsyPact;
     }
 
     //

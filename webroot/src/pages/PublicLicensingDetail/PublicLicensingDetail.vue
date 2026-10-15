@@ -73,12 +73,15 @@
                                 :alt="$t('licensing.privilegeIcon')"
                             />
                         </div>
-                        <div class="title-text">{{ $t('licensing.privileges') }}</div>
-                        <ExpirationExplanationIcon />
+                        <div class="title-text">{{ licenseePrivilegesTitle }}</div>
+                        <ExpirationExplanationIcon v-if="!$isAppModePsyPact" />
                     </div>
                     <CollapseCaretButton @toggleCollapse="togglePrivsCollapsed" />
                 </div>
-                <div v-if="!isPrivsCollapsed" class="privilege-card-list-container">
+                <div v-if="!isPrivsCollapsed && $isAppModePsyPact" class="privilege-list-container">
+                    <PracticeStates :licensee="licensee" />
+                </div>
+                <div v-else-if="!isPrivsCollapsed" class="privilege-card-list-container">
                     <PrivilegeCard
                         v-for="(privilege, index) in licenseePrivileges"
                         :key="index"

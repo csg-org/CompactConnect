@@ -1,0 +1,357 @@
+//
+//  LicenseActionsModal.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 9/23/2026.
+//
+.license-actions-modal {
+    position: relative;
+    flex-grow: 0;
+
+    &.type-license.license-actions {
+        width: 2.4rem;
+    }
+
+    &.type-privilege.license-actions {
+        width: 4.8rem;
+    }
+
+    .license-actions-menu-toggle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.4rem 0.4rem 0.4rem 1.6rem;
+        cursor: pointer;
+
+        .dot {
+            width: 0.4rem;
+            height: 0.4rem;
+            border-radius: 50%;
+            background-color: @white;
+
+            &:not(:first-child) {
+                margin-top: 0.4rem;
+            }
+        }
+
+        &.active .dot {
+            background-color: @primaryColor;
+        }
+    }
+
+    &.type-privilege .license-actions-menu-toggle {
+        padding: 0.4rem 1.2rem;
+    }
+
+    .license-menu {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 18rem;
+        padding: 0.6rem 0.8rem;
+        border-radius: 12px;
+        background-color: @white;
+        box-shadow: 2px 2px 3px 0 #00000040;
+
+        .license-menu-item {
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            color: @fontColor;
+            font-weight: @fontWeightBold;
+            cursor: pointer;
+
+            &:not(:first-child) {
+                margin-top: 0.4rem;
+            }
+
+            &:hover:not(.disabled) {
+                background-color: @veryLightGrey;
+            }
+
+            &.danger {
+                color: @midRed;
+            }
+
+            &.disabled {
+                font-weight: @fontWeight;
+                cursor: default;
+            }
+
+            &.new-section {
+                position: relative;
+                margin-top: 0.4rem;
+                padding-top: 1rem;
+
+                &::before {
+                    position: absolute;
+                    top: 0;
+                    left: 0.8rem;
+                    width: calc(100% - 1.6rem);
+                    height: 1px;
+                    margin-bottom: 0.4rem;
+                    background-color: @lightGrey;
+                    content: '';
+                }
+            }
+        }
+    }
+
+    .mock-populate {
+        display: inline-block;
+        padding-bottom: 0.4rem;
+        font-size: @fontSize;
+    }
+
+    .license-edit-modal {
+        color: @fontColor;
+
+        :deep(.modal-container) {
+            width: 95%;
+            max-width: 62rem;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                padding: 4rem;
+            }
+
+            .modal-content {
+                .license-edit-form {
+                    margin-top: 1.8rem;
+
+                    .form-row {
+                        margin-bottom: 1.6rem;
+
+                        &.static-container {
+                            display: flex;
+                            flex-direction: column;
+
+                            @media @desktopWidth {
+                                flex-direction: row;
+                                margin-bottom: 0.2rem;
+                            }
+                        }
+                    }
+
+                    .deactivation-notes {
+                        :deep(textarea) {
+                            min-height: 12rem;
+                            border-color: @fontColor;
+                        }
+                    }
+
+                    .encumber-license-form-input-container,
+                    .add-investigation-form-input-container {
+                        padding: 1.6rem;
+                        border-radius: 8px;
+                        background-color: @veryLightGrey;
+                    }
+
+                    .unencumber-row,
+                    .end-investigation-row {
+                        display: flex;
+                        flex-direction: column;
+                        margin-bottom: 3.2rem;
+
+                        &.end-investigation-row {
+                            margin-bottom: 1.2rem;
+                        }
+
+                        @media @desktopWidth {
+                            flex-direction: row;
+                            align-items: flex-end;
+                            margin-bottom: 1.2rem;
+                        }
+
+                        .input-container {
+                            margin: 0;
+                        }
+
+                        .unencumber-select,
+                        .end-investigation-select {
+                            display: flex;
+                            flex-direction: column;
+                            padding: 1rem 0.6rem;
+                            border: 1px solid @midGrey;
+                            border-radius: 12px;
+                            cursor: pointer;
+
+                            &.end-investigation-select {
+                                width: 100%;
+                                padding-top: 1.4rem;
+                                padding-bottom: 1rem;
+                            }
+
+                            &.unencumber-select {
+                                margin-bottom: 0.4rem;
+
+                                @media @desktopWidth {
+                                    width: 65%;
+                                    margin-bottom: 0;
+                                }
+                            }
+
+                            &.selected {
+                                border-color: @fontColor;
+                                background-color: @veryLightBlue;
+                            }
+
+                            &.inactive {
+                                background-color: @veryLightGrey;
+                                cursor: auto;
+                            }
+
+                            .inactive-category {
+                                margin-bottom: 0.6rem;
+                                margin-left: 3rem;
+                                font-weight: @fontWeightBold;
+                                font-size: 1.6rem;
+                            }
+
+                            .checkbox-wrapper {
+                                padding-left: 3rem;
+                            }
+
+                            .encumbrance-dates,
+                            .investigation-dates {
+                                padding-left: 3rem;
+                                color: darken(@darkGrey, 10%);
+                                font-size: @fontSize;
+                            }
+                        }
+
+                        .encumbrance-end-date {
+                            @media @desktopWidth {
+                                max-width: 33%;
+                                margin-left: auto;
+                            }
+                        }
+                    }
+                }
+
+                .add-investigation-success-form {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .static-input {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+
+                    &:first-child {
+                        margin-bottom: 1.2rem;
+                    }
+
+                    @media @desktopWidth {
+                        width: 50%;
+                    }
+
+                    .static-label {
+                        margin-bottom: 0.2rem;
+                        font-weight: @fontWeightBold;
+                        font-size: @fontSize;
+                    }
+
+                    .static-value {
+                        overflow: hidden;
+                        font-size: @fontSize;
+                        text-overflow: ellipsis;
+                    }
+                }
+
+                .info-block {
+                    margin-bottom: 2rem;
+                }
+
+                .form-field-error {
+                    font-size: @fontSize;
+                }
+
+                .modal-error {
+                    margin-top: 2.4rem;
+                    color: @midRed;
+                    text-align: right;
+                }
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: column;
+                    margin-top: 2rem;
+
+                    @media @desktopWidth {
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        justify-content: flex-end;
+                        margin-top: 4rem;
+                    }
+
+                    .action-button {
+                        margin-bottom: 1rem;
+
+                        @media @desktopWidth {
+                            &:not(:first-child) {
+                                margin-left: 2.4rem;
+                            }
+                        }
+
+                        .input-button,
+                        .input-submit {
+                            width: 100%;
+
+                            @media @desktopWidth {
+                                width: auto;
+                            }
+                        }
+                    }
+                }
+
+                &.modal-content-success {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+
+                    .icon-container {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 6.4rem;
+                        height: 6.4rem;
+                        margin-bottom: 1.6rem;
+                        border-radius: 50%;
+                        overflow: hidden;
+                        background-color: @lightGreen;
+
+                        .icon-check-circle {
+                            width: 100%;
+                            fill: @white;
+                        }
+                    }
+
+                    .modal-title {
+                        margin: 1.6rem 0 2.4rem 0;
+                        text-align: center;
+                    }
+
+                    .success-container {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        margin-bottom: 2.4rem;
+
+                        .removed-encumbrance {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            margin-bottom: 2rem;
+                            text-align: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

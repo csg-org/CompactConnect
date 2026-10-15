@@ -20,21 +20,24 @@ describe('apiUrls helpers', () => {
         expect(getApiBaseUrl(AppModes.JCC, 'search')).to.equal(envConfig.apiUrlSearch);
         expect(getApiBaseUrl(AppModes.JCC, 'user')).to.equal(envConfig.apiUrlUser);
     });
-
     it('should successfully resolve cosmetology api base urls', () => {
         expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'state')).to.equal(envConfig.apiUrlStateCosmo);
         expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'license')).to.equal(envConfig.apiUrlLicenseCosmo);
         expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'search')).to.equal(envConfig.apiUrlSearchCosmo);
         expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'user')).to.equal(envConfig.apiUrlUserCosmo);
     });
-
     it('should successfully resolve social work api base urls', () => {
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'state')).to.equal(envConfig.apiUrlStateSw);
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'license')).to.equal(envConfig.apiUrlLicenseSw);
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'search')).to.equal(envConfig.apiUrlSearchSw);
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'user')).to.equal(envConfig.apiUrlUserSw);
     });
-
+    it('should successfully resolve psypact api base urls', () => {
+        expect(getApiBaseUrl(AppModes.PSYPACT, 'state')).to.equal(envConfig.apiUrlStatePsypact);
+        expect(getApiBaseUrl(AppModes.PSYPACT, 'license')).to.equal(envConfig.apiUrlLicensePsypact);
+        expect(getApiBaseUrl(AppModes.PSYPACT, 'search')).to.equal(envConfig.apiUrlSearchPsypact);
+        expect(getApiBaseUrl(AppModes.PSYPACT, 'user')).to.equal(envConfig.apiUrlUserPsypact);
+    });
     it('should successfully not resolve for an unknown or missing app mode', () => {
         expect(getApiBaseUrl(null, 'license')).to.equal(undefined);
         expect(getApiBaseUrl(undefined, 'user')).to.equal(undefined);

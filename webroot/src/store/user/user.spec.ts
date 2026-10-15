@@ -6,7 +6,12 @@
 //
 
 import { FeeTypes, AppModes } from '@/app.config';
-import { authStorage, tokens, AuthTypes } from '@utils/auth';
+import {
+    authStorage,
+    tokens,
+    AuthTypes,
+    autoLogoutConfig
+} from '@utils/auth';
 import chaiMatchPattern from 'chai-match-pattern';
 import { use, expect } from 'chai';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
@@ -79,13 +84,18 @@ describe('Use Store Mutations', () => {
         expect(state.error).to.equal(error);
     });
     it('should successfully get logout success', () => {
-        const state = {};
+        const state = {
+            isLoggedInAsStaff: true,
+            isLoggedInAsLicensee: true,
+        };
 
         mutations[MutationTypes.LOGOUT_SUCCESS](state);
 
         expect(state.model).to.equal(null);
         expect(state.isLoadingAccount).to.equal(false);
         expect(state.isLoggedIn).to.equal(false);
+        expect(state.isLoggedInAsStaff).to.equal(false);
+        expect(state.isLoggedInAsLicensee).to.equal(false);
         expect(state.error).to.equal(null);
     });
     it('should successfully create licensee account request', () => {
@@ -206,12 +216,17 @@ describe('Use Store Mutations', () => {
         expect(state.model).to.equal(user);
     });
     it('should successfully reset user', () => {
-        const state = {};
+        const state = {
+            isLoggedInAsStaff: true,
+            isLoggedInAsLicensee: true,
+        };
 
         mutations[MutationTypes.STORE_RESET_USER](state);
 
         expect(state.model).to.equal(null);
         expect(state.isLoadingAccount).to.equal(false);
+        expect(state.isLoggedInAsStaff).to.equal(false);
+        expect(state.isLoggedInAsLicensee).to.equal(false);
         expect(state.error).to.equal(null);
     });
     it('should successfully update account request', () => {
@@ -682,9 +697,12 @@ describe('User Store Actions', async () => {
     });
     it('should successfully reset user', () => {
         const commit = sinon.spy();
+        const dispatch = sinon.spy();
 
-        actions.resetStoreUser({ commit });
+        actions.resetStoreUser({ commit, dispatch });
 
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args).to.matchPattern(['clearAutoLogoutTimeout']);
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_RESET_USER]);
     });
@@ -814,6 +832,38 @@ describe('User Store Actions', async () => {
         actions.setAutoLogoutTimeout({ commit, dispatch, state });
 
         expect(commit.calledOnce).to.equal(true);
+    });
+    it('should successfully show auto logout warning when still logged in when the timer fires', () => {
+        const clock = sinon.useFakeTimers();
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { isLoggedIn: true, isLoggedInAsStaff: true };
+
+        try {
+            actions.setAutoLogoutTimeout({ commit, dispatch, state });
+            clock.tick(autoLogoutConfig.INACTIVITY_TIMER_STAFF_MS);
+
+            expect(dispatch.calledWith('clearAutoLogoutTimeout')).to.equal(true);
+            expect(dispatch.calledWith('updateAutoLogoutWarning', true)).to.equal(true);
+        } finally {
+            clock.restore();
+        }
+    });
+    it('should successfully skip auto logout warning if logged out when the timer fires', () => {
+        const clock = sinon.useFakeTimers();
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { isLoggedIn: false, isLoggedInAsStaff: true };
+
+        try {
+            actions.setAutoLogoutTimeout({ commit, dispatch, state });
+            clock.tick(autoLogoutConfig.INACTIVITY_TIMER_STAFF_MS);
+
+            expect(dispatch.calledWith('clearAutoLogoutTimeout')).to.equal(true);
+            expect(dispatch.calledWith('updateAutoLogoutWarning', true)).to.equal(false);
+        } finally {
+            clock.restore();
+        }
     });
     it('should successfully clear auto logout timeout', () => {
         const commit = sinon.spy();

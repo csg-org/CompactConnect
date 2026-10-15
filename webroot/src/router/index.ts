@@ -8,7 +8,7 @@
 import { createRouter, createWebHistory, RouteLocationNormalized as Route } from 'vue-router';
 import routes from '@router/routes';
 import store from '@/store';
-import { getAppModeForCompact } from '@utils/compactConfig';
+import { getAppModeForCompact, getLockedAppMode } from '@utils/compactConfig';
 import { authStorage, AUTH_TYPE, AuthTypes } from '@utils/auth';
 import { CompactSerializer } from '@models/Compact/Compact.model';
 
@@ -40,6 +40,14 @@ router.beforeEach(async (to, from, next) => {
         const { currentCompact } = store.getters['user/state'];
         // Update the app mode based on attempted compact route, if needed
         const expectedAppMode = getAppModeForCompact(routeParamCompactType as string);
+        const lockedAppMode = getLockedAppMode();
+
+        // Compact-specific hosts serve one app mode; refuse routes for any other compact
+        if (lockedAppMode && expectedAppMode !== lockedAppMode) {
+            next({ name: 'Home' });
+
+            return;
+        }
 
         if (!appMode || appMode !== expectedAppMode) {
             store.dispatch('setAppMode', expectedAppMode);

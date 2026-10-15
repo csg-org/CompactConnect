@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 4/27/21.
 //
 import { AppModes } from '@/app.config';
+import { getAppModeForCompact, getCompactSetup } from '@utils/compactConfig';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import sessionStorage from '@store/session.storage';
 import localStorage from '@store/local.storage';
@@ -37,6 +38,26 @@ export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 export const AUTH_LOGIN_GOTO_PATH_AUTH_TYPE = 'login_goto_auth_type';
 export const AUTH_LOGIN_GOTO_COMPACT = 'login_goto_compact';
 export const AUTH_CSRF_STATE = 'auth_csrf_state';
+
+// Locally, CompactConnect and PsyPact share an origin so a stashed goto from one host
+// can follow you onto the other. Deployed hosts would not share this storage.
+export const getCompactFromGotoPath = (path?: string | null): string | null => {
+    const segment = (path || '').replace(/^\//, '').split('/')[0];
+
+    return (getCompactSetup(segment)) ? segment : null;
+};
+
+export const clearStashIfIncompatibleWithAppMode = (appMode: AppModes): void => {
+    const gotoPath = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
+    const storedCompact = authStorage.getItem(AUTH_LOGIN_GOTO_COMPACT);
+    const gotoCompact = (getCompactSetup(storedCompact)) ? storedCompact : getCompactFromGotoPath(gotoPath);
+
+    if (gotoCompact && getAppModeForCompact(gotoCompact) !== appMode) {
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_COMPACT);
+    }
+};
 export const AUTH_PKCE_CODE_VERIFIER = 'auth_pkce_code_verifier';
 
 // =========================
@@ -151,13 +172,22 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         } else if (appMode === AppModes.SOCIAL_WORK) {
             config.clientId = envConfig.cognitoClientIdStaffSw;
             config.authDomain = envConfig.cognitoAuthDomainStaffSw;
+        } else if (appMode === AppModes.PSYPACT) {
+            config.clientId = envConfig.cognitoClientIdStaffPsypact;
+            config.authDomain = envConfig.cognitoAuthDomainStaffPsypact;
         }
 
         break;
     case AuthTypes.LICENSEE:
         config.scopes = licenseeLoginScopes;
-        config.clientId = envConfig.cognitoClientIdLicensee;
-        config.authDomain = envConfig.cognitoAuthDomainLicensee;
+
+        if (appMode === AppModes.JCC) {
+            config.clientId = envConfig.cognitoClientIdLicensee;
+            config.authDomain = envConfig.cognitoAuthDomainLicensee;
+        } else if (appMode === AppModes.PSYPACT) {
+            config.clientId = envConfig.cognitoClientIdLicenseePsypact;
+            config.authDomain = envConfig.cognitoAuthDomainLicenseePsypact;
+        }
         break;
     default:
         break;
@@ -184,7 +214,7 @@ export const getAuthCallbackPath = (appMode: AppModes, authType: AuthTypes): str
 };
 
 export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login', state = '', codeChallenge = ''): string => {
-    const { domain } = envConfig;
+    const { origin } = envConfig;
     const {
         scopes,
         clientId,
@@ -197,7 +227,7 @@ export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hosted
         `&state=${encodeURIComponent(state)}`,
         `&code_challenge=${encodeURIComponent(codeChallenge)}`,
         `&code_challenge_method=S256`,
-        `&redirect_uri=${encodeURIComponent(`${domain}${getAuthCallbackPath(appMode, authType)}`)}`,
+        `&redirect_uri=${encodeURIComponent(`${origin}${getAuthCallbackPath(appMode, authType)}`)}`,
     ].join('');
     const loginUri = `${authDomain}${hostedIdpPath}${loginUriQuery}`;
 
@@ -286,5 +316,7 @@ export default {
     consumeAuthCsrfState,
     createPkceChallenge,
     consumePkceCodeVerifier,
+    getCompactFromGotoPath,
+    clearStashIfIncompatibleWithAppMode,
     autoLogoutConfig,
 };

@@ -15,6 +15,7 @@ export default {
     isAppModeJcc: (state: State) => state.appMode === AppModes.JCC,
     isAppModeCosmetology: (state: State) => state.appMode === AppModes.COSMETOLOGY,
     isAppModeSocialWork: (state: State) => state.appMode === AppModes.SOCIAL_WORK,
+    isAppModePsyPact: (state: State) => state.appMode === AppModes.PSYPACT,
     isAppGroupModePrivilegePurchase: (state: State) => state.appGroupMode === AppGroupModes.PRIVILEGE_PURCHASE,
     isAppGroupModeMultiState: (state: State) => state.appGroupMode === AppGroupModes.MULTI_STATE,
 };

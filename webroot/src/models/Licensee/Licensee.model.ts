@@ -219,7 +219,7 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public phoneNumberDisplay(): string {
-        return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
+        return (this.phoneNumber) ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
     }
 
     public isMilitaryStatusActive(): boolean {
@@ -345,6 +345,10 @@ export class Licensee implements InterfaceLicensee {
 
     public bestLicenseMailingAddress(): Address {
         return this.bestLicense().mailingAddress || new Address();
+    }
+
+    public bestLicensePhoneNumberDisplay(): string {
+        return this.bestLicense().phoneNumberDisplay();
     }
 
     public hasEncumberedLicenses(): boolean {
