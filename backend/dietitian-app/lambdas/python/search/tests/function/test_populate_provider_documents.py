@@ -228,7 +228,10 @@ class TestPopulateProviderDocuments(TstFunction):
             self.assertEqual(page_key, first_result['resumeFrom']['startingLastKey'])
             self.assertEqual(1, first_result['total_providers_indexed'])
             self.assertEqual(1, mock_client_instance.bulk_index.call_count)
-            self.assertEqual(self._generate_expected_call_for_document('diet'), mock_client_instance.bulk_index.call_args)
+            self.assertEqual(
+                self._generate_expected_call_for_document('diet'),
+                mock_client_instance.bulk_index.call_args,
+            )
 
             mock_opensearch_client.reset_mock()
             mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)

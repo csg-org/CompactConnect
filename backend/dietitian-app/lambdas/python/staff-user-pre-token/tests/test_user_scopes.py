@@ -97,9 +97,6 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'diet/readGeneral',
                 'al/diet.admin',
                 'al/diet.write',
-                'diet/readGeneral',
-                'al/diet.admin',
-                'al/diet.write',
             },
             user_data.scopes,
         )

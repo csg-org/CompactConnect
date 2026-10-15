@@ -36,7 +36,11 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
                     'postalAbbreviation': 'ky',
                     'compact': 'diet',
                     'privilegeFees': [
-                        {'licenseTypeAbbreviation': 'diet', 'amount': Decimal('25.00'), 'militaryRate': Decimal('20.00')}
+                        {
+                            'licenseTypeAbbreviation': 'diet',
+                            'amount': Decimal('25.00'),
+                            'militaryRate': Decimal('20.00'),
+                        }
                     ],
                     'jurisprudenceRequirements': {'required': True},
                 },

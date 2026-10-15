@@ -632,7 +632,7 @@ class TestPostPurchasePrivileges(TstFunction):
         privilege_records_license_types = set(
             [record['licenseType'] for record in provider_records['items'] if record['type'] == 'privilege']
         )
-        self.assertEqual({'dietitian', 'dietitian'}, privilege_records_license_types)
+        self.assertEqual({'dietitian'}, privilege_records_license_types)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_matches_but_is_inactive(
