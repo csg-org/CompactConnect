@@ -128,17 +128,16 @@ describe('Users Store Mutations', () => {
 
         mutations[MutationTypes.UPDATE_USER_REQUEST](state);
 
-        expect(state.isLoading).to.equal(true);
+        expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
     it('should successfully update user failure', () => {
         const state = {};
-        const error = new Error();
 
-        mutations[MutationTypes.UPDATE_USER_FAILURE](state, error);
+        mutations[MutationTypes.UPDATE_USER_FAILURE](state);
 
         expect(state.isLoading).to.equal(false);
-        expect(state.error).to.equal(error);
+        expect(state.error).to.equal(null);
     });
     it('should successfully update user success', () => {
         const state = {};

@@ -75,11 +75,15 @@ export default {
     // UPDATE USER
     updateUserRequest: async ({ commit, dispatch }, { compact, userId, data }: any) => {
         commit(MutationTypes.UPDATE_USER_REQUEST);
-        await dataApi.updateUser(compact, userId, data).then(async (user) => {
+        return dataApi.updateUser(compact, userId, data).then(async (user) => {
             await dispatch('setStoreUser', user);
             dispatch('updateUserSuccess', user);
+
+            return user;
         }).catch((error) => {
             dispatch('updateUserFailure', error);
+
+            throw error;
         });
     },
     updateUserSuccess: ({ commit }) => {
