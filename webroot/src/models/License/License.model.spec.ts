@@ -193,7 +193,25 @@ describe('License model', () => {
             phoneNumber: '+12223334444',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseScope: LicenseScope.SINGLE_STATE,
-            history: [],
+            history: [
+                {
+                    updateType: 'issuance',
+                    effectiveDate: '2021-03-15T00:00:00+00:00',
+                    createDate: '2021-03-15T00:00:00+00:00',
+                },
+                {
+                    updateType: 'encumbrance',
+                    effectiveDate: '2022-09-10',
+                    createDate: '2022-09-10T18:45:00+00:00',
+                    encumbranceType: 'required supervision',
+                    npdbCategories: ['Misconduct or Abuse'],
+                },
+                {
+                    updateType: 'liftingEncumbrance',
+                    effectiveDate: '2023-01-05',
+                    createDate: '2023-01-05T09:00:00+00:00',
+                },
+            ],
             licenseStatus: LicenseStatus.ACTIVE,
             licenseStatusName: 'test-status-desc',
             compactEligibility: EligibilityStatus.ELIGIBLE,
@@ -238,6 +256,13 @@ describe('License model', () => {
         expect(license.status).to.equal(data.licenseStatus);
         expect(license.statusDescription).to.equal(data.licenseStatusName);
         expect(license.eligibility).to.equal(data.compactEligibility);
+        expect(license.history).to.be.an('array').with.length(3);
+        expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
+        expect(license.history[0].updateType).to.equal('issuance');
+        expect(license.history[0].state.abbrev).to.equal(data.jurisdiction);
+        expect(license.history[1].updateType).to.equal('encumbrance');
+        expect(license.history[1].encumbranceType).to.equal('required supervision');
+        expect(license.history[2].updateType).to.equal('liftingEncumbrance');
         expect(license.adverseActions).to.be.an('array').with.length(1);
         expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
         expect(license.investigations).to.be.an('array').with.length(1);
@@ -630,7 +655,10 @@ describe('License model', () => {
         expect(license.licenseTypeDisplay()).to.equal('Occupational Therapy Assistant');
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.licenseScopeDisplay()).to.equal('Multi state');
-        expect(license.history.length).to.equal(0);
+        expect(license.history).to.be.an('array').with.length(3);
+        expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
+        expect(license.history[0].updateType).to.equal('deactivation');
+        expect(license.history[0].state.abbrev).to.equal(data.jurisdiction);
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
         expect(license.isUnderInvestigation()).to.equal(true);

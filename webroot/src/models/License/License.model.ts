@@ -11,7 +11,7 @@ import { dateDisplay } from '@models/_formatters/date';
 import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
-import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
+import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
 import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation, InvestigationSerializer } from '@models/Investigation/Investigation.model';
@@ -261,9 +261,21 @@ export class LicenseSerializer {
             eligibility: (json.type === 'license' || json.type === 'license-home')
                 ? json.compactEligibility
                 : EligibilityStatus.NA,
+            history: [] as Array<LicenseHistoryItem>,
             adverseActions: [] as Array<AdverseAction>,
             investigations: [] as Array<Investigation>,
         };
+
+        if (Array.isArray(json.history)) {
+            const jurisdiction = json.jurisdiction || json.licenseJurisdiction;
+
+            json.history.forEach((serverHistoryItem) => {
+                licenseData.history.push(LicenseHistoryItemSerializer.fromServer({
+                    ...serverHistoryItem,
+                    jurisdiction,
+                }));
+            });
+        }
 
         if (Array.isArray(json.adverseActions)) {
             json.adverseActions.forEach((serverAdverseAction) => {

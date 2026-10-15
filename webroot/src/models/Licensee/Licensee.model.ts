@@ -19,6 +19,7 @@ import {
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
+import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { State } from '@models/State/State.model';
 import moment from 'moment';
 import { StatsigClient } from '@statsig/js-client';
@@ -431,6 +432,13 @@ export class Licensee implements InterfaceLicensee {
             && !this.isMilitaryStatusInitializing()
             && !this.isEncumbered()
             && !this.hasEncumbranceLiftedWithinWaitPeriod();
+    }
+
+    public history(): Array<LicenseHistoryItem> {
+        const licenseHistory = (this.licenses || []).flatMap((license: License) => license.history || []);
+        const privilegeHistory = (this.privileges || []).flatMap((privilege: License) => privilege.history || []);
+
+        return [...licenseHistory, ...privilegeHistory];
     }
 }
 

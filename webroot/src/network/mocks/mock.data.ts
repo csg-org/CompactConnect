@@ -986,6 +986,32 @@ export const licensees = {
                     licenseStatus: 'inactive',
                     licenseStatusName: '',
                     compactEligibility: 'ineligible',
+                    history: [
+                        {
+                            updateType: 'issuance',
+                            effectiveDate: moment().subtract(2, 'years').format(serverDatetimeFormat),
+                            createDate: moment().subtract(2, 'years').format(serverDatetimeFormat),
+                        },
+                        {
+                            updateType: 'encumbrance',
+                            effectiveDate: moment().subtract(1, 'year').format(serverDateFormat),
+                            createDate: moment().subtract(1, 'year').format(serverDatetimeFormat),
+                            encumbranceType: 'fine',
+                            npdbCategories: ['Non-compliance With Requirements'],
+                        },
+                        {
+                            updateType: 'liftingEncumbrance',
+                            effectiveDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            createDate: moment().subtract(1, 'month').format(serverDatetimeFormat),
+                        },
+                        {
+                            updateType: 'encumbrance',
+                            effectiveDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            createDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            encumbranceType: 'fine',
+                            npdbCategories: ['Non-compliance With Requirements'],
+                        },
+                    ],
                     adverseActions: [
                         {
                             adverseActionId: '12345-MNO',
@@ -1122,6 +1148,20 @@ export const licensees = {
                     dateOfRenewal: '2025-03-26T15:56:58+00:00',
                     dateOfExpiration: moment().format(serverDateFormat),
                     attestations: attestationResponses.map((response) => ({ ...response })),
+                    history: [
+                        {
+                            updateType: 'issuance',
+                            effectiveDate: '2024-03-19T21:30:27+00:00',
+                            createDate: '2024-03-19T21:30:27+00:00',
+                        },
+                        {
+                            updateType: 'encumbrance',
+                            effectiveDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            createDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            encumbranceType: 'fine',
+                            npdbCategories: ['Non-compliance With Requirements'],
+                        },
+                    ],
                     adverseActions: [
                         {
                             adverseActionId: '12345-ABC',
