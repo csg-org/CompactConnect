@@ -108,10 +108,11 @@ class LicenseeSearch extends mixins(MixinForm) {
     }
 
     get compactOptions(): Array<{ value: string, name: string | ComputedRef }> {
-        const options: Array<{ value: string, name: string | ComputedRef }> = this.$compactsEnabled.map((compact) => ({
-            value: compact.type,
-            name: compact.name,
-        }));
+        const options: Array<{ value: string, name: string | ComputedRef }> = this.$compactsEnabledCompactConnect
+            .map((compact) => ({
+                value: compact.type,
+                name: compact.name,
+            }));
 
         options.unshift({
             value: '',
@@ -122,7 +123,7 @@ class LicenseeSearch extends mixins(MixinForm) {
     }
 
     get enableCompactSelect(): boolean {
-        return this.isPublicSearch;
+        return this.isPublicSearch && !this.$isAppModePsyPact;
     }
 
     get compactStates(): Array<State> {

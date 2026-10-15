@@ -73,7 +73,7 @@ describe('AuthCallbackHandler mixin', async () => {
         expect(axiosPostStub.firstCall.args[1].get('grant_type')).to.equal('authorization_code');
         expect(axiosPostStub.firstCall.args[1].get('client_id')).to.equal(cognitoClientId);
         expect(axiosPostStub.firstCall.args[1].get('redirect_uri')).to.equal(
-            `${component.$envConfig.domain}${component.$route.path}`
+            `${component.$envConfig.origin}${component.$route.path}`
         );
         expect(axiosPostStub.firstCall.args[1].get('code')).to.equal('auth-code-123');
         expect(axiosPostStub.firstCall.args[1].get('code_verifier')).to.equal('pkce-verifier-123');

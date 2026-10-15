@@ -44,9 +44,9 @@ export default class Logout extends Vue {
     }
 
     get hostedLogoutUriStaff(): string {
-        const { domain } = this.$envConfig;
+        const { origin } = this.$envConfig;
         const { clientId, authDomain } = getCognitoConfig(this.$appMode, AuthTypes.STAFF);
-        const logoutLink = encodeURIComponent(`${(domain as string)}/Logout`);
+        const logoutLink = encodeURIComponent(`${(origin as string)}/Logout`);
         const logoutUriQuery = [
             `?client_id=${clientId}`,
             `&logout_uri=${logoutLink}`
@@ -58,9 +58,9 @@ export default class Logout extends Vue {
     }
 
     get loginURL(): string {
-        const { domain } = this.$envConfig;
+        const { origin } = this.$envConfig;
 
-        return `${(domain as string)}/Dashboard`;
+        return `${(origin as string)}/Dashboard`;
     }
 
     get hostedLogoutUriLicensee(): string {
@@ -79,6 +79,10 @@ export default class Logout extends Vue {
         return this.userStore.isLoggedIn;
     }
 
+    get isUsingMockApi(): boolean {
+        return this.$envConfig.isUsingMockApi || false;
+    }
+
     //
     // Methods
     //
@@ -87,10 +91,15 @@ export default class Logout extends Vue {
             const isRemoteLoggedInAsLicenseeOnly = !authStorage.getItem(tokens.staff.AUTH_TOKEN);
 
             await this.logoutChecklist(isRemoteLoggedInAsLicenseeOnly);
-            this.beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly);
+
+            if (this.isUsingMockApi) {
+                this.$router.replace({ name: 'DashboardPublic' });
+            } else {
+                this.beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly);
+            }
         } else {
             await this.logoutChecklist(false);
-            window.location.replace(this.loginURL);
+            this.$router.replace({ name: 'DashboardPublic' });
         }
     }
 
@@ -99,7 +108,13 @@ export default class Logout extends Vue {
 
         this.stashWorkingUri();
         this.$store.dispatch('user/clearRefreshTokenTimeout');
-        await this.revokeTokens(authType);
+        this.$store.dispatch('user/clearAutoLogoutTimeout');
+        this.$store.dispatch('user/updateAutoLogoutWarning', false);
+
+        if (!this.isUsingMockApi) {
+            await this.revokeTokens(authType);
+        }
+
         this.unsetAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps
         await this.$store.dispatch('user/logoutRequest', authType);
     }

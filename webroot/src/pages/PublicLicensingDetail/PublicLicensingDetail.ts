@@ -9,6 +9,7 @@ import { Component, Vue } from 'vue-facing-decorator';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
+import PracticeStates from '@/components/Licensee/PracticeStates/PracticeStates.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import ExpirationExplanationIcon from '@components/Icons/ExpirationExplanationIcon/ExpirationExplanationIcon.vue';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
@@ -25,6 +26,7 @@ import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
         AlertCircleIcon,
         LicenseCard,
         PrivilegeCard,
+        PracticeStates,
         CollapseCaretButton,
         ExpirationExplanationIcon
     }
@@ -104,6 +106,10 @@ export default class PublicLicensingDetail extends Vue {
 
     get activeLicenses(): Array<License> {
         return this.licenseeLicenses.filter((license) => (license.status === LicenseStatus.ACTIVE));
+    }
+
+    get licenseePrivilegesTitle(): string {
+        return (this.$isAppModePsyPact) ? this.$t('licensing.providerPracticeStates') : this.$t('licensing.privileges');
     }
 
     get licenseePrivileges(): Array<License> {

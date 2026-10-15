@@ -39,18 +39,20 @@
                             {{ licenseeHomeStateDisplay }}
                         </div>
                     </div>
-                    <div
-                        v-for="(license, idx) in activeLicenses"
-                        :key="idx"
-                        class="tag"
-                    >
-                        <div class="tag-icon-container">
-                            <LicenseIcon />
+                    <template v-if="!$isAppModeSocialWork">
+                        <div
+                            v-for="(license, idx) in activeLicenses"
+                            :key="idx"
+                            class="tag"
+                        >
+                            <div class="tag-icon-container">
+                                <LicenseIcon />
+                            </div>
+                            <div class="tag-text">
+                                {{ license.issueState.name() }}
+                            </div>
                         </div>
-                        <div class="tag-text">
-                            {{ license.issueState.name() }}
-                        </div>
-                    </div>
+                    </template>
                 </div>
             </div>
             <div class="personal-information-section rr-block">
@@ -63,9 +65,7 @@
                                 :alt="$t('licensing.pInfoIcon')"
                             />
                         </div>
-                        <div class="title-text">
-                            {{personalInformationTitle}}
-                        </div>
+                        <div class="title-text">{{ $t('licensing.personalInformation') }}</div>
                     </div>
                     <CollapseCaretButton
                         @toggleCollapse="togglePersonalInfoCollapsed"
@@ -91,13 +91,17 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="$isAppGroupModePrivilegePurchase" class="info-item-container">
+                        <div v-if="$isAppGroupModePrivilegePurchase || $isAppModePsyPact" class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.registrationEmail')}}</div>
                             <div class="info-item email">{{registrationEmail}}</div>
                         </div>
                         <div class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.stateEmail')}}</div>
                             <div class="info-item email">{{stateEmail}}</div>
+                        </div>
+                        <div v-if="$isAppModeSocialWork" class="info-item-container">
+                            <div class="info-item-title">{{$t('common.phoneNumber')}}</div>
+                            <div class="info-item phone">{{phoneNumber}}</div>
                         </div>
                         <div v-if="dob" class="info-item-container">
                             <div class="info-item-title">{{$t('common.dateOfBirthShort')}}</div>
@@ -144,9 +148,7 @@
                         <div class="license-logo-container">
                             <LicenseIcon />
                         </div>
-                        <div class="title-text">
-                            {{licenseDetails}}
-                        </div>
+                        <div class="title-text">{{ $t('licensing.licenseDetails') }}</div>
                     </div>
                     <CollapseCaretButton
                         @toggleCollapse="toggleLicensesCollapsed"
@@ -164,7 +166,7 @@
                             :homeState="homeState"
                         />
                         <div v-if="isLicenseExpired(license)" class="license-expired-message">
-                            {{licenseExpiredMessage}}
+                            {{ $t('licensing.licenseExpired') }}
                         </div>
                     </div>
                 </div>
@@ -179,16 +181,15 @@
                                 :alt="$t('licensing.privilegeIcon')"
                             />
                         </div>
-                        <div class="title-text">
-                            {{privilegesTitle}}
-                        </div>
-                        <ExpirationExplanationIcon />
+                        <div class="title-text">{{ privilegesTitle }}</div>
+                        <ExpirationExplanationIcon v-if="!$isAppModePsyPact" />
                     </div>
-                    <CollapseCaretButton
-                        @toggleCollapse="togglePrivsCollapsed"
-                    />
+                    <CollapseCaretButton @toggleCollapse="togglePrivsCollapsed" />
                 </div>
-                <div v-if="!isPrivsCollapsed" class="privilege-card-list-container">
+                <div v-if="!isPrivsCollapsed && $isAppModePsyPact" class="privilege-list-container">
+                    <PracticeStates :licensee="licensee" />
+                </div>
+                <div v-else-if="!isPrivsCollapsed" class="privilege-card-list-container">
                     <template v-for="(privilege, index) in licenseePrivileges" :key="index">
                         <div v-if="index > 0
                             && privilege.licenseTypeAbbreviation() !==

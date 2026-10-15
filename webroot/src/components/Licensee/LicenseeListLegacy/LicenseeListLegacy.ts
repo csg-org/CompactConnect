@@ -217,7 +217,7 @@ class LicenseeList extends Vue {
     async resetSearch(): Promise<void> {
         this.$store.dispatch('license/resetStoreSearch');
 
-        if (this.isPublicSearch) {
+        if (this.isPublicSearch && !this.$isAppModePsyPact) {
             await this.$store.dispatch('user/setCurrentCompact', null);
         }
 
