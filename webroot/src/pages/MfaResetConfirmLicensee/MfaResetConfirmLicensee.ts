@@ -20,6 +20,8 @@ import {
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
 } from '@utils/auth';
+import { AppModes } from '@/app.config';
+import { getAppModeForCompact } from '@utils/compactConfig';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
@@ -83,8 +85,12 @@ class MfaResetConfirmLicensee extends Vue {
         return (this.$route.query?.recoveryId as string) || '';
     }
 
+    get loginAppMode(): AppModes {
+        return (this.compactQuery) ? getAppModeForCompact(this.compactQuery) : this.$appMode;
+    }
+
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(this.$appMode, AuthTypes.LICENSEE, '/login', this.csrfState, this.pkceChallenge);
+        return getHostedLoginUri(this.loginAppMode, AuthTypes.LICENSEE, '/login', this.csrfState, this.pkceChallenge);
     }
 
     get isUsingMockApi(): boolean {
