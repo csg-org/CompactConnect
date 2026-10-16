@@ -61,6 +61,10 @@ export default class DashboardPublic extends Vue {
     //
     // Computed
     //
+    get appModes(): typeof AppModes {
+        return AppModes;
+    }
+
     get compactTypes(): typeof CompactType {
         return CompactType;
     }
