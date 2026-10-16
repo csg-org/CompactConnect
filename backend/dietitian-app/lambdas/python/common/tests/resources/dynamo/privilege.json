@@ -1,0 +1,24 @@
+{
+  "pk": "diet#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "sk": "diet#PROVIDER#privilege/ne/diet#",
+  "type": "privilege",
+  "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "compact": "diet",
+  "jurisdiction": "ne",
+  "licenseJurisdiction": "oh",
+  "licenseType": "dietitian",
+  "dateOfIssuance": "2016-05-05T12:59:59+00:00",
+  "dateOfRenewal": "2020-05-05T12:59:59+00:00",
+  "dateOfExpiration": "2025-04-04",
+  "dateOfUpdate": "2020-05-05T12:59:59+00:00",
+  "compactTransactionId": "1234567890",
+  "compactTransactionIdGSIPK": "COMPACT#diet#TX#1234567890#",
+  "privilegeId": "DIET-NE-1",
+  "administratorSetStatus": "active",
+  "attestations": [
+    {
+      "attestationId": "jurisprudence-confirmation",
+      "version": "1"
+    }
+  ]
+}
