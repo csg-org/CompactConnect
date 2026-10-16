@@ -17,6 +17,7 @@ import AlertCircleIcon from '@components/Icons/AlertCircle/AlertCircle.vue';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
+import moment from 'moment';
 
 @Component({
     name: 'PublicLicensingDetail',
@@ -225,8 +226,8 @@ export default class PublicLicensingDetail extends Vue {
     }
 
     sortByHistoryDate(event1: LicenseHistoryItem, event2: LicenseHistoryItem): number {
-        const date1 = event1.effectiveDate || '';
-        const date2 = event2.effectiveDate || '';
+        const date1 = (event1.effectiveDate) ? moment(event1.effectiveDate).valueOf() : 0;
+        const date2 = (event2.effectiveDate) ? moment(event2.effectiveDate).valueOf() : 0;
         let sort = 0;
 
         if (date1 < date2) {

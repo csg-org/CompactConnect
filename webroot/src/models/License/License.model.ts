@@ -272,7 +272,7 @@ export class LicenseSerializer {
             json.history.forEach((serverHistoryItem) => {
                 licenseData.history.push(LicenseHistoryItemSerializer.fromServer({
                     ...serverHistoryItem,
-                    jurisdiction,
+                    jurisdiction: serverHistoryItem.jurisdiction || jurisdiction,
                 }));
             });
         }

@@ -989,7 +989,7 @@ export const licensees = {
                     history: [
                         {
                             updateType: 'issuance',
-                            effectiveDate: moment().subtract(2, 'years').format(serverDatetimeFormat),
+                            effectiveDate: '2023-08-29',
                             createDate: moment().subtract(2, 'years').format(serverDatetimeFormat),
                         },
                         {

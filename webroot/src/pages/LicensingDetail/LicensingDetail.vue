@@ -255,7 +255,7 @@
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('licensing.encumberBasisLabel') }}:
                                 </span>
-                                {{ historyItem.npdbTypeNames().join('; ') }}
+                                {{ historyItem.npdbTypeNames().join('; ') || historyItem.noteDisplay() }}
                             </div>
                         </div>
                     </div>

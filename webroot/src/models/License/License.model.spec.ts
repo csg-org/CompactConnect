@@ -205,6 +205,7 @@ describe('License model', () => {
                     createDate: '2022-09-10T18:45:00+00:00',
                     encumbranceType: 'required supervision',
                     npdbCategories: ['Misconduct or Abuse'],
+                    jurisdiction: 'oh',
                 },
                 {
                     updateType: 'liftingEncumbrance',
@@ -262,7 +263,9 @@ describe('License model', () => {
         expect(license.history[0].state.abbrev).to.equal(data.jurisdiction);
         expect(license.history[1].updateType).to.equal('encumbrance');
         expect(license.history[1].encumbranceType).to.equal('required supervision');
+        expect(license.history[1].state.abbrev).to.equal(data.history[1].jurisdiction);
         expect(license.history[2].updateType).to.equal('liftingEncumbrance');
+        expect(license.history[2].state.abbrev).to.equal(data.jurisdiction);
         expect(license.adverseActions).to.be.an('array').with.length(1);
         expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
         expect(license.investigations).to.be.an('array').with.length(1);
