@@ -1,5 +1,5 @@
 # ruff: noqa: SLF001 private-member
-from datetime import date
+from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 
 from tests import TstLambdas
@@ -2276,3 +2276,450 @@ class TestPopulateProviderRecordAggregateFields(TstLambdas):
         )
 
         self.assertEqual('encumbered', provider_record.to_dict()['encumberedStatus'])
+
+
+def _history_value(value):
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    return value
+
+
+ISSUANCE_AT = datetime.fromisoformat('2021-03-15T00:00:00+00:00')
+HOME_CHANGE_AT = datetime.fromisoformat('2022-06-01T14:32:00+00:00')
+RENEWAL_AT = datetime.fromisoformat('2023-03-15T00:00:00+00:00')
+ENCUMBRANCE_ON = date(2022, 9, 10)
+ENCUMBRANCE_RECORDED_AT = datetime.fromisoformat('2022-09-10T18:45:00+00:00')
+LIFT_ON = date(2023, 1, 5)
+PRIVILEGE_ENCUMBRANCE_ON = date(2023, 5, 20)
+NPDB_CATEGORIES = [
+    'Substandard Care or Patient Neglect/Abuse',
+    'Fraud, Deception, or Misrepresentation',
+]
+ENCUMBRANCE_TYPE = 'required supervision'
+LICENSE_TYPE = 'licensed clinical social worker'
+
+
+class TestConstructHistory(TstLambdas):
+    """History assembly for licenses and privileges. These fail until the methods exist."""
+
+    def _loaded(self, *objects):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        return ProviderUserRecords([obj.serialize_to_database_record() for obj in objects])
+
+    def _license(self, *, scope='multi-state', first_upload_date=ISSUANCE_AT):
+        return self.test_data_generator.generate_default_license(
+            {
+                'licenseScope': scope,
+                'jurisdiction': 'oh',
+                'licenseType': LICENSE_TYPE,
+                'firstUploadDate': first_upload_date,
+                'licenseNumber': f'history-{scope}',
+            }
+        )
+
+    def _renewal(self, *, scope='multi-state'):
+        return self.test_data_generator.generate_default_license_update(
+            {
+                'updateType': 'renewal',
+                'licenseScope': scope,
+                'jurisdiction': 'oh',
+                'licenseType': LICENSE_TYPE,
+                'effectiveDate': RENEWAL_AT,
+                'createDate': RENEWAL_AT,
+            }
+        )
+
+    def _home_jurisdiction_change(self):
+        previous = self.test_data_generator.generate_default_provider({'licenseJurisdiction': 'az'})
+        return self.test_data_generator.generate_default_provider_update(
+            {
+                'updateType': 'homeJurisdictionChange',
+                'createDate': HOME_CHANGE_AT,
+                'previous': previous.to_dict(),
+                'updatedValues': {'licenseJurisdiction': 'oh'},
+            }
+        )
+
+    def _adverse_action(
+        self,
+        *,
+        action_against,
+        jurisdiction,
+        license_scope,
+        start,
+        adverse_action_id,
+        lift_on=None,
+        recorded_at=ENCUMBRANCE_RECORDED_AT,
+    ):
+        overrides = {
+            'actionAgainst': action_against,
+            'jurisdiction': jurisdiction,
+            'licenseScope': license_scope,
+            'licenseType': LICENSE_TYPE,
+            'licenseTypeAbbreviation': 'lcsw',
+            'effectiveStartDate': start,
+            'creationDate': recorded_at,
+            'encumbranceType': ENCUMBRANCE_TYPE,
+            'clinicalPrivilegeActionCategories': NPDB_CATEGORIES,
+            'adverseActionId': adverse_action_id,
+        }
+        if lift_on is not None:
+            overrides['effectiveLiftDate'] = lift_on
+        return self.test_data_generator.generate_default_adverse_action(overrides)
+
+    def _privilege(self, jurisdiction):
+        return {
+            'type': 'privilege',
+            'jurisdiction': jurisdiction,
+            'licenseType': LICENSE_TYPE,
+            'licenseJurisdiction': 'oh',
+        }
+
+    def _license_record(self, provider_records, scope):
+        return next(record for record in provider_records.get_license_records() if record.licenseScope == scope)
+
+    def _by_type(self, history):
+        grouped = {}
+        for event in history:
+            grouped.setdefault(event['updateType'], []).append(event)
+        return grouped
+
+    def _assert_staff_fields_absent(self, event):
+        self.assertNotIn('npdbCategories', event)
+        self.assertNotIn('encumbranceType', event)
+
+    def test_license_history_issuance_only(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        provider_records = self._loaded(provider, license_data)
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'multi-state'),
+            should_include_encumbrance_details=False,
+        )
+
+        self.assertEqual(['issuance'], [event['updateType'] for event in history])
+        issuance = history[0]
+        self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(issuance['effectiveDate']))
+        self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(issuance['createDate']))
+
+    def test_license_history_renewal_event(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        provider_records = self._loaded(provider, license_data, self._renewal())
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'multi-state'),
+            should_include_encumbrance_details=False,
+        )
+        renewal = self._by_type(history)['renewal'][0]
+        self.assertEqual('2023-03-15T00:00:00+00:00', _history_value(renewal['effectiveDate']))
+        self.assertEqual('2023-03-15T00:00:00+00:00', _history_value(renewal['createDate']))
+
+    def test_license_history_encumbrance_event_public(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        adverse_action = self._adverse_action(
+            action_against='license',
+            jurisdiction='oh',
+            license_scope='multi-state',
+            start=ENCUMBRANCE_ON,
+            adverse_action_id='11111111-1111-1111-1111-111111111111',
+        )
+        provider_records = self._loaded(provider, license_data, adverse_action)
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'multi-state'),
+            should_include_encumbrance_details=False,
+        )
+        encumbrance = self._by_type(history)['encumbrance'][0]
+        self.assertEqual('2022-09-10', _history_value(encumbrance['effectiveDate']))
+        self.assertEqual('2022-09-10T18:45:00+00:00', _history_value(encumbrance['createDate']))
+        self.assertNotIn('liftingEncumbrance', self._by_type(history))
+        self._assert_staff_fields_absent(encumbrance)
+
+    def test_license_history_encumbrance_event_staff(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        adverse_action = self._adverse_action(
+            action_against='license',
+            jurisdiction='oh',
+            license_scope='multi-state',
+            start=ENCUMBRANCE_ON,
+            adverse_action_id='11111111-1111-1111-1111-111111111111',
+        )
+        provider_records = self._loaded(provider, license_data, adverse_action)
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'multi-state'),
+            should_include_encumbrance_details=True,
+        )
+        encumbrance = self._by_type(history)['encumbrance'][0]
+        self.assertEqual(NPDB_CATEGORIES, encumbrance['npdbCategories'])
+        self.assertEqual(ENCUMBRANCE_TYPE, encumbrance['encumbranceType'])
+
+    def test_license_history_lifting_encumbrance_event(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        adverse_action = self._adverse_action(
+            action_against='license',
+            jurisdiction='oh',
+            license_scope='multi-state',
+            start=ENCUMBRANCE_ON,
+            lift_on=LIFT_ON,
+            adverse_action_id='11111111-1111-1111-1111-111111111111',
+        )
+        provider_records = self._loaded(provider, license_data, adverse_action)
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'multi-state'),
+            should_include_encumbrance_details=False,
+        )
+        by_type = self._by_type(history)
+        self.assertEqual('2022-09-10', _history_value(by_type['encumbrance'][0]['effectiveDate']))
+        lifting = by_type['liftingEncumbrance'][0]
+        self.assertEqual('2023-01-05', _history_value(lifting['effectiveDate']))
+        self.assertEqual('2022-09-10T18:45:00+00:00', _history_value(lifting['createDate']))
+
+    def test_license_history_home_jurisdiction_change_on_multi_state_license(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        provider_records = self._loaded(provider, license_data, self._home_jurisdiction_change())
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'multi-state'),
+            should_include_encumbrance_details=False,
+        )
+        change = self._by_type(history)['homeJurisdictionChange'][0]
+        self.assertEqual('2022-06-01T14:32:00+00:00', _history_value(change['effectiveDate']))
+        self.assertEqual('2022-06-01T14:32:00+00:00', _history_value(change['createDate']))
+        self.assertEqual('az', change['previousHomeJurisdiction'])
+        self.assertEqual('oh', change['newHomeJurisdiction'])
+
+    def test_license_history_home_jurisdiction_change_not_on_single_state_license(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license(scope='single-state')
+        provider_records = self._loaded(provider, license_data, self._home_jurisdiction_change())
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'single-state'),
+            should_include_encumbrance_details=False,
+        )
+        self.assertNotIn('homeJurisdictionChange', self._by_type(history))
+
+    def test_license_history_events_sorted_by_effective_date(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        # Insert later events first so sort order is not insertion order.
+        provider_records = self._loaded(
+            provider,
+            license_data,
+            self._renewal(),
+            self._adverse_action(
+                action_against='license',
+                jurisdiction='oh',
+                license_scope='multi-state',
+                start=ENCUMBRANCE_ON,
+                lift_on=LIFT_ON,
+                adverse_action_id='11111111-1111-1111-1111-111111111111',
+            ),
+            self._home_jurisdiction_change(),
+        )
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'multi-state'),
+            should_include_encumbrance_details=False,
+        )
+        self.assertEqual(
+            ['issuance', 'homeJurisdictionChange', 'encumbrance', 'liftingEncumbrance', 'renewal'],
+            [event['updateType'] for event in history],
+        )
+
+    def test_license_history_multiple_event_types_combined(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        provider_records = self._loaded(
+            provider,
+            license_data,
+            self._renewal(),
+            self._adverse_action(
+                action_against='license',
+                jurisdiction='oh',
+                license_scope='multi-state',
+                start=ENCUMBRANCE_ON,
+                adverse_action_id='11111111-1111-1111-1111-111111111111',
+            ),
+            self._home_jurisdiction_change(),
+        )
+
+        history = provider_records.construct_license_history(
+            self._license_record(provider_records, 'multi-state'),
+            should_include_encumbrance_details=True,
+        )
+        by_type = self._by_type(history)
+        self.assertEqual({'issuance', 'renewal', 'encumbrance', 'homeJurisdictionChange'}, set(by_type))
+        self.assertEqual('az', by_type['homeJurisdictionChange'][0]['previousHomeJurisdiction'])
+        self.assertEqual('oh', by_type['homeJurisdictionChange'][0]['newHomeJurisdiction'])
+        self.assertEqual(NPDB_CATEGORIES, by_type['encumbrance'][0]['npdbCategories'])
+
+    def test_privilege_history_issuance_only(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        provider_records = self._loaded(provider, license_data)
+
+        history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+        self.assertEqual(['issuance'], [event['updateType'] for event in history])
+        self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(history[0]['effectiveDate']))
+        self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(history[0]['createDate']))
+
+    def test_privilege_history_encumbrance_event_public(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        adverse_action = self._adverse_action(
+            action_against='privilege',
+            jurisdiction='ne',
+            license_scope='single-state',
+            start=PRIVILEGE_ENCUMBRANCE_ON,
+            adverse_action_id='22222222-2222-2222-2222-222222222222',
+            recorded_at=datetime.fromisoformat('2023-05-20T11:00:00+00:00'),
+        )
+        provider_records = self._loaded(provider, license_data, adverse_action)
+
+        history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+        encumbrance = self._by_type(history)['encumbrance'][0]
+        self.assertEqual('2023-05-20', _history_value(encumbrance['effectiveDate']))
+        self.assertEqual('2023-05-20T11:00:00+00:00', _history_value(encumbrance['createDate']))
+        self._assert_staff_fields_absent(encumbrance)
+
+    def test_privilege_history_encumbrance_event_staff(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        adverse_action = self._adverse_action(
+            action_against='privilege',
+            jurisdiction='ne',
+            license_scope='single-state',
+            start=PRIVILEGE_ENCUMBRANCE_ON,
+            adverse_action_id='22222222-2222-2222-2222-222222222222',
+            recorded_at=datetime.fromisoformat('2023-05-20T11:00:00+00:00'),
+        )
+        provider_records = self._loaded(provider, license_data, adverse_action)
+
+        history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=True,
+        )
+        encumbrance = self._by_type(history)['encumbrance'][0]
+        self.assertEqual(NPDB_CATEGORIES, encumbrance['npdbCategories'])
+        self.assertEqual(ENCUMBRANCE_TYPE, encumbrance['encumbranceType'])
+
+    def test_privilege_history_lifting_encumbrance_event(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        adverse_action = self._adverse_action(
+            action_against='privilege',
+            jurisdiction='ne',
+            license_scope='single-state',
+            start=PRIVILEGE_ENCUMBRANCE_ON,
+            lift_on=date(2024, 1, 1),
+            adverse_action_id='22222222-2222-2222-2222-222222222222',
+            recorded_at=datetime.fromisoformat('2023-05-20T11:00:00+00:00'),
+        )
+        provider_records = self._loaded(provider, license_data, adverse_action)
+
+        history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+        by_type = self._by_type(history)
+        self.assertIn('encumbrance', by_type)
+        lifting = by_type['liftingEncumbrance'][0]
+        self.assertEqual('2024-01-01', _history_value(lifting['effectiveDate']))
+        self.assertEqual('2023-05-20T11:00:00+00:00', _history_value(lifting['createDate']))
+
+    def test_privilege_history_home_jurisdiction_change(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        provider_records = self._loaded(provider, license_data, self._home_jurisdiction_change())
+
+        history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+        change = self._by_type(history)['homeJurisdictionChange'][0]
+        self.assertEqual('2022-06-01T14:32:00+00:00', _history_value(change['effectiveDate']))
+        self.assertEqual('az', change['previousHomeJurisdiction'])
+        self.assertEqual('oh', change['newHomeJurisdiction'])
+
+    def test_privilege_history_events_sorted_by_effective_date(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        adverse_action = self._adverse_action(
+            action_against='privilege',
+            jurisdiction='ne',
+            license_scope='single-state',
+            start=PRIVILEGE_ENCUMBRANCE_ON,
+            lift_on=date(2024, 1, 1),
+            adverse_action_id='22222222-2222-2222-2222-222222222222',
+            recorded_at=datetime.fromisoformat('2023-05-20T11:00:00+00:00'),
+        )
+        provider_records = self._loaded(provider, license_data, adverse_action, self._home_jurisdiction_change())
+
+        history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+        self.assertEqual(
+            ['issuance', 'homeJurisdictionChange', 'encumbrance', 'liftingEncumbrance'],
+            [event['updateType'] for event in history],
+        )
+
+    def test_privilege_history_multiple_privileges_get_independent_histories(self):
+        provider = self.test_data_generator.generate_default_provider()
+        license_data = self._license()
+        ne_action = self._adverse_action(
+            action_against='privilege',
+            jurisdiction='ne',
+            license_scope='single-state',
+            start=ENCUMBRANCE_ON,
+            adverse_action_id='22222222-2222-2222-2222-222222222222',
+        )
+        tx_action = self._adverse_action(
+            action_against='privilege',
+            jurisdiction='tx',
+            license_scope='single-state',
+            start=PRIVILEGE_ENCUMBRANCE_ON,
+            adverse_action_id='33333333-3333-3333-3333-333333333333',
+            recorded_at=datetime.fromisoformat('2023-05-20T11:00:00+00:00'),
+        )
+        provider_records = self._loaded(
+            provider, license_data, ne_action, tx_action, self._home_jurisdiction_change()
+        )
+
+        ne_history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+        tx_history = provider_records.construct_privilege_history(
+            self._privilege('tx'),
+            should_include_encumbrance_details=False,
+        )
+
+        ne_encumbrance = self._by_type(ne_history)['encumbrance'][0]
+        tx_encumbrance = self._by_type(tx_history)['encumbrance'][0]
+        self.assertEqual('2022-09-10', _history_value(ne_encumbrance['effectiveDate']))
+        self.assertEqual('2023-05-20', _history_value(tx_encumbrance['effectiveDate']))
+        self.assertNotIn('2023-05-20', [_history_value(event['effectiveDate']) for event in ne_history])
+        self.assertNotIn('2022-09-10', [_history_value(event['effectiveDate']) for event in tx_history])
+        for history in (ne_history, tx_history):
+            change = self._by_type(history)['homeJurisdictionChange'][0]
+            self.assertEqual('az', change['previousHomeJurisdiction'])
+            self.assertEqual('oh', change['newHomeJurisdiction'])
