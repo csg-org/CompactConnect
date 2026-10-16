@@ -17,7 +17,7 @@ import {
     EligibilityStatus
 } from '@models/License/License.model';
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
-import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
+import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { State } from '@models/State/State.model';
@@ -509,19 +509,6 @@ export class LicenseeSerializer {
             json.militaryAffiliations.forEach((serverAffiliation) => {
                 licenseeData.militaryAffiliations.push(MilitaryAffiliationSerializer.fromServer(serverAffiliation));
             });
-        }
-
-        // In get-one responses, server returns adverse action ojects at top level for some compacts, does not in get-all
-        if (Array.isArray(json.adverseActions)) {
-            json.adverseActions.forEach((serverAdverseAction) => {
-                licenseeData.adverseActions.push(AdverseActionSerializer.fromServer(serverAdverseAction));
-            });
-        } else {
-            // If no adverseActions at licensee level, attempt to build adverse actions from license / privilege data
-            licenseeData.adverseActions = [
-                ...licenseeData.licenses.flatMap((license) => license.adverseActions),
-                ...licenseeData.privileges.flatMap((privilege) => privilege.adverseActions),
-            ];
         }
 
         return new Licensee(licenseeData);
