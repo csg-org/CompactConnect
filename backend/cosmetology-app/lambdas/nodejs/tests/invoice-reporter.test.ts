@@ -221,7 +221,11 @@ describe('Invoice reporter', () => {
             jest.setSystemTime(new Date('2024-11-02T12:00:00.000Z'));
             mockCompactAndJurisdictions();
 
-            await lambda().handler({ eventType: 'manual', billingMonth: '2024-09' }, SAMPLE_CONTEXT);
+            await lambda().handler({
+                eventType: 'manual',
+                billingMonth: '2024-09',
+                recipientEmail: 'me@example.com',
+            }, SAMPLE_CONTEXT);
 
             const partitionKeys = gsiQueries().map((call) => call.args[0].input.ExpressionAttributeValues?.[':pk']?.S);
 
@@ -229,16 +233,70 @@ describe('Invoice reporter', () => {
             expect(partitionKeys.some((key) => key?.includes('D#2024-10'))).toBe(false);
         });
 
+        it.each(['2024-9', '2024/09', 'foo'])(
+            'should reject billing month %s before querying licenses',
+            async (billingMonth) => {
+                mockCompactAndJurisdictions();
+
+                await expect(
+                    lambda().handler({
+                        eventType: 'manual',
+                        billingMonth,
+                        recipientEmail: 'me@example.com',
+                    }, SAMPLE_CONTEXT)
+                ).rejects.toThrow('billingMonth must be YYYY-MM');
+
+                expect(gsiQueries()).toHaveLength(0);
+                expect(mockSendInvoiceEmail).not.toHaveBeenCalled();
+            }
+        );
+
         it('should still send one email per license type', async () => {
             mockCompactAndJurisdictions();
 
-            await lambda().handler({ eventType: 'manual', billingMonth: '2024-09' }, SAMPLE_CONTEXT);
+            await lambda().handler({
+                eventType: 'manual',
+                billingMonth: '2024-09',
+                recipientEmail: 'me@example.com',
+            }, SAMPLE_CONTEXT);
 
             expect(mockSendInvoiceEmail).toHaveBeenCalledTimes(2);
             expect(mockSendInvoiceEmail.mock.calls.map((call) => call[0].licenseType).sort()).toEqual([
                 'cosmetologist',
                 'esthetician',
             ]);
+        });
+
+        it('should send both manual invoices only to the provided address', async () => {
+            mockCompactAndJurisdictions();
+
+            await lambda().handler({
+                eventType: 'manual',
+                billingMonth: '2024-09',
+                recipientEmail: 'me@example.com',
+            }, SAMPLE_CONTEXT);
+
+            expect(mockSendInvoiceEmail).toHaveBeenNthCalledWith(
+                1,
+                expect.objectContaining({ billingMonth: '2024-09' }),
+                ['me@example.com']
+            );
+            expect(mockSendInvoiceEmail).toHaveBeenNthCalledWith(
+                2,
+                expect.objectContaining({ billingMonth: '2024-09' }),
+                ['me@example.com']
+            );
+        });
+
+        it('should reject a manual run that does not name a recipient before querying', async () => {
+            mockCompactAndJurisdictions();
+
+            await expect(
+                lambda().handler({ eventType: 'manual', billingMonth: '2024-09' }, SAMPLE_CONTEXT)
+            ).rejects.toThrow('Manual invoice runs require a recipientEmail');
+
+            expect(gsiQueries()).toHaveLength(0);
+            expect(mockSendInvoiceEmail).not.toHaveBeenCalled();
         });
     });
 });

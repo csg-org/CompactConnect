@@ -15,6 +15,8 @@ const environmentVariables = new EnvironmentVariablesService();
 const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
 
 const INVOICE_LICENSE_TYPES = ['cosmetologist', 'esthetician'];
+const BILLING_MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
@@ -58,7 +60,8 @@ export class Lambda implements LambdaInterface {
             wait_for_empty_event_loop: context.callbackWaitsForEmptyEventLoop,
         });
 
-        const billingMonth = event.billingMonth ?? this.previousBillingMonth(new Date());
+        const billingMonth = this.resolveBillingMonth(event);
+        const manualRecipient = this.resolveManualRecipient(event);
 
         for (const compact of environmentVariables.getCompacts()) {
             let compactConfig;
@@ -111,10 +114,10 @@ export class Lambda implements LambdaInterface {
                     totalOwed: lineItems.reduce((sum, item) => sum + item.fee, 0),
                 };
 
-                const messageId = await this.emailService.sendInvoiceEmail(
-                    report,
-                    compactConfig.compactOperationsTeamEmails
-                );
+                const recipients = manualRecipient
+                    ? [manualRecipient]
+                    : compactConfig.compactOperationsTeamEmails;
+                const messageId = await this.emailService.sendInvoiceEmail(report, recipients);
 
                 logger.info('Sent invoice email', {
                     compact: compactConfig.compactAbbr,
@@ -128,6 +131,35 @@ export class Lambda implements LambdaInterface {
         }
 
         logger.info('Completing invoice handler');
+    }
+
+    private resolveBillingMonth(event: InvoiceReporterEvent): string {
+        if (event.billingMonth === undefined) {
+            return this.previousBillingMonth(new Date());
+        }
+        if (!BILLING_MONTH_PATTERN.test(event.billingMonth)) {
+            throw new Error(`billingMonth must be YYYY-MM, got ${event.billingMonth}`);
+        }
+
+        return event.billingMonth;
+    }
+
+    /**
+     * Manual runs must name one recipient. They do not fall back to compact operations,
+     * so a retry or a direct invoke cannot email the operations team by accident.
+     */
+    private resolveManualRecipient(event: InvoiceReporterEvent): string | undefined {
+        if (event.eventType !== 'manual') {
+            return undefined;
+        }
+
+        const email = event.recipientEmail?.trim() ?? '';
+
+        if (!EMAIL_PATTERN.test(email)) {
+            throw new Error(`Manual invoice runs require a recipientEmail, got ${event.recipientEmail ?? ''}`);
+        }
+
+        return email;
     }
 
     private previousBillingMonth(now: Date): string {

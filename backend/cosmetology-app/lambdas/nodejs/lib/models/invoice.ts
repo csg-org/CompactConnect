@@ -35,4 +35,6 @@ export interface LicenseUploadsForMonth {
 export interface InvoiceReporterEvent {
     eventType: 'monthly' | 'manual';
     billingMonth?: string;
+    /** Manual runs only. Monthly runs always use the compact operations team. */
+    recipientEmail?: string;
 }
