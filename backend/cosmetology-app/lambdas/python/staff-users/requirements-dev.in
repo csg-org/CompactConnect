@@ -1,2 +1,2 @@
 moto[dynamodb, s3, cognitoidp]>=5.2.3, <6
-Faker>=40.39.0, <41
+Faker>=40.42.0, <41
