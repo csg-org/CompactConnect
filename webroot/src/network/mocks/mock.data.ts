@@ -1988,6 +1988,14 @@ export const compactStates = [
         compact: 'octp',
         postalAbbreviation: 'oh',
     },
+    {
+        compact: 'octp',
+        postalAbbreviation: 'tn',
+    },
+    {
+        compact: 'octp',
+        postalAbbreviation: 'wa',
+    },
 ];
 
 export const compactStatesForRegistration = {
@@ -2025,6 +2033,7 @@ export const compactConfig = {
         {
             postalAbbreviation: 'al',
             isLive: false,
+            jurisdictionAdverseActionsNotificationEmails: [`adverse@example.com`],
         },
         {
             postalAbbreviation: 'co',
