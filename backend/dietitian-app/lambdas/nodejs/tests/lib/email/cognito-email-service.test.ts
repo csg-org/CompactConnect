@@ -73,7 +73,7 @@ describe('CognitoEmailService', () => {
                 expect(htmlContent).toContain('testuser');
                 expect(htmlContent).toContain('This temporary password is valid for 24 hours');
                 expect(htmlContent).toContain('within the next 24 hours');
-                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner" target="_blank">sign in</a>');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner-dietitian" target="_blank">sign in</a>');
                 expect(htmlContent).toContain('<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Android</a>');
             });
 

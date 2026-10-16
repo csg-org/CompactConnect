@@ -910,13 +910,13 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toContain('Confirm Account Recovery');
 
             // Verify recovery URL is correctly formatted (HTML encoded in email)
-            const expectedRecoveryUrl = `https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=diet&amp;providerId=${providerId}&amp;recoveryId=${recoveryToken}`;
+            const expectedRecoveryUrl = `https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner-dietitian&amp;compact=diet&amp;providerId=${providerId}&amp;recoveryId=${recoveryToken}`;
 
             expect(htmlContent).toContain(expectedRecoveryUrl);
 
             // Verify security warning text (HTML encoded)
             expect(htmlContent).toContain('<strong>If you did not request this, your password has likely been compromised and you should reset your password immediately</strong>');
-            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner-dietitian');
             expect(htmlContent).toContain('Select \'Forgot your password?\' and follow the instructions');
         });
 
@@ -950,7 +950,7 @@ describe('EmailNotificationService', () => {
             const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             // Verify reset password URL is present
-            const expectedResetUrl = 'https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner';
+            const expectedResetUrl = 'https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner-dietitian';
 
             expect(htmlContent).toContain(expectedResetUrl);
         });

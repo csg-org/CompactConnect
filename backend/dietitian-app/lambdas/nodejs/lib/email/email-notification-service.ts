@@ -553,12 +553,12 @@ export class EmailNotificationService extends BaseEmailService {
         const subject = 'Confirm Account Recovery - CompactConnect';
 
         const baseUrl = environmentVariableService.getUiBasePathUrl();
-        const recoveryUrl = `${baseUrl}/Dashboard?bypass=recovery-practitioner&compact=${compact}&providerId=${providerId}&recoveryId=${recoveryToken}`;
+        const recoveryUrl = `${baseUrl}/Dashboard?bypass=recovery-practitioner-dietitian&compact=${compact}&providerId=${providerId}&recoveryId=${recoveryToken}`;
 
         const bodyText = `A request was made to recover access to your CompactConnect user account.\n\n` +
             `If you initiated this request, please confirm by clicking the link below to continue account recovery. ` +
             `\n\n${recoveryUrl}\n\n` +
-            `**If you did not request this, your password has likely been compromised and you should reset your password immediately**. To reset your password, please visit the following link:\n\n${baseUrl}/Dashboard?bypass=login-practitioner\n\n Select 'Forgot your password?' and follow the instructions.`;
+            `**If you did not request this, your password has likely been compromised and you should reset your password immediately**. To reset your password, please visit the following link:\n\n${baseUrl}/Dashboard?bypass=login-practitioner-dietitian\n\n Select 'Forgot your password?' and follow the instructions.`;
 
         this.insertHeader(emailContent, 'Confirm Account Recovery');
         this.insertBody(emailContent, bodyText, 'center', true);

@@ -68,7 +68,7 @@ export class CognitoEmailService extends BaseEmailService {
         let loginUrl: string;
 
         if (userPoolType === 'provider') {
-            loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner`;
+            loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner-dietitian`;
 
             loginText = `This temporary password is valid for 24 hours. Please [sign in](${loginUrl}) within the next 24 hours and change your password when prompted.`;
         } else {

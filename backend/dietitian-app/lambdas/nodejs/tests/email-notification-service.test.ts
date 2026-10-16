@@ -1629,7 +1629,7 @@ describe('EmailNotificationServiceLambda', () => {
             expect(htmlContent).toContain('Confirm Account Recovery');
 
             // Verify recovery URL is correctly formatted (HTML encoded in email)
-            const expectedRecoveryUrl = 'https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=diet&amp;providerId=provider-123&amp;recoveryId=secure-recovery-token-abc123';
+            const expectedRecoveryUrl = 'https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner-dietitian&amp;compact=diet&amp;providerId=provider-123&amp;recoveryId=secure-recovery-token-abc123';
 
             expect(htmlContent).toContain(expectedRecoveryUrl);
         });
