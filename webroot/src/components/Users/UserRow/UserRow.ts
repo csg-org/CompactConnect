@@ -68,6 +68,14 @@ class UserRow extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get currentUser(): StaffUser {
+        return this.userStore.model;
+    }
+
+    get isCurrentUser(): boolean {
+        return Boolean(this.item?.id && this.item.id === this.currentUser?.id);
+    }
+
     get currentCompactType() {
         return this.userStore.currentCompact?.type;
     }
@@ -278,7 +286,7 @@ class UserRow extends mixins(MixinForm) {
     }
 
     async toggleDeactivateUserModal(): Promise<void> {
-        if (!this.isDeactivated) {
+        if (!this.isDeactivated && !this.isCurrentUser) {
             this.resetForm();
             this.isDeactivateUserModalDisplayed = !this.isDeactivateUserModalDisplayed;
             await nextTick();

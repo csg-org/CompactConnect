@@ -36,12 +36,12 @@ const environmentValues = {
     s3UploadUrlStateSw: `##S3_UPLOAD_URL_STATE_SW##`,
     cognitoStaffSw: `##COGNITO_STAFF_SW##`,
     // PSYPACT
-    dataApiPsy: `##DATA_API_PSY##`,
-    searchApiPsy: `##SEARCH_API_PSY##`,
-    s3UploadUrlStatePsy: `##S3_UPLOAD_URL_STATE_PSY##`,
-    s3UploadUrlProviderPsy: `##S3_UPLOAD_URL_PROVIDER_PSY##`,
-    cognitoStaffPsy: `##COGNITO_STAFF_PSY##`,
-    cognitoProviderPsy: `##COGNITO_PROVIDER_PSY##`,
+    dataApiPsyPact: `##DATA_API_PSYPACT##`,
+    searchApiPsyPact: `##SEARCH_API_PSYPACT##`,
+    s3UploadUrlStatePsyPact: `##S3_UPLOAD_URL_STATE_PSYPACT##`,
+    s3UploadUrlProviderPsyPact: `##S3_UPLOAD_URL_PROVIDER_PSYPACT##`,
+    cognitoStaffPsyPact: `##COGNITO_STAFF_PSYPACT##`,
+    cognitoProviderPsyPact: `##COGNITO_PROVIDER_PSYPACT##`,
 };
 
 // ============================================================================
@@ -98,12 +98,12 @@ const getEnvironmentUrls = () => {
     environmentUrls.s3UploadUrlStateSw = getFullyQualified(environmentValues.s3UploadUrlStateSw);
     environmentUrls.cognitoStaffSw = getFullyQualified(environmentValues.cognitoStaffSw);
     // PSYPACT
-    environmentUrls.dataApiPsy = getFullyQualified(environmentValues.dataApiPsy);
-    environmentUrls.searchApiPsy = getFullyQualified(environmentValues.searchApiPsy);
-    environmentUrls.s3UploadUrlStatePsy = getFullyQualified(environmentValues.s3UploadUrlStatePsy);
-    environmentUrls.s3UploadUrlProviderPsy = getFullyQualified(environmentValues.s3UploadUrlProviderPsy);
-    environmentUrls.cognitoStaffPsy = getFullyQualified(environmentValues.cognitoStaffPsy);
-    environmentUrls.cognitoProviderPsy = getFullyQualified(environmentValues.cognitoProviderPsy);
+    environmentUrls.dataApiPsyPact = getFullyQualified(environmentValues.dataApiPsyPact);
+    environmentUrls.searchApiPsyPact = getFullyQualified(environmentValues.searchApiPsyPact);
+    environmentUrls.s3UploadUrlStatePsyPact = getFullyQualified(environmentValues.s3UploadUrlStatePsyPact);
+    environmentUrls.s3UploadUrlProviderPsyPact = getFullyQualified(environmentValues.s3UploadUrlProviderPsyPact);
+    environmentUrls.cognitoStaffPsyPact = getFullyQualified(environmentValues.cognitoStaffPsyPact);
+    environmentUrls.cognitoProviderPsyPact = getFullyQualified(environmentValues.cognitoProviderPsyPact);
 
     return environmentUrls;
 };
@@ -252,7 +252,7 @@ const setCspHeader = (headers = {}) => {
                 domains.dataApi,
                 domains.dataApiCosmo,
                 domains.dataApiSw,
-                domains.dataApiPsy,
+                domains.dataApiPsyPact,
                 'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('media-src', [
@@ -260,7 +260,7 @@ const setCspHeader = (headers = {}) => {
                 domains.dataApi,
                 domains.dataApiCosmo,
                 domains.dataApiSw,
-                domains.dataApiPsy,
+                domains.dataApiPsyPact,
             ]),
             buildSrcString('frame-src', [
                 'self',
@@ -300,12 +300,12 @@ const setCspHeader = (headers = {}) => {
                 domains.s3UploadUrlStateSw,
                 domains.cognitoStaffSw,
                 // PSYPACT
-                domains.dataApiPsy,
-                domains.searchApiPsy,
-                domains.s3UploadUrlStatePsy,
-                domains.s3UploadUrlProviderPsy,
-                domains.cognitoStaffPsy,
-                domains.cognitoProviderPsy,
+                domains.dataApiPsyPact,
+                domains.searchApiPsyPact,
+                domains.s3UploadUrlStatePsyPact,
+                domains.s3UploadUrlProviderPsyPact,
+                domains.cognitoStaffPsyPact,
+                domains.cognitoProviderPsyPact,
                 // Begin Statsig domains
                 'https://api.statsig.com/',
                 'https://featuregates.org/',

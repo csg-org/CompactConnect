@@ -250,8 +250,8 @@ class LicenseeList extends Vue {
             : this.$t('licensing.licensingListDescription');
     }
 
-    get headerRecord() {
-        const cosmetologySpecificColumns = {
+    get headerRecord(): object {
+        const multiStateColumns = {
             licenseNumber: this.$t('licensing.stateLicenseNumber'),
             ...(this.isPublicSearch)
                 ? {
@@ -264,9 +264,15 @@ class LicenseeList extends Vue {
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
+            ...(this.$isAppModeSocialWork)
+                ? {
+                    isPublicSearch: false,
+                    bestLicensePhoneNumberDisplay: () => this.$t('common.phoneNumber'),
+                }
+                : {},
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             ...(this.$isAppGroupModeMultiState
-                ? { ...cosmetologySpecificColumns }
+                ? { ...multiStateColumns }
                 : {
                     privilegeStatesDisplay: () => this.$t('licensing.privileges'),
                 }

@@ -49,6 +49,7 @@ export interface CompactConfig {
     configuredStates: Array<{
         postalAbbreviation: string,
         isLive: boolean,
+        jurisdictionAdverseActionsNotificationEmails: Array<string>,
     }>,
 }
 

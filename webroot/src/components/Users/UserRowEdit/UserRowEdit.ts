@@ -11,14 +11,19 @@ import {
     Prop,
     toNative
 } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import { Permission } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
-import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import {
@@ -50,7 +55,7 @@ interface PermissionObject {
         InputSelect,
         InputButton,
         InputSubmit,
-        LoadingSpinner,
+        CheckCircle,
     },
     emits: [ 'cancel', 'saved' ],
 })
@@ -83,6 +88,10 @@ class UserRowEdit extends mixins(MixinForm) {
 
     get currentUser(): StaffUser {
         return this.userStore.model;
+    }
+
+    get isCurrentUser(): boolean {
+        return Boolean(this.user?.id && this.user.id === this.currentUser?.id);
     }
 
     get currentCompact(): Compact | null {
@@ -234,6 +243,26 @@ class UserRowEdit extends mixins(MixinForm) {
         return shouldShow;
     }
 
+    get permissionsUpdatedTitle(): string {
+        let title = this.$t('account.permissionsUpdatedTitleOther', { name: this.user?.getFullName() || '' });
+
+        if (this.isCurrentUser) {
+            title = this.$t('account.permissionsUpdatedTitle');
+        }
+
+        return title;
+    }
+
+    get permissionsUpdatedDescription(): string {
+        let description = this.$t('account.permissionsUpdatedDescriptionOther');
+
+        if (this.isCurrentUser) {
+            description = this.$t('account.permissionsUpdatedDescription');
+        }
+
+        return description;
+    }
+
     //
     // Methods
     //
@@ -255,7 +284,8 @@ class UserRowEdit extends mixins(MixinForm) {
                 placeholder: computed(() => this.$t('account.permission')),
                 valueOptions: this.userPermissionOptionsCompact,
                 value: this.getCompactPermission(this.rowUserCompactPermission),
-                isDisabled: !this.isCurrentUserCompactAdmin,
+                isDisabled: !this.isCurrentUserCompactAdmin
+                    || Boolean(this.rowUserCompactPermission?.isAdmin),
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -269,13 +299,29 @@ class UserRowEdit extends mixins(MixinForm) {
     }
 
     focusTrap(event: KeyboardEvent): void {
-        const { formData } = this;
-        const firstEnabledFormInput: string = Object.keys(formData)
-            .filter((key) => key !== 'submit')
-            .find((key) => !formData[key].isDisabled) || '';
-        const firstEnabledInputId = formData[firstEnabledFormInput]?.id || 'cancel-edit-user';
-        const firstTabIndex = document.getElementById(firstEnabledInputId);
-        const lastTabIndex = document.getElementById('submit');
+        let firstTabIndex: HTMLElement | null = null;
+        let lastTabIndex: HTMLElement | null = null;
+
+        if (this.isFormSuccessful) {
+            firstTabIndex = document.getElementById('continue-without-logout');
+            lastTabIndex = document.getElementById('log-out-edit-user') || firstTabIndex;
+        } else {
+            const { formData } = this;
+            const firstEnabledFormInput: string = Object.keys(formData)
+                .filter((key) => key !== 'submit')
+                .find((key) => !formData[key].isDisabled) || '';
+            // If no selects are enabled, start at add state button (when shown) or cancel
+            let firstEnabledInputId = formData[firstEnabledFormInput]?.id || '';
+
+            if (!firstEnabledInputId) {
+                firstEnabledInputId = (this.shouldShowAddStateButton)
+                    ? 'add-state-permission'
+                    : 'cancel-edit-user';
+            }
+
+            firstTabIndex = document.getElementById(firstEnabledInputId);
+            lastTabIndex = document.getElementById('submit');
+        }
 
         if (event.shiftKey) {
             // shift + tab to last input
@@ -296,7 +342,7 @@ class UserRowEdit extends mixins(MixinForm) {
         });
     }
 
-    addStateFormInput(statePermission?: StatePermission): void {
+    async addStateFormInput(statePermission?: StatePermission): Promise<void> {
         const { state } = statePermission || {};
         const stateAbbrev = state?.abbrev || '';
         const stateOptions = this.filterStateOptions();
@@ -322,12 +368,17 @@ class UserRowEdit extends mixins(MixinForm) {
                 validation: (!statePermission) ? Joi.string().required().messages(this.joiMessages.string) : null,
                 valueOptions: this.userPermissionOptionsState,
                 value: (statePermission) ? this.getStatePermission(statePermission) : Permission.NONE,
+                isDisabled: Boolean(statePermission?.isAdmin),
             });
 
             this.formData[`state-option-${index}`] = stateInput;
             this.formData[`state-permission-${index}`] = permissionInput;
 
             this.permissionStateInputs.push(permissionInput);
+            if (!statePermission) {
+                await nextTick();
+                document.getElementById(`state-option-${index}`)?.focus();
+            }
         }
     }
 
@@ -359,12 +410,12 @@ class UserRowEdit extends mixins(MixinForm) {
         });
     }
 
-    createNewStatePermission(): void {
+    async createNewStatePermission(): Promise<void> {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
             this.lockInStateOptions();
-            this.addStateFormInput();
+            await this.addStateFormInput();
         }
     }
 
@@ -488,16 +539,24 @@ class UserRowEdit extends mixins(MixinForm) {
         this.$emit('cancel');
     }
 
+    handleContinueWithoutLoggingOut(): void {
+        this.$emit('cancel');
+    }
+
+    handleLogout(): void {
+        this.$router.push({ name: 'Logout' });
+    }
+
     async handleSubmit(): Promise<void> {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
             this.startFormLoading();
+            this.$store.dispatch('startLoading');
 
             const formData = this.prepFormData();
             const serverData = StaffUserSerializer.toServer({ permissions: [formData] });
-
-            await this.$store.dispatch(`users/updateUserRequest`, {
+            const updatedUser = await this.$store.dispatch(`users/updateUserRequest`, {
                 compact: this.userCompact?.type,
                 userId: this.user.id,
                 data: serverData,
@@ -505,16 +564,22 @@ class UserRowEdit extends mixins(MixinForm) {
                 this.setError(err.message);
             });
 
-            if (this.user.id === this.currentUser.id) {
-                await this.$store.dispatch(`user/getStaffAccountRequest`);
+            if (!this.isFormError) {
+                if (this.isCurrentUser && updatedUser) {
+                    await this.$store.dispatch(`user/setStoreUser`, updatedUser);
+                }
+
+                this.isFormSuccessful = true;
+                this.$emit('saved');
             }
+
+            this.endFormLoading();
+            this.$store.dispatch('endLoading');
 
             if (!this.isFormError) {
-                this.isFormSuccessful = true;
+                await nextTick();
+                document.getElementById('continue-without-logout')?.focus();
             }
-
-            this.$emit('saved');
-            this.endFormLoading();
         }
     }
 

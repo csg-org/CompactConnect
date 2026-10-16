@@ -57,37 +57,73 @@
                 v-if="isStateLiveModalDisplayed"
                 modalId="confirm-state-live-modal"
                 class="confirm-config-modal"
-                :title="$t('compact.confirmSaveCompactTitle')"
-                :showActions="true"
+                :title="$t('compact.confirmSaveStateTitle')"
+                :showActions="false"
                 @keydown.tab="focusTrapStateLiveModal($event)"
                 @keyup.esc="closeStateLiveModal"
             >
                 <template v-slot:content>
                     <div class="modal-content confirm-modal-content">
+                        <span v-if="isCompactSeparatingPrivilegeEnabled && !getStateConfigIsLive()">
+                            {{ $t('compact.privilegePurchaseEnabledSubtextMultiState3', {
+                                state: getSelectedStateName()
+                            }) }}
+                        </span>
                         {{ $t('common.cannotBeUndone') }}
+                        <form class="confirm-state-live-form" @submit.prevent="submitStateLive">
+                            <div
+                                v-if="isCompactSeparatingPrivilegeEnabled"
+                                class="confirm-state-form-input-container"
+                            >
+                                <template v-if="isStateConfigAdverseActionEmailMissing()">
+                                    <MockPopulate
+                                        v-if="isMockPopulateEnabled"
+                                        :isEnabled="isMockPopulateEnabled"
+                                        @selected="mockPopulate"
+                                    />
+                                    <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
+                                    <button
+                                        class="btn-catch-email-lists"
+                                        @click.stop.prevent="() => null"
+                                        tabindex="-1"
+                                    >+</button>
+                                </template>
+                                <div v-else class="state-email-list">
+                                    <div class="state-email-list-label">
+                                        {{ $t('compact.adverseActionsNotificationEmails') }}:
+                                    </div>
+                                    <div
+                                        v-for="(email, index) in getStateConfigAdverseActionEmails()"
+                                        :key="index"
+                                        class="state-email"
+                                    >
+                                        {{ email }}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                         <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
-                    </div>
-                </template>
-                <template v-slot:actions>
-                    <div class="action-button-row">
-                        <InputButton
-                            id="confirm-modal-submit-button"
-                            @click="submitStateLive"
-                            class="action-button submit-button continue-button"
-                            :label="(isFormLoading)
-                                ? $t('common.loading')
-                                : $t('compact.confirmSaveCompactYes')"
-                            :isTransparent="true"
-                            :isEnabled="!isFormLoading"
-                        />
-                        <InputButton
-                            id="confirm-modal-cancel-button"
-                            class="action-button cancel-button"
-                            :label="$t('common.cancel')"
-                            :isWarning="true"
-                            :isEnabled="isFormValid && !isFormLoading"
-                            :onClick="closeStateLiveModal"
-                        />
+                        <div class="action-button-row">
+                            <InputSubmit
+                                id="confirm-modal-submit-button"
+                                class="action-button submit-button continue-button"
+                                :formInput="formData.stateLiveModalContinue"
+                                @click="submitStateLive"
+                                :label="(isFormLoading)
+                                    ? $t('common.loading')
+                                    : getStateLiveModalSubmitLabel()"
+                                :isTransparent="true"
+                                :isEnabled="isFormValid && !isFormLoading"
+                            />
+                            <InputButton
+                                id="confirm-modal-cancel-button"
+                                class="action-button cancel-button"
+                                :label="$t('common.cancel')"
+                                :onClick="closeStateLiveModal"
+                                :isWarning="true"
+                                :isEnabled="!isFormLoading"
+                            />
+                        </div>
                     </div>
                 </template>
             </Modal>

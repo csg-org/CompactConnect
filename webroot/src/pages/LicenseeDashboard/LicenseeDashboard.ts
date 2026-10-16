@@ -11,6 +11,7 @@ import { FormInput } from '@/models/FormInput/FormInput.model';
 import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
+import PracticeStates from '@/components/Licensee/PracticeStates/PracticeStates.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
@@ -29,6 +30,7 @@ import InfoCircle from '@/components/Icons/InfoCircle/InfoCircle.vue';
         HomeStateBlock,
         LicenseCard,
         PrivilegeCard,
+        PracticeStates,
         InputButton,
         InputSubmit,
         CollapseCaretButton,
@@ -86,16 +88,16 @@ export default class LicenseeDashboard extends Vue {
         return this.user?.licensee || new Licensee();
     }
 
-    get licenseeLicenses(): Array<License> {
-        return this.licensee.licenses || [];
-    }
-
-    get licenseePrivileges(): Array<License> {
-        return this.licensee.privileges || [];
-    }
-
     get homeJurisdiction(): State | null {
         return this.licensee?.homeJurisdiction || null;
+    }
+
+    get isEncumbered(): boolean {
+        return this.licensee?.isEncumbered() || false;
+    }
+
+    get hasEncumbranceLiftedWithinWaitPeriod(): boolean {
+        return this.licensee?.hasEncumbranceLiftedWithinWaitPeriod() || false;
     }
 
     get isGenerateProofEnabled(): boolean {
@@ -107,20 +109,24 @@ export default class LicenseeDashboard extends Vue {
         return this.licensee?.canPurchasePrivileges() || false;
     }
 
-    get hasEligibleLicenses(): boolean {
-        return Boolean(this.licensee?.purchaseEligibleLicenses().length);
-    }
-
-    get isEncumbered(): boolean {
-        return this.licensee?.isEncumbered() || false;
-    }
-
     get isMilitaryStatusInitializing(): boolean {
         return this.licensee?.isMilitaryStatusInitializing() || false;
     }
 
-    get hasEncumbranceLiftedWithinWaitPeriod(): boolean {
-        return this.licensee?.hasEncumbranceLiftedWithinWaitPeriod() || false;
+    get licenseeLicenses(): Array<License> {
+        return this.licensee.licenses || [];
+    }
+
+    get hasEligibleLicenses(): boolean {
+        return Boolean(this.licensee?.purchaseEligibleLicenses().length);
+    }
+
+    get licenseePrivileges(): Array<License> {
+        return this.licensee.privileges || [];
+    }
+
+    get licenseePrivilegesTitle(): string {
+        return (this.$isAppModePsyPact) ? this.$t('licensing.providerPracticeStatesSelf') : this.$t('licensing.privileges');
     }
 
     //

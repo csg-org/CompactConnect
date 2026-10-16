@@ -1787,18 +1787,31 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "isLive": {
                   "type": "boolean",
-                  "description": "Whether the state is live and available for registrations."
+                  "description": "Whether the state is privilege-live."
+                },
+                "jurisdictionAdverseActionsNotificationEmails": {
+                  "type": "array",
+                  "description": "Adverse action notification emails. Required when isLive is true, both for a state that is already privilege-live and for one being marked privilege-live. A privilege-live state must resend its current list; a different list is rejected and an existing list is never overwritten. An empty or omitted list is accepted only when isLive is false.",
+                  "maxItems": 10,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
                 }
               },
               "additionalProperties": false
@@ -1817,7 +1830,7 @@
           },
           "licenseeRegistrationEnabled": {
             "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
+            "description": "No external process uses this value other than storing it. It does not mark the compact live and does not change privileges or which licenses are public. Once true, it cannot be set to false. The field is primarily preserved so the frontend can keep this feature. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility."
           },
           "compactOperationsTeamEmails": {
             "maxItems": 10,
@@ -1870,13 +1883,16 @@
                   "al",
                   "az",
                   "co",
+                  "de",
                   "ks",
                   "ky",
                   "md",
                   "oh",
+                  "pa",
                   "tn",
                   "va",
-                  "wa"
+                  "wa",
+                  "wv"
                 ]
               },
               "givenName": {
@@ -1937,13 +1953,16 @@
               "al",
               "az",
               "co",
+              "de",
               "ks",
               "ky",
               "md",
               "oh",
+              "pa",
               "tn",
               "va",
-              "wa"
+              "wa",
+              "wv"
             ]
           }
         }
@@ -1996,13 +2015,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "dateOfExpiration": {
@@ -2026,13 +2048,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "type": {
@@ -2098,13 +2123,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "compactEligibility": {
@@ -2134,13 +2162,16 @@
               "al",
               "az",
               "co",
+              "de",
               "ks",
               "ky",
               "md",
               "oh",
+              "pa",
               "tn",
               "va",
-              "wa"
+              "wa",
+              "wv"
             ]
           },
           "compact": {
@@ -2388,7 +2419,7 @@
           },
           "licenseeRegistrationEnabled": {
             "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
+            "description": "Whether this state's license data is live. When true, the state's licenses appear in public search and public provider detail, and the state is added to configuredStates with isLive false if it is not already listed. This does not grant privileges. Once true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility."
           }
         },
         "additionalProperties": false
@@ -2465,13 +2496,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "compact": {
@@ -2486,13 +2520,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "investigations": {
@@ -2533,13 +2570,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "submittingUser": {
@@ -2622,13 +2662,16 @@
                               "al",
                               "az",
                               "co",
+                              "de",
                               "ks",
                               "ky",
                               "md",
                               "oh",
+                              "pa",
                               "tn",
                               "va",
-                              "wa"
+                              "wa",
+                              "wv"
                             ]
                           },
                           "compact": {
@@ -2647,13 +2690,16 @@
                               "al",
                               "az",
                               "co",
+                              "de",
                               "ks",
                               "ky",
                               "md",
                               "oh",
+                              "pa",
                               "tn",
                               "va",
-                              "wa"
+                              "wa",
+                              "wv"
                             ]
                           },
                           "type": {
@@ -2680,13 +2726,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "updatedValues": {
@@ -2710,13 +2759,16 @@
                               "al",
                               "az",
                               "co",
+                              "de",
                               "ks",
                               "ky",
                               "md",
                               "oh",
+                              "pa",
                               "tn",
                               "va",
-                              "wa"
+                              "wa",
+                              "wv"
                             ]
                           },
                           "compact": {
@@ -2735,13 +2787,16 @@
                               "al",
                               "az",
                               "co",
+                              "de",
                               "ks",
                               "ky",
                               "md",
                               "oh",
+                              "pa",
                               "tn",
                               "va",
-                              "wa"
+                              "wa",
+                              "wv"
                             ]
                           },
                           "type": {
@@ -2863,13 +2918,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "licenseTypeAbbreviation": {
@@ -2938,13 +2996,16 @@
               "al",
               "az",
               "co",
+              "de",
               "ks",
               "ky",
               "md",
               "oh",
+              "pa",
               "tn",
               "va",
-              "wa"
+              "wa",
+              "wv"
             ]
           },
           "compact": {
@@ -3040,13 +3101,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "homeAddressStreet1": {
@@ -3092,13 +3156,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "submittingUser": {
@@ -3398,13 +3465,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "updatedValues": {
@@ -3619,13 +3689,16 @@
                           "al",
                           "az",
                           "co",
+                          "de",
                           "ks",
                           "ky",
                           "md",
                           "oh",
+                          "pa",
                           "tn",
                           "va",
-                          "wa"
+                          "wa",
+                          "wv"
                         ]
                       },
                       "licenseTypeAbbreviation": {
@@ -3763,13 +3836,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "licenseTypeAbbreviation": {
@@ -3860,6 +3936,7 @@
             "items": {
               "required": [
                 "isLive",
+                "jurisdictionAdverseActionsNotificationEmails",
                 "postalAbbreviation"
               ],
               "type": "object",
@@ -3871,18 +3948,29 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "isLive": {
                   "type": "boolean",
-                  "description": "Whether the state is live and available for registrations."
+                  "description": "Whether the state is privilege-live."
+                },
+                "jurisdictionAdverseActionsNotificationEmails": {
+                  "type": "array",
+                  "description": "Adverse action notification emails stored for this state. Read from the jurisdiction record. Operations emails are not included.",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
                 }
               }
             }
@@ -3894,10 +3982,6 @@
               "type": "string",
               "format": "email"
             }
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
           },
           "compactAbbr": {
             "type": "string",
@@ -3914,6 +3998,10 @@
               "type": "string",
               "format": "email"
             }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "No external process uses this value other than storing it. It does not mark the compact live and does not change privileges or which licenses are public. Once true, it cannot be set to false. The field is primarily preserved so the frontend can keep this feature. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility."
           }
         }
       },
@@ -3957,7 +4045,7 @@
           },
           "licenseeRegistrationEnabled": {
             "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
+            "description": "Whether this state's license data is live. When true, the state's licenses appear in public search and public provider detail, and the state is added to configuredStates with isLive false if it is not already listed. This does not grant privileges. Once true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility."
           },
           "jurisdictionName": {
             "type": "string",
@@ -4280,13 +4368,16 @@
                   "al",
                   "az",
                   "co",
+                  "de",
                   "ks",
                   "ky",
                   "md",
                   "oh",
+                  "pa",
                   "tn",
                   "va",
-                  "wa"
+                  "wa",
+                  "wv"
                 ]
               },
               "givenName": {
@@ -4366,13 +4457,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "compact": {
@@ -4604,13 +4698,16 @@
                     "al",
                     "az",
                     "co",
+                    "de",
                     "ks",
                     "ky",
                     "md",
                     "oh",
+                    "pa",
                     "tn",
                     "va",
-                    "wa"
+                    "wa",
+                    "wv"
                   ]
                 },
                 "compact": {
@@ -4801,4 +4898,3 @@
   },
   "x-amazon-apigateway-security-policy": "TLS_1_0"
 }
-

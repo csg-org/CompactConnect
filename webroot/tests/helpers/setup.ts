@@ -14,7 +14,7 @@ import mockStore from '@tests/mocks/mockStore';
 import mockEnvConfig from '@tests/mocks/mockEnvConfig';
 import { getStatsigClientMock } from '@plugins/Statsig/statsig.plugin';
 import compactsPlugin from '@plugins/Compacts/compacts.plugin';
-import { relativeTimeFormats } from '@/app.config';
+import { AppModes, relativeTimeFormats } from '@/app.config';
 import { VueResponsiveness } from 'vue-responsiveness';
 import i18n from '@/i18n';
 import moment from 'moment';
@@ -140,8 +140,15 @@ const failTestOn = (errorWatchList: Array<string>) => {
 // Recreated in beforeEach after sinon.restore() so $api stubs stay valid across tests
 let mockApi = sinon.createStubInstance(DataApi);
 
-beforeEach(() => {
+beforeEach(async () => {
     const { tm: $tm, t: $t } = i18n.global;
+
+    // Normalize appMode and currentCompact before every test; specs needing different values (e.g. psypact) opt in in individual tests.
+    // @NOTE: File-level `before()` runs before this hook and will be overwritten; use `beforeEach` for global file opt ins.
+    // @NOTE: The `reset` / `user/resetStoreUser` actions can't be used here, since they re-derive these based on host domain.
+    // @NOTE: Dispatched ahead of failTestOn() so store output can't fail an unrelated test.
+    await mockStore.dispatch('setAppMode', AppModes.JCC);
+    await mockStore.dispatch('user/setCurrentCompact', null);
 
     // Force English locale for every test
     i18n.global.locale.value = 'en';

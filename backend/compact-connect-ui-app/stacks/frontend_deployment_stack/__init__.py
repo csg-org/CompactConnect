@@ -86,9 +86,9 @@ class FrontendDeploymentStack(AppStack):
             )
         if persistent_stack_frontend_app_config_values_psypact is None:
             raise ValueError(
-                'Persistent Stack App Configuration (psypact) not found in SSM. '
-                'Make sure Psypact Persistent Stack resources have been deployed and the parameter '
-                'has been copied to this account.'
+            'Persistent Stack App Configuration (psypact) not found in SSM. '
+            'Make sure PsyPact Persistent Stack resources have been deployed and the parameter '
+            'has been copied to this account.'
             )
         if provider_users_stack_frontend_app_config_values is None:
             raise ValueError(
@@ -97,9 +97,9 @@ class FrontendDeploymentStack(AppStack):
             )
         if provider_users_stack_frontend_app_config_values_psypact is None:
             raise ValueError(
-                'Provider Users Stack App Configuration (psypact) not found in SSM. '
-                'Make sure Psypact Provider Users Stack resources have been deployed and the parameter '
-                'has been copied to this account.'
+            'Provider Users Stack App Configuration (psypact) not found in SSM. '
+            'Make sure PsyPact Provider Users Stack resources have been deployed and the parameter '
+            'has been copied to this account.'
             )
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]

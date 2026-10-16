@@ -5,6 +5,8 @@
 //  Created by InspiringApps on 5/6/20.
 //
 import { serverDateFormat, serverDatetimeFormat } from '@/app.config';
+import { CompactType } from '@models/Compact/Compact.model';
+import { LicenseType } from '@models/License/License.model';
 import moment from 'moment';
 
 export const userData = {
@@ -235,6 +237,79 @@ export const staffAccount = {
             },
         },
         socw: {
+            actions: {
+                admin: true,
+                readPrivate: true,
+                readSSN: true,
+            },
+            jurisdictions: {
+                al: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ky: {
+                    actions: {
+                        admin: false,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ne: {
+                    actions: {
+                        admin: false,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                oh: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                nv: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ma: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                wy: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+            },
+        },
+        psypact: {
             actions: {
                 admin: true,
                 readPrivate: true,
@@ -638,6 +713,7 @@ export const licensees = {
                     homeAddressCity: 'Denver',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '80203',
+                    phoneNumber: '+17179511820',
                     npi: '1234567890',
                     licenseNumber: 'A-987654321',
                     type: 'license-home',
@@ -666,6 +742,7 @@ export const licensees = {
                     homeAddressCity: 'Los Angeles',
                     homeAddressState: 'ca',
                     homeAddressPostalCode: '90046',
+                    phoneNumber: '+17179511821',
                     npi: '1234567890',
                     licenseNumber: 'A-555666777',
                     type: 'license-home',
@@ -782,6 +859,7 @@ export const licensees = {
                     homeAddressCity: 'Denver',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '80203',
+                    phoneNumber: '+17179511822',
                     npi: '6441445289',
                     licenseNumber: 'A-441445289',
                     type: 'license-home',
@@ -809,6 +887,7 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '',
+                    phoneNumber: '+17179511823',
                     npi: '6441445289',
                     licenseNumber: 'A-921445289',
                     type: 'license-home',
@@ -836,6 +915,7 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '',
+                    phoneNumber: '+17179511824',
                     npi: '6441445289',
                     licenseNumber: 'A-944945289',
                     type: 'license-home',
@@ -864,6 +944,7 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '',
+                    phoneNumber: '',
                     licenseNumber: 'A-421445219',
                     npi: '6441445289',
                     type: 'license-home',
@@ -891,6 +972,7 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '',
+                    phoneNumber: '',
                     licenseNumber: 'A-531445219',
                     npi: '6441445289',
                     type: 'license-home',
@@ -1300,6 +1382,7 @@ export const licensees = {
                     homeAddressCity: 'Boulder',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '80302',
+                    phoneNumber: '+17179511825',
                     npi: '2522457223',
                     licenseNumber: 'A-312445289',
                     type: 'license-home',
@@ -1379,6 +1462,7 @@ export const licensees = {
                     homeAddressCity: 'Boulder',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '80301',
+                    phoneNumber: null,
                     npi: '6944447283',
                     licenseNumber: 'A-1234567890',
                     type: 'license-home',
@@ -1458,6 +1542,7 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     homeAddressState: 'co',
                     homeAddressPostalCode: '',
+                    phoneNumber: null,
                     npi: '6441445289',
                     licenseNumber: null,
                     type: 'license-home',
@@ -1540,7 +1625,7 @@ export const users = {
     lastKey: 'abc',
     items: [
         {
-            userId: '10',
+            userId: staffAccount.userId,
             status: 'active',
             attributes: {
                 givenName: 'Miles',
@@ -1681,6 +1766,39 @@ export const users = {
                     },
                 },
                 socw: {
+                    actions: {
+                        admin: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                    },
+                },
+                psypact: {
                     actions: {
                         admin: true,
                         readPrivate: true,
@@ -1870,12 +1988,21 @@ export const compactStates = [
         compact: 'octp',
         postalAbbreviation: 'oh',
     },
+    {
+        compact: 'octp',
+        postalAbbreviation: 'tn',
+    },
+    {
+        compact: 'octp',
+        postalAbbreviation: 'wa',
+    },
 ];
 
 export const compactStatesForRegistration = {
     aslp: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
     coun: [ 'al', 'ak', 'co', 'il', 'ia', 'ky', 'ne', 'nm' ],
     octp: [ 'al', 'ar', 'co', 'ct', 'il', 'ky' ],
+    psypact: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
 };
 
 export const compactConfig = {
@@ -1906,6 +2033,7 @@ export const compactConfig = {
         {
             postalAbbreviation: 'al',
             isLive: false,
+            jurisdictionAdverseActionsNotificationEmails: [`adverse@example.com`],
         },
         {
             postalAbbreviation: 'co',
@@ -2402,6 +2530,55 @@ export const mockPrivilegeHistoryResponses = [
         ]
     }
 ];
+
+const MOCK_PROVIDER_NESTED_COLLECTIONS = ['licenses', 'privileges', 'militaryAffiliations'];
+
+// Compact-specific fields applied to the shared mock practitioner at read time.
+// Add values here as a compact's mock data needs to diverge (privilege IDs, etc).
+export interface MockProviderCompactOverlay {
+    compact?: string;
+    licenseType?: string;
+}
+
+export const mockProviderCompactOverlays: Partial<Record<CompactType, MockProviderCompactOverlay>> = {
+    [CompactType.PSYPACT]: {
+        compact: CompactType.PSYPACT,
+        licenseType: LicenseType.PSYCHOLOGIST,
+    },
+};
+
+export const applyProviderCompactOverlay = (provider: any, overlay?: MockProviderCompactOverlay | null): any => {
+    if (!provider || !overlay) {
+        return provider;
+    }
+
+    const nextProvider = JSON.parse(JSON.stringify(provider));
+
+    Object.assign(nextProvider, overlay);
+
+    MOCK_PROVIDER_NESTED_COLLECTIONS.forEach((collectionKey) => {
+        const collection = nextProvider[collectionKey];
+
+        if (Array.isArray(collection)) {
+            nextProvider[collectionKey] = collection.map((item) => {
+                const nextItem = { ...item };
+
+                Object.keys(overlay).forEach((field) => {
+                    if (Object.prototype.hasOwnProperty.call(item, field)) {
+                        nextItem[field] = overlay[field];
+                    }
+                });
+
+                return nextItem;
+            });
+        }
+    });
+
+    return nextProvider;
+};
+
+export const getMockProviderForCompact = (provider: any, compactType?: string | null): any =>
+    applyProviderCompactOverlay(provider, mockProviderCompactOverlays[compactType as CompactType]);
 
 export const pets = [
     {

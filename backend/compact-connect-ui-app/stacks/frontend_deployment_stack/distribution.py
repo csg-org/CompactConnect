@@ -54,9 +54,7 @@ def generate_csp_lambda_code(
     :param persistent_stack_values: The values from the persistent stack
     :param persistent_stack_values_cosmetology: The values from the cosmetology persistent stack
     :param persistent_stack_values_socialwork: The values from the social work persistent stack
-    :param persistent_stack_values_psypact: The values from the psypact persistent stack
     :param provider_users_stack_values: The values from the provider users stack
-    :param provider_users_stack_values_psypact: The values from the psypact provider users stack
     :return: The generated Lambda function code
     """
     template_path = os.path.join('lambdas', 'nodejs', 'cloudfront-csp', 'index.js')
@@ -85,12 +83,12 @@ def generate_csp_lambda_code(
         '##S3_UPLOAD_URL_STATE_SW##': f'{persistent_stack_values_socialwork.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
         '##COGNITO_STAFF_SW##': persistent_stack_values_socialwork.staff_cognito_domain,
         # PSYPACT
-        '##DATA_API_PSY##': persistent_stack_values_psypact.api_domain_name,
-        '##SEARCH_API_PSY##': persistent_stack_values_psypact.search_api_domain_name,
-        '##S3_UPLOAD_URL_STATE_PSY##': f'{persistent_stack_values_psypact.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
-        '##S3_UPLOAD_URL_PROVIDER_PSY##': f'{persistent_stack_values_psypact.provider_users_bucket_name}{S3_URL_SUFFIX}',
-        '##COGNITO_STAFF_PSY##': persistent_stack_values_psypact.staff_cognito_domain,
-        '##COGNITO_PROVIDER_PSY##': provider_users_stack_values_psypact.provider_cognito_domain,
+        '##DATA_API_PSYPACT##': persistent_stack_values_psypact.api_domain_name,
+        '##SEARCH_API_PSYPACT##': persistent_stack_values_psypact.search_api_domain_name,
+        '##S3_UPLOAD_URL_STATE_PSYPACT##': f'{persistent_stack_values_psypact.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
+        '##S3_UPLOAD_URL_PROVIDER_PSYPACT##': f'{persistent_stack_values_psypact.provider_users_bucket_name}{S3_URL_SUFFIX}',
+        '##COGNITO_STAFF_PSYPACT##': persistent_stack_values_psypact.staff_cognito_domain,
+        '##COGNITO_PROVIDER_PSYPACT##': provider_users_stack_values_psypact.provider_cognito_domain,
     }
 
     for placeholder, value in replacements.items():
