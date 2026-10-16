@@ -3,6 +3,7 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_ec2 import SubnetSelection
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_logs import FilterPattern, MetricFilter, RetentionDays
@@ -33,6 +34,7 @@ class SearchHandler(Construct):
         vpc_subnets: SubnetSelection,
         lambda_role: IRole,
         alarm_topic: ITopic,
+        compact_configuration_table: ITable,
     ):
         """
         Initialize the SearchHandler construct.
@@ -44,6 +46,7 @@ class SearchHandler(Construct):
         :param vpc_subnets: The VPC subnets for Lambda deployment
         :param lambda_role: The IAM role for the Lambda function
         :param alarm_topic: The SNS topic for alarms
+        :param compact_configuration_table: Compact configuration table, read by public license search
         """
         super().__init__(scope, construct_id)
         stack = Stack.of(scope)
@@ -82,6 +85,7 @@ class SearchHandler(Construct):
             log_retention=RetentionDays.ONE_MONTH,
             environment={
                 'OPENSEARCH_HOST_ENDPOINT': opensearch_domain.domain_endpoint,
+                'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
                 **stack.common_env_vars,
             },
             timeout=Duration.seconds(29),
@@ -92,6 +96,7 @@ class SearchHandler(Construct):
             alarm_topic=alarm_topic,
         )
         opensearch_domain.grant_read(self.public_handler)
+        compact_configuration_table.grant_read_data(self.public_handler)
 
         # Create metric filter and alarm for public handler errors
         public_error_log_metric = MetricFilter(
@@ -128,8 +133,9 @@ class SearchHandler(Construct):
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The grant_read method requires wildcard permissions on the OpenSearch domain to '
-                    'read from indices. This is appropriate for a search function that needs to query '
-                    'provider indices in the domain.',
+                    'read from indices, and grant_read_data on the compact configuration table requires '
+                    'wildcard permissions on its indexes. This is appropriate for search functions that query '
+                    'provider indices and, for public license search, data-live jurisdictions.',
                 },
             ],
         )

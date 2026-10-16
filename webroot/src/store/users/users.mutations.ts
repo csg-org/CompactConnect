@@ -113,12 +113,12 @@ export default {
         state.error = null;
     },
     [MutationTypes.UPDATE_USER_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoading = false; // State is handled locally for this to avoid triggering unwanted actions
         state.error = null;
     },
-    [MutationTypes.UPDATE_USER_FAILURE]: (state: any, error: Error) => {
+    [MutationTypes.UPDATE_USER_FAILURE]: (state: any) => {
         state.isLoading = false;
-        state.error = error;
+        state.error = null; // State is handled locally for this to avoid triggering unwanted actions
     },
     [MutationTypes.UPDATE_USER_SUCCESS]: (state: any) => {
         state.isLoading = false;

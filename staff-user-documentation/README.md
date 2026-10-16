@@ -150,7 +150,7 @@ Jurisdictions may offer reduced rates for active military-affiliated licensees:
 State administrators must provide email addresses for three types of system notifications:
 
 **1. Operations Notification Recipients**
-- Email addresses added to this list will receive notifications related to technical support (such as issues with license uploads)
+- Email addresses added to this list will receive notifications related to technical support, including errors encountered when uploading licenses via CSV file
 
 **2. Encumbrance Notification Recipients**
 - Email addresses added to this list will receive notifications whenever a license or privilege is encumbered in the system

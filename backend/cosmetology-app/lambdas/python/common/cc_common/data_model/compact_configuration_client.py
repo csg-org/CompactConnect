@@ -1,8 +1,13 @@
+from boto3.dynamodb.conditions import Key
+
 from cc_common.config import _Config, logger
 from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
-from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
+from cc_common.data_model.schema.jurisdiction.record import (
+    LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE,
+    JurisdictionRecordSchema,
+)
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
@@ -150,6 +155,60 @@ class CompactConfigurationClient:
         # Load through schema and convert to Jurisdiction model
         return JurisdictionConfigurationData.from_database_record(item)
 
+    def get_adverse_action_notification_emails_by_jurisdiction(self, compact: str) -> dict[str, list[str]]:
+        """Load every jurisdiction configuration for a compact in one query.
+
+        Returns postal abbreviation to adverse-action notification emails. Other jurisdiction fields are not read.
+        """
+        logger.info('Getting adverse action emails for compact jurisdictions', compact=compact)
+
+        emails_by_jurisdiction: dict[str, list[str]] = {}
+        query_kwargs = {
+            'KeyConditionExpression': Key('pk').eq(f'{compact}#CONFIGURATION')
+            & Key('sk').begins_with(f'{compact}#JURISDICTION#'),
+            'ProjectionExpression': 'postalAbbreviation, jurisdictionAdverseActionsNotificationEmails',
+        }
+        while True:
+            response = self.config.compact_configuration_table.query(**query_kwargs)
+            for item in response.get('Items', []):
+                postal_abbreviation = item.get('postalAbbreviation')
+                if not postal_abbreviation:
+                    continue
+                emails_by_jurisdiction[postal_abbreviation.lower()] = item.get(
+                    'jurisdictionAdverseActionsNotificationEmails', []
+                )
+            last_evaluated_key = response.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                return emails_by_jurisdiction
+            query_kwargs['ExclusiveStartKey'] = last_evaluated_key
+
+    def get_data_live_jurisdictions(self, compact: str) -> list[str]:
+        """Postal abbreviations whose jurisdiction isLicenseDataLive flag is true.
+
+        One query of jurisdiction configuration items. The stored attribute is still
+        LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE (licenseeRegistrationEnabled). That name is kept so existing
+        jurisdiction items, including ones migrated from a registration-based compact, do not need a data migration.
+        Cosmetology does not use it as a registration switch. Compact-wide go-live is not consulted.
+        """
+        logger.info('Getting data-live jurisdictions', compact=compact)
+
+        postals: set[str] = set()
+        query_kwargs = {
+            'KeyConditionExpression': Key('pk').eq(f'{compact}#CONFIGURATION')
+            & Key('sk').begins_with(f'{compact}#JURISDICTION#'),
+            'ProjectionExpression': f'postalAbbreviation, {LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE}',
+        }
+        while True:
+            response = self.config.compact_configuration_table.query(**query_kwargs)
+            for item in response.get('Items', []):
+                postal_abbreviation = item.get('postalAbbreviation')
+                if postal_abbreviation and item.get(LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE) is True:
+                    postals.add(postal_abbreviation.lower())
+            last_evaluated_key = response.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                return sorted(postals)
+            query_kwargs['ExclusiveStartKey'] = last_evaluated_key
+
     def save_jurisdiction_configuration(self, jurisdiction_config: JurisdictionConfigurationData) -> None:
         """
         Save the jurisdiction configuration and update related compact configuration if needed.
@@ -162,20 +221,19 @@ class CompactConfigurationClient:
         self.config.compact_configuration_table.put_item(Item=serialized_jurisdiction)
 
         # Always check if jurisdiction should be in compact's configuredStates (idempotent)
-        self._ensure_jurisdiction_in_configured_states_if_registration_enabled(jurisdiction_config)
+        self._ensure_jurisdiction_in_configured_states_if_data_live(jurisdiction_config)
 
-    def _ensure_jurisdiction_in_configured_states_if_registration_enabled(
+    def _ensure_jurisdiction_in_configured_states_if_data_live(
         self, jurisdiction_config: JurisdictionConfigurationData
     ) -> None:
         """
-        Ensure that if a jurisdiction has licensee registration enabled, it appears in the compact's
-        configuredStates list.
+        Ensure that if a jurisdiction is data-live, it appears in the compact's configuredStates list.
 
         :param jurisdiction_config: The jurisdiction configuration to check
         """
-        if not jurisdiction_config.licenseeRegistrationEnabled:
+        if not jurisdiction_config.isLicenseDataLive:
             logger.debug(
-                'Jurisdiction does not have licensee registration enabled - no action needed',
+                'Jurisdiction is not data-live - no action needed',
                 compact=jurisdiction_config.compact,
                 jurisdiction=jurisdiction_config.postalAbbreviation,
             )
@@ -236,7 +294,7 @@ class CompactConfigurationClient:
     def update_compact_configured_states(self, compact: str, configured_states: list[dict]) -> None:
         """
         Update the configuredStates field for a compact configuration using DynamoDB UPDATE operation.
-        This is used to add states to configuredStates when they enable licensee registration.
+        This is used to add states to configuredStates when they mark license data live.
 
         :param compact: The compact abbreviation
         :param configured_states: The updated list of configured states
