@@ -4,8 +4,10 @@
 //
 //  Created by InspiringApps on 7/2/2024.
 //
+
 import { deleteUndefinedProperties } from '@models/_helpers';
 import { dateDisplay } from '@models/_formatters/date';
+import { State } from '@models/State/State.model';
 
 // ========================================================
 // =                       Interface                      =
@@ -18,6 +20,8 @@ export interface InterfaceLicenseHistoryItem {
     effectiveDate?: string | null;
     serverNote?: string | null;
     npdbCategories?: string[] | null;
+    encumbranceType?: string | null;
+    state?: State;
 }
 
 // ========================================================
@@ -33,6 +37,8 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public effectiveDate? = null;
     public serverNote? = null;
     public npdbCategories?: string[] | null = null;
+    public encumbranceType? = null;
+    public state? = new State();
 
     constructor(data?: InterfaceLicenseHistoryItem) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -86,6 +92,27 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         return eventName;
     }
 
+    public encumbranceTypeName(): string {
+        const encumbranceTypes = this.$tm('licensing.disciplineTypes') || [];
+        const encumbranceType = encumbranceTypes.find((translate) => translate.key === this.encumbranceType);
+        const typeName = encumbranceType?.name || '';
+
+        return typeName;
+    }
+
+    public npdbTypeName(npdbTypeKey: string): string {
+        const npdbTypes = this.$tm('licensing.npdbTypes') || [];
+        const npdbType = npdbTypes.find((translate) => translate.key === npdbTypeKey);
+        const typeName = npdbType?.name || npdbTypeKey || '';
+
+        return typeName;
+    }
+
+    public npdbTypeNames(): Array<string> {
+        return this.npdbCategories?.map((npdbTypeKey) => this.npdbTypeName(npdbTypeKey))
+            .filter((npdbTypeName) => npdbTypeName.length) || [];
+    }
+
     public noteDisplay(): string {
         const updateType = this.updateType || '';
         let noteDisplay = this.serverNote || '';
@@ -97,16 +124,7 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         } else if (updateType === 'encumbrance') {
             // For encumbrance events, use npdbCategories
             if (this.npdbCategories && this.npdbCategories.length > 0) {
-                const npdbTypes = this.$tm('licensing.npdbTypes') || [];
-                const categoryNames = this.npdbCategories
-                    .map((categoryKey) => {
-                        const npdbType = npdbTypes.find((translate) => translate.key === categoryKey);
-
-                        return npdbType?.name || categoryKey;
-                    })
-                    .filter((name) => name); // Filter out empty strings
-
-                noteDisplay = categoryNames.join(', ');
+                noteDisplay = this.npdbTypeNames().join(', ');
             }
         }
 
@@ -123,10 +141,12 @@ export class LicenseHistoryItemSerializer {
             type: json.type,
             updateType: json.updateType,
             createDate: json.createDate,
-            effectiveDate: json.effectiveDate,
+            effectiveDate: json.effectiveDate || json.dateOfUpdate,
             dateOfUpdate: json.dateOfUpdate,
             serverNote: json.note,
             npdbCategories: json.npdbCategories,
+            encumbranceType: json.encumbranceType,
+            state: new State({ abbrev: json.jurisdiction }),
         };
 
         return new LicenseHistoryItem(licenseHistoryData);
