@@ -1,0 +1,17 @@
+{
+  "AlarmDescription": "Sandbox/APIStack/LicenseApi Privilege deactivation notification failed. One or more notifications to providers or jurisdictions failed to send during privilege deactivation. Investigation required to ensure all parties have been properly notified.",
+  "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+  "Dimensions": [
+    {
+      "Name": "service",
+      "Value": "common"
+    }
+  ],
+  "EvaluationPeriods": 1,
+  "MetricName": "privilege-deactivation-notification-failed",
+  "Namespace": "compact-connect",
+  "Period": 300,
+  "Statistic": "Sum",
+  "Threshold": 1,
+  "TreatMissingData": "notBreaching"
+}

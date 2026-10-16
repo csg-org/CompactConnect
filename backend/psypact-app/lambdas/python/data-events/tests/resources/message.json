@@ -1,0 +1,22 @@
+{
+  "version": "0",
+  "id": "44ec3255-8d59-a6ae-0783-5563a9318a58",
+  "detail-type": "license.validation-error",
+  "source": "org.compactconnect.bulk-ingest.aslp/oh/1234",
+  "account": "000000000000",
+  "time": "2024-07-11T19:57:45Z",
+  "region": "us-east-1",
+  "resources": [],
+  "detail": {
+    "eventTime": "2024-10-30T02:30:54.586569+00:00",
+    "compact": "aslp",
+    "jurisdiction": "oh",
+    "recordNumber": 4,
+    "validData": {},
+    "errors": {
+      "licenseType": [
+        "Missing data for required field."
+      ]
+    }
+  }
+}

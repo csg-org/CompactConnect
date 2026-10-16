@@ -94,6 +94,14 @@ class QueuedLambdaProcessor(Construct):
             )
         )
 
+        # The event source mapping only implicitly depends on the queue and the function, not on the queue
+        # policy that we just added the consume permissions to. Lambda validates that the function's execution
+        # role can call ReceiveMessage on the queue when it creates the mapping, so without an explicit
+        # dependency here, CloudFormation is free to create the mapping before that policy exists, and the
+        # create intermittently fails with "The function execution role does not have permissions to call
+        # ReceiveMessage on SQS". The queue policy does not depend on the mapping, so this cannot cycle.
+        self.event_source_mapping.node.add_dependency(self.queue.node.find_child('Policy'))
+
         self._add_queue_alarms(
             retention_period=retention_period,
             queue=self.queue,

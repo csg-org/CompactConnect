@@ -6,6 +6,8 @@ from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_ssm import StringParameter
 from constructs import Construct
 
+from common_constructs.common_lambdas_sync import sync_common_lambdas_into_layer_entry
+
 
 class PythonCommonLayerVersions(Construct):
     """
@@ -19,6 +21,7 @@ class PythonCommonLayerVersions(Construct):
         construct_id: str,
         *,
         compatible_runtimes: list[Runtime],
+        include_shared_python: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id)
@@ -28,6 +31,12 @@ class PythonCommonLayerVersions(Construct):
         PythonFunction.register_layer_versions(self)
 
         self._python_layers = {}
+        common_entry = os.path.join('lambdas', 'python', 'common')
+        # PsyPact currently opts in so backend/common-python/common_lambdas is copied into the
+        # layer entry for Docker bundling. The copy is gitignored; common-python is the source of truth.
+        # Eventually this will extracted to a pypi package so this can be removed.
+        if include_shared_python:
+            sync_common_lambdas_into_layer_entry(common_entry)
 
         for runtime in compatible_runtimes:
             # Add the common python lambda layer for use in all python lambdas
@@ -39,7 +48,7 @@ class PythonCommonLayerVersions(Construct):
             self._python_layers[runtime.name] = PythonLayerVersion(
                 self,
                 runtime.name,
-                entry=os.path.join('lambdas', 'python', 'common'),
+                entry=common_entry,
                 # Compatible runtime(s) is a bit misleading - only the first runtime is used for bundling, so any
                 # other 'compatible' types listed could be broken. We'll just make one layer per runtime we need.
                 compatible_runtimes=[runtime],

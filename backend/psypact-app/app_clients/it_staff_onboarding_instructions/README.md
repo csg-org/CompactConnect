@@ -1,0 +1,1 @@
+[Moved Here](../../docs/it_staff_onboarding_instructions.md)
