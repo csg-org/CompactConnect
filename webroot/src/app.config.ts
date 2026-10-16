@@ -13,7 +13,7 @@ export enum AppModes {
     COSMETOLOGY = 'cosmo',
     SOCIAL_WORK = 'socialwork',
     PSYPACT = 'psypact',
-    DIETITIANS = 'dietitians',
+    DIETITIANS = 'dietitian',
 }
 
 export enum AppGroupModes {

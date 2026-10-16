@@ -47,10 +47,10 @@ jobs:
       VUE_APP_API_LICENSE_ROOT_PSYPACT: https://api.test.psypact.jcc.iaapi.io
       VUE_APP_API_SEARCH_ROOT_PSYPACT: https://search.test.psypact.jcc.iaapi.io
       VUE_APP_API_USER_ROOT_PSYPACT: https://api.test.psypact.jcc.iaapi.io
-      VUE_APP_API_STATE_ROOT_DIET: https://api.test.dietitians.jcc.iaapi.io
-      VUE_APP_API_LICENSE_ROOT_DIET: https://api.test.dietitians.jcc.iaapi.io
-      VUE_APP_API_SEARCH_ROOT_DIET: https://search.test.dietitians.jcc.iaapi.io
-      VUE_APP_API_USER_ROOT_DIET: https://api.test.dietitians.jcc.iaapi.io
+      VUE_APP_API_STATE_ROOT_DIET: https://api.test.dietitian.jcc.iaapi.io
+      VUE_APP_API_LICENSE_ROOT_DIET: https://api.test.dietitian.jcc.iaapi.io
+      VUE_APP_API_SEARCH_ROOT_DIET: https://search.test.dietitian.jcc.iaapi.io
+      VUE_APP_API_USER_ROOT_DIET: https://api.test.dietitian.jcc.iaapi.io
       VUE_APP_COGNITO_REGION: us-east-1
       VUE_APP_COGNITO_AUTH_DOMAIN_STAFF: https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com
       VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ secrets.DEV_WEBROOT_COGNITO_CLIENT_ID_STAFF }}
@@ -64,9 +64,9 @@ jobs:
       VUE_APP_COGNITO_CLIENT_ID_STAFF_PSYPACT: TODO
       VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_PSYPACT: https://licensee-auth.test.psypact.jcc.iaapi.io
       VUE_APP_COGNITO_CLIENT_ID_LICENSEE_PSYPACT: TODO
-      VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_DIET: https://staff-auth.test.dietitians.jcc.iaapi.io
+      VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_DIET: https://staff-auth.test.dietitian.jcc.iaapi.io
       VUE_APP_COGNITO_CLIENT_ID_STAFF_DIET: TODO
-      VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_DIET: https://licensee-auth.test.dietitians.jcc.iaapi.io
+      VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_DIET: https://licensee-auth.test.dietitian.jcc.iaapi.io
       VUE_APP_COGNITO_CLIENT_ID_LICENSEE_DIET: TODO
       VUE_APP_RECAPTCHA_KEY: 6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih
 

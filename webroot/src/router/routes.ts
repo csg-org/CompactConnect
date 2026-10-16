@@ -88,7 +88,7 @@ const routes: Array<RouteConfig> = [
         meta: { skipTransition: true },
     },
     {
-        path: '/auth/callback/staff/dietitians',
+        path: '/auth/callback/staff/dietitian',
         name: 'AuthCallbackStaffDietitians',
         component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/StaffDietitians/StaffDietitians.vue'),
         meta: { skipTransition: true },
@@ -106,7 +106,7 @@ const routes: Array<RouteConfig> = [
         meta: { skipTransition: true },
     },
     {
-        path: '/auth/callback/licensee/dietitians',
+        path: '/auth/callback/licensee/dietitian',
         name: 'AuthCallbackLicenseeDietitians',
         component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/LicenseeDietitians/LicenseeDietitians.vue'),
         meta: { skipTransition: true },

@@ -60,7 +60,7 @@ describe('mock provider compact overlays', () => {
     it('should apply the PSYPACT overlay', () => {
         expectProviderOverlay(CompactType.PSYPACT);
     });
-    it('should apply the dietitians overlay', () => {
+    it('should apply the dietitian overlay', () => {
         expectProviderOverlay(CompactType.DIETITIANS);
     });
     it('should return the original provider when an overlay is not provided', () => {

@@ -106,7 +106,7 @@ export default class DashboardPublic extends Vue {
         case 'login-staff-psypact':
             this.bypassToStaffLogin(AppModes.PSYPACT);
             break;
-        case 'login-staff-dietitians':
+        case 'login-staff-dietitian':
             this.bypassToStaffLogin(AppModes.DIETITIANS);
             break;
         case 'login-practitioner':
@@ -115,7 +115,7 @@ export default class DashboardPublic extends Vue {
         case 'login-practitioner-psypact':
             this.bypassToLicenseeLogin(AppModes.PSYPACT);
             break;
-        case 'login-practitioner-dietitians':
+        case 'login-practitioner-dietitian':
             this.bypassToLicenseeLogin(AppModes.DIETITIANS);
             break;
         case 'recovery-practitioner':

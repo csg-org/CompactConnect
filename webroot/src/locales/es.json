@@ -514,7 +514,7 @@
         {
             "name": "Dietistas",
             "abbrev": "Dietitians",
-            "key": "dietitians"
+            "key": "diet"
         }
     ],
     "compact": {
@@ -889,7 +889,7 @@
             {
                 "name": "Dietista",
                 "key": "dietitian",
-                "compactKey": "dietitians",
+                "compactKey": "diet",
                 "abbrev": "DIET"
             }
         ],

@@ -382,7 +382,7 @@ export const staffAccount = {
                 },
             },
         },
-        dietitians: {
+        diet: {
             actions: {
                 admin: true,
                 readPrivate: true,
@@ -1864,7 +1864,7 @@ export const users = {
                         },
                     },
                 },
-                dietitians: {
+                diet: {
                     actions: {
                         admin: true,
                         readPrivate: true,
@@ -2061,7 +2061,7 @@ export const compactStatesForRegistration = {
     coun: [ 'al', 'ak', 'co', 'il', 'ia', 'ky', 'ne', 'nm' ],
     octp: [ 'al', 'ar', 'co', 'ct', 'il', 'ky' ],
     psypact: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
-    dietitians: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
+    diet: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
 };
 
 export const compactConfig = {

@@ -44,12 +44,12 @@ const environmentValues = {
     cognitoStaffPsyPact: 'staff-auth.psypact.org',
     cognitoProviderPsyPact: 'licensee-auth.psypact.org',
     // DIETITIANS
-    dataApiDietitians: 'api.dietitians.compactconnect.org',
-    searchApiDietitians: 'search.dietitians.compactconnect.org',
+    dataApiDietitians: 'api.dietitian.compactconnect.org',
+    searchApiDietitians: 'search.dietitian.compactconnect.org',
     s3UploadUrlStateDietitians: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5l.s3.amazonaws.com',
     s3UploadUrlProviderDietitians: 'prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwl.s3.amazonaws.com',
-    cognitoStaffDietitians: 'staff-auth.dietitians.compactconnect.org',
-    cognitoProviderDietitians: 'licensee-auth.dietitians.compactconnect.org',
+    cognitoStaffDietitians: 'staff-auth.dietitian.compactconnect.org',
+    cognitoProviderDietitians: 'licensee-auth.dietitian.compactconnect.org',
 };
 
 /**

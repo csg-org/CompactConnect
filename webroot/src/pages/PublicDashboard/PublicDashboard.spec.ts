@@ -131,7 +131,7 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain('&response_type=code');
         expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fpsypact');
     });
-    it('should get correct hosted login uri config for staff (dietitians)', async () => {
+    it('should get correct hosted login uri config for staff (dietitian)', async () => {
         const wrapper = await mountShallow(PublicDashboard);
         const component = wrapper.vm;
 
@@ -148,7 +148,7 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
         expect(loginUri).to.contain('&code_challenge_method=S256');
         expect(loginUri).to.contain('&response_type=code');
-        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fdietitians');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fdietitian');
     });
     it('should successfully render one staff login link per enabled compact (compactconnect)', async () => {
         const wrapper = await mountFull(PublicDashboard);
@@ -216,7 +216,7 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain('&response_type=code');
         expect(loginUri).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fpsypact');
     });
-    it('should get correct hosted login uri config for licensee (dietitians)', async () => {
+    it('should get correct hosted login uri config for licensee (dietitian)', async () => {
         const wrapper = await mountShallow(PublicDashboard);
         const component = wrapper.vm;
 
@@ -233,6 +233,6 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
         expect(loginUri).to.contain('&code_challenge_method=S256');
         expect(loginUri).to.contain('&response_type=code');
-        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fdietitians');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fdietitian');
     });
 });

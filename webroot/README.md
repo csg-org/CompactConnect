@@ -159,68 +159,68 @@
             - `https://api.test.socialwork.jcc.iaapi.io`
     - **`VUE_APP_API_STATE_ROOT_PSYPACT`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://api.test.socialwork.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://api.test.socialwork.jcc.iaapi.io`
     - **`VUE_APP_API_LICENSE_ROOT_PSYPACT`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://api.test.socialwork.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://api.test.socialwork.jcc.iaapi.io`
     - **`VUE_APP_API_SEARCH_ROOT_PSYPACT`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://search.test.psypact.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://search.test.psypact.jcc.iaapi.io`
     - **`VUE_APP_API_USER_ROOT_PSYPACT`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://api.test.socialwork.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://api.test.socialwork.jcc.iaapi.io`
     - **`VUE_APP_API_STATE_ROOT_DIET`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://api.test.dietitian.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://api.test.dietitian.jcc.iaapi.io`
     - **`VUE_APP_API_LICENSE_ROOT_DIET`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://api.test.dietitian.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://api.test.dietitian.jcc.iaapi.io`
     - **`VUE_APP_API_SEARCH_ROOT_DIET`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://search.test.dietitian.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://search.test.dietitian.jcc.iaapi.io`
     - **`VUE_APP_API_USER_ROOT_DIET`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://api.test.dietitian.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://api.test.dietitian.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_REGION`**
         - _Server_ :arrow_heading_up:
             - IA Test: `us-east-1`
@@ -295,68 +295,68 @@
             - `42km9ho786d28dp812j88kvscq`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_PSYPACT`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://staff-auth.test.psypact.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://staff-auth.test.psypact.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_CLIENT_ID_STAFF_PSYPACT`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `7j8edjf4p4dppq5aniq38r3e7f`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `7j8edjf4p4dppq5aniq38r3e7f`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_PSYPACT`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://licensee-auth.test.psypact.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://licensee-auth.test.psypact.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE_PSYPACT`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `264639h8fgdggvt29r7ldggn5u`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `264639h8fgdggvt29r7ldggn5u`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_DIET`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://staff-auth.test.dietitian.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://staff-auth.test.dietitian.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_CLIENT_ID_STAFF_DIET`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `21a0k2iv0r431rofp4u75ktd12`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `21a0k2iv0r431rofp4u75ktd12`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_DIET`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `https://licensee-auth.test.dietitian.jcc.iaapi.io`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `https://licensee-auth.test.dietitian.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE_DIET`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `TODO`
+            - IA Test: `64itcer8m6v83m3vet68cbd4dm`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
-            - `TODO`
+            - `64itcer8m6v83m3vet68cbd4dm`
     - **`VUE_APP_RECAPTCHA_KEY`**
         - _Server_ :arrow_heading_up:
             - IA Test: `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
