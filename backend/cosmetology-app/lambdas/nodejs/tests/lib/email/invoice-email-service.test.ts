@@ -1,6 +1,7 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { mockClient } from 'aws-sdk-client-mock';
+import 'aws-sdk-client-mock-jest';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { InvoiceEmailService } from '../../../lib/email/invoice-email-service';
@@ -167,15 +168,11 @@ describe('InvoiceEmailService', () => {
         it('should set the subject from the compact, license type, and billing month', async () => {
             await emailService.sendInvoiceEmail(cosmetologistReport(), ['compact-ops@example.com']);
 
-            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-                Content: {
-                    Simple: {
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: '[Cosmetology Compact] Cosmetologist Invoice — September 2024',
-                        },
-                    },
-                },
+            const subject = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Content?.Simple?.Subject;
+
+            expect(subject).toEqual({
+                Charset: 'UTF-8',
+                Data: '[Cosmetology Compact] Cosmetologist Invoice — September 2024',
             });
         });
 

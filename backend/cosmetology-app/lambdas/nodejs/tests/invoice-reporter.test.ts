@@ -12,7 +12,7 @@ import {
     SAMPLE_JURISDICTION_CONFIGURATION,
     SAMPLE_JURISDICTION_CONFIGURATION_KY,
     SAMPLE_LICENSE_RECORD_ESTHETICIAN,
-    SAMPLE_LICENSE_RECORD_NEW,
+    SAMPLE_LICENSE_RECORD_NEW
 } from './sample-records';
 
 const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
@@ -20,7 +20,10 @@ const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;
 
-const mockSendInvoiceEmail = jest.fn().mockImplementation(
+const mockSendInvoiceEmail = jest.fn<(
+    report: { licenseType: string; billingMonth?: string; totalBillable?: number; totalOwed?: number },
+    recipients: string[]
+) => Promise<string>>().mockImplementation(
     () => Promise.resolve('message-id-123')
 );
 
@@ -102,7 +105,7 @@ describe('Invoice reporter', () => {
                         Items: [SAMPLE_GSI_LICENSE_UPLOAD_RECORD, SAMPLE_GSI_LICENSE_UPLOAD_RECORD_ESTHETICIAN],
                     });
                 }
-                return Promise.resolve({ Items: [] });
+                return Promise.resolve({ Items: []});
             }
             return Promise.reject(new Error(`Unexpected query ${JSON.stringify(input)}`));
         });
@@ -186,9 +189,9 @@ describe('Invoice reporter', () => {
             mockDynamoDBClient.on(GetItemCommand).resolves({ Item: SAMPLE_COMPACT_CONFIGURATION });
             mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
                 if (input.TableName === 'compact-table') {
-                    return Promise.resolve({ Items: [SAMPLE_JURISDICTION_CONFIGURATION] });
+                    return Promise.resolve({ Items: [SAMPLE_JURISDICTION_CONFIGURATION]});
                 }
-                return Promise.resolve({ Items: [] });
+                return Promise.resolve({ Items: []});
             });
 
             await lambda().handler({ eventType: 'monthly' }, SAMPLE_CONTEXT);

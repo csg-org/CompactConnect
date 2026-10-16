@@ -1,6 +1,7 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { BatchGetItemCommand, DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { mockClient } from 'aws-sdk-client-mock';
+import 'aws-sdk-client-mock-jest';
 import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { InvoiceClient } from '../../lib/invoice-client';
@@ -14,7 +15,7 @@ import {
     SAMPLE_LICENSE_RECORD_ESTHETICIAN,
     SAMPLE_LICENSE_RECORD_INELIGIBLE,
     SAMPLE_LICENSE_RECORD_NEW,
-    SAMPLE_LICENSE_RECORD_RENEWAL,
+    SAMPLE_LICENSE_RECORD_RENEWAL
 } from '../sample-records';
 
 const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
@@ -43,18 +44,18 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
     });
 
     const queryGsi = (items: object[], lastEvaluatedKey?: Record<string, { S: string }>) => {
-        mockDynamoDBClient.on(QueryCommand).resolves({
+        mockDynamoDBClient.on(QueryCommand).callsFake(async () => ({
             Items: items,
             ...(lastEvaluatedKey ? { LastEvaluatedKey: lastEvaluatedKey } : {}),
-        });
+        }));
     };
 
     const batchGet = (records: object[]) => {
-        mockDynamoDBClient.on(BatchGetItemCommand).resolves({
+        mockDynamoDBClient.on(BatchGetItemCommand).callsFake(async () => ({
             Responses: {
                 'provider-table': records,
             },
-        });
+        }));
     };
 
     it('should query the license upload date index for the compact, jurisdiction, and billing month', async () => {
@@ -211,6 +212,47 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
         ]);
         expect(result.byLicenseType.esthetician.map((item) => item.licenseNumber)).toEqual(['EST-11111']);
         expect(result.lineItems).toHaveLength(3);
+    });
+
+    it('should bill a license once when the index lists it more than once', async () => {
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD, SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([SAMPLE_LICENSE_RECORD_NEW]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.totalUploaded).toEqual(2);
+        expect(result.lineItems.map((item) => item.licenseNumber)).toEqual(['COS-12345']);
+    });
+
+    it('should skip index items that do not identify a license', async () => {
+        queryGsi([{ licenseUploadDateGSIPK: { S: GSI_PK }}]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([]);
+        expect(result.totalUploaded).toEqual(1);
+        expect(mockDynamoDBClient).not.toHaveReceivedCommand(BatchGetItemCommand);
+    });
+
+    it('should skip an index hit whose license record is missing', async () => {
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([]);
+        expect(result.totalUploaded).toEqual(1);
+    });
+
+    it('should read the provider id from the index sort key when the attribute is absent', async () => {
+        const { providerId: _providerId, ...indexItem } = SAMPLE_GSI_LICENSE_UPLOAD_RECORD;
+
+        queryGsi([indexItem]);
+        batchGet([SAMPLE_LICENSE_RECORD_NEW]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems.map((item) => item.licenseNumber)).toEqual(['COS-12345']);
     });
 
     it('should let DynamoDB errors escape', async () => {

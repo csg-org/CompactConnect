@@ -1,10 +1,10 @@
 import json
 from unittest import TestCase
 
+from aws_cdk.assertions import Template
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_iam import CfnPolicy
 from aws_cdk.aws_lambda import CfnFunction
-from aws_cdk.assertions import Template
 
 from tests.app.base import TstAppABC
 
@@ -76,7 +76,7 @@ class TestReportingStack(TstAppABC, TestCase):
         rule = monthly_rules[0]
         self.assertEqual('cron(0 6 2 * ? *)', rule['ScheduleExpression'])
         self.assertEqual('ENABLED', rule['State'])
-        self.assertIn('{"eventType":"monthly"}', json.dumps(rule['Targets']))
+        self.assertEqual('{"eventType":"monthly"}', rule['Targets'][0]['Input'])
         self.assertIn(function_logical_id, json.dumps(rule['Targets']))
 
     def test_invoice_reporter_has_provider_table_read_permissions(self):
