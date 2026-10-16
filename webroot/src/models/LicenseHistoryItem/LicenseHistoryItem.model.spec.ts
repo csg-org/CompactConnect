@@ -255,6 +255,17 @@ describe('LicenseHistoryItem model', () => {
 
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Privilege Unencumbered');
     });
+    it('should fall back to dateOfUpdate when effectiveDate is missing through serializer', () => {
+        const data = {
+            type: 'privilegeUpdate',
+            updateType: 'deactivation',
+            dateOfUpdate: '2022-03-19T22:02:17+00:00',
+        };
+        const licenseHistoryItem = LicenseHistoryItemSerializer.fromServer(data);
+
+        expect(licenseHistoryItem.effectiveDate).to.equal(data.dateOfUpdate);
+        expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('3/19/2022');
+    });
     it('should create a LicenseHistoryItem without Vue i18n helpers', () => {
         const previousVue = (window as any).Vue;
 

@@ -659,6 +659,10 @@ describe('License model', () => {
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
         expect(license.history[0].updateType).to.equal('deactivation');
         expect(license.history[0].state.abbrev).to.equal(data.jurisdiction);
+        expect(license.history[0].effectiveDate).to.equal(data.history[0].dateOfUpdate);
+        expect(license.history[0].effectiveDateDisplay()).to.equal(
+            moment(data.history[0].dateOfUpdate, serverDatetimeFormat).format(displayDateFormat)
+        );
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
         expect(license.isUnderInvestigation()).to.equal(true);

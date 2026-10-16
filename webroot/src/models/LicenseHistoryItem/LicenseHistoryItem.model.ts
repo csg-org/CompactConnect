@@ -141,7 +141,7 @@ export class LicenseHistoryItemSerializer {
             type: json.type,
             updateType: json.updateType,
             createDate: json.createDate,
-            effectiveDate: json.effectiveDate,
+            effectiveDate: json.effectiveDate || json.dateOfUpdate,
             dateOfUpdate: json.dateOfUpdate,
             serverNote: json.note,
             npdbCategories: json.npdbCategories,
