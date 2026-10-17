@@ -16,6 +16,7 @@ class AppId(StrEnum):
     JCC = 'jcc'
     COSMETOLOGY = 'cosmetology'
     SOCIAL_WORK = 'social-work'
+    DIETITIAN = 'dietitian'
     PSYPACT = 'psypact'
 
 
