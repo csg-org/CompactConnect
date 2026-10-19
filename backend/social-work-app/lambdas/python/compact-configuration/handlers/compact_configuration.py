@@ -232,10 +232,13 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
             _validate_configured_states_transitions(
                 existing_config.configuredStates, validated_data['configuredStates'], compact, submitting_user_id
             )
+            existing_states = existing_config.configuredStates
         except CCNotFoundException:
             # No existing configuration, so this is the first time setting this field
             logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
+            existing_states = []
 
+        _apply_configured_state_live_dates(existing_states, validated_data['configuredStates'], compact)
         compact_configuration = CompactConfigurationData.create_new(validated_data)
         # Save the compact configuration
         config.compact_configuration_client.save_compact_configuration(compact_configuration)
@@ -310,6 +313,32 @@ def _validate_configured_states_transitions(
                     f'State "{postal_abbr}" cannot be changed from live to non-live status. '
                     f'Once a state is live (isLive: true), it cannot be reverted to non-live (isLive: false).'
                 )
+
+
+def _apply_configured_state_live_dates(existing_states: list[dict], new_states: list[dict], compact: str) -> None:
+    """Record when a state becomes live, and keep that timestamp on later updates.
+
+    The client cannot set this time. A state that is already live keeps its stored dateOfLive.
+    A state that was already live before the timestamp was recorded stays without one, so a later
+    edit does not pretend it went live at the time of the edit. A state that is not live has no date.
+    """
+    existing_by_postal = {state['postalAbbreviation']: state for state in existing_states}
+    for state in new_states:
+        state.pop('dateOfLive', None)
+        if not state.get('isLive'):
+            continue
+        existing = existing_by_postal.get(state['postalAbbreviation'])
+        if existing and existing.get('isLive'):
+            if existing.get('dateOfLive') is not None:
+                state['dateOfLive'] = existing['dateOfLive']
+            continue
+        state['dateOfLive'] = config.current_standard_datetime
+        logger.info(
+            'Recording date a jurisdiction went live',
+            compact=compact,
+            jurisdiction=state['postalAbbreviation'],
+            date_of_live=state['dateOfLive'].isoformat(),
+        )
 
 
 @authorize_state_level_only_action(action=CCPermissionsAction.ADMIN)

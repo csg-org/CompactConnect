@@ -849,7 +849,7 @@ class ProviderUserRecords:
     ) -> list[dict]:
         """Build the timeline shown on one privilege in the provider response."""
         events = []
-        issuance_date = self._earliest_multi_state_first_upload_date()
+        issuance_date = self._privilege_issuance_date(privilege)
         if issuance_date is not None:
             events.append(
                 {
@@ -869,11 +869,43 @@ class ProviderUserRecords:
         events.extend(self._home_jurisdiction_change_events())
         return sorted(events, key=_history_effective_date)
 
-    def _earliest_multi_state_first_upload_date(self) -> datetime | None:
+    def _privilege_issuance_date(self, privilege: dict) -> datetime | None:
+        """When this privilege came into existence.
+
+        A privilege in a jurisdiction starts at the later of that jurisdiction going live and the
+        earliest multi-state upload of the privilege's license type. A jurisdiction that is live
+        but has no recorded go-live time contributes only the upload date.
+        """
+        upload_date = self._earliest_multi_state_first_upload_date(privilege.get('licenseType'))
+        live_date = self._privilege_jurisdiction_live_date(privilege)
+        if upload_date is None:
+            return live_date
+        if live_date is None:
+            return upload_date
+        return max(upload_date, live_date)
+
+    def _privilege_jurisdiction_live_date(self, privilege: dict) -> datetime | None:
+        compact = privilege.get('compact')
+        if compact is None and self._provider_records:
+            compact = self.get_provider_record().compact
+        jurisdiction = privilege.get('jurisdiction')
+        if compact is None or jurisdiction is None:
+            return None
+        return config.live_compact_jurisdiction_dates.get(compact, {}).get(jurisdiction)
+
+    def _earliest_multi_state_first_upload_date(self, license_type: str | None) -> datetime | None:
+        """Earliest firstUploadDate among multi-state licenses of one license type.
+
+        Privileges are generated per license type, and each license stores its own
+        firstUploadDate, so the issuance event is built from that type alone.
+        """
+        if not license_type:
+            return None
         upload_dates = [
             license_record.firstUploadDate
             for license_record in self.get_license_records()
             if license_record.licenseScope == LicenseScopeEnum.MULTI_STATE
+            and license_record.licenseType == license_type
             and license_record.firstUploadDate is not None
         ]
         if not upload_dates:

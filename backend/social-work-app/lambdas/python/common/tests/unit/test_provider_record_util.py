@@ -120,6 +120,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
+        mock_config.live_compact_jurisdiction_dates = {}
         mock_config.license_type_abbreviations = {
             'socw': {
                 'licensed clinical social worker': 'lcsw',
@@ -1483,6 +1484,7 @@ class TestGenerateApiResponseObject(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
+        mock_config.live_compact_jurisdiction_dates = {}
         mock_config.license_type_abbreviations = {
             'socw': {
                 'licensed clinical social worker': 'lcsw',
@@ -1635,6 +1637,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
+        mock_config.live_compact_jurisdiction_dates = {}
         mock_config.license_type_abbreviations = {
             'socw': {
                 'licensed clinical social worker': 'lcsw',
@@ -2304,19 +2307,46 @@ LICENSE_TYPE = 'licensed clinical social worker'
 class TestConstructHistory(TstLambdas):
     """History assembly for licenses and privileges. These fail until the methods exist."""
 
+    def setUp(self):
+        super().setUp()
+        from cc_common.data_model import provider_record_util
+
+        # Set the cache directly so reading it does not load compact configuration.
+        self._history_config = provider_record_util.config
+        self._had_live_dates = 'live_compact_jurisdiction_dates' in self._history_config.__dict__
+        self._previous_live_dates = self._history_config.__dict__.get('live_compact_jurisdiction_dates')
+        self._history_config.__dict__['live_compact_jurisdiction_dates'] = {'socw': {}}
+
+    def tearDown(self):
+        if self._had_live_dates:
+            self._history_config.__dict__['live_compact_jurisdiction_dates'] = self._previous_live_dates
+        else:
+            self._history_config.__dict__.pop('live_compact_jurisdiction_dates', None)
+        super().tearDown()
+
+    def _set_jurisdiction_live_dates(self, dates_by_jurisdiction: dict[str, datetime]) -> None:
+        self._history_config.__dict__['live_compact_jurisdiction_dates'] = {'socw': dates_by_jurisdiction}
+
     def _loaded(self, *objects):
         from cc_common.data_model.provider_record_util import ProviderUserRecords
 
         return ProviderUserRecords([obj.serialize_to_database_record() for obj in objects])
 
-    def _license(self, *, scope='multi-state', first_upload_date=ISSUANCE_AT):
+    def _license(
+        self,
+        *,
+        scope='multi-state',
+        first_upload_date=ISSUANCE_AT,
+        license_type=LICENSE_TYPE,
+        license_number=None,
+    ):
         return self.test_data_generator.generate_default_license(
             {
                 'licenseScope': scope,
                 'jurisdiction': 'oh',
-                'licenseType': LICENSE_TYPE,
+                'licenseType': license_type,
                 'firstUploadDate': first_upload_date,
-                'licenseNumber': f'history-{scope}',
+                'licenseNumber': license_number or f'history-{scope}',
             }
         )
 
@@ -2370,11 +2400,11 @@ class TestConstructHistory(TstLambdas):
             overrides['effectiveLiftDate'] = lift_on
         return self.test_data_generator.generate_default_adverse_action(overrides)
 
-    def _privilege(self, jurisdiction):
+    def _privilege(self, jurisdiction, license_type=LICENSE_TYPE):
         return {
             'type': 'privilege',
             'jurisdiction': jurisdiction,
-            'licenseType': LICENSE_TYPE,
+            'licenseType': license_type,
             'licenseJurisdiction': 'oh',
         }
 
@@ -2577,6 +2607,145 @@ class TestConstructHistory(TstLambdas):
         self.assertEqual(['issuance'], [event['updateType'] for event in history])
         self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(history[0]['effectiveDate']))
         self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(history[0]['createDate']))
+
+    def test_privilege_history_issuance_uses_upload_date_for_that_license_type(self):
+        """An earlier multi-state license of another type must not set this privilege's issuance date."""
+        lmsw = 'licensed master social worker'
+        lmsw_uploaded_at = datetime.fromisoformat('2024-07-01T00:00:00+00:00')
+        provider = self.test_data_generator.generate_default_provider()
+        provider_records = self._loaded(
+            provider,
+            self._license(),
+            self._license(
+                license_type=lmsw,
+                first_upload_date=lmsw_uploaded_at,
+                license_number='history-lmsw-multi',
+            ),
+            # An earlier single-state license of the same type is not a privilege issuance.
+            self._license(
+                scope='single-state',
+                license_type=lmsw,
+                first_upload_date=datetime.fromisoformat('2020-01-01T00:00:00+00:00'),
+                license_number='history-lmsw-single',
+            ),
+        )
+
+        lcsw_history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+        lmsw_history = provider_records.construct_privilege_history(
+            self._privilege('ne', license_type=lmsw),
+            should_include_encumbrance_details=False,
+        )
+
+        lcsw_issuance = self._by_type(lcsw_history)['issuance'][0]
+        lmsw_issuance = self._by_type(lmsw_history)['issuance'][0]
+        self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(lcsw_issuance['effectiveDate']))
+        self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(lcsw_issuance['createDate']))
+        self.assertEqual('2024-07-01T00:00:00+00:00', _history_value(lmsw_issuance['effectiveDate']))
+        self.assertEqual('2024-07-01T00:00:00+00:00', _history_value(lmsw_issuance['createDate']))
+
+    def test_privilege_history_issuance_is_live_date_when_jurisdiction_went_live_after_upload(self):
+        """The privilege does not exist until the jurisdiction is live."""
+        live_at = datetime.fromisoformat('2023-04-01T00:00:00+00:00')
+        self._set_jurisdiction_live_dates({'ne': live_at})
+        provider = self.test_data_generator.generate_default_provider()
+        provider_records = self._loaded(provider, self._license())
+
+        history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+
+        issuance = self._by_type(history)['issuance'][0]
+        self.assertEqual('2023-04-01T00:00:00+00:00', _history_value(issuance['effectiveDate']))
+        self.assertEqual('2023-04-01T00:00:00+00:00', _history_value(issuance['createDate']))
+
+    def test_privilege_history_issuance_is_upload_date_when_license_uploaded_after_jurisdiction_went_live(self):
+        """A license uploaded after the jurisdiction is live is issued on the upload date."""
+        self._set_jurisdiction_live_dates({'ne': datetime.fromisoformat('2020-01-01T00:00:00+00:00')})
+        provider = self.test_data_generator.generate_default_provider()
+        provider_records = self._loaded(provider, self._license())
+
+        history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+
+        issuance = self._by_type(history)['issuance'][0]
+        self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(issuance['effectiveDate']))
+        self.assertEqual('2021-03-15T00:00:00+00:00', _history_value(issuance['createDate']))
+
+    def test_privilege_history_issuance_uses_each_jurisdiction_live_date(self):
+        """Each privilege uses its own jurisdiction's go-live time, or the upload date when none was recorded."""
+        self._set_jurisdiction_live_dates(
+            {
+                'ne': datetime.fromisoformat('2022-08-01T00:00:00+00:00'),
+                'al': datetime.fromisoformat('2019-01-01T00:00:00+00:00'),
+            }
+        )
+        provider = self.test_data_generator.generate_default_provider()
+        provider_records = self._loaded(provider, self._license())
+
+        histories = {
+            jurisdiction: provider_records.construct_privilege_history(
+                self._privilege(jurisdiction),
+                should_include_encumbrance_details=False,
+            )
+            for jurisdiction in ('ne', 'al', 'tx')
+        }
+        self.assertEqual(
+            '2022-08-01T00:00:00+00:00',
+            _history_value(self._by_type(histories['ne'])['issuance'][0]['effectiveDate']),
+        )
+        self.assertEqual(
+            '2021-03-15T00:00:00+00:00',
+            _history_value(self._by_type(histories['al'])['issuance'][0]['effectiveDate']),
+        )
+        self.assertEqual(
+            '2021-03-15T00:00:00+00:00',
+            _history_value(self._by_type(histories['tx'])['issuance'][0]['effectiveDate']),
+        )
+
+    def test_privilege_history_issuance_compares_each_license_type_upload_to_the_jurisdiction_live_date(self):
+        """One jurisdiction's go-live time is compared separately with each license type's upload date."""
+        lmsw = 'licensed master social worker'
+        self._set_jurisdiction_live_dates({'ne': datetime.fromisoformat('2023-01-01T00:00:00+00:00')})
+        provider = self.test_data_generator.generate_default_provider()
+        provider_records = self._loaded(
+            provider,
+            self._license(),
+            self._license(
+                license_type=lmsw,
+                first_upload_date=datetime.fromisoformat('2024-07-01T00:00:00+00:00'),
+                license_number='history-lmsw-multi',
+            ),
+            self._license(
+                scope='single-state',
+                license_type=lmsw,
+                first_upload_date=datetime.fromisoformat('2020-01-01T00:00:00+00:00'),
+                license_number='history-lmsw-single',
+            ),
+        )
+
+        lcsw_history = provider_records.construct_privilege_history(
+            self._privilege('ne'),
+            should_include_encumbrance_details=False,
+        )
+        lmsw_history = provider_records.construct_privilege_history(
+            self._privilege('ne', license_type=lmsw),
+            should_include_encumbrance_details=False,
+        )
+
+        self.assertEqual(
+            '2023-01-01T00:00:00+00:00',
+            _history_value(self._by_type(lcsw_history)['issuance'][0]['effectiveDate']),
+        )
+        self.assertEqual(
+            '2024-07-01T00:00:00+00:00',
+            _history_value(self._by_type(lmsw_history)['issuance'][0]['effectiveDate']),
+        )
 
     def test_privilege_history_encumbrance_event_public(self):
         provider = self.test_data_generator.generate_default_provider()
