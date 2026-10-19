@@ -245,13 +245,19 @@
                                 </span>
                                 {{ historyItem.effectiveDateDisplay() }}
                             </div>
-                            <div class="history-cell action-type">
+                            <div
+                                v-if="!$matches.phone.only || historyItem.isDisciplineEvent()"
+                                class="history-cell action-type"
+                            >
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('licensing.encumberAction') }}:
                                 </span>
                                 {{ historyItem.encumbranceTypeName() }}
                             </div>
-                            <div class="history-cell action-basis">
+                            <div
+                                v-if="!$matches.phone.only || historyItem.isDisciplineEvent()"
+                                class="history-cell action-basis"
+                            >
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('licensing.encumberBasisLabel') }}:
                                 </span>

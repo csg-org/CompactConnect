@@ -718,7 +718,9 @@
         "confirmPrivilegeDeactivateSubtext": "El profesional ya no podrá ejercer este privilegio. Esto no constituye una sanción disciplinaria.",
         "deactivateNotesTitle": "Notas de desactivación",
         "deactivation": "Desactivación",
-        "issuance": "Emisión",
+        "licenseIssuance": "Emisión de licencia ({scope})",
+        "licenseIssuanceNoScope": "Emisión de licencia",
+        "privilegeIssuance": "Emisión de privilegio",
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
@@ -785,7 +787,7 @@
         "uploadedOn": "Subido en",
         "licenseEvents": [
             {
-                "name": "Privilegio comprado",
+                "name": "Emisión de privilegio",
                 "key": "issuance"
             },
             {

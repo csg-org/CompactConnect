@@ -274,6 +274,7 @@ export class LicenseSerializer {
                     ...serverHistoryItem,
                     type: serverHistoryItem.type
                         || ((licenseData.isPrivilege) ? 'privilegeUpdate' : 'licenseUpdate'),
+                    licenseScope: serverHistoryItem.licenseScope || licenseData.licenseScope,
                     jurisdiction: serverHistoryItem.jurisdiction || jurisdiction,
                 }));
             });

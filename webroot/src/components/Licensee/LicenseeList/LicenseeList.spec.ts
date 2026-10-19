@@ -61,7 +61,7 @@ describe('LicenseeList component', async () => {
         });
 
         expect(component.searchDisplayLicenseScope).to.equal(
-            `${component.$t('licensing.licenseScope')}: Multi state`
+            `${component.$t('licensing.licenseScope')}: multi state`
         );
         expect(component.searchDisplayAll).to.equal([
             'Test User',

@@ -24,7 +24,6 @@ import { License, LicenseStatus } from '@models/License/License.model';
 import { State } from '@models/State/State.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { dataApi } from '@network/data.api';
-import moment from 'moment';
 
 @Component({
     name: 'LicensingDetail',
@@ -326,6 +325,10 @@ export default class LicensingDetail extends Vue {
         let sort = this.sortByHistoryDate(event1, event2);
 
         if (sort === 0) {
+            sort = this.sortByHistoryLicenseBeforePrivilege(event1, event2);
+        }
+
+        if (sort === 0) {
             sort = this.sortByHistoryState(event1, event2);
         }
 
@@ -333,13 +336,27 @@ export default class LicensingDetail extends Vue {
     }
 
     sortByHistoryDate(event1: LicenseHistoryItem, event2: LicenseHistoryItem): number {
-        const date1 = (event1.effectiveDate) ? moment(event1.effectiveDate).valueOf() : 0;
-        const date2 = (event2.effectiveDate) ? moment(event2.effectiveDate).valueOf() : 0;
+        const date1 = event1.effectiveDateSortValue();
+        const date2 = event2.effectiveDateSortValue();
         let sort = 0;
 
         if (date1 < date2) {
             sort = -1;
         } else if (date1 > date2) {
+            sort = 1;
+        }
+
+        return sort;
+    }
+
+    sortByHistoryLicenseBeforePrivilege(event1: LicenseHistoryItem, event2: LicenseHistoryItem): number {
+        const isLicense1 = event1.type === 'licenseUpdate';
+        const isLicense2 = event2.type === 'licenseUpdate';
+        let sort = 0;
+
+        if (isLicense1 && !isLicense2) {
+            sort = -1;
+        } else if (!isLicense1 && isLicense2) {
             sort = 1;
         }
 

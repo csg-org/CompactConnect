@@ -6,8 +6,10 @@
 //
 
 import { deleteUndefinedProperties } from '@models/_helpers';
+import { displayDateFormat } from '@/app.config';
 import { dateDisplay } from '@models/_formatters/date';
 import { State } from '@models/State/State.model';
+import moment from 'moment';
 
 // ========================================================
 // =                       Interface                      =
@@ -21,6 +23,7 @@ export interface InterfaceLicenseHistoryItem {
     serverNote?: string | null;
     npdbCategories?: string[] | null;
     encumbranceType?: string | null;
+    licenseScope?: string | null;
     state?: State;
 }
 
@@ -38,6 +41,7 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public serverNote? = null;
     public npdbCategories?: string[] | null = null;
     public encumbranceType? = null;
+    public licenseScope?: string | null = null;
     public state? = new State();
 
     constructor(data?: InterfaceLicenseHistoryItem) {
@@ -55,6 +59,17 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
 
     public effectiveDateDisplay(): string {
         return dateDisplay(this.effectiveDate);
+    }
+
+    public effectiveDateSortValue(): number {
+        const dateOnly = this.effectiveDateDisplay();
+        let sortValue = 0;
+
+        if (dateOnly) {
+            sortValue = moment(dateOnly, displayDateFormat).valueOf();
+        }
+
+        return sortValue;
     }
 
     public createDateDisplay(): string {
@@ -79,16 +94,28 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         return deactivatingEvents.some((event) => (this.updateType && event === this.updateType));
     }
 
+    public isDisciplineEvent(): boolean {
+        return this.updateType === 'encumbrance';
+    }
+
     public updateTypeDisplay(): string {
         const updateType = this.updateType || '';
         const events = this.$tm('licensing.licenseEvents') || [];
         const event = events.find((st) => st.key === updateType);
         let eventName = event?.name || this.$t('common.stateUnknown');
 
-        if (updateType === 'homeJurisdictionChange' || updateType === 'licenseDeactivation') {
+        if (updateType === 'licenseDeactivation') {
             eventName = this.$t('licensing.deactivation');
         } else if (updateType === 'issuance' && this.type === 'licenseUpdate') {
-            eventName = this.$t('licensing.issuance');
+            const licenseScopes = this.$tm('licensing.licenseScopes') || [];
+            const licenseScope = licenseScopes.find((translate) => translate.key === this.licenseScope);
+            const scopeDisplay = licenseScope?.name || '';
+
+            eventName = (scopeDisplay)
+                ? this.$t('licensing.licenseIssuance', { scope: scopeDisplay })
+                : this.$t('licensing.licenseIssuanceNoScope');
+        } else if (updateType === 'issuance') {
+            eventName = this.$t('licensing.privilegeIssuance');
         }
 
         return eventName;
@@ -148,6 +175,7 @@ export class LicenseHistoryItemSerializer {
             serverNote: json.note,
             npdbCategories: json.npdbCategories,
             encumbranceType: json.encumbranceType,
+            licenseScope: json.licenseScope,
             state: new State({ abbrev: json.jurisdiction }),
         };
 

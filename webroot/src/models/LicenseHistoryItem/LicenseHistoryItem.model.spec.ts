@@ -43,11 +43,14 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem.serverNote).to.equal(null);
         expect(licenseHistoryItem.npdbCategories).to.equal(null);
         expect(licenseHistoryItem.encumbranceType).to.equal(null);
+        expect(licenseHistoryItem.licenseScope).to.equal(null);
         expect(licenseHistoryItem.state).to.be.an.instanceof(State);
         expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('');
+        expect(licenseHistoryItem.effectiveDateSortValue()).to.equal(0);
         expect(licenseHistoryItem.createDateDisplay()).to.equal('');
         expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
         expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.isDisciplineEvent()).to.equal(false);
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Unknown');
         expect(licenseHistoryItem.encumbranceTypeName()).to.equal('');
         expect(licenseHistoryItem.npdbTypeNames()).to.matchPattern([]);
@@ -138,7 +141,7 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem.createDateDisplay()).to.equal('5/1/2025');
         expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
         expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(true);
-        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Deactivation');
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Home Jurisdiction Change');
         expect(licenseHistoryItem.noteDisplay()).to.equal('Deactivated due to home state change');
     });
     it('should create a LicenseHistoryItem with corrected display values for a licenseDeactivation', () => {
@@ -192,6 +195,7 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem.createDateDisplay()).to.equal('5/1/2025');
         expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
         expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(true);
+        expect(licenseHistoryItem.isDisciplineEvent()).to.equal(true);
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Encumbrance');
         expect(licenseHistoryItem.encumbranceTypeName()).to.equal('Required supervision');
         expect(licenseHistoryItem.npdbTypeNames()).to.matchPattern([
@@ -243,6 +247,7 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('1/5/2023');
         expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
         expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.isDisciplineEvent()).to.equal(false);
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Encumbrance lifted');
         expect(licenseHistoryItem.encumbranceTypeName()).to.equal('');
         expect(licenseHistoryItem.npdbTypeNames()).to.matchPattern([]);
@@ -255,21 +260,44 @@ describe('LicenseHistoryItem model', () => {
 
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Privilege Unencumbered');
     });
-    it('should display Issuance for a licenseUpdate issuance event', () => {
+    it('should display License issuance with scope for a licenseUpdate issuance event', () => {
+        const licenseHistoryItem = new LicenseHistoryItem({
+            type: 'licenseUpdate',
+            updateType: 'issuance',
+            licenseScope: 'multi-state',
+        });
+
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('License issuance (multi state)');
+    });
+    it('should display License issuance without scope when licenseScope is missing', () => {
         const licenseHistoryItem = new LicenseHistoryItem({
             type: 'licenseUpdate',
             updateType: 'issuance',
         });
 
-        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Issuance');
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('License issuance');
     });
-    it('should display Privilege purchased for a privilegeUpdate issuance event', () => {
+    it('should display Privilege issuance for a privilegeUpdate issuance event', () => {
         const licenseHistoryItem = new LicenseHistoryItem({
             type: 'privilegeUpdate',
             updateType: 'issuance',
         });
 
-        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Privilege purchased');
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Privilege issuance');
+    });
+    it('should sort by date-only so same calendar day values are equal', () => {
+        const morningEvent = new LicenseHistoryItem({
+            effectiveDate: '2026-08-03T08:15:12+00:00',
+        });
+        const eveningEvent = new LicenseHistoryItem({
+            effectiveDate: '2026-08-03T22:15:12+00:00',
+        });
+        const dateOnlyEvent = new LicenseHistoryItem({
+            effectiveDate: '2026-08-03',
+        });
+
+        expect(morningEvent.effectiveDateSortValue()).to.equal(eveningEvent.effectiveDateSortValue());
+        expect(morningEvent.effectiveDateSortValue()).to.equal(dateOnlyEvent.effectiveDateSortValue());
     });
     it('should fall back to dateOfUpdate when effectiveDate is missing through serializer', () => {
         const data = {
