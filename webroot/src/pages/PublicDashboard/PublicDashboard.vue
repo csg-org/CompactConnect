@@ -110,6 +110,7 @@
                             {{ $t('navigation.login') }}
                         </a>
                         <a
+                            v-if="$compactsEnabled.some((compact) => compact.type === compactTypes.DIETITIANS)"
                             :href="licenseeLoginUri(appModes.DIETITIANS)"
                             class="login-link extra"
                             rel="noopener noreferrer"
@@ -131,6 +132,7 @@
                             {{ $t('navigation.login') }}
                         </div>
                         <div
+                            v-if="$compactsEnabled.some((compact) => compact.type === compactTypes.DIETITIANS)"
                             class="login-link extra"
                             @click="mockLicenseeLogin(appModes.DIETITIANS)"
                             @keyup.enter="mockLicenseeLogin(appModes.DIETITIANS)"

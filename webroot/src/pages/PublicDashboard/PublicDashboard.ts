@@ -125,6 +125,9 @@ export default class DashboardPublic extends Vue {
         case 'recovery-practitioner':
             this.bypassToLicenseeMfaRecovery();
             break;
+        case 'recovery-practitioner-dietitian':
+            this.bypassToLicenseeMfaRecovery();
+            break;
         default:
             // Continue
         }
