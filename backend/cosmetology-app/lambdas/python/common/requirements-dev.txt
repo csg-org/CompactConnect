@@ -15,13 +15,13 @@ attrs==26.1.0
     #   referencing
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.43.106
+boto3==1.43.111
     # via moto
-boto3-stubs[full]==1.43.105
-    # via -r lambdas/python/common/requirements-dev.in
+boto3-stubs[full]==1.43.111
+    # via -r common/requirements-dev.in
 boto3-stubs-full==1.43.105
     # via boto3-stubs
-botocore==1.43.106
+botocore==1.43.114
     # via
     #   aws-xray-sdk
     #   boto3
@@ -39,13 +39,13 @@ charset-normalizer==3.5.2
     # via requests
 cryptography==50.0.2
     # via
-    #   -r lambdas/python/common/requirements-dev.in
+    #   -r common/requirements-dev.in
     #   joserfc
     #   moto
 docker==7.2.0
     # via moto
-faker==40.40.0
-    # via -r lambdas/python/common/requirements-dev.in
+faker==40.43.0
+    # via -r common/requirements-dev.in
 graphql-core==3.3.0
     # via moto
 idna==3.20
@@ -77,12 +77,10 @@ lazy-object-proxy==1.12.0
     # via openapi-spec-validator
 markupsafe==3.0.3
     # via werkzeug
-moto[all]==5.2.3
-    # via -r lambdas/python/common/requirements-dev.in
+moto[all]==5.2.4
+    # via -r common/requirements-dev.in
 mpmath==1.3.0
     # via sympy
-multipart==2.0.1
-    # via moto
 networkx==3.7
     # via cfn-lint
 openapi-schema-validator==0.9.0
@@ -171,6 +169,3 @@ wrapt==2.5.0
     # via aws-xray-sdk
 xmltodict==1.0.4
     # via moto
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools
