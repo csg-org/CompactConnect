@@ -4,7 +4,7 @@ from unittest import TestCase
 from aws_cdk.assertions import Template
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_iam import CfnPolicy
-from aws_cdk.aws_lambda import CfnFunction
+from aws_cdk.aws_lambda import CfnEventInvokeConfig, CfnFunction
 
 from tests.app.base import TstAppABC
 
@@ -62,6 +62,18 @@ class TestReportingStack(TstAppABC, TestCase):
         self.assertIn('PROVIDER_TABLE_NAME', env_vars)
         self.assertIn('COMPACT_CONFIGURATION_TABLE_NAME', env_vars)
         self.assertEqual('25', env_vars['FEE_PER_LICENSE'])
+
+    def test_invoice_reporter_does_not_retry_failed_invocations(self):
+        function_logical_id, _resource = self._invoice_reporter_function()
+        configs = self._reporting_template().find_resources(CfnEventInvokeConfig.CFN_RESOURCE_TYPE_NAME)
+        invoice_configs = [
+            resource['Properties']
+            for resource in configs.values()
+            if resource['Properties'].get('FunctionName', {}).get('Ref') == function_logical_id
+        ]
+
+        self.assertEqual(1, len(invoice_configs), 'Expected async invoke config for the invoice reporter')
+        self.assertEqual(0, invoice_configs[0]['MaximumRetryAttempts'])
 
     def test_invoice_reporter_monthly_eventbridge_rule_is_created(self):
         function_logical_id, _resource = self._invoice_reporter_function()

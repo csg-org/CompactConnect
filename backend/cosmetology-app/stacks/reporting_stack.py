@@ -138,6 +138,9 @@ class ReportingStack(AppStack):
             lambda_dir='invoice-reporter',
             handler='generateInvoice',
             timeout=Duration.minutes(15),
+            # This lambda sends email notifications, so we do not want it to retry in the event of a failure
+            # we will instead trigger an alert for support to investigate and address as needed.
+            retry_attempts=0,
             memory_size=2048,
             environment={
                 'FROM_ADDRESS': from_address,
