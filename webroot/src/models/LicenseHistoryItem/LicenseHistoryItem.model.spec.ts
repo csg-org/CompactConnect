@@ -255,6 +255,22 @@ describe('LicenseHistoryItem model', () => {
 
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Privilege Unencumbered');
     });
+    it('should display Issuance for a licenseUpdate issuance event', () => {
+        const licenseHistoryItem = new LicenseHistoryItem({
+            type: 'licenseUpdate',
+            updateType: 'issuance',
+        });
+
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Issuance');
+    });
+    it('should display Privilege purchased for a privilegeUpdate issuance event', () => {
+        const licenseHistoryItem = new LicenseHistoryItem({
+            type: 'privilegeUpdate',
+            updateType: 'issuance',
+        });
+
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Privilege purchased');
+    });
     it('should fall back to dateOfUpdate when effectiveDate is missing through serializer', () => {
         const data = {
             type: 'privilegeUpdate',

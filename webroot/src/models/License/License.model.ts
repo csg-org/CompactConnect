@@ -272,6 +272,8 @@ export class LicenseSerializer {
             json.history.forEach((serverHistoryItem) => {
                 licenseData.history.push(LicenseHistoryItemSerializer.fromServer({
                     ...serverHistoryItem,
+                    type: serverHistoryItem.type
+                        || ((licenseData.isPrivilege) ? 'privilegeUpdate' : 'licenseUpdate'),
                     jurisdiction: serverHistoryItem.jurisdiction || jurisdiction,
                 }));
             });

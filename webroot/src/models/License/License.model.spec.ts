@@ -259,7 +259,9 @@ describe('License model', () => {
         expect(license.eligibility).to.equal(data.compactEligibility);
         expect(license.history).to.be.an('array').with.length(3);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
+        expect(license.history[0].type).to.equal('licenseUpdate');
         expect(license.history[0].updateType).to.equal('issuance');
+        expect(license.history[0].updateTypeDisplay()).to.equal('Issuance');
         expect(license.history[0].state.abbrev).to.equal(data.jurisdiction);
         expect(license.history[1].updateType).to.equal('encumbrance');
         expect(license.history[1].encumbranceType).to.equal('required supervision');

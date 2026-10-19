@@ -30,7 +30,7 @@ export interface InterfaceLicenseHistoryItem {
 export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public $tm?: any = () => [];
     public $t?: any = () => '';
-    public type? = null;
+    public type?: string | null = null;
     public updateType? = '';
     public dateOfUpdate? = null;
     public createDate? = null;
@@ -87,6 +87,8 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
 
         if (updateType === 'homeJurisdictionChange' || updateType === 'licenseDeactivation') {
             eventName = this.$t('licensing.deactivation');
+        } else if (updateType === 'issuance' && this.type === 'licenseUpdate') {
+            eventName = this.$t('licensing.issuance');
         }
 
         return eventName;

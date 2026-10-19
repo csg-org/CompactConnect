@@ -718,6 +718,7 @@
         "confirmPrivilegeDeactivateSubtext": "El profesional ya no podrá ejercer este privilegio. Esto no constituye una sanción disciplinaria.",
         "deactivateNotesTitle": "Notas de desactivación",
         "deactivation": "Desactivación",
+        "issuance": "Emisión",
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
