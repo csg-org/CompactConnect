@@ -81,6 +81,7 @@
         "gender": "Género",
         "race": "Raza",
         "ethnicity": "Origen étnico",
+        "date": "Fecha",
         "startDate": "Fecha de inicio",
         "endDate": "Fecha de finalización",
         "finish": "Termina",
@@ -678,13 +679,13 @@
         "adminFee": "Tarifa Administrativa",
         "jurisdictionFee": "Tarifa Estatal",
         "jurisdictionFeeMilitary": "Tarifa Estatal (militar)",
-        "disciplineTitle": "Información disciplinaria",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Certifico que he completado con éxito un examen de jurisprudencia para este estado, si es necesario.",
         "scopeAttestTitle": "Alcance de la certificación de práctica",
         "scopeAttestLabel": "Haga clic aquí para leer y afirmar el alcance de la certificación de práctica.",
         "noDiscipline": "No disciplina",
-        "disciplineDisclaimer": "Para obtener más información sobre las medidas disciplinarias, visite el sitio web de la junta de licencias correspondiente en el estado donde se posee la licencia o privilegio.",
+        "noHistory": "No hay historial",
+        "historyDisclaimer": "Para obtener más información sobre las medidas disciplinarias, visite el sitio web de la junta de licencias correspondiente en el estado donde se posee la licencia o privilegio.",
         "houseIcon": "Icono de la casa",
         "twoHomeStateErrorMessage": "Dos estados lo tienen incluido como residente. Actualice su información con esos estados para reflejar su estado de residencia actual.",
         "state": "Estado",
@@ -724,6 +725,9 @@
         "confirmPrivilegeDeactivateSubtext": "El profesional ya no podrá ejercer este privilegio. Esto no constituye una sanción disciplinaria.",
         "deactivateNotesTitle": "Notas de desactivación",
         "deactivation": "Desactivación",
+        "licenseIssuance": "Emisión de licencia ({scope})",
+        "licenseIssuanceNoScope": "Emisión de licencia",
+        "privilegeIssuance": "Emisión de privilegio",
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
@@ -784,12 +788,13 @@
         "underInvestigationAlertMultipleLocations": "múltiples estados",
         "underInvestigationAlertStatus": "Los privilegios aún se pueden utilizar mientras se está bajo investigación.",
         "expiringIn": "Expirando en",
+        "event": "Evento",
         "events": "Eventos",
         "expirationTimeExplanation": "Las fechas privilegiadas utilizan la <em>zona horaria UTC-4</em>. Esto significa que los privilegios expirarán a las 11:59 p. m. hora del este de EE. UU. durante el horario de verano (verano) y a las 10:59 p. m. en la zona horaria del este de EE. UU. durante la hora estándar (invierno)",
         "uploadedOn": "Subido en",
         "licenseEvents": [
             {
-                "name": "Privilegio comprado",
+                "name": "Emisión de privilegio",
                 "key": "issuance"
             },
             {
@@ -817,7 +822,11 @@
                 "key": "lifting_encumbrance"
             },
             {
-                "name": "Encumbrance",
+                "name": "Gravamen levantado",
+                "key": "liftingEncumbrance"
+            },
+            {
+                "name": "Gravamen",
                 "key": "encumbrance"
             }
         ],

@@ -296,7 +296,7 @@
         }
     }
 
-    .discipline-section {
+    .history-section {
         margin: @spacingMobile;
         padding-top: @spacingMobile;
         padding-bottom: 4rem;
@@ -312,17 +312,17 @@
             padding-top: @spacingMobile;
         }
 
-        .discipline-list-container {
+        .history-list-container {
             display: flex;
             width: 100%;
         }
 
-        .discipline-list {
+        .history-list {
             display: flex;
             flex-direction: column;
             width: 100%;
 
-            .discipline-row {
+            .history-row {
                 display: flex;
                 flex-direction: column;
                 padding: 1.6rem 0;
@@ -340,7 +340,7 @@
                 }
             }
 
-            .discipline-cell {
+            .history-cell {
                 display: flex;
 
                 @media @tabletWidth {
@@ -348,23 +348,23 @@
                 }
 
                 &.state {
+                    flex-basis: 16%;
+                }
+
+                &.event {
                     flex-basis: 18%;
                 }
 
-                &.start-date {
-                    flex-basis: 18%;
-                }
-
-                &.end-date {
-                    flex-basis: 18%;
+                &.date {
+                    flex-basis: 16%;
                 }
 
                 &.action-type {
-                    flex-basis: 23%;
+                    flex-basis: 25%;
                 }
 
                 &.action-basis {
-                    flex-basis: 23%;
+                    flex-basis: 25%;
                 }
 
                 .cell-title {

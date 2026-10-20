@@ -22,7 +22,7 @@ import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { State } from '@models/State/State.model';
-import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
+import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { dataApi } from '@network/data.api';
 
 @Component({
@@ -47,7 +47,7 @@ export default class LicensingDetail extends Vue {
     isPersonalInfoCollapsed = false;
     isLicensesCollapsed = false;
     isPrivsCollapsed = false;
-    isDisciplineCollapsed = false;
+    isHistoryCollapsed = false;
     licenseeFullSsnLoading = false;
     licenseeFullSsn = '';
     licenseeFullSsnError = '';
@@ -226,8 +226,8 @@ export default class LicensingDetail extends Vue {
         return alertContent;
     }
 
-    get licenseeDiscipline(): Array<AdverseAction> {
-        return (this.licensee?.adverseActions || []).slice().sort(this.sortDiscipline);
+    get licenseeHistory(): Array<LicenseHistoryItem> {
+        return (this.licensee?.history() || []).slice().sort(this.sortHistory);
     }
 
     //
@@ -259,8 +259,8 @@ export default class LicensingDetail extends Vue {
         this.isPrivsCollapsed = !this.isPrivsCollapsed;
     }
 
-    toggleDisciplineCollapsed(): void {
-        this.isDisciplineCollapsed = !this.isDisciplineCollapsed;
+    toggleHistoryCollapsed(): void {
+        this.isHistoryCollapsed = !this.isHistoryCollapsed;
     }
 
     sortingChange(): boolean {
@@ -321,33 +321,51 @@ export default class LicensingDetail extends Vue {
         return sort;
     }
 
-    sortDiscipline(action1: AdverseAction, action2: AdverseAction): number {
-        let sort = this.sortByDisciplineStart(action1, action2);
+    sortHistory(event1: LicenseHistoryItem, event2: LicenseHistoryItem): number {
+        let sort = this.sortByHistoryDate(event1, event2);
 
         if (sort === 0) {
-            sort = this.sortByDisciplineState(action1, action2);
+            sort = this.sortByHistoryLicenseBeforePrivilege(event1, event2);
+        }
+
+        if (sort === 0) {
+            sort = this.sortByHistoryState(event1, event2);
         }
 
         return sort;
     }
 
-    sortByDisciplineStart(action1: AdverseAction, action2: AdverseAction): number {
-        const startDate1 = action1.startDate || '';
-        const startDate2 = action2.startDate || '';
+    sortByHistoryDate(event1: LicenseHistoryItem, event2: LicenseHistoryItem): number {
+        const date1 = event1.effectiveDateSortValue();
+        const date2 = event2.effectiveDateSortValue();
         let sort = 0;
 
-        if (startDate1 < startDate2) {
+        if (date1 < date2) {
             sort = -1;
-        } else if (startDate1 > startDate2) {
+        } else if (date1 > date2) {
             sort = 1;
         }
 
         return sort;
     }
 
-    sortByDisciplineState(action1: AdverseAction, action2: AdverseAction): number {
-        const state1 = action1.state?.name().toLowerCase() || '';
-        const state2 = action2.state?.name().toLowerCase() || '';
+    sortByHistoryLicenseBeforePrivilege(event1: LicenseHistoryItem, event2: LicenseHistoryItem): number {
+        const isLicense1 = event1.type === 'licenseUpdate';
+        const isLicense2 = event2.type === 'licenseUpdate';
+        let sort = 0;
+
+        if (isLicense1 && !isLicense2) {
+            sort = -1;
+        } else if (!isLicense1 && isLicense2) {
+            sort = 1;
+        }
+
+        return sort;
+    }
+
+    sortByHistoryState(event1: LicenseHistoryItem, event2: LicenseHistoryItem): number {
+        const state1 = event1.state?.name().toLowerCase() || '';
+        const state2 = event2.state?.name().toLowerCase() || '';
         let sort = 0;
 
         if (state1 < state2) {

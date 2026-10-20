@@ -92,56 +92,56 @@
                     />
                 </div>
             </div>
-            <div v-if="$isAppModeSocialWork" class="discipline-section">
+            <div v-if="$isAppModeSocialWork" class="history-section">
                 <div class="title-row">
                     <div class="title-info">
-                        <div class="discipline-logo-container">
+                        <div class="history-logo-container">
                             <AlertCircleIcon class="alert-icon" />
                         </div>
-                        <div id="discipline-title" class="title-text">{{ $t('licensing.disciplineTitle') }}</div>
+                        <div id="history-title" class="title-text">{{ $t('common.history') }}</div>
                     </div>
-                    <CollapseCaretButton @toggleCollapse="toggleDisciplineCollapsed" />
+                    <CollapseCaretButton @toggleCollapse="toggleHistoryCollapsed" />
                 </div>
-                <div v-if="disciplineDisclaimer" class="title-description">{{ disciplineDisclaimer }}</div>
-                <div v-if="!isDisciplineCollapsed" class="discipline-list-container">
-                    <div v-if="!licenseeDiscipline.length" class="no-discipline">
-                        {{ $t('licensing.noDiscipline') }}
+                <div v-if="historyDisclaimer" class="title-description">{{ historyDisclaimer }}</div>
+                <div v-if="!isHistoryCollapsed" class="history-list-container">
+                    <div v-if="!licenseeHistory.length" class="no-history">
+                        {{ $t('licensing.noHistory') }}
                     </div>
-                    <div v-else class="discipline-list" role="table" aria-labelledby="discipline-title">
-                        <div v-if="$matches.tablet.min" class="discipline-row header" role="row">
-                            <div class="discipline-cell state" role="columnheader">
+                    <div v-else class="history-list" role="table" aria-labelledby="history-title">
+                        <div v-if="$matches.tablet.min" class="history-row header" role="row">
+                            <div class="history-cell state" role="columnheader">
                                 {{ $t('common.state') }}
                             </div>
-                            <div class="discipline-cell start-date" role="columnheader">
-                                {{ $t('common.startDate') }}
+                            <div class="history-cell event" role="columnheader">
+                                {{ $t('licensing.event') }}
                             </div>
-                            <div class="discipline-cell end-date" role="columnheader">
-                                {{ $t('common.endDate') }}
+                            <div class="history-cell date" role="columnheader">
+                                {{ $t('common.date') }}
                             </div>
                         </div>
                         <div
-                            v-for="(discipline, index) in licenseeDiscipline"
+                            v-for="(historyItem, index) in licenseeHistory"
                             :key="index"
-                            class="discipline-row"
+                            class="history-row"
                             role="row"
                         >
-                            <div class="discipline-cell state" role="cell">
+                            <div class="history-cell state" role="cell">
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('common.state') }}:
                                 </span>
-                                {{ discipline.state.name() }}
+                                {{ historyItem.state.name() }}
                             </div>
-                            <div class="discipline-cell start-date" role="cell">
+                            <div class="history-cell event" role="cell">
                                 <span v-if="$matches.phone.only" class="cell-title">
-                                    {{ $t('common.startDate') }}:
+                                    {{ $t('licensing.event') }}:
                                 </span>
-                                {{ discipline.startDateDisplay() }}
+                                {{ historyItem.updateTypeDisplay() }}
                             </div>
-                            <div class="discipline-cell end-date" role="cell">
+                            <div class="history-cell date" role="cell">
                                 <span v-if="$matches.phone.only" class="cell-title">
-                                    {{ $t('common.endDate') }}:
+                                    {{ $t('common.date') }}:
                                 </span>
-                                {{ discipline.endDateDisplay() }}
+                                {{ historyItem.effectiveDateDisplay() }}
                             </div>
                         </div>
                     </div>
