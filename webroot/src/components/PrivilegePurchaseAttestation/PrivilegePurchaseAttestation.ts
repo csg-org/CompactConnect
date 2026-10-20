@@ -83,6 +83,14 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             'provision-of-true-information-attestation',
             'military-affiliation-confirmation-attestation',
         ],
+        diet: [
+            'not-under-investigation-attestation',
+            'under-investigation-attestation',
+            'discipline-no-current-encumbrance-attestation',
+            'discipline-no-prior-encumbrance-attestation',
+            'provision-of-true-information-attestation',
+            'military-affiliation-confirmation-attestation',
+        ],
     }
     attestationRecords: Array<PrivilegeAttestation> = []; // eslint-disable-line lines-between-class-members
     areFormInputsSet = false;

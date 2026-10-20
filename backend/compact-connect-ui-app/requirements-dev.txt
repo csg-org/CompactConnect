@@ -12,7 +12,7 @@ cachecontrol[filecache]==0.14.4
     # via
     #   cachecontrol
     #   pip-audit
-certifi==2026.6.17
+certifi==2026.10.19
     # via requests
 charset-normalizer==3.4.7
     # via requests
@@ -95,7 +95,7 @@ tomli==2.4.1
     # via pip-audit
 tomli-w==1.2.0
     # via pip-audit
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests
 wheel==0.47.0
     # via pip-tools

@@ -42,6 +42,13 @@ const environmentValues = {
     s3UploadUrlProviderPsyPact: `##S3_UPLOAD_URL_PROVIDER_PSYPACT##`,
     cognitoStaffPsyPact: `##COGNITO_STAFF_PSYPACT##`,
     cognitoProviderPsyPact: `##COGNITO_PROVIDER_PSYPACT##`,
+    // DIETITIANS
+    dataApiDietitians: `##DATA_API_DIETITIANS##`,
+    searchApiDietitians: `##SEARCH_API_DIETITIANS##`,
+    s3UploadUrlStateDietitians: `##S3_UPLOAD_URL_STATE_DIETITIANS##`,
+    s3UploadUrlProviderDietitians: `##S3_UPLOAD_URL_PROVIDER_DIETITIANS##`,
+    cognitoStaffDietitians: `##COGNITO_STAFF_DIETITIANS##`,
+    cognitoProviderDietitians: `##COGNITO_PROVIDER_DIETITIANS##`,
 };
 
 // ============================================================================
@@ -104,6 +111,13 @@ const getEnvironmentUrls = () => {
     environmentUrls.s3UploadUrlProviderPsyPact = getFullyQualified(environmentValues.s3UploadUrlProviderPsyPact);
     environmentUrls.cognitoStaffPsyPact = getFullyQualified(environmentValues.cognitoStaffPsyPact);
     environmentUrls.cognitoProviderPsyPact = getFullyQualified(environmentValues.cognitoProviderPsyPact);
+    // DIETITIANS
+    environmentUrls.dataApiDietitians = getFullyQualified(environmentValues.dataApiDietitians);
+    environmentUrls.searchApiDietitians = getFullyQualified(environmentValues.searchApiDietitians);
+    environmentUrls.s3UploadUrlStateDietitians = getFullyQualified(environmentValues.s3UploadUrlStateDietitians);
+    environmentUrls.s3UploadUrlProviderDietitians = getFullyQualified(environmentValues.s3UploadUrlProviderDietitians);
+    environmentUrls.cognitoStaffDietitians = getFullyQualified(environmentValues.cognitoStaffDietitians);
+    environmentUrls.cognitoProviderDietitians = getFullyQualified(environmentValues.cognitoProviderDietitians);
 
     return environmentUrls;
 };
@@ -253,6 +267,7 @@ const setCspHeader = (headers = {}) => {
                 domains.dataApiCosmo,
                 domains.dataApiSw,
                 domains.dataApiPsyPact,
+                domains.dataApiDietitians,
                 'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('media-src', [
@@ -261,6 +276,7 @@ const setCspHeader = (headers = {}) => {
                 domains.dataApiCosmo,
                 domains.dataApiSw,
                 domains.dataApiPsyPact,
+                domains.dataApiDietitians,
             ]),
             buildSrcString('frame-src', [
                 'self',
@@ -306,6 +322,13 @@ const setCspHeader = (headers = {}) => {
                 domains.s3UploadUrlProviderPsyPact,
                 domains.cognitoStaffPsyPact,
                 domains.cognitoProviderPsyPact,
+                // DIETITIANS
+                domains.dataApiDietitians,
+                domains.searchApiDietitians,
+                domains.s3UploadUrlStateDietitians,
+                domains.s3UploadUrlProviderDietitians,
+                domains.cognitoStaffDietitians,
+                domains.cognitoProviderDietitians,
                 // Begin Statsig domains
                 'https://api.statsig.com/',
                 'https://featuregates.org/',

@@ -61,6 +61,10 @@ export default class DashboardPublic extends Vue {
     //
     // Computed
     //
+    get appModes(): typeof AppModes {
+        return AppModes;
+    }
+
     get compactTypes(): typeof CompactType {
         return CompactType;
     }
@@ -106,13 +110,22 @@ export default class DashboardPublic extends Vue {
         case 'login-staff-psypact':
             this.bypassToStaffLogin(AppModes.PSYPACT);
             break;
+        case 'login-staff-dietitian':
+            this.bypassToStaffLogin(AppModes.DIETITIANS);
+            break;
         case 'login-practitioner':
             this.bypassToLicenseeLogin(AppModes.JCC);
             break;
         case 'login-practitioner-psypact':
             this.bypassToLicenseeLogin(AppModes.PSYPACT);
             break;
+        case 'login-practitioner-dietitian':
+            this.bypassToLicenseeLogin(AppModes.DIETITIANS);
+            break;
         case 'recovery-practitioner':
+            this.bypassToLicenseeMfaRecovery();
+            break;
+        case 'recovery-practitioner-dietitian':
             this.bypassToLicenseeMfaRecovery();
             break;
         default:
