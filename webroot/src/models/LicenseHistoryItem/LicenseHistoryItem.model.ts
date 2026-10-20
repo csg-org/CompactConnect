@@ -109,7 +109,7 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         } else if (updateType === 'issuance' && this.type === 'licenseUpdate') {
             const licenseScopes = this.$tm('licensing.licenseScopes') || [];
             const licenseScope = licenseScopes.find((translate) => translate.key === this.licenseScope);
-            const scopeDisplay = licenseScope?.name || '';
+            const scopeDisplay = licenseScope?.name?.toLowerCase() || '';
 
             eventName = (scopeDisplay)
                 ? this.$t('licensing.licenseIssuance', { scope: scopeDisplay })

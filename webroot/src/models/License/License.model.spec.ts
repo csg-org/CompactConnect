@@ -150,7 +150,7 @@ describe('License model', () => {
         expect(license.isCompactEligible()).to.equal(true);
         expect(license.licenseTypeDisplay()).to.equal('Audiologist');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
-        expect(license.licenseScopeDisplay()).to.equal('multi state');
+        expect(license.licenseScopeDisplay()).to.equal('Multi state');
         expect(license.displayName()).to.equal('Unknown - audiologist');
         expect(license.displayName(', ', true)).to.equal('Unknown, AUD');
         expect(license.isEncumbered()).to.equal(false);
@@ -291,7 +291,7 @@ describe('License model', () => {
         expect(license.displayName(', ', true)).to.equal('Alabama, AUD');
         expect(license.licenseTypeDisplay()).to.equal('Audiologist');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
-        expect(license.licenseScopeDisplay()).to.equal('single state');
+        expect(license.licenseScopeDisplay()).to.equal('Single state');
         expect(license.isEncumbered()).to.equal(true);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
         expect(license.isUnderInvestigation()).to.equal(true);
@@ -660,7 +660,7 @@ describe('License model', () => {
         expect(license.displayName(', ', true)).to.equal('Nebraska, OTA');
         expect(license.licenseTypeDisplay()).to.equal('Occupational Therapy Assistant');
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
-        expect(license.licenseScopeDisplay()).to.equal('multi state');
+        expect(license.licenseScopeDisplay()).to.equal('Multi state');
         expect(license.history).to.be.an('array').with.length(3);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
         expect(license.history[0].updateType).to.equal('deactivation');

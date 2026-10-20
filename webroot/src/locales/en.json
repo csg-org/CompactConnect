@@ -909,12 +909,12 @@
         ],
         "licenseScopes": [
             {
-                "name": "single state",
+                "name": "Single state",
                 "key": "single-state",
                 "compactKey": "socw"
             },
             {
-                "name": "multi state",
+                "name": "Multi state",
                 "key": "multi-state",
                 "compactKey": "socw"
             }
