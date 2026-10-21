@@ -7,7 +7,7 @@
 
 <template>
     <div class="login-container">
-        <div class="dashboard-splash-container">
+        <div class="dashboard-splash-container" aria-hidden="true">
             <template v-if="$isAppModePsyPact">
                 <div class="splash-image-container psypact" aria-hidden="true">
                     <svg viewBox="0 0 698 981" class="splash-image psypact">
@@ -89,119 +89,167 @@
                     />
                 </div>
                 <AppTypeSelector v-if="isAppTypeSelectorEnabled" />
-                <Card class="dashboard-card provider-login-card">
-                    <div class="header">
-                        <LicenseeUserIcon class="login-icon" />
-                        <div class="title-container">
-                            <div class="title">{{ $t('navigation.loginAsProvider') }}</div>
-                            <div v-if="$isAppModePsyPact" class="title-subtext">
-                                {{ $t('navigation.loginAsProviderSubtextPsyPact') }}
+                <template v-if="!isCompactSelected">
+                    <Card class="dashboard-card compact-list-card" :allowOverflow="true">
+                        <section aria-labelledby="dashboard-step-heading">
+                            <div class="header compact-list-header">
+                                <div class="title-container">
+                                    <h1
+                                        id="dashboard-step-heading"
+                                        class="title"
+                                        tabindex="-1"
+                                        aria-describedby="compact-list-subtext"
+                                    >
+                                        {{ $t('navigation.selectYourCompact') }}
+                                    </h1>
+                                    <p id="compact-list-subtext" class="title-subtext">
+                                        {{ $t('navigation.selectYourCompactSubtext') }}
+                                    </p>
+                                </div>
                             </div>
-                            <div v-else class="title-subtext">{{ $t('navigation.loginAsProviderSubtext') }}</div>
-                        </div>
-                    </div>
-                    <a
-                        v-if="!isUsingMockApi"
-                        :href="licenseeLoginUri($appMode)"
-                        class="login-link"
-                        rel="noopener noreferrer"
+                            <ul class="compact-list">
+                                <li v-for="compact in compactList" :key="compact.type">
+                                    <button
+                                        type="button"
+                                        class="compact-list-button"
+                                        @click="selectCompact(compact.type, true)"
+                                    >
+                                        {{ getCompactDisplay(compact) }}
+                                    </button>
+                                </li>
+                            </ul>
+                        </section>
+                    </Card>
+                </template>
+                <template v-else>
+                    <Card
+                        v-if="shouldShowCompactSelect"
+                        class="dashboard-card compact-select-card"
+                        :allowOverflow="true"
                     >
-                        {{ $t('navigation.login') }}
-                    </a>
-                    <div
-                        v-else
-                        class="login-link"
-                        @click="mockLicenseeLogin($appMode)"
-                        @keyup.enter="mockLicenseeLogin($appMode)"
-                        tabindex="0"
-                        role="button"
-                        :aria-label="$t('navigation.login')"
-                    >
-                        {{ $t('navigation.login') }}
-                    </div>
-                    <div class="separator" />
-                    {{ $t('navigation.registerAsProviderSubtext') }}
-                    <router-link
-                        :to="{ name: 'RegisterLicensee' }"
-                        class="login-link register transparent"
-                        tabindex="0"
-                    >
-                        {{ $t('navigation.registerAsProvider') }}
-                    </router-link>
-                </Card>
-                <Card class="dashboard-card staff-login-card">
-                    <div class="header">
-                        <StaffUserIcon class="login-icon" />
-                        <div class="title-container">
-                            <div class="title">{{ $t('navigation.loginAsStaff') }}</div>
-                            <div v-if="!$isAppModePsyPact" class="title-subtext">
-                                {{ $t('navigation.loginAsStaffSubtext') }}
+                        <section aria-labelledby="dashboard-step-heading">
+                            <div class="header compact-select-header">
+                                <div class="title-container">
+                                    <h1 id="dashboard-step-heading" class="title" tabindex="-1">
+                                        {{ $t('navigation.selectYourCompact') }}
+                                    </h1>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <template v-if="$isAppModePsyPact">
-                        <a
-                            v-if="!isUsingMockApi"
-                            :href="staffLoginUri($appMode)"
-                            class="login-link staff"
-                            rel="noopener noreferrer"
-                            @click="setGotoCompact(compactTypes.PSYPACT)"
-                        >
-                            {{ $t('navigation.login') }}
-                        </a>
-                        <div
-                            v-else
-                            class="login-link staff"
-                            @click="bypassToStaffLogin($appMode, compactTypes.PSYPACT)"
-                            @keyup.enter="bypassToStaffLogin($appMode, compactTypes.PSYPACT)"
-                            tabindex="0"
-                            role="button"
-                            :aria-label="$t('navigation.login')"
-                        >
-                            {{ $t('navigation.login') }}
-                        </div>
-                    </template>
-                    <div v-else class="staff-compacts">
-                        <template v-for="compact in $compactsEnabledCompactConnect" :key="compact.type">
+                            <InputSelect
+                                v-if="formData.compact"
+                                :formInput="formData.compact"
+                                @input="handleCompactSelect"
+                            />
+                        </section>
+                    </Card>
+                    <Card class="dashboard-card privilege-search" :allowOverflow="true">
+                        <section :aria-labelledby="publicLookupHeadingId">
+                            <div class="header">
+                                <SearchIcon class="login-icon" aria-hidden="true" />
+                                <div class="title-container">
+                                    <component
+                                        :is="publicLookupHeadingTag"
+                                        :id="publicLookupHeadingId"
+                                        class="title"
+                                        :tabindex="(shouldShowCompactSelect) ? undefined : '-1'"
+                                    >
+                                        {{ $t('navigation.verifyPrivilege') }}
+                                    </component>
+                                    <p class="title-subtext">{{ $t('navigation.verifyPrivilegeSubtext') }}</p>
+                                </div>
+                            </div>
+                            <router-link
+                                :to="{ name: 'LicneseeSearchPublic' }"
+                                class="login-link"
+                                :aria-label="`${$t('common.search')}, ${$t('navigation.verifyPrivilege')}`"
+                            >
+                                {{ $t('common.search') }}
+                            </router-link>
+                        </section>
+                    </Card>
+                    <Card
+                        v-if="hasPractitionerLogin"
+                        class="dashboard-card provider-login-card"
+                        :allowOverflow="true"
+                    >
+                        <section aria-labelledby="practitioner-login-heading">
+                            <div class="header">
+                                <LicenseeUserIcon class="login-icon" aria-hidden="true" />
+                                <div class="title-container">
+                                    <h2 id="practitioner-login-heading" class="title">
+                                        {{ $t('navigation.loginAsProvider') }}
+                                    </h2>
+                                    <p v-if="$isAppModePsyPact" class="title-subtext">
+                                        {{ $t('navigation.loginAsProviderSubtextPsyPact') }}
+                                    </p>
+                                    <p v-else class="title-subtext">
+                                        {{ $t('navigation.loginAsProviderSubtext') }}
+                                    </p>
+                                </div>
+                            </div>
                             <a
                                 v-if="!isUsingMockApi"
-                                :href="staffLoginUri(compact.appMode)"
-                                class="login-link small"
+                                :href="licenseeLoginUri(selectedAppMode)"
+                                class="login-link"
                                 rel="noopener noreferrer"
-                                @click="setGotoCompact(compact.type)"
+                                :aria-label="$t('navigation.loginAsProvider')"
+                                @click="handlePractitionerLoginClick"
                             >
-                                {{ getCompactDisplay(compact) }}
+                                {{ $t('navigation.login') }}
                             </a>
-                            <div
+                            <button
                                 v-else
-                                class="login-link small"
-                                @click="bypassToStaffLogin(compact.appMode, compact.type)"
-                                @keyup.enter="bypassToStaffLogin(compact.appMode, compact.type)"
-                                tabindex="0"
-                                role="button"
-                                :aria-label="getCompactDisplay(compact)"
+                                type="button"
+                                class="login-link"
+                                :aria-label="$t('navigation.loginAsProvider')"
+                                @click="handleMockPractitionerLogin"
                             >
-                                {{ getCompactDisplay(compact) }}
+                                {{ $t('navigation.login') }}
+                            </button>
+                            <p class="register-prompt">
+                                {{ $t('navigation.registerAsProviderSubtext') }}
+                                <router-link
+                                    :to="{ name: 'RegisterLicensee' }"
+                                    class="register-link"
+                                >
+                                    {{ $t('navigation.registerAsProvider') }}
+                                </router-link>
+                            </p>
+                        </section>
+                    </Card>
+                    <Card class="dashboard-card staff-login-card" :allowOverflow="true">
+                        <section aria-labelledby="staff-login-heading">
+                            <div class="header">
+                                <StaffUserIcon class="login-icon" aria-hidden="true" />
+                                <div class="title-container">
+                                    <h2 id="staff-login-heading" class="title">
+                                        {{ $t('navigation.loginAsStaff') }}
+                                    </h2>
+                                    <p class="title-subtext">{{ $t('navigation.loginAsStaffSubtext') }}</p>
+                                </div>
                             </div>
-                        </template>
-                    </div>
-                </Card>
-                <Card class="dashboard-card privilege-search">
-                    <div class="header">
-                        <SearchIcon class="login-icon" />
-                        <div class="title-container">
-                            <div class="title">{{ $t('navigation.verifyPrivilege') }}</div>
-                            <div class="title-subtext">{{ $t('navigation.verifyPrivilegeSubtext') }}</div>
-                        </div>
-                    </div>
-                    <router-link
-                        :to="{ name: 'LicneseeSearchPublic' }"
-                        class="login-link transparent"
-                        tabindex="0"
-                    >
-                        {{ $t('navigation.verifyPrivilegeSearch') }}
-                    </router-link>
-                </Card>
+                            <a
+                                v-if="!isUsingMockApi"
+                                :href="staffLoginUri(selectedAppMode)"
+                                class="login-link staff"
+                                rel="noopener noreferrer"
+                                :aria-label="$t('navigation.loginAsStaff')"
+                                @click="handleStaffLoginClick"
+                            >
+                                {{ $t('navigation.login') }}
+                            </a>
+                            <button
+                                v-else
+                                type="button"
+                                class="login-link staff"
+                                :aria-label="$t('navigation.loginAsStaff')"
+                                @click="handleMockStaffLogin"
+                            >
+                                {{ $t('navigation.login') }}
+                            </button>
+                        </section>
+                    </Card>
+                </template>
             </div>
             <div class="dashboard-footer">
                 <router-link :to="{ name: 'MfaResetStartLicensee' }" class="footer-link">

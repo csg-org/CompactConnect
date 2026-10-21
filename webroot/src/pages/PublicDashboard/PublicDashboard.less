@@ -20,7 +20,7 @@
         width: 55%;
         background-color: @primaryColor;
 
-        @media @largeDesktopWidth {
+        @media @desktopWidth {
             display: flex;
         }
 
@@ -67,7 +67,11 @@
 
         .splash-title-container {
             padding-bottom: 8rem;
-            padding-left: 60px;
+            padding-left: 4rem;
+
+            @media @largeDesktopWidth {
+                padding-left: 60px;
+            }
 
             &.psypact {
                 position: absolute;
@@ -78,8 +82,13 @@
             .splash-title {
                 color: @white;
                 font-weight: @fontWeightBold;
-                font-size: 7.6rem;
-                line-height: 8.1rem;
+                font-size: 4.8rem;
+                line-height: 5.4rem;
+
+                @media @largeDesktopWidth {
+                    font-size: 7.6rem;
+                    line-height: 8.1rem;
+                }
             }
         }
     }
@@ -92,7 +101,7 @@
         width: 100%;
         padding: 0 4rem;
 
-        @media @largeDesktopWidth {
+        @media @desktopWidth {
             width: auto;
             min-width: 45%;
             margin-top: 2rem;
@@ -132,14 +141,14 @@
         max-width: 50rem;
         padding: 1.6rem;
 
-        &:not(.provider-login-card) {
-            margin-top: 2rem;
+        & + .dashboard-card {
+            margin-top: 1.6rem;
         }
 
         .header {
             display: flex;
             width: 100%;
-            margin-bottom: 2rem;
+            margin-bottom: 1.6rem;
 
             .login-icon {
                 width: @iconSize;
@@ -167,21 +176,97 @@
                 padding-left: 1.2rem;
 
                 .title {
+                    margin: 0;
                     font-weight: @fontWeightBold;
                     font-size: @fontSizeLarge;
+
+                    &:focus {
+                        outline: none;
+                    }
+
+                    &:focus-visible {
+                        outline: 2px solid @primaryColor;
+                        outline-offset: 2px;
+                    }
+                }
+
+                .title-subtext {
+                    margin: 0;
+                    color: @fontColorLight;
+                    font-size: @fontSizeSmaller;
+                }
+            }
+
+            &.compact-list-header,
+            &.compact-select-header {
+                .title-container {
+                    padding-left: 0;
+                }
+            }
+
+            &.compact-list-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+        }
+
+        &.compact-select-card {
+            :deep(.input-container) {
+                width: 100%;
+
+                select {
+                    width: 100%;
                 }
             }
         }
 
-        .staff-compacts {
-            display: flex;
-            flex-direction: column;
+        .compact-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
 
-            @media @tabletWidth {
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: space-between;
+            li {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+
+                &:not(:last-child) {
+                    margin-bottom: 0.8rem;
+                }
+            }
+        }
+
+        .compact-list-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 4.4rem;
+            padding: 1.2rem 1.6rem;
+            border: none;
+            border-radius: @borderRadiusLarge;
+            color: @fontColor;
+            font-weight: @fontWeightBold;
+            font-size: @fontSize;
+            text-align: center;
+            background-color: @veryLightGrey;
+            cursor: pointer;
+
+            &:hover,
+            &:active {
+                border-color: transparent;
+                color: @fontColor;
+                background-color: darken(@veryLightGrey, 4%);
+            }
+
+            &:focus {
+                outline: none;
+            }
+
+            &:focus-visible {
+                outline: 2px solid @primaryColor;
+                outline-offset: 2px;
             }
         }
 
@@ -191,29 +276,43 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 4rem;
+            width: 100%;
+            min-height: 4.4rem;
             font-size: @fontSize;
             text-align: center;
 
-            &.small {
-                margin-bottom: 1.6rem;
-
-                @media @tabletWidth {
-                    width: 48%;
-                    height: 7.4rem;
-                }
+            &:focus {
+                outline: none;
             }
 
-            &.register {
-                margin: 0.8rem 0;
+            &:focus-visible {
+                outline: 2px solid @white;
+                outline-offset: 2px;
+                box-shadow: 0 0 0 4px @primaryColor;
             }
         }
 
-        .separator {
-            width: 100%;
-            height: 1px;
-            margin: 2rem 0;
-            background-color: @lightGrey;
+        .register-prompt {
+            margin-top: 1.2rem;
+            color: @fontColorLight;
+            font-size: @fontSizeSmaller;
+
+            .register-link {
+                color: @primaryColor;
+                text-decoration: underline;
+
+                &:hover,
+                &:focus-visible {
+                    color: @primaryColor;
+                    text-decoration: underline;
+                }
+
+                &:focus {
+                    border-radius: 2px;
+                    outline: none;
+                    box-shadow: 0 0 0 2px @primaryColor;
+                }
+            }
         }
     }
 
@@ -229,7 +328,7 @@
             flex-direction: row;
         }
 
-        @media @largeDesktopWidth {
+        @media @desktopWidth {
             margin-top: auto;
         }
 
