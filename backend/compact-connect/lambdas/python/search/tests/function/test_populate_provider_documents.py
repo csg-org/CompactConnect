@@ -209,6 +209,18 @@ class TestPopulateProviderDocuments(TstFunction):
         self.assertIn('resetIndexes is not supported in production', str(caught.exception))
 
     @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_reset_indexes_rejects_non_boolean_values(self, mock_opensearch_client):
+        from cc_common.exceptions import CCInvalidRequestException
+
+        from handlers.populate_provider_documents import populate_provider_documents
+
+        for value in ('false', 'true', 1, 0, None):
+            with self.subTest(value=value), self.assertRaises(CCInvalidRequestException) as caught:
+                populate_provider_documents({'resetIndexes': value}, MagicMock())
+            self.assertIn('resetIndexes must be a boolean', str(caught.exception))
+        mock_opensearch_client.return_value.delete_provider_index_with_alias.assert_not_called()
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
     def test_provider_records_from_all_three_compacts_are_indexed_in_expected_index(self, mock_opensearch_client):
         from handlers.populate_provider_documents import TIME_THRESHOLD_MS, populate_provider_documents
 

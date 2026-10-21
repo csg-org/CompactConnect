@@ -55,7 +55,7 @@ populating all the provider records.
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.exceptions import CCInternalException
+from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from marshmallow import ValidationError
 from opensearch_client import INITIAL_INDEX_VERSION, OpenSearchClient
 from utils import generate_provider_opensearch_document
@@ -101,7 +101,10 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     data_client = config.data_client
     opensearch_client = OpenSearchClient()
 
-    reset_indexes = bool(event.get('resetIndexes', False))
+    # Accept only a real boolean. bool("false") is True, which would reset indexes unintentionally.
+    reset_indexes = event.get('resetIndexes', False)
+    if not isinstance(reset_indexes, bool):
+        raise CCInvalidRequestException('resetIndexes must be a boolean')
     number_of_shards = int(event.get('numberOfShards', 1))
     number_of_replicas = int(event.get('numberOfReplicas', _default_number_of_replicas()))
 
