@@ -67,6 +67,21 @@ class TestOpenSearchIndexManager(TstFunction):
         else:
             mock_client_instance.index_exists.return_value = index_exists_return_value
 
+        # Point index creation at the real client methods so mapping assertions still see create_index calls.
+        from opensearch_client import OpenSearchClient
+
+        def _real_get_mapping(number_of_shards, number_of_replicas):
+            return OpenSearchClient._get_provider_index_mapping(  # noqa: SLF001 private-member-access
+                mock_client_instance, number_of_shards, number_of_replicas
+            )
+
+        mock_client_instance._get_provider_index_mapping = _real_get_mapping  # noqa: SLF001 private-member-access
+
+        def _real_create_provider_index(*args, **kwargs):
+            return OpenSearchClient.create_provider_index_with_alias(mock_client_instance, *args, **kwargs)
+
+        mock_client_instance.create_provider_index_with_alias.side_effect = _real_create_provider_index
+
         return mock_client_instance
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
@@ -398,8 +413,9 @@ class TestOpenSearchIndexManager(TstFunction):
         # Assert that alias_exists was called for each compact
         self.assertEqual(3, mock_client_instance.alias_exists.call_count)
 
-        # Assert that index_exists was called only for missing aliases (octp and coun)
-        self.assertEqual(2, mock_client_instance.index_exists.call_count)
+        # Assert that index_exists was called for the alias name and the versioned index
+        # of each compact whose alias is missing (octp and coun)
+        self.assertEqual(4, mock_client_instance.index_exists.call_count)
 
         # Assert that create_index was called only for missing indices (octp and coun)
         self.assertEqual(2, mock_client_instance.create_index.call_count)
@@ -442,8 +458,8 @@ class TestOpenSearchIndexManager(TstFunction):
         # Assert that alias_exists was called for each compact
         self.assertEqual(3, mock_client_instance.alias_exists.call_count)
 
-        # Assert that index_exists was called for each compact
-        self.assertEqual(3, mock_client_instance.index_exists.call_count)
+        # Assert that index_exists was called for the alias name and the versioned index of each compact
+        self.assertEqual(6, mock_client_instance.index_exists.call_count)
 
         # Assert that create_index was NOT called since indices already exist
         mock_client_instance.create_index.assert_not_called()

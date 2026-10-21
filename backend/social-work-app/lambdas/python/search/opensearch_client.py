@@ -83,6 +83,34 @@ class OpenSearchClient:
             operation_name=f'create_alias({alias_name} -> {index_name})',
         )
 
+    def get_index_settings(self, index_name: str) -> dict:
+        """
+        Get the settings for an index.
+
+        :param index_name: The name of the index (can be an alias)
+        :return: The index settings response from OpenSearch
+        :raises CCInternalException: If all retry attempts fail
+        """
+        return self._execute_with_retry(
+            operation=lambda: self._client.indices.get_settings(index=index_name),
+            operation_name=f'get_index_settings({index_name})',
+        )
+
+    def update_index_settings(self, index_name: str, settings: dict) -> None:
+        """
+        Update the settings for an index.
+
+        number_of_replicas can be changed after index creation. number_of_shards cannot.
+
+        :param index_name: The name of the index (can be an alias)
+        :param settings: The settings to update (e.g., {'index': {'number_of_replicas': 0}})
+        :raises CCInternalException: If all retry attempts fail
+        """
+        self._execute_with_retry(
+            operation=lambda: self._client.indices.put_settings(index=index_name, body=settings),
+            operation_name=f'update_index_settings({index_name})',
+        )
+
     def get_indices_for_alias(self, alias_name: str) -> list[str]:
         """
         Return index names that the given alias points to.
