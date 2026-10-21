@@ -189,22 +189,24 @@
                             </div>
                             <a
                                 v-if="!isUsingMockApi"
+                                id="practitioner-login"
                                 :href="licenseeLoginUri(selectedAppMode)"
                                 class="login-link"
                                 rel="noopener noreferrer"
-                                :aria-label="$t('navigation.loginAsProvider')"
+                                aria-labelledby="practitioner-login-heading practitioner-login-text"
                                 @click="handlePractitionerLoginClick"
                             >
-                                {{ $t('navigation.login') }}
+                                <span id="practitioner-login-text">{{ $t('navigation.login') }}</span>
                             </a>
                             <button
                                 v-else
+                                id="practitioner-login"
                                 type="button"
                                 class="login-link"
-                                :aria-label="$t('navigation.loginAsProvider')"
+                                aria-labelledby="practitioner-login-heading practitioner-login-text"
                                 @click="handleMockPractitionerLogin"
                             >
-                                {{ $t('navigation.login') }}
+                                <span id="practitioner-login-text">{{ $t('navigation.login') }}</span>
                             </button>
                             <p class="register-prompt">
                                 {{ $t('navigation.registerAsProviderSubtext') }}
@@ -230,22 +232,24 @@
                             </div>
                             <a
                                 v-if="!isUsingMockApi"
+                                id="staff-login"
                                 :href="staffLoginUri(selectedAppMode)"
                                 class="login-link staff"
                                 rel="noopener noreferrer"
-                                :aria-label="$t('navigation.loginAsStaff')"
+                                aria-labelledby="staff-login-heading staff-login-text"
                                 @click="handleStaffLoginClick"
                             >
-                                {{ $t('navigation.login') }}
+                                <span id="staff-login-text">{{ $t('navigation.login') }}</span>
                             </a>
                             <button
                                 v-else
+                                id="staff-login"
                                 type="button"
                                 class="login-link staff"
-                                :aria-label="$t('navigation.loginAsStaff')"
+                                aria-labelledby="staff-login-heading staff-login-text"
                                 @click="handleMockStaffLogin"
                             >
-                                {{ $t('navigation.login') }}
+                                <span id="staff-login-text">{{ $t('navigation.login') }}</span>
                             </button>
                         </section>
                     </Card>

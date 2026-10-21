@@ -279,6 +279,10 @@ export default class DashboardPublic extends Vue {
         this.initCompactSelect();
 
         await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: compactType }));
+        await this.$store.dispatch('license/setStoreSearch', {
+            ...this.$store.state.license.search,
+            compact: compactType,
+        });
 
         if (shouldMoveFocus) {
             await this.$nextTick();

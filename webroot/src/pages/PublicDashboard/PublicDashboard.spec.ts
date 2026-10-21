@@ -172,10 +172,12 @@ describe('PublicDashboard page', async () => {
         expect(wrapper.find('h1#dashboard-step-heading').exists()).to.equal(true);
         expect(wrapper.find('#practitioner-login-heading').exists()).to.equal(true);
         expect(wrapper.find('#staff-login-heading').exists()).to.equal(true);
-        expect(wrapper.find('.provider-login-card .login-link').attributes('aria-label'))
-            .to.equal('Practitioner login');
-        expect(wrapper.find('.staff-login-card .login-link').attributes('aria-label'))
-            .to.equal('Compact / State Staff Login');
+        expect(wrapper.find('#practitioner-login').attributes('aria-labelledby'))
+            .to.equal('practitioner-login-heading practitioner-login-text');
+        expect(wrapper.find('#practitioner-login-text').text()).to.equal('Login');
+        expect(wrapper.find('#staff-login').attributes('aria-labelledby'))
+            .to.equal('staff-login-heading staff-login-text');
+        expect(wrapper.find('#staff-login-text').text()).to.equal('Login');
         expect(wrapper.find('.privilege-search .login-link').attributes('aria-label'))
             .to.equal('Search, Public lookup');
     });
@@ -219,6 +221,26 @@ describe('PublicDashboard page', async () => {
 
         expect(wrapper.find('.provider-login-card').exists()).to.equal(false);
         expect(wrapper.find('.staff-login-card').exists()).to.equal(true);
+    });
+    it('should successfully replace stale license search compact on compact selection', async () => {
+        const wrapper = await mountFull(PublicDashboard);
+        const component = wrapper.vm;
+
+        await store.dispatch('license/setStoreSearch', {
+            compact: CompactType.ASLP,
+            firstName: 'Test',
+            lastName: '',
+            state: '',
+        });
+        await component.selectCompact(CompactType.COUNSELING);
+        await nextTick();
+        await flushPromises();
+
+        expect(store.state.user.currentCompact?.type).to.equal(CompactType.COUNSELING);
+        expect(store.state.license.search.compact).to.equal(CompactType.COUNSELING);
+        expect(store.state.license.search.firstName).to.equal('Test');
+
+        await store.dispatch('license/resetStoreSearch');
     });
     it('should successfully move focus to the step heading after compact selection', async () => {
         const wrapper = await mountFull(PublicDashboard);
