@@ -52,9 +52,10 @@ class TstFunction(TstLambdas):
 
         cc_common.data_model.provider_record_util.config = self.config
 
-        # Clear the live_compact_jurisdictions cached property so class-level patches or per-test overrides
+        # Clear cached jurisdiction lists so class-level patches or per-test overrides
         # are used on first access instead of a value cached from the compact config table.
         self.config.__dict__.pop('live_compact_jurisdictions', None)
+        self.config.__dict__.pop('data_live_jurisdictions', None)
 
         self.addCleanup(self.delete_resources)
 
@@ -258,6 +259,10 @@ class TstFunction(TstLambdas):
         test; the cache is cleared in setUp so this value will be used on first access.
         """
         self.config.live_compact_jurisdictions = value
+
+    def set_data_live_jurisdictions_for_test(self, value: dict):
+        """Override data_live_jurisdictions so a home license can generate privileges in this test."""
+        self.config.data_live_jurisdictions = value
 
     def _load_jurisdiction_configuration(self, overrides: dict):
         with open('../common/tests/resources/dynamo/jurisdiction.json') as f:

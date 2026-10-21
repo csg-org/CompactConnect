@@ -38,5 +38,6 @@ class JurisdictionConfigurationData(CCDataClass):
         return self._data.get('jurisdictionAdverseActionsNotificationEmails', [])
 
     @property
-    def licenseeRegistrationEnabled(self) -> bool:
-        return self._data.get('licenseeRegistrationEnabled', False)
+    def isLicenseDataLive(self) -> bool:
+        """State-admin data-live flag. Persisted as licenseeRegistrationEnabled; see JurisdictionRecordSchema."""
+        return self._data.get('isLicenseDataLive', False)

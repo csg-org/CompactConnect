@@ -5,6 +5,7 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.jurisdiction.record import LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE
 
 
 class CompactJurisdictionsStaffUsersResponseSchema(ForgivingSchema):
@@ -44,7 +45,9 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
         required=True,
         allow_none=False,
     )
-    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
+    # API contract key stays licenseeRegistrationEnabled. load() is given the internal dict, whose key is
+    # isLicenseDataLive, so data_key is the internal name and the field name is the response key.
+    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False, data_key='isLicenseDataLive')
 
 
 class PutCompactJurisdictionConfigurationRequestSchema(Schema):
@@ -53,7 +56,12 @@ class PutCompactJurisdictionConfigurationRequestSchema(Schema):
     PUT /compacts/{compact}/jurisdictions/{jurisdiction} endpoint
     """
 
-    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
+    # API contract key stays licenseeRegistrationEnabled. loads() reads that JSON key and returns isLicenseDataLive.
+    isLicenseDataLive = Boolean(
+        required=True,
+        allow_none=False,
+        data_key=LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE,
+    )
     jurisdictionOperationsTeamEmails = List(
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )

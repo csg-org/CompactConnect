@@ -266,6 +266,7 @@ class TestGetProvider(TstFunction):
     def setUp(self):
         super().setUp()
         self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+        self.set_data_live_jurisdictions_for_test({'cosm': ['oh']})
 
     @staticmethod
     def _get_sensitive_hash():
