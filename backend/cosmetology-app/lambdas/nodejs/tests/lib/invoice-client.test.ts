@@ -292,6 +292,19 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
         expect(result.lineItems.map((item) => item.licenseNumber)).toEqual(['COS-12345']);
     });
 
+    it('should omit a license whose upload dates are missing or unparseable', async () => {
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([{
+            ...SAMPLE_LICENSE_RECORD_NEW,
+            firstUploadDate: { S: 'not-a-date' },
+        }]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([]);
+        expect(result.totalUploaded).toEqual(1);
+    });
+
     it('should let DynamoDB errors escape', async () => {
         mockDynamoDBClient.on(QueryCommand).rejects(new Error('DynamoDB error'));
 

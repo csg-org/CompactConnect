@@ -5,7 +5,7 @@ import 'aws-sdk-client-mock-jest';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as nodemailer from 'nodemailer';
 
-import { InvoiceEmailService } from '../../../lib/email/invoice-email-service';
+import { formatBillingMonth, InvoiceEmailService } from '../../../lib/email/invoice-email-service';
 import { InvoiceReport } from '../../../lib/models/invoice';
 
 jest.mock('nodemailer');
@@ -14,7 +14,8 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;
 
 const MOCK_TRANSPORT = {
-    sendMail: jest.fn().mockImplementation(async () => ({ messageId: 'message-id-123' })),
+    sendMail: jest.fn<(mail?: unknown) => Promise<{ messageId?: string }>>()
+        .mockResolvedValue({ messageId: 'message-id-123' }),
 };
 
 const cosmetologistReport = (): InvoiceReport => ({
@@ -142,6 +143,22 @@ describe('InvoiceEmailService', () => {
             expect(csv).toContain('Total Billable,0');
             expect(csv).toContain('Total Owed,$0.00');
         });
+
+        it('should quote csv cells that contain commas or quotes', () => {
+            const report = cosmetologistReport();
+
+            report.stateSections[0].lineItems[0].familyName = 'Smith, "Jr."';
+
+            const csv = emailService.generateInvoiceCsv(report);
+
+            expect(csv).toContain('Ohio,Jane,"Smith, ""Jr.""",OH,COS-12345,New,$25.00');
+        });
+    });
+
+    describe('formatBillingMonth', () => {
+        it('should format YYYY-MM as an English month and year', () => {
+            expect(formatBillingMonth('2024-09')).toEqual('September 2024');
+        });
     });
 
     describe('sendInvoiceEmail', () => {
@@ -195,11 +212,21 @@ describe('InvoiceEmailService', () => {
         });
 
         it('should let SES errors escape', async () => {
-            MOCK_TRANSPORT.sendMail.mockRejectedValueOnce(new Error('SES error'));
+            MOCK_TRANSPORT.sendMail.mockImplementationOnce(
+                () => Promise.reject(new Error('SES error'))
+            );
 
             await expect(
                 emailService.sendInvoiceEmail(cosmetologistReport(), ['compact-ops@example.com'])
             ).rejects.toThrow('SES error');
+        });
+
+        it('should throw when SES accepts the email without a message id', async () => {
+            MOCK_TRANSPORT.sendMail.mockResolvedValueOnce({ messageId: undefined });
+
+            await expect(
+                emailService.sendInvoiceEmail(cosmetologistReport(), ['compact-ops@example.com'])
+            ).rejects.toThrow('Invoice email was accepted without a message id');
         });
     });
 });

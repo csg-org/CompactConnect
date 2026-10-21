@@ -1,11 +1,20 @@
 import { InvoiceLineItem, InvoiceReport, StateInvoiceSection } from '../models/invoice';
 import { BaseEmailService } from './base-email-service';
 
-const BILLING_MONTH_FORMAT = new Intl.DateTimeFormat('en-US', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-});
+const MONTH_NAMES = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+] as const;
 
 const CSV_HEADERS = [
     'Jurisdiction',
@@ -100,7 +109,7 @@ export class InvoiceEmailService extends BaseEmailService {
 export function formatBillingMonth(billingMonth: string): string {
     const [year, month] = billingMonth.split('-').map(Number);
 
-    return BILLING_MONTH_FORMAT.format(new Date(Date.UTC(year, month - 1, 1)));
+    return `${MONTH_NAMES[month - 1]} ${year}`;
 }
 
 export function formatLicenseType(licenseType: string): string {
