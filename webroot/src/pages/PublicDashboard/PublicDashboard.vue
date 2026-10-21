@@ -190,8 +190,8 @@
                             <a
                                 v-if="!isUsingMockApi"
                                 id="practitioner-login"
-                                :href="licenseeLoginUri(selectedAppMode)"
                                 class="login-link"
+                                :href="licenseeLoginUri(selectedAppMode)"
                                 rel="noopener noreferrer"
                                 aria-labelledby="practitioner-login-heading practitioner-login-text"
                                 @click="handlePractitionerLoginClick"
@@ -201,8 +201,8 @@
                             <button
                                 v-else
                                 id="practitioner-login"
-                                type="button"
                                 class="login-link"
+                                type="button"
                                 aria-labelledby="practitioner-login-heading practitioner-login-text"
                                 @click="handleMockPractitionerLogin"
                             >
@@ -233,8 +233,8 @@
                             <a
                                 v-if="!isUsingMockApi"
                                 id="staff-login"
-                                :href="staffLoginUri(selectedAppMode)"
                                 class="login-link staff"
+                                :href="staffLoginUri(selectedAppMode)"
                                 rel="noopener noreferrer"
                                 aria-labelledby="staff-login-heading staff-login-text"
                                 @click="handleStaffLoginClick"
@@ -244,8 +244,8 @@
                             <button
                                 v-else
                                 id="staff-login"
-                                type="button"
                                 class="login-link staff"
+                                type="button"
                                 aria-labelledby="staff-login-heading staff-login-text"
                                 @click="handleMockStaffLogin"
                             >
