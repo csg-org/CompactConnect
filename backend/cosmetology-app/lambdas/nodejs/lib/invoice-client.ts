@@ -27,7 +27,8 @@ interface LicenseRecord {
     jurisdiction?: string;
     licenseNumber?: string;
     licenseType?: string;
-    compactEligibility?: string;
+    /** What the jurisdiction reported. The calculated compactEligibility field is not stored. */
+    jurisdictionUploadedCompactEligibility?: string;
     firstUploadDate?: string;
     dateOfRenewal?: string;
 }
@@ -42,6 +43,10 @@ type LicenseKey = Record<string, AttributeValue>;
  * renewals, are indexed by the update createDate. The index only projects providerId, so each hit
  * is resolved to the current license row and billed when that license was first uploaded or renewed
  * during the month.
+ *
+ * A license is billable when the jurisdiction uploaded it as multi-state
+ * (jurisdictionUploadedCompactEligibility) and it was first uploaded or renewed in the billing
+ * month. Expiration and encumbrance do not change the invoice.
  */
 export class InvoiceClient {
     private readonly logger: Logger;
@@ -213,7 +218,7 @@ export class InvoiceClient {
         jurisdiction: string,
         billingMonth: string
     ): InvoiceLineItem | undefined {
-        if (record.compactEligibility !== 'eligible') {
+        if (record.jurisdictionUploadedCompactEligibility !== 'eligible') {
             return undefined;
         }
 

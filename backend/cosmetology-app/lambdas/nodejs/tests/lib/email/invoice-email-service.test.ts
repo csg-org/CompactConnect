@@ -3,12 +3,19 @@ import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import * as nodemailer from 'nodemailer';
 
 import { InvoiceEmailService } from '../../../lib/email/invoice-email-service';
 import { InvoiceReport } from '../../../lib/models/invoice';
 
+jest.mock('nodemailer');
+
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;
+
+const MOCK_TRANSPORT = {
+    sendMail: jest.fn().mockImplementation(async () => ({ messageId: 'message-id-123' })),
+};
 
 const cosmetologistReport = (): InvoiceReport => ({
     compactName: 'Cosmetology Compact',
@@ -89,6 +96,7 @@ describe('InvoiceEmailService', () => {
         mockSESClient.on(SendEmailCommand).resolves({
             MessageId: 'message-id-123',
         });
+        (nodemailer.createTransport as jest.Mock).mockReturnValue(MOCK_TRANSPORT);
 
         emailService = new InvoiceEmailService({
             logger: new Logger({ serviceName: 'test' }),
@@ -98,59 +106,41 @@ describe('InvoiceEmailService', () => {
         });
     });
 
-    describe('generateInvoiceHtml', () => {
-        it('should produce an HTML document', () => {
-            const html = emailService.generateInvoiceHtml(cosmetologistReport());
+    const sentMail = () => MOCK_TRANSPORT.sendMail.mock.calls[0][0] as {
+        from: string;
+        to: string[];
+        subject: string;
+        html: string;
+        attachments: { filename: string; content: string; contentType: string }[];
+    };
 
-            expect(html.startsWith('<!DOCTYPE html')).toBe(true);
+    describe('generateInvoiceCsv', () => {
+        it('should list each billable license with its state, category, and fee', () => {
+            const csv = emailService.generateInvoiceCsv(cosmetologistReport());
+
+            expect(csv).toContain('Jurisdiction,First Name,Last Name,Home State,License Number,Category,Fee');
+            expect(csv).toContain('Ohio,Jane,Smith,OH,COS-12345,New,$25.00');
+            expect(csv).toContain('Ohio,John,Doe,OH,COS-67890,Renewal,$25.00');
+            expect(csv).toContain('Kentucky,Sam,Taylor,KY,COS-22222,New,$25.00');
         });
 
-        it('should include the licensee name, license number, and home state', () => {
-            const html = emailService.generateInvoiceHtml(cosmetologistReport());
+        it('should total the fees owed by jurisdiction and for the compact', () => {
+            const csv = emailService.generateInvoiceCsv(cosmetologistReport());
 
-            expect(html).toContain('Jane Smith');
-            expect(html).toContain('COS-12345');
-            expect(html).toContain('OH');
+            expect(csv).toContain('Ohio,2,$50.00');
+            expect(csv).toContain('Kentucky,1,$25.00');
+            expect(csv).toContain('Total Uploaded,4');
+            expect(csv).toContain('Total Billable,3');
+            expect(csv).toContain('Total Owed,$75.00');
         });
 
-        it('should label first uploads as New and renewals as Renewal', () => {
-            const html = emailService.generateInvoiceHtml(cosmetologistReport());
+        it('should show a state with no billable licenses as zero dollars', () => {
+            const csv = emailService.generateInvoiceCsv(emptyReport());
 
-            expect(html).toMatch(/\bNew\b/);
-            expect(html).toMatch(/\bRenewal\b/);
-        });
-
-        it('should show the $25.00 fee on each line item', () => {
-            const html = emailService.generateInvoiceHtml(cosmetologistReport());
-
-            expect(html.match(/\$25\.00/g)?.length).toBeGreaterThanOrEqual(3);
-        });
-
-        it('should show each state subtotal as a license count and amount owed', () => {
-            const html = emailService.generateInvoiceHtml(cosmetologistReport());
-
-            expect(html).toContain('2 licenses — $50.00 owed');
-            expect(html).toContain('1 license — $25.00 owed');
-        });
-
-        it('should show the grand total owed to the Cosmetology Compact', () => {
-            const html = emailService.generateInvoiceHtml(cosmetologistReport());
-
-            expect(html).toContain('Total owed to Cosmetology Compact: $75.00');
-        });
-
-        it('should show the total uploaded count separately from the billable count', () => {
-            const html = emailService.generateInvoiceHtml(cosmetologistReport());
-
-            expect(html).toContain('Total uploaded: 4');
-            expect(html).toContain('Total billable: 3');
-        });
-
-        it('should render a state with no billable licenses as zero dollars', () => {
-            const html = emailService.generateInvoiceHtml(emptyReport());
-
-            expect(html).toContain('0 licenses — $0.00 owed');
-            expect(html).toContain('Total owed to Cosmetology Compact: $0.00');
+            expect(csv).toContain('Kentucky,0,$0.00');
+            expect(csv).toContain('Total Uploaded,0');
+            expect(csv).toContain('Total Billable,0');
+            expect(csv).toContain('Total Owed,$0.00');
         });
     });
 
@@ -158,30 +148,41 @@ describe('InvoiceEmailService', () => {
         it('should send the invoice to the compact operations team', async () => {
             await emailService.sendInvoiceEmail(cosmetologistReport(), ['compact-ops@example.com']);
 
-            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-                Destination: {
-                    ToAddresses: ['compact-ops@example.com'],
-                },
-            });
+            expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+                to: ['compact-ops@example.com'],
+            }));
         });
 
-        it('should set the subject from the compact, license type, and billing month', async () => {
+        it('should set the subject from the license type and compact', async () => {
             await emailService.sendInvoiceEmail(cosmetologistReport(), ['compact-ops@example.com']);
 
-            const subject = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Content?.Simple?.Subject;
+            expect(sentMail().subject).toEqual('Monthly Cosmetologist Invoice for Cosmetology Compact');
+        });
 
-            expect(subject).toEqual({
-                Charset: 'UTF-8',
-                Data: '[Cosmetology Compact] Cosmetologist Invoice — September 2024',
-            });
+        it('should use the compact report body and attach the invoice csv', async () => {
+            await emailService.sendInvoiceEmail(cosmetologistReport(), ['compact-ops@example.com']);
+
+            const mail = sentMail();
+
+            expect(mail.html).toContain(
+                'Please find attached the monthly Cosmetologist invoice for the Cosmetology Compact for September 2024.'
+            );
+            expect(mail.html).toContain('CompactConnect');
+            expect(mail.html).not.toContain('COS-12345');
+            expect(mail.attachments).toEqual([
+                expect.objectContaining({
+                    filename: 'cosmetologist-invoice-2024-09.csv',
+                    contentType: 'text/csv',
+                }),
+            ]);
+            expect(mail.attachments[0].content).toContain('Ohio,Jane,Smith,OH,COS-12345,New,$25.00');
+            expect(mail.attachments[0].content).toContain('Total Owed,$75.00');
         });
 
         it('should send from the configured CompactConnect address', async () => {
             await emailService.sendInvoiceEmail(cosmetologistReport(), ['compact-ops@example.com']);
 
-            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-                FromEmailAddress: 'CompactConnect <noreply@example.org>',
-            });
+            expect(sentMail().from).toEqual('CompactConnect <noreply@example.org>');
         });
 
         it('should return the SES message id', async () => {
@@ -194,7 +195,7 @@ describe('InvoiceEmailService', () => {
         });
 
         it('should let SES errors escape', async () => {
-            mockSESClient.on(SendEmailCommand).rejects(new Error('SES error'));
+            MOCK_TRANSPORT.sendMail.mockRejectedValueOnce(new Error('SES error'));
 
             await expect(
                 emailService.sendInvoiceEmail(cosmetologistReport(), ['compact-ops@example.com'])

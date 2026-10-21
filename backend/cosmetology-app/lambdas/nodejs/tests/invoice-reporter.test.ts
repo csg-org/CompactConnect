@@ -127,6 +127,22 @@ describe('Invoice reporter', () => {
                 'cosmetologist',
                 'esthetician',
             ]);
+            expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    licenseType: 'cosmetologist',
+                    totalBillable: 1,
+                    totalOwed: 25,
+                }),
+                COMPACT_OPS_EMAILS
+            );
+            expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    licenseType: 'esthetician',
+                    totalBillable: 1,
+                    totalOwed: 25,
+                }),
+                COMPACT_OPS_EMAILS
+            );
         });
 
         it('should bill the previous calendar month when the event does not name one', async () => {

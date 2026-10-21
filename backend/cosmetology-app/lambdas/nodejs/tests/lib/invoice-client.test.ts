@@ -138,6 +138,43 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
         expect(JSON.stringify(result.lineItems)).not.toContain('COS-00001');
     });
 
+    it('should bill a stored license that does not persist compactEligibility', async () => {
+        expect(SAMPLE_LICENSE_RECORD_NEW).not.toHaveProperty('compactEligibility');
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([SAMPLE_LICENSE_RECORD_NEW]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([
+            expect.objectContaining({
+                licenseNumber: 'COS-12345',
+                category: 'new',
+                fee: 25,
+            }),
+        ]);
+        expect(result.lineItems.reduce((sum, item) => sum + item.fee, 0)).toEqual(25);
+    });
+
+    it('should bill an encumbered multi-state license that was first uploaded in the billing month', async () => {
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([{
+            ...SAMPLE_LICENSE_RECORD_NEW,
+            encumberedStatus: { S: 'encumbered' },
+            dateOfExpiration: { S: '2020-01-01' },
+            jurisdictionUploadedLicenseStatus: { S: 'inactive' },
+        }]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([
+            expect.objectContaining({
+                licenseNumber: 'COS-12345',
+                category: 'new',
+                fee: 25,
+            }),
+        ]);
+    });
+
     it('should categorize a license as new when it was first uploaded during the billing month', async () => {
         queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
         batchGet([SAMPLE_LICENSE_RECORD_NEW]);

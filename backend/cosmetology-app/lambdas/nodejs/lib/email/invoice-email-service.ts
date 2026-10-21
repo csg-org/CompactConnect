@@ -7,26 +7,44 @@ const BILLING_MONTH_FORMAT = new Intl.DateTimeFormat('en-US', {
     timeZone: 'UTC',
 });
 
-export class InvoiceEmailService extends BaseEmailService {
-    public generateInvoiceHtml(report: InvoiceReport): string {
-        const licenseLabel = formatLicenseType(report.licenseType);
-        const monthLabel = formatBillingMonth(report.billingMonth);
-        const sections = report.stateSections.map((section) => this.renderStateSection(section)).join('\n');
+const CSV_HEADERS = [
+    'Jurisdiction',
+    'First Name',
+    'Last Name',
+    'Home State',
+    'License Number',
+    'Category',
+    'Fee',
+];
 
-        return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>${escapeHtml(licenseLabel)} Invoice — ${escapeHtml(monthLabel)}</title>
-</head>
-<body>
-<h1>${escapeHtml(report.compactName)} ${escapeHtml(licenseLabel)} Invoice — ${escapeHtml(monthLabel)}</h1>
-${sections}
-<p>Total uploaded: ${report.totalUploaded}</p>
-<p>Total billable: ${report.totalBillable}</p>
-<p>Total owed to ${escapeHtml(report.compactName)}: ${formatCurrency(report.totalOwed)}</p>
-</body>
-</html>`;
+export class InvoiceEmailService extends BaseEmailService {
+    public generateInvoiceCsv(report: InvoiceReport): string {
+        const rows: string[][] = [CSV_HEADERS];
+
+        for (const section of report.stateSections) {
+            for (const item of section.lineItems) {
+                rows.push(this.lineItemRow(section, item));
+            }
+        }
+
+        rows.push([]);
+        rows.push(['Jurisdiction', 'Licenses', 'Amount Owed']);
+        for (const section of report.stateSections) {
+            const owed = section.lineItems.reduce((sum, item) => sum + item.fee, 0);
+
+            rows.push([
+                section.jurisdictionName,
+                String(section.lineItems.length),
+                formatCurrency(owed),
+            ]);
+        }
+
+        rows.push([]);
+        rows.push(['Total Uploaded', String(report.totalUploaded)]);
+        rows.push(['Total Billable', String(report.totalBillable)]);
+        rows.push(['Total Owed', formatCurrency(report.totalOwed)]);
+
+        return `${rows.map((row) => row.map(csvCell).join(',')).join('\n')}\n`;
     }
 
     public async sendInvoiceEmail(report: InvoiceReport, recipients: string[]): Promise<string> {
@@ -38,11 +56,25 @@ ${sections}
             totalOwed: report.totalOwed,
         });
 
-        const messageId = await this.sendEmail({
-            htmlContent: this.generateInvoiceHtml(report),
-            subject: invoiceSubject(report),
+        const template = this.getNewEmailTemplate();
+        const subject = invoiceSubject(report);
+
+        this.insertHeader(template, subject);
+        this.insertBody(template, invoiceBody(report), 'left');
+        this.insertFooter(template);
+
+        const messageId = await this.sendEmailWithAttachments({
+            htmlContent: this.renderTemplate(template),
+            subject,
             recipients,
             errorMessage: 'Error sending invoice email',
+            attachments: [
+                {
+                    filename: invoiceFilename(report),
+                    content: this.generateInvoiceCsv(report),
+                    contentType: 'text/csv',
+                },
+            ],
         });
 
         if (!messageId) {
@@ -52,35 +84,16 @@ ${sections}
         return messageId;
     }
 
-    private renderStateSection(section: StateInvoiceSection): string {
-        const rows = section.lineItems.map((item) => this.renderLineItem(item)).join('\n');
-        const count = section.lineItems.length;
-        const owed = section.lineItems.reduce((sum, item) => sum + item.fee, 0);
-        const licenseWord = count === 1 ? 'license' : 'licenses';
-        const postal = section.postalAbbreviation.toUpperCase();
-
-        return `<h2>${escapeHtml(section.jurisdictionName)} (${escapeHtml(postal)})</h2>
-<table>
-<thead>
-<tr><th>Name</th><th>Home state</th><th>License number</th><th>Category</th><th>Fee</th></tr>
-</thead>
-<tbody>
-${rows}
-</tbody>
-</table>
-<p>${count} ${licenseWord} — ${formatCurrency(owed)} owed</p>`;
-    }
-
-    private renderLineItem(item: InvoiceLineItem): string {
-        const category = item.category === 'new' ? 'New' : 'Renewal';
-
-        return `<tr>
-<td>${escapeHtml(`${item.givenName} ${item.familyName}`)}</td>
-<td>${escapeHtml(item.homeState)}</td>
-<td>${escapeHtml(item.licenseNumber)}</td>
-<td>${category}</td>
-<td>${formatCurrency(item.fee)}</td>
-</tr>`;
+    private lineItemRow(section: StateInvoiceSection, item: InvoiceLineItem): string[] {
+        return [
+            section.jurisdictionName,
+            item.givenName,
+            item.familyName,
+            item.homeState,
+            item.licenseNumber,
+            item.category === 'new' ? 'New' : 'Renewal',
+            formatCurrency(item.fee),
+        ];
     }
 }
 
@@ -96,19 +109,29 @@ export function formatLicenseType(licenseType: string): string {
 
 export function invoiceSubject(report: InvoiceReport): string {
     const licenseLabel = formatLicenseType(report.licenseType);
+
+    return `Monthly ${licenseLabel} Invoice for ${report.compactName}`;
+}
+
+export function invoiceBody(report: InvoiceReport): string {
+    const licenseLabel = formatLicenseType(report.licenseType);
     const monthLabel = formatBillingMonth(report.billingMonth);
 
-    return `[${report.compactName}] ${licenseLabel} Invoice — ${monthLabel}`;
+    return `Please find attached the monthly ${licenseLabel} invoice for the ${report.compactName} for ${monthLabel}.`;
+}
+
+export function invoiceFilename(report: InvoiceReport): string {
+    return `${report.licenseType}-invoice-${report.billingMonth}.csv`;
 }
 
 function formatCurrency(amount: number): string {
     return `$${amount.toFixed(2)}`;
 }
 
-function escapeHtml(value: string): string {
-    return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+function csvCell(value: string): string {
+    if (/[",\n]/.test(value)) {
+        return `"${value.replace(/"/g, '""')}"`;
+    }
+
+    return value;
 }
