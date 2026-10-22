@@ -119,14 +119,14 @@ export function formatLicenseType(licenseType: string): string {
 export function invoiceSubject(report: InvoiceReport): string {
     const licenseLabel = formatLicenseType(report.licenseType);
 
-    return `Monthly ${licenseLabel} Invoice for ${report.compactName}`;
+    return `Monthly ${licenseLabel} Invoice for ${report.compactName} Compact`;
 }
 
 export function invoiceBody(report: InvoiceReport): string {
     const licenseLabel = formatLicenseType(report.licenseType);
     const monthLabel = formatBillingMonth(report.billingMonth);
 
-    return `Please find attached the monthly ${licenseLabel} invoice for the ${report.compactName} for ${monthLabel}.`;
+    return `Please find attached the monthly ${licenseLabel} invoice for the ${report.compactName} Compact for ${monthLabel}.`;
 }
 
 export function invoiceFilename(report: InvoiceReport): string {

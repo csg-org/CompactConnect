@@ -19,7 +19,7 @@ const MOCK_TRANSPORT = {
 };
 
 const cosmetologistReport = (): InvoiceReport => ({
-    compactName: 'Cosmetology Compact',
+    compactName: 'Cosmetology',
     licenseType: 'cosmetologist',
     billingMonth: '2024-09',
     stateSections: [
@@ -69,7 +69,7 @@ const cosmetologistReport = (): InvoiceReport => ({
 });
 
 const emptyReport = (): InvoiceReport => ({
-    compactName: 'Cosmetology Compact',
+    compactName: 'Cosmetology',
     licenseType: 'esthetician',
     billingMonth: '2024-09',
     stateSections: [
