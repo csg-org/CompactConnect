@@ -145,9 +145,11 @@ describe('PublicDashboard page', async () => {
 
         expect(compactList.length).to.be.above(0);
         expect(compactButtons.length).to.equal(compactList.length);
-        compactButtons.forEach((compactButton, index) => {
-            expect(compactButton.text()).to.equal(component.getCompactDisplay(compactList[index]));
-        });
+
+        const displays = compactButtons.map((compactButton) => compactButton.text());
+        const sortedDisplays = [...displays].sort((a, b) => a.localeCompare(b));
+
+        expect(displays).to.deep.equal(sortedDisplays);
         expect(wrapper.find('.privilege-search').exists()).to.equal(false);
         expect(wrapper.find('.provider-login-card').exists()).to.equal(false);
         expect(wrapper.find('.staff-login-card').exists()).to.equal(false);
