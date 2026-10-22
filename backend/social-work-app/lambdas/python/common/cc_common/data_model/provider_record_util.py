@@ -873,14 +873,27 @@ class ProviderUserRecords:
         """When this privilege came into existence.
 
         A privilege in a jurisdiction starts at the later of that jurisdiction going live and the
-        earliest multi-state upload of the privilege's license type. A jurisdiction that is live
-        but has no recorded go-live time contributes only the upload date.
+        earliest multi-state upload of the privilege's license type.
+
+        The upload_date fallback (when live_date is None) applies to beta environments where a
+        jurisdiction was already live before the system began recording go-live dates. In prod, no
+        jurisdictions are live yet, so this path is never reached. If live_date is missing for a live
+        jurisdiction in prod, the returned issuance date will be incorrect (upload_date only, rather
+        than the true go-live date). This log message should never appear in production.
         """
         upload_date = self._earliest_multi_state_first_upload_date(privilege.get('licenseType'))
         live_date = self._privilege_jurisdiction_live_date(privilege)
         if upload_date is None:
             return live_date
         if live_date is None:
+            logger.warning(
+                'Privilege jurisdiction is live but has no recorded go-live date. '
+                'Falling back to license upload date for issuance date, which may be incorrect. '
+                'This log message should never appear in production.',
+                compact=privilege.get('compact'),
+                jurisdiction=privilege.get('jurisdiction'),
+                license_type=privilege.get('licenseType'),
+            )
             return upload_date
         return max(upload_date, live_date)
 
