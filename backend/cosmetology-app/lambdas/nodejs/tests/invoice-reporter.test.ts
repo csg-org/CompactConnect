@@ -9,9 +9,11 @@ import {
     SAMPLE_COMPACT_CONFIGURATION,
     SAMPLE_GSI_LICENSE_UPLOAD_RECORD,
     SAMPLE_GSI_LICENSE_UPLOAD_RECORD_ESTHETICIAN,
+    SAMPLE_GSI_LICENSE_UPLOAD_RECORD_INELIGIBLE,
     SAMPLE_JURISDICTION_CONFIGURATION,
     SAMPLE_JURISDICTION_CONFIGURATION_KY,
     SAMPLE_LICENSE_RECORD_ESTHETICIAN,
+    SAMPLE_LICENSE_RECORD_INELIGIBLE,
     SAMPLE_LICENSE_RECORD_NEW
 } from './sample-records';
 
@@ -130,16 +132,30 @@ describe('Invoice reporter', () => {
             expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
                 expect.objectContaining({
                     licenseType: 'cosmetologist',
+                    totalUploaded: 1,
                     totalBillable: 1,
                     totalOwed: 25,
+                    stateSections: [
+                        expect.objectContaining({
+                            postalAbbreviation: 'oh',
+                            totalUploaded: 1,
+                        }),
+                    ],
                 }),
                 COMPACT_OPS_EMAILS
             );
             expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
                 expect.objectContaining({
                     licenseType: 'esthetician',
+                    totalUploaded: 1,
                     totalBillable: 1,
                     totalOwed: 25,
+                    stateSections: [
+                        expect.objectContaining({
+                            postalAbbreviation: 'oh',
+                            totalUploaded: 1,
+                        }),
+                    ],
                 }),
                 COMPACT_OPS_EMAILS
             );
@@ -194,6 +210,55 @@ describe('Invoice reporter', () => {
             expect(mockSendInvoiceEmail).not.toHaveBeenCalled();
         });
 
+        it('should count an ineligible upload on that license type without billing it', async () => {
+            mockDynamoDBClient.on(GetItemCommand).resolves({
+                Item: SAMPLE_COMPACT_CONFIGURATION,
+            });
+            mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
+                if (input.TableName === 'compact-table') {
+                    return Promise.resolve({ Items: [SAMPLE_JURISDICTION_CONFIGURATION]});
+                }
+                if (input.TableName === 'provider-table' && input.IndexName === 'licenseUploadDateGSI') {
+                    return Promise.resolve({
+                        Items: [SAMPLE_GSI_LICENSE_UPLOAD_RECORD, SAMPLE_GSI_LICENSE_UPLOAD_RECORD_INELIGIBLE],
+                    });
+                }
+                return Promise.reject(new Error(`Unexpected query ${JSON.stringify(input)}`));
+            });
+            mockDynamoDBClient.on(BatchGetItemCommand).resolves({
+                Responses: {
+                    'provider-table': [SAMPLE_LICENSE_RECORD_NEW, SAMPLE_LICENSE_RECORD_INELIGIBLE],
+                },
+            });
+
+            await lambda().handler({ eventType: 'monthly' }, SAMPLE_CONTEXT);
+
+            expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    licenseType: 'cosmetologist',
+                    totalUploaded: 2,
+                    totalBillable: 1,
+                    totalOwed: 25,
+                    stateSections: [
+                        expect.objectContaining({
+                            jurisdictionName: 'Ohio',
+                            totalUploaded: 2,
+                            lineItems: [expect.objectContaining({ licenseNumber: 'COS-12345' })],
+                        }),
+                    ],
+                }),
+                COMPACT_OPS_EMAILS
+            );
+            expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    licenseType: 'esthetician',
+                    totalUploaded: 0,
+                    totalBillable: 0,
+                }),
+                COMPACT_OPS_EMAILS
+            );
+        });
+
         it('should let DynamoDB errors escape', async () => {
             mockDynamoDBClient.on(GetItemCommand).resolves({ Item: SAMPLE_COMPACT_CONFIGURATION });
             mockDynamoDBClient.on(QueryCommand).rejects(new Error('DynamoDB error'));
@@ -216,6 +281,7 @@ describe('Invoice reporter', () => {
             expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
                 expect.objectContaining({
                     licenseType: 'cosmetologist',
+                    totalUploaded: 0,
                     totalBillable: 0,
                     totalOwed: 0,
                 }),
@@ -224,6 +290,7 @@ describe('Invoice reporter', () => {
             expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
                 expect.objectContaining({
                     licenseType: 'esthetician',
+                    totalUploaded: 0,
                     totalBillable: 0,
                     totalOwed: 0,
                 }),

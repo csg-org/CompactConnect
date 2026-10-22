@@ -135,6 +135,7 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
 
         expect(result.lineItems).toEqual([]);
         expect(result.totalUploaded).toEqual(1);
+        expect(result.uploadedByLicenseType).toEqual({ cosmetologist: 1 });
         expect(JSON.stringify(result.lineItems)).not.toContain('COS-00001');
     });
 
@@ -221,6 +222,7 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
 
         expect(result.lineItems).toEqual([]);
         expect(result.totalUploaded).toEqual(1);
+        expect(result.uploadedByLicenseType).toEqual({ cosmetologist: 1 });
         expect(JSON.stringify(result)).not.toContain('COS-99999');
     });
 
@@ -243,6 +245,10 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
         const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
 
         expect(result.totalUploaded).toEqual(5);
+        expect(result.uploadedByLicenseType).toEqual({
+            cosmetologist: 4,
+            esthetician: 1,
+        });
         expect(result.byLicenseType.cosmetologist.map((item) => item.licenseNumber)).toEqual([
             'COS-12345',
             'COS-67890',
@@ -258,6 +264,7 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
         const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
 
         expect(result.totalUploaded).toEqual(2);
+        expect(result.uploadedByLicenseType).toEqual({ cosmetologist: 1 });
         expect(result.lineItems.map((item) => item.licenseNumber)).toEqual(['COS-12345']);
     });
 

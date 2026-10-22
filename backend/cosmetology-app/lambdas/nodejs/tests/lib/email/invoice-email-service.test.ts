@@ -46,6 +46,7 @@ const cosmetologistReport = (): InvoiceReport => ({
                     fee: 25,
                 },
             ],
+            totalUploaded: 3,
         },
         {
             jurisdictionName: 'Kentucky',
@@ -61,6 +62,7 @@ const cosmetologistReport = (): InvoiceReport => ({
                     fee: 25,
                 },
             ],
+            totalUploaded: 1,
         },
     ],
     totalUploaded: 4,
@@ -77,9 +79,10 @@ const emptyReport = (): InvoiceReport => ({
             jurisdictionName: 'Kentucky',
             postalAbbreviation: 'ky',
             lineItems: [],
+            totalUploaded: 1,
         },
     ],
-    totalUploaded: 0,
+    totalUploaded: 1,
     totalBillable: 0,
     totalOwed: 0,
 });
@@ -131,16 +134,19 @@ describe('InvoiceEmailService', () => {
             const ohio = emailService.generateStateInvoiceCsv(report.stateSections[0]);
             const kentucky = emailService.generateStateInvoiceCsv(report.stateSections[1]);
 
+            expect(ohio).toContain('Total Uploaded,3');
             expect(ohio).toContain('Total Billable,2');
             expect(ohio).toContain('Total Owed,$50.00');
             expect(ohio).not.toContain('Total Owed,$75.00');
+            expect(kentucky).toContain('Total Uploaded,1');
             expect(kentucky).toContain('Total Billable,1');
             expect(kentucky).toContain('Total Owed,$25.00');
         });
 
-        it('should show a state with no billable licenses as zero dollars', () => {
+        it('should show uploads that were not billable', () => {
             const csv = emailService.generateStateInvoiceCsv(emptyReport().stateSections[0]);
 
+            expect(csv).toContain('Total Uploaded,1');
             expect(csv).toContain('Total Billable,0');
             expect(csv).toContain('Total Owed,$0.00');
         });
@@ -153,6 +159,46 @@ describe('InvoiceEmailService', () => {
             const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
 
             expect(csv).toContain('Ohio,Jane,"Smith, ""Jr.""",OH,COS-12345,New,$25.00');
+        });
+
+        it('should encode formula-leading licensee cells as spreadsheet text', () => {
+            const report = cosmetologistReport();
+            const item = report.stateSections[0].lineItems[0];
+
+            item.givenName = '=Jane';
+            item.familyName = '+Smith';
+            item.homeState = '-OH';
+            item.licenseNumber = '@COS-12345';
+
+            const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
+
+            expect(csv).toContain('Ohio,\'=Jane,\'+Smith,\'-OH,\'@COS-12345,New,$25.00');
+        });
+
+        it('should escape formula-leading cells that contain commas or quotes', () => {
+            const report = cosmetologistReport();
+            const item = report.stateSections[0].lineItems[0];
+
+            item.familyName = '=Smith, "Jr."';
+            item.licenseNumber = '=1+2";=1+2';
+
+            const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
+
+            expect(csv).toContain('Ohio,Jane,"\'=Smith, ""Jr.""",OH,"\'=1+2"";=1+2",New,$25.00');
+        });
+
+        it('should encode tab, carriage return, newline, and fullwidth formula prefixes as text', () => {
+            const report = cosmetologistReport();
+            const item = report.stateSections[0].lineItems[0];
+
+            item.givenName = '\tJane';
+            item.familyName = '\rSmith';
+            item.homeState = '\nOH';
+            item.licenseNumber = '＝COS-12345';
+
+            const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
+
+            expect(csv).toContain('Ohio,\'\tJane,"\'\rSmith","\'\nOH",\'＝COS-12345,New,$25.00');
         });
     });
 
@@ -183,7 +229,8 @@ describe('InvoiceEmailService', () => {
             const mail = sentMail();
 
             expect(mail.html).toContain(
-                'Please find attached the monthly Cosmetologist invoices for the Cosmetology Compact for September 2024.'
+                'Please find attached the monthly Cosmetologist invoices for the Cosmetology Compact for September 2024. '
+                + 'Uploaded licenses: 4. Billable licenses: 3. Total owed: $75.00.'
             );
             expect(mail.html).toContain('CompactConnect');
             expect(mail.html).not.toContain('COS-12345');
@@ -198,6 +245,7 @@ describe('InvoiceEmailService', () => {
                 }),
             ]);
             expect(mail.attachments[0].content).toContain('Ohio,Jane,Smith,OH,COS-12345,New,$25.00');
+            expect(mail.attachments[0].content).toContain('Total Uploaded,3');
             expect(mail.attachments[0].content).toContain('Total Owed,$50.00');
             expect(mail.attachments[1].content).toContain('Kentucky,Sam,Taylor,KY,COS-22222,New,$25.00');
             expect(mail.attachments[1].content).not.toContain('COS-12345');

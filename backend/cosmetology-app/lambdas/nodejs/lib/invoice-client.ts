@@ -73,12 +73,14 @@ export class InvoiceClient {
 
         const gsiItems = await this.queryLicenseUploadIndex(partitionKey);
         const byLicenseType: Record<string, InvoiceLineItem[]> = {};
+        const uploadedByLicenseType: Record<string, number> = {};
 
         if (gsiItems.length === 0) {
             return {
                 lineItems: [],
                 totalUploaded: 0,
                 byLicenseType,
+                uploadedByLicenseType,
             };
         }
 
@@ -96,6 +98,12 @@ export class InvoiceClient {
 
         for (const key of keys) {
             const record = recordsByKey.get(`${key.pk.S}|${key.sk.S}`);
+
+            // Ineligible and otherwise non-billable licenses still count as uploads for this license type.
+            if (record?.licenseType) {
+                uploadedByLicenseType[record.licenseType] = (uploadedByLicenseType[record.licenseType] ?? 0) + 1;
+            }
+
             const lineItem = record
                 ? this.toLineItem(record, jurisdiction, billingMonth)
                 : undefined;
@@ -115,6 +123,7 @@ export class InvoiceClient {
             lineItems,
             totalUploaded: gsiItems.length,
             byLicenseType,
+            uploadedByLicenseType,
         };
     }
 

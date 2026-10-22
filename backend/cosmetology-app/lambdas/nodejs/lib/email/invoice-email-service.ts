@@ -37,6 +37,7 @@ export class InvoiceEmailService extends BaseEmailService {
         const owed = section.lineItems.reduce((sum, item) => sum + item.fee, 0);
 
         rows.push([]);
+        rows.push(['Total Uploaded', String(section.totalUploaded)]);
         rows.push(['Total Billable', String(section.lineItems.length)]);
         rows.push(['Total Owed', formatCurrency(owed)]);
 
@@ -56,6 +57,7 @@ export class InvoiceEmailService extends BaseEmailService {
             recipients: this.maskEmails(recipients),
             licenseType: report.licenseType,
             billingMonth: report.billingMonth,
+            totalUploaded: report.totalUploaded,
             totalBillable: report.totalBillable,
             totalOwed: report.totalOwed,
         });
@@ -115,7 +117,9 @@ export function invoiceBody(report: InvoiceReport): string {
     const licenseLabel = formatLicenseType(report.licenseType);
     const monthLabel = formatBillingMonth(report.billingMonth);
 
-    return `Please find attached the monthly ${licenseLabel} invoices for the ${report.compactName} Compact for ${monthLabel}.`;
+    return `Please find attached the monthly ${licenseLabel} invoices for the ${report.compactName} Compact for ${monthLabel}. `
+        + `Uploaded licenses: ${report.totalUploaded}. Billable licenses: ${report.totalBillable}. `
+        + `Total owed: ${formatCurrency(report.totalOwed)}.`;
 }
 
 export function invoiceFilename(report: InvoiceReport, section: StateInvoiceSection): string {
@@ -132,10 +136,16 @@ function formatCurrency(amount: number): string {
     return `$${amount.toFixed(2)}`;
 }
 
+// Spreadsheet apps execute a cell that starts with one of these as a formula.
+// A leading apostrophe forces the cell to be read as text. See OWASP CSV Injection.
+const SPREADSHEET_FORMULA_START = /^[-+=@\t\r\n\uFF1D\uFF0B\uFF0D\uFF20]/;
+
 function csvCell(value: string): string {
-    if (/[",\n]/.test(value)) {
-        return `"${value.replace(/"/g, '""')}"`;
+    const text = SPREADSHEET_FORMULA_START.test(value) ? `'${value}` : value;
+
+    if (/[",\r\n]/.test(text)) {
+        return `"${text.replace(/"/g, '""')}"`;
     }
 
-    return value;
+    return text;
 }

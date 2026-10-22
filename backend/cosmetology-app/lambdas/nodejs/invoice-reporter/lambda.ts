@@ -81,7 +81,6 @@ export class Lambda implements LambdaInterface {
             const sectionsByLicenseType: Record<string, StateInvoiceSection[]> = Object.fromEntries(
                 INVOICE_LICENSE_TYPES.map((licenseType) => [licenseType, []])
             );
-            let totalUploaded = 0;
 
             for (const jurisdiction of jurisdictions) {
                 const uploads = await this.invoiceClient.getLicenseUploadsForMonth(
@@ -90,13 +89,12 @@ export class Lambda implements LambdaInterface {
                     billingMonth
                 );
 
-                totalUploaded += uploads.totalUploaded;
-
                 for (const licenseType of INVOICE_LICENSE_TYPES) {
                     sectionsByLicenseType[licenseType].push({
                         jurisdictionName: jurisdiction.jurisdictionName,
                         postalAbbreviation: jurisdiction.postalAbbreviation,
                         lineItems: uploads.byLicenseType[licenseType] ?? [],
+                        totalUploaded: uploads.uploadedByLicenseType[licenseType] ?? 0,
                     });
                 }
             }
@@ -109,7 +107,7 @@ export class Lambda implements LambdaInterface {
                     licenseType,
                     billingMonth,
                     stateSections,
-                    totalUploaded,
+                    totalUploaded: stateSections.reduce((sum, section) => sum + section.totalUploaded, 0),
                     totalBillable: lineItems.length,
                     totalOwed: lineItems.reduce((sum, item) => sum + item.fee, 0),
                 };
@@ -123,6 +121,7 @@ export class Lambda implements LambdaInterface {
                     compact: compactConfig.compactAbbr,
                     licenseType,
                     billingMonth,
+                    totalUploaded: report.totalUploaded,
                     totalBillable: report.totalBillable,
                     totalOwed: report.totalOwed,
                     message_id: messageId,
