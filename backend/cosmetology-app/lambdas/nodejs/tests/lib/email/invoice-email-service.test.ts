@@ -115,31 +115,32 @@ describe('InvoiceEmailService', () => {
         attachments: { filename: string; content: string; contentType: string }[];
     };
 
-    describe('generateInvoiceCsv', () => {
-        it('should list each billable license with its state, category, and fee', () => {
-            const csv = emailService.generateInvoiceCsv(cosmetologistReport());
+    describe('generateStateInvoiceCsv', () => {
+        it('should list that state\'s billable licenses with category and fee', () => {
+            const report = cosmetologistReport();
+            const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
 
             expect(csv).toContain('Jurisdiction,First Name,Last Name,Home State,License Number,Category,Fee');
             expect(csv).toContain('Ohio,Jane,Smith,OH,COS-12345,New,$25.00');
             expect(csv).toContain('Ohio,John,Doe,OH,COS-67890,Renewal,$25.00');
-            expect(csv).toContain('Kentucky,Sam,Taylor,KY,COS-22222,New,$25.00');
+            expect(csv).not.toContain('COS-22222');
         });
 
-        it('should total the fees owed by jurisdiction and for the compact', () => {
-            const csv = emailService.generateInvoiceCsv(cosmetologistReport());
+        it('should total the fees owed by that state', () => {
+            const report = cosmetologistReport();
+            const ohio = emailService.generateStateInvoiceCsv(report.stateSections[0]);
+            const kentucky = emailService.generateStateInvoiceCsv(report.stateSections[1]);
 
-            expect(csv).toContain('Ohio,2,$50.00');
-            expect(csv).toContain('Kentucky,1,$25.00');
-            expect(csv).toContain('Total Uploaded,4');
-            expect(csv).toContain('Total Billable,3');
-            expect(csv).toContain('Total Owed,$75.00');
+            expect(ohio).toContain('Total Billable,2');
+            expect(ohio).toContain('Total Owed,$50.00');
+            expect(ohio).not.toContain('Total Owed,$75.00');
+            expect(kentucky).toContain('Total Billable,1');
+            expect(kentucky).toContain('Total Owed,$25.00');
         });
 
         it('should show a state with no billable licenses as zero dollars', () => {
-            const csv = emailService.generateInvoiceCsv(emptyReport());
+            const csv = emailService.generateStateInvoiceCsv(emptyReport().stateSections[0]);
 
-            expect(csv).toContain('Kentucky,0,$0.00');
-            expect(csv).toContain('Total Uploaded,0');
             expect(csv).toContain('Total Billable,0');
             expect(csv).toContain('Total Owed,$0.00');
         });
@@ -149,7 +150,7 @@ describe('InvoiceEmailService', () => {
 
             report.stateSections[0].lineItems[0].familyName = 'Smith, "Jr."';
 
-            const csv = emailService.generateInvoiceCsv(report);
+            const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
 
             expect(csv).toContain('Ohio,Jane,"Smith, ""Jr.""",OH,COS-12345,New,$25.00');
         });
@@ -182,18 +183,24 @@ describe('InvoiceEmailService', () => {
             const mail = sentMail();
 
             expect(mail.html).toContain(
-                'Please find attached the monthly Cosmetologist invoice for the Cosmetology Compact for September 2024.'
+                'Please find attached the monthly Cosmetologist invoices for the Cosmetology Compact for September 2024.'
             );
             expect(mail.html).toContain('CompactConnect');
             expect(mail.html).not.toContain('COS-12345');
             expect(mail.attachments).toEqual([
                 expect.objectContaining({
-                    filename: 'cosmetologist-invoice-2024-09.csv',
+                    filename: 'ohio-cosmetologist-invoice-2024-09.csv',
+                    contentType: 'text/csv',
+                }),
+                expect.objectContaining({
+                    filename: 'kentucky-cosmetologist-invoice-2024-09.csv',
                     contentType: 'text/csv',
                 }),
             ]);
             expect(mail.attachments[0].content).toContain('Ohio,Jane,Smith,OH,COS-12345,New,$25.00');
-            expect(mail.attachments[0].content).toContain('Total Owed,$75.00');
+            expect(mail.attachments[0].content).toContain('Total Owed,$50.00');
+            expect(mail.attachments[1].content).toContain('Kentucky,Sam,Taylor,KY,COS-22222,New,$25.00');
+            expect(mail.attachments[1].content).not.toContain('COS-12345');
         });
 
         it('should send from the configured CompactConnect address', async () => {
