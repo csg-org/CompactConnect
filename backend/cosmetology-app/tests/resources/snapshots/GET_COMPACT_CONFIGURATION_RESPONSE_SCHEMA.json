@@ -25,7 +25,7 @@
       "type": "array"
     },
     "licenseeRegistrationEnabled": {
-      "description": "Denotes whether licensee registration is enabled",
+      "description": "No external process uses this value other than storing it. It does not mark the compact live and does not change privileges or which licenses are public. Once true, it cannot be set to false. The field is primarily preserved so the frontend can keep this feature. The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards compatibility.",
       "type": "boolean"
     },
     "configuredStates": {
@@ -52,13 +52,22 @@
             "type": "string"
           },
           "isLive": {
-            "description": "Whether the state is live and available for registrations.",
+            "description": "Whether the state is privilege-live.",
             "type": "boolean"
+          },
+          "jurisdictionAdverseActionsNotificationEmails": {
+            "description": "Adverse action notification emails stored for this state. ",
+            "items": {
+              "format": "email",
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "required": [
           "postalAbbreviation",
-          "isLive"
+          "isLive",
+          "jurisdictionAdverseActionsNotificationEmails"
         ],
         "type": "object"
       },

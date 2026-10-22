@@ -993,14 +993,24 @@ class ApiModel:
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
-                        description='Denotes whether licensee registration is enabled',
+                        description=(
+                            'No external process uses this value other than storing it. It does not mark the compact '
+                            'live and does not change privileges or which licenses are public. Once true, it cannot '
+                            'be set to false. The field is primarily preserved so the frontend can keep this feature. '
+                            'The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards '
+                            'compatibility.'
+                        ),
                     ),
                     'configuredStates': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of states that have submitted configurations and their live status',
                         items=JsonSchema(
                             type=JsonSchemaType.OBJECT,
-                            required=['postalAbbreviation', 'isLive'],
+                            required=[
+                                'postalAbbreviation',
+                                'isLive',
+                                'jurisdictionAdverseActionsNotificationEmails',
+                            ],
                             properties={
                                 'postalAbbreviation': JsonSchema(
                                     type=JsonSchemaType.STRING,
@@ -1009,7 +1019,14 @@ class ApiModel:
                                 ),
                                 'isLive': JsonSchema(
                                     type=JsonSchemaType.BOOLEAN,
-                                    description='Whether the state is live and available for registrations.',
+                                    description='Whether the state is privilege-live.',
+                                ),
+                                'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
+                                    type=JsonSchemaType.ARRAY,
+                                    description=(
+                                        'Adverse action notification emails stored for this state. '
+                                    ),
+                                    items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                                 ),
                             },
                         ),
@@ -1056,7 +1073,13 @@ class ApiModel:
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
-                        description='Denotes whether licensee registration is enabled',
+                        description=(
+                            'No external process uses this value other than storing it. It does not mark the compact '
+                            'live and does not change privileges or which licenses are public. Once true, it cannot '
+                            'be set to false. The field is primarily preserved so the frontend can keep this feature. '
+                            'The name licenseeRegistrationEnabled is kept in the API and in DynamoDB for backwards '
+                            'compatibility.'
+                        ),
                     ),
                     'configuredStates': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -1073,7 +1096,20 @@ class ApiModel:
                                 ),
                                 'isLive': JsonSchema(
                                     type=JsonSchemaType.BOOLEAN,
-                                    description='Whether the state is live and available for registrations.',
+                                    description='Whether the state is privilege-live.',
+                                ),
+                                'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
+                                    type=JsonSchemaType.ARRAY,
+                                    description=(
+                                        'Adverse action notification emails. Required when isLive is true, both for a '
+                                        'state that is already privilege-live and for one being marked privilege-live. '
+                                        'A privilege-live state must resend its current list; a different list is '
+                                        'rejected and an existing list is never overwritten. An empty or omitted list '
+                                        'is accepted only when isLive is false.'
+                                    ),
+                                    max_items=10,
+                                    unique_items=True,
+                                    items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                                 ),
                             },
                         ),
@@ -1130,7 +1166,13 @@ class ApiModel:
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
-                        description='Denotes whether licensee registration is enabled',
+                        description=(
+                            "Whether this state's license data is live. When true, the state's licenses appear in "
+                            'public search and public provider detail, and the state is added to configuredStates '
+                            'with isLive:false (which controls privileges), if it is not already listed. Once '
+                            'true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the '
+                            'API and in DynamoDB for backwards compatibility.'
+                        ),
                     ),
                 },
             ),
@@ -1175,7 +1217,13 @@ class ApiModel:
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
-                        description='Denotes whether licensee registration is enabled',
+                        description=(
+                            "Whether this state's license data is live. When true, the state's licenses appear in "
+                            'public search and public provider detail, and the state is added to configuredStates '
+                            'with isLive:false (which controls privileges), if it is not already listed. Once '
+                            'true, it cannot be set to false. The name licenseeRegistrationEnabled is kept in the '
+                            'API and in DynamoDB for backwards compatibility.'
+                        ),
                     ),
                 },
             ),

@@ -193,6 +193,7 @@ class TestIngest(TstFunction):
 
         # So get_provider returns one privilege (ne) to match expected fixture
         self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+        self.set_data_live_jurisdictions_for_test({'cosm': ['oh']})
 
         # The test resource provider has a license in oh
         self._load_provider_data()

@@ -11,6 +11,14 @@ from cc_common.data_model.schema.compact.common import (
     validate_no_duplicates_in_configured_states,
 )
 
+# DynamoDB attribute for the compact-wide flag. Internal Python uses isLicenseDataLiveCompactWide.
+# The API JSON key is also licenseeRegistrationEnabled, so the contract is unchanged.
+#
+# The stored name stays licenseeRegistrationEnabled for backwards compatibility with existing items.
+# No external process uses this value other than storing it. It does not mark the compact live and does
+# not change privileges or which licenses are public. The API still rejects changing it from true to false.
+COMPACT_WIDE_LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE = 'licenseeRegistrationEnabled'
+
 
 @BaseRecordSchema.register_schema(COMPACT_TYPE)
 class CompactRecordSchema(BaseRecordSchema):
@@ -27,8 +35,14 @@ class CompactRecordSchema(BaseRecordSchema):
         required=True,
         allow_none=False,
     )
-    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
-    # List of states that have submitted configurations and their live status
+    # See COMPACT_WIDE_LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE. data_key is the stored attribute; the field
+    # name is the model name. No external process uses this value other than storing it.
+    isLicenseDataLiveCompactWide = Boolean(
+        required=True,
+        allow_none=False,
+        data_key=COMPACT_WIDE_LICENSE_DATA_LIVE_DYNAMO_ATTRIBUTE,
+    )
+    # List of states that have submitted configurations and their privilege-live status
     configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)
 
     # Generated fields
