@@ -4,9 +4,9 @@
 #
 #    pip-compile --cert=None --client-cert=None --index-url=None --no-emit-index-url --pip-args=None compact-connect/lambdas/python/feature-flag/requirements-dev.in
 #
-boto3==1.43.98
+boto3==1.43.114
     # via moto
-botocore==1.43.103
+botocore==1.43.118
     # via
     #   boto3
     #   moto
@@ -29,7 +29,7 @@ jmespath==1.0.1
     #   botocore
 markupsafe==3.0.3
     # via werkzeug
-moto[dynamodb]==5.2.3
+moto[dynamodb]==5.2.4
     # via -r feature-flag/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
