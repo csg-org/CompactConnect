@@ -28,7 +28,7 @@ Example: `AppModes.SOCIAL_WORK = 'socialwork'` → `/auth/callback/staff/socialw
 
 Once the config and infra wiring below are in place, these do **not** need per-compact UI lists or interceptor edits:
 
-- PublicDashboard staff login cards (`$compactsEnabledCompactConnect`; `$compactsEnabled` includes host-pinned compacts like psypact)
+- PublicDashboard compact picker and staff login (`$compactsEnabledCompactConnect`; `$compactsEnabled` includes host-pinned compacts like psypact)
 - CompactSelector (public + permission-based options)
 - Logout, token refresh, and token revoke (`getCognitoConfig`)
 - Auth callback path string (`getAuthCallbackPath`)
@@ -163,13 +163,15 @@ Only if the new compact should participate in these flows:
 
 - [ ] If the new compact will have a different app mode based on deployed host domain (e.g. psypact), update the `get appTypeOptions()` computed and `handleAppTypeSelect()` method.
 
-**`src/pages/PublicDashboard/PublicDashboard.ts` → `bypassRedirect`**
+**`src/pages/PublicDashboard/PublicDashboard.ts`**
 
 - [ ] Add a `?bypass=login-staff-…` case if emails or deep links need it (see cosmo / social work)
+- [ ] `hasPractitionerLogin` is JCC / PsyPact only — add the new mode if this compact allows practitioner login
 
 **`src/pages/PublicDashboard/PublicDashboard.spec.ts`**
 
 - [ ] Staff login URI for the new mode (optional)
+- [ ] Practitioner login visibility if the compact allows it (optional)
 
 **`RegisterLicensee` / `MfaResetStartLicensee`**
 

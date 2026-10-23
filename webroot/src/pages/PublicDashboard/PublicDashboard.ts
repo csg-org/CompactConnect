@@ -5,7 +5,8 @@
 //  Created by InspiringApps on 8/12/2024.
 //
 
-import { Component, Vue } from 'vue-facing-decorator';
+import { Component, Vue, Watch } from 'vue-facing-decorator';
+import { reactive, computed } from 'vue';
 import { AppModes } from '@/app.config';
 import {
     authStorage,
@@ -20,12 +21,12 @@ import {
 import AppTypeSelector from '@components/AppTypeSelector/AppTypeSelector.vue';
 import Card from '@components/Card/Card.vue';
 import SearchIcon from '@components/Icons/Search/Search.vue';
-import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';
 import StaffUserIcon from '@components/Icons/StaffUser/StaffUser.vue';
 import LicenseeUserIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
-import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import { CompactConfig } from '@plugins/Compacts/compacts.plugin';
-import { CompactType } from '@models/Compact/Compact.model';
+import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
+import { FormInput } from '@models/FormInput/FormInput.model';
 
 @Component({
     name: 'DashboardPublic',
@@ -33,10 +34,9 @@ import { CompactType } from '@models/Compact/Compact.model';
         AppTypeSelector,
         Card,
         SearchIcon,
-        RegisterIcon,
         StaffUserIcon,
         LicenseeUserIcon,
-        InputButton,
+        InputSelect,
     }
 })
 export default class DashboardPublic extends Vue {
@@ -45,6 +45,8 @@ export default class DashboardPublic extends Vue {
     //
     csrfState = '';
     pkceChallenge = '';
+    selectedCompactType: CompactType | null = null;
+    formData: any = {};
 
     //
     // Lifecycle
@@ -52,6 +54,17 @@ export default class DashboardPublic extends Vue {
     async created(): Promise<void> {
         this.csrfState = createAuthCsrfState();
         this.pkceChallenge = await createPkceChallenge();
+
+        const currentCompactType = this.$store.state.user.currentCompact?.type as CompactType | undefined;
+        const isCurrentCompactAvailable = Boolean(
+            currentCompactType && this.compactList.some((compact) => compact.type === currentCompactType)
+        );
+
+        if (this.$isAppModePsyPact) {
+            await this.selectCompact(CompactType.PSYPACT);
+        } else if (isCurrentCompactAvailable) {
+            await this.selectCompact(currentCompactType as CompactType);
+        }
 
         if (this.bypassQuery) {
             this.bypassRedirect();
@@ -61,8 +74,8 @@ export default class DashboardPublic extends Vue {
     //
     // Computed
     //
-    get compactTypes(): typeof CompactType {
-        return CompactType;
+    get appMode(): AppModes {
+        return this.$appMode;
     }
 
     get bypassQuery(): string {
@@ -87,6 +100,62 @@ export default class DashboardPublic extends Vue {
 
     get isAppTypeSelectorEnabled(): boolean {
         return Boolean(this.$envConfig.isAppLocal);
+    }
+
+    get compactList(): Array<CompactConfig> {
+        let list: Array<CompactConfig> = [];
+
+        if (this.$isAppModePsyPact) {
+            list = this.$compactsEnabled.filter((compact) => compact.type === CompactType.PSYPACT);
+        } else {
+            list = [...this.$compactsEnabledCompactConnect];
+        }
+
+        list.sort((a, b) => this.getCompactDisplay(a).localeCompare(this.getCompactDisplay(b)));
+
+        return list;
+    }
+
+    get compactSelectOptions(): Array<{ value: string, name: string }> {
+        const options = this.compactList.map((compact) => ({
+            value: compact.type,
+            name: this.getCompactDisplay(compact),
+        }));
+
+        return options;
+    }
+
+    get selectedCompact(): CompactConfig | null {
+        const selected = this.compactList.find((compact) => compact.type === this.selectedCompactType) || null;
+
+        return selected;
+    }
+
+    get isCompactSelected(): boolean {
+        return Boolean(this.selectedCompact);
+    }
+
+    get shouldShowCompactSelect(): boolean {
+        return this.isCompactSelected && this.compactList.length > 1;
+    }
+
+    get selectedAppMode(): AppModes {
+        return this.selectedCompact?.appMode || this.$appMode;
+    }
+
+    get hasPractitionerLogin(): boolean {
+        const { selectedAppMode } = this;
+        const hasLogin = selectedAppMode === AppModes.JCC || selectedAppMode === AppModes.PSYPACT;
+
+        return hasLogin;
+    }
+
+    get publicLookupHeadingTag(): string {
+        return (this.shouldShowCompactSelect) ? 'h2' : 'h1';
+    }
+
+    get publicLookupHeadingId(): string {
+        return (this.shouldShowCompactSelect) ? 'public-lookup-heading' : 'dashboard-step-heading';
     }
 
     //
@@ -191,6 +260,78 @@ export default class DashboardPublic extends Vue {
         return compactDisplay.trim();
     }
 
+    initCompactSelect(): void {
+        this.formData = reactive({
+            compact: new FormInput({
+                id: 'compact-dashboard',
+                name: 'compact-dashboard',
+                label: computed(() => this.$t('navigation.selectYourCompact')),
+                shouldHideLabel: true,
+                shouldHideMargin: true,
+                value: this.selectedCompactType,
+                valueOptions: this.compactSelectOptions,
+            }),
+        });
+    }
+
+    async selectCompact(compactType: CompactType, shouldMoveFocus = false): Promise<void> {
+        this.selectedCompactType = compactType;
+        this.initCompactSelect();
+
+        await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: compactType }));
+
+        const { search } = this.$store.state.license;
+
+        if (search.compact && search.compact !== compactType) {
+            await this.$store.dispatch('license/setStoreSearch', {
+                ...search,
+                compact: compactType,
+            });
+        }
+
+        if (shouldMoveFocus) {
+            await this.$nextTick();
+
+            this.focusStepHeading();
+        }
+    }
+
+    focusStepHeading(): void {
+        const heading = this.$el?.querySelector('#dashboard-step-heading') as HTMLElement | null;
+
+        if (heading) {
+            heading.focus();
+        }
+    }
+
+    async handleCompactSelect(): Promise<void> {
+        const selectedCompactType = this.formData.compact.value as CompactType;
+
+        if (selectedCompactType && selectedCompactType !== this.selectedCompactType) {
+            await this.selectCompact(selectedCompactType);
+        }
+    }
+
+    handleStaffLoginClick(): void {
+        if (this.selectedCompact) {
+            this.setGotoCompact(this.selectedCompact.type);
+        }
+    }
+
+    handlePractitionerLoginClick(): void {
+        if (this.selectedCompact) {
+            this.setGotoCompact(this.selectedCompact.type);
+        }
+    }
+
+    handleMockStaffLogin(): void {
+        this.bypassToStaffLogin(this.selectedAppMode, this.selectedCompact?.type);
+    }
+
+    handleMockPractitionerLogin(): void {
+        this.bypassToLicenseeLogin(this.selectedAppMode, this.selectedCompact?.type);
+    }
+
     setGotoCompact(compactType: CompactType): void {
         if (compactType) {
             authStorage.setItem(AUTH_LOGIN_GOTO_COMPACT, compactType);
@@ -242,6 +383,21 @@ export default class DashboardPublic extends Vue {
             this.$router.push({ path: goto });
         } else {
             this.$router.push({ name: 'Home' });
+        }
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('appMode')
+    async appModeChanged(newMode: AppModes, oldMode: AppModes): Promise<void> {
+        if (newMode === AppModes.PSYPACT && this.selectedCompactType !== CompactType.PSYPACT) {
+            await this.selectCompact(CompactType.PSYPACT);
+        } else if (oldMode === AppModes.PSYPACT) {
+            this.selectedCompactType = null;
+            this.formData = {};
+
+            await this.$store.dispatch('user/setCurrentCompact', null);
         }
     }
 }
