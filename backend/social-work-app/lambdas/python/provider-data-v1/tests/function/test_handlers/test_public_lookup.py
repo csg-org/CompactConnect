@@ -31,6 +31,8 @@ EXPECTED_PROVIDER_RESPONSE = {
             'dateOfExpiration': '2025-04-04',
             'licenseNumber': 'B0608337260',
             'adverseActions': [],
+            # Canned multi-state license has no firstUploadDate and no update records.
+            'history': [],
         }
     ],
     'privileges': [
@@ -45,6 +47,7 @@ EXPECTED_PROVIDER_RESPONSE = {
             'adverseActions': [],
             'administratorSetStatus': 'active',
             'status': 'active',
+            'history': [],
         }
     ],
 }
@@ -214,6 +217,7 @@ class TestPublicGetProvider(TstFunction):
                 'dateOfExpiration': '2025-04-04',
                 'licenseNumber': 'B0608337260',
                 'adverseActions': [],
+                'history': [],
             }
         ]
         self.assertEqual(expected_licenses, provider_data['licenses'])
@@ -288,3 +292,147 @@ class TestPublicGetProvider(TstFunction):
         resp = public_get_provider(event, self.mock_context)
 
         self.assertEqual(404, resp['statusCode'])
+
+    def _public_provider(self):
+        from handlers.public_lookup import public_get_provider
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        del event['requestContext']['authorizer']
+        event['pathParameters'] = {'compact': 'socw', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['queryStringParameters'] = None
+
+        resp = public_get_provider(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        return json.loads(resp['body'])
+
+    def _stamp_multi_state_first_upload_date(self):
+        key = {
+            'pk': 'socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+            'sk': 'socw#PROVIDER#license/oh/lcsw/multi-state#',
+        }
+        item = self._provider_table.get_item(Key=key)['Item']
+        item['firstUploadDate'] = '2021-03-15T00:00:00+00:00'
+        self._provider_table.put_item(Item=item)
+
+    def _seed_home_jurisdiction_change(self):
+        previous = self.test_data_generator.generate_default_provider({'licenseJurisdiction': 'az'})
+        self.test_data_generator.put_default_provider_update_record_in_provider_table(
+            {
+                'updateType': 'homeJurisdictionChange',
+                'createDate': datetime.fromisoformat('2022-06-01T14:32:00+00:00'),
+                'previous': previous.to_dict(),
+                'updatedValues': {'licenseJurisdiction': 'oh'},
+            }
+        )
+
+    def _seed_multi_state_renewal(self):
+        self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {
+                'updateType': 'renewal',
+                'licenseScope': 'multi-state',
+                'jurisdiction': 'oh',
+                'licenseType': 'licensed clinical social worker',
+                'effectiveDate': datetime.fromisoformat('2023-03-15T00:00:00+00:00'),
+                'createDate': datetime.fromisoformat('2023-03-15T00:00:00+00:00'),
+            }
+        )
+
+    def _seed_encumbrance(self, *, action_against, jurisdiction, license_scope, start, recorded_at, lift_on, action_id):
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            {
+                'actionAgainst': action_against,
+                'jurisdiction': jurisdiction,
+                'licenseScope': license_scope,
+                'licenseType': 'licensed clinical social worker',
+                'licenseTypeAbbreviation': 'lcsw',
+                'effectiveStartDate': start,
+                'effectiveLiftDate': lift_on,
+                'creationDate': recorded_at,
+                'encumbranceType': 'required supervision',
+                'clinicalPrivilegeActionCategories': [
+                    'Substandard Care or Patient Neglect/Abuse',
+                    'Fraud, Deception, or Misrepresentation',
+                ],
+                'adverseActionId': action_id,
+            }
+        )
+
+    def _assert_no_staff_encumbrance_fields(self, history):
+        for event in history:
+            self.assertNotIn('npdbCategories', event)
+            self.assertNotIn('encumbranceType', event)
+
+    def test_public_get_provider_response_includes_full_license_history(self):
+        self._load_provider_data()
+        self._stamp_multi_state_first_upload_date()
+        self._seed_multi_state_renewal()
+        self._seed_encumbrance(
+            action_against='license',
+            jurisdiction='oh',
+            license_scope='multi-state',
+            start=date(2022, 9, 10),
+            recorded_at=datetime.fromisoformat('2022-09-10T18:45:00+00:00'),
+            lift_on=date(2023, 1, 5),
+            action_id='11111111-1111-1111-1111-111111111111',
+        )
+        self._seed_home_jurisdiction_change()
+
+        provider_data = self._public_provider()
+        multi_state = next(
+            license_record
+            for license_record in provider_data['licenses']
+            if license_record['licenseScope'] == 'multi-state'
+        )
+        history = multi_state['history']
+        self.assertEqual(
+            ['issuance', 'homeJurisdictionChange', 'encumbrance', 'liftingEncumbrance', 'renewal'],
+            [event['updateType'] for event in history],
+        )
+        self.assertEqual('2021-03-15T00:00:00+00:00', history[0]['effectiveDate'])
+        self.assertEqual('2021-03-15T00:00:00+00:00', history[0]['createDate'])
+        self.assertEqual('az', history[1]['previousHomeJurisdiction'])
+        self.assertEqual('oh', history[1]['newHomeJurisdiction'])
+        self.assertEqual('2022-09-10', history[2]['effectiveDate'])
+        self.assertEqual('2023-01-05', history[3]['effectiveDate'])
+        self.assertEqual('2023-03-15T00:00:00+00:00', history[4]['effectiveDate'])
+        self._assert_no_staff_encumbrance_fields(history)
+
+        for license_record in provider_data['licenses']:
+            if license_record['licenseScope'] == 'single-state':
+                update_types = [event['updateType'] for event in license_record['history']]
+                self.assertNotIn('homeJurisdictionChange', update_types)
+
+    def test_public_get_provider_response_includes_full_privilege_history(self):
+        self._load_provider_data()
+        self._stamp_multi_state_first_upload_date()
+        self._seed_encumbrance(
+            action_against='privilege',
+            jurisdiction='ne',
+            license_scope='single-state',
+            start=date(2023, 5, 20),
+            recorded_at=datetime.fromisoformat('2023-05-20T11:00:00+00:00'),
+            lift_on=date(2024, 1, 1),
+            action_id='22222222-2222-2222-2222-222222222222',
+        )
+        self._seed_home_jurisdiction_change()
+
+        provider_data = self._public_provider()
+        privilege = next(
+            privilege_record
+            for privilege_record in provider_data['privileges']
+            if privilege_record['jurisdiction'] == 'ne'
+        )
+        history = privilege['history']
+        self.assertEqual(
+            ['issuance', 'homeJurisdictionChange', 'encumbrance', 'liftingEncumbrance'],
+            [event['updateType'] for event in history],
+        )
+        self.assertEqual('2021-03-15T00:00:00+00:00', history[0]['effectiveDate'])
+        self.assertEqual('2021-03-15T00:00:00+00:00', history[0]['createDate'])
+        self.assertEqual('az', history[1]['previousHomeJurisdiction'])
+        self.assertEqual('oh', history[1]['newHomeJurisdiction'])
+        self.assertEqual('2023-05-20', history[2]['effectiveDate'])
+        self.assertEqual('2024-01-01', history[3]['effectiveDate'])
+        self._assert_no_staff_encumbrance_fields(history)

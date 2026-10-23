@@ -7,7 +7,7 @@ from datetime import date
 
 from marshmallow import ValidationError, pre_load, validates_schema
 from marshmallow.fields import Boolean, Date, Email, List, Nested, Raw, String
-from marshmallow.validate import Length
+from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.adverse_action.api import (
@@ -153,6 +153,32 @@ class LicenseReportResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
 
 
+LICENSE_HISTORY_UPDATE_TYPES = (
+    'issuance',
+    'renewal',
+    'encumbrance',
+    'liftingEncumbrance',
+    'homeJurisdictionChange',
+)
+
+
+class LicenseHistoryEventPublicSchema(ForgivingSchema):
+    """History event returned on a license in the public provider response."""
+
+    updateType = String(required=True, allow_none=False, validate=OneOf(LICENSE_HISTORY_UPDATE_TYPES))
+    effectiveDate = Raw(required=True, allow_none=False)
+    createDate = Raw(required=True, allow_none=False)
+    previousHomeJurisdiction = Jurisdiction(required=False, allow_none=False)
+    newHomeJurisdiction = Jurisdiction(required=False, allow_none=False)
+
+
+class LicenseHistoryEventSchema(LicenseHistoryEventPublicSchema):
+    """History event returned on a license in the staff provider response."""
+
+    npdbCategories = List(String(), required=False, allow_none=False)
+    encumbranceType = String(required=False, allow_none=False)
+
+
 class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):
     """
     License object fields, as seen by staff users with only the 'readGeneral' permission.
@@ -190,6 +216,7 @@ class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
+    history = List(Nested(LicenseHistoryEventSchema, required=False, allow_none=False))
     # This field is only set if the license is under investigation
     investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
@@ -231,6 +258,7 @@ class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSc
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
+    history = List(Nested(LicenseHistoryEventSchema, required=False, allow_none=False))
     # This field is only set if the license is under investigation
     investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
@@ -277,3 +305,4 @@ class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema)
     dateOfExpiration = Raw(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     adverseActions = List(Nested(AdverseActionPublicResponseSchema, required=False, allow_none=False))
+    history = List(Nested(LicenseHistoryEventPublicSchema, required=False, allow_none=False))
