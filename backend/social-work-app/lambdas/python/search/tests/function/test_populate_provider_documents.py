@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from common_test.test_constants import (
     DEFAULT_DATE_OF_BIRTH,
@@ -161,3 +161,15 @@ class TestPopulateProviderDocuments(TstFunction):
         indexed_documents = bulk_index_call.kwargs['documents']
         self.assertEqual(1, len(indexed_documents))
         self.assertEqual(self._generate_expected_document('socw'), indexed_documents[0])
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_reset_indexes_rejects_non_boolean_values(self, mock_opensearch_client):
+        from cc_common.exceptions import CCInvalidRequestException
+
+        from handlers.populate_provider_documents import populate_provider_documents
+
+        for value in ('false', 'true', 1, 0, None):
+            with self.subTest(value=value), self.assertRaises(CCInvalidRequestException) as caught:
+                populate_provider_documents({'resetIndexes': value}, MagicMock())
+            self.assertIn('resetIndexes must be a boolean', str(caught.exception))
+        mock_opensearch_client.return_value.delete_provider_index_with_alias.assert_not_called()

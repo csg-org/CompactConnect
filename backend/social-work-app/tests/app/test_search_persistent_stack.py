@@ -434,3 +434,48 @@ class TestProdSearchPersistentStack(TstAppABC, TestCase):
                 'EvaluationPeriods': 1,
             },
         )
+
+
+class TestTestAndBetaSearchPersistentStack(TstAppABC, TestCase):
+    """Test and beta use one t3.medium.search node and zero index replicas."""
+
+    @classmethod
+    def get_context(cls):
+        with open('cdk.json') as f:
+            context = json.load(f)['context']
+
+        context['aws:cdk:bundling-stacks'] = []
+        return context
+
+    def test_test_and_beta_use_single_medium_node(self):
+        stages = (
+            self.app.test_backend_pipeline_stack.test_stage,
+            self.app.beta_backend_pipeline_stack.beta_backend_stage,
+        )
+        for stage in stages:
+            with self.subTest(stage.node.id):
+                search_template = Template.from_stack(stage.search_persistent_stack)
+                search_template.has_resource_properties(
+                    'AWS::OpenSearchService::Domain',
+                    {
+                        'ClusterConfig': {
+                            'InstanceType': 't3.medium.search',
+                            'InstanceCount': 1,
+                            'DedicatedMasterEnabled': False,
+                            'ZoneAwarenessEnabled': False,
+                            'MultiAZWithStandbyEnabled': False,
+                        },
+                    },
+                )
+                search_template.has_resource_properties(
+                    'Custom::IndexManager',
+                    {
+                        'numberOfShards': 1,
+                        'numberOfReplicas': 0,
+                    },
+                )
+
+                opensearch_resources = search_template.find_resources('AWS::OpenSearchService::Domain')
+                subnet_ids = list(opensearch_resources.values())[0]['Properties']['VPCOptions']['SubnetIds']
+                self.assertEqual(1, len(subnet_ids))
+                self.assertIn('privateSubnet1', str(subnet_ids[0]['Fn::ImportValue']))

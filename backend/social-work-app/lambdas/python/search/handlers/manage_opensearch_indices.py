@@ -59,8 +59,65 @@ class OpenSearchIndexManager(CustomResourceHandler):
 
     def on_update(self, properties: dict) -> CustomResourceResponse | None:
         """
-        No-op on update.
+        Update index replica count when the custom resource properties change.
+
+        number_of_shards cannot be changed after index creation. number_of_replicas can.
+        Test and beta use one data node, so this drops replicas to 0 on an existing index.
         """
+        logger.info(
+            'Starting OpenSearch index update',
+            opensearch_host=config.opensearch_host_endpoint,
+        )
+
+        client = self._wait_for_domain_ready()
+        new_number_of_replicas = int(properties['numberOfReplicas'])
+
+        logger.info(
+            'Requested index configuration',
+            number_of_replicas=new_number_of_replicas,
+        )
+
+        for compact in config.compacts:
+            alias_name = f'compact_{compact}_providers'
+            self._update_replica_count(
+                client=client,
+                alias_name=alias_name,
+                new_number_of_replicas=new_number_of_replicas,
+            )
+
+    def _update_replica_count(
+        self,
+        client: OpenSearchClient,
+        alias_name: str,
+        new_number_of_replicas: int,
+    ) -> None:
+        """
+        Update the number of replicas for an index when it differs from the requested count.
+
+        :param client: The OpenSearch client
+        :param alias_name: The alias name (e.g., compact_socw_providers)
+        :param new_number_of_replicas: The desired number of replica shards
+        """
+        if not client.alias_exists(alias_name):
+            logger.warning(f"Alias '{alias_name}' does not exist. Skipping replica update.")
+            return
+
+        current_settings = client.get_index_settings(alias_name)
+        if not current_settings:
+            logger.warning(f"Could not get settings for '{alias_name}'. Skipping replica update.")
+            return
+
+        actual_index_name = next(iter(current_settings.keys()))
+        index_settings = current_settings[actual_index_name]
+        current_replicas = int(index_settings.get('settings', {}).get('index', {}).get('number_of_replicas', 0))
+
+        if current_replicas == new_number_of_replicas:
+            logger.info(f"Index '{actual_index_name}' already has {current_replicas} replicas. No update needed.")
+            return
+
+        logger.info(f"Updating '{actual_index_name}' replicas from {current_replicas} to {new_number_of_replicas}.")
+        client.update_index_settings(alias_name, {'index': {'number_of_replicas': new_number_of_replicas}})
+        logger.info(f"Successfully updated '{actual_index_name}' to {new_number_of_replicas} replicas.")
 
     def on_delete(self, _properties: dict) -> CustomResourceResponse | None:
         """
