@@ -425,9 +425,8 @@ class TestDataClient(TstFunction):
         investigation status are set by board actions, not by a purchase, so they have to be carried
         forward, otherwise repurchasing a privilege silently clears those status fields.
 
-        For encumbrances, this is not an issue since a privilege can only be renewed if the practitioner
-        hasn't had any encumbrance for over two years. Practitioners can however renew a privilege even when
-        under investigation, so we need to ensure that status flag remains upon renewal.
+        A lifted encumbrance does not block renewal, so this renewal starts from an unencumbered privilege.
+        Practitioners can renew a privilege even when under investigation, so that status flag has to remain.
         """
         from cc_common.data_model.provider_record_util import ProviderUserRecords
 

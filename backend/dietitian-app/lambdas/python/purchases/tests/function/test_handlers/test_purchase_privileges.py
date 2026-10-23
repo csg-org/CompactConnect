@@ -194,41 +194,36 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(False, purchase_client_call_kwargs['user_active_military'])
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_allowed_with_old_encumbrances(self, mock_purchase_client_constructor):
-        """
-        In the event that a practitioner has an encumbrance in the system that was lifted more than two years ago,
-        they should be allowed to purchase privileges.
-        """
+    def test_post_purchase_privileges_allowed_with_lifted_encumbrance(self, mock_purchase_client_constructor):
+        """A lifted encumbrance does not block a privilege purchase, regardless of how recently it was lifted."""
         from handlers.privileges import post_purchase_privileges
 
-        # Create an old encumbrance that was lifted just over two years ago
+        # Lifted on the frozen "today" of this test class. A same-day lift must not block the purchase.
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
-            {'effectiveLiftDate': date(2024, 11, 29)}
+            {'effectiveLiftDate': date(2024, 11, 8)}
         )
 
-        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        mock_purchase_client = self._when_purchase_client_successfully_processes_request(
+            mock_purchase_client_constructor
+        )
         event = self._when_testing_provider_user_event_with_custom_claims()
         event['body'] = _generate_test_request_body()
 
-        # Pretend 'today' is just after midnight UTC-4, two years after the effective lift date
-        with patch(
-            'cc_common.config._Config.current_standard_datetime',
-            datetime(2026, 11, 30, 0, 1, tzinfo=config.expiration_resolution_timezone).astimezone(UTC),
-        ):
-            resp = post_purchase_privileges(event, self.mock_context)
+        resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
+        self.assertEqual(MOCK_TRANSACTION_ID, json.loads(resp['body'])['transactionId'])
+        mock_purchase_client.process_charge_for_licensee_privileges.assert_called_once()
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_forbidden_with_active_encumbrance(self, mock_purchase_client_constructor):
         """
-        In this case, the provider is ineligible to purchase privileges because hey have an active encumbrance
+        An adverse action that has not been lifted blocks a privilege purchase.
 
-        Note that, while this case is notionally the same as below, they are testing two different sources of state.
-        This test is checking that the presence of an encumbrance record that is active prevents a privilege purchase.
+        This is separate from the provider encumberedStatus check below. The purchase is rejected
+        because the adverse action record itself is still in effect.
         """
         from handlers.privileges import post_purchase_privileges
 
-        # Create an old encumbrance that has not been lifted
         self.test_data_generator.put_default_adverse_action_record_in_provider_table()
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
@@ -237,6 +232,11 @@ class TestPostPurchasePrivileges(TstFunction):
 
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {'message': 'You have a current encumbrance that prevents you from purchasing privileges at this time.'},
+            json.loads(resp['body']),
+        )
+        mock_purchase_client_constructor.assert_not_called()
 
     @patch('handlers.privileges.PurchaseClient')
     def test_purchase_privileges_forbidden_if_provider_encumbered(self, mock_purchase_client_constructor):
@@ -273,32 +273,6 @@ class TestPostPurchasePrivileges(TstFunction):
             },
             response_body,
         )
-
-    @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_forbidden_with_recent_encumbrance(self, mock_purchase_client_constructor):
-        """
-        In the event that a practitioner has any encumbrance in the system that was lifted less than two years ago,
-        they should be prevented from purchasing privileges.
-        """
-        from cc_common.config import config
-        from handlers.privileges import post_purchase_privileges
-
-        # Create an old encumbrance that was lifted just under two years ago
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
-            {'effectiveLiftDate': date(2024, 11, 29)}
-        )
-
-        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
-        event = self._when_testing_provider_user_event_with_custom_claims()
-        event['body'] = _generate_test_request_body()
-
-        # Pretend 'today' is just before midnight UTC-4, two years after the effective lift date
-        with patch(
-            'cc_common.config._Config.current_standard_datetime',
-            datetime(2026, 11, 29, 23, 59, tzinfo=config.expiration_resolution_timezone).astimezone(UTC),
-        ):
-            resp = post_purchase_privileges(event, self.mock_context)
-        self.assertEqual(400, resp['statusCode'])
 
     def _when_testing_military_status(
         self,
