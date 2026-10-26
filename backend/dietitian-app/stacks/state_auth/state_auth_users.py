@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from aws_cdk import CfnOutput, Duration, RemovalPolicy
+from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cognito import (
     CognitoDomainOptions,
@@ -88,6 +88,7 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
                 target=RecordTarget.from_alias(UserPoolDomainTarget(self.user_pool_domain)),
             )
             CfnOutput(self, 'StateUserPoolDomainName', value=self.user_pool_domain.domain_name)
+            self._add_custom_domain_nag_suppressions()
         else:
             self.user_pool_domain = self.add_domain(
                 f'{construct_id}Domain',
@@ -107,4 +108,54 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
                     'Cognito Plus features are not relevant for a user pool with no users.',
                 },
             ],
+        )
+
+    def _add_custom_domain_nag_suppressions(self) -> None:
+        """
+        Suppress cdk-nag findings on the CDK auto-generated custom resource Lambda that looks up
+        the CloudFront domain name for a Cognito custom domain.  CDK creates this Lambda at the
+        stack level (not inside StateAuthUsers) so we must target it by path from the stack root.
+        """
+        stack = Stack.of(self)
+
+        # The Lambda is a direct child of the stack — same suppression pattern used in
+        # provider_search_domain.py for the OpenSearch access-policy custom resource Lambda.
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{stack.node.path}/AWS679f53fac002430cb0da5b7982bd2287',
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-LambdaDLQ',
+                    'reason': 'AWS-managed CDK custom resource Lambda for Cognito custom domain '
+                    'CloudFront lookup. Deployment-time only; a DLQ is not applicable.',
+                },
+                {
+                    'id': 'HIPAA.Security-LambdaInsideVPC',
+                    'reason': 'AWS-managed CDK custom resource Lambda requires internet access '
+                    'to query CloudFront APIs. VPC placement is not applicable.',
+                },
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'appliesTo': [
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                    ],
+                    'reason': 'AWS-managed CDK custom resource Lambda uses the standard execution role.',
+                },
+            ],
+            apply_to_children=True,
+        )
+
+        # The wildcard custom resource policy is a nested child of StateUserPoolDomain.
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{self.node.path}/StateUserPoolDomain/CloudFrontDomainName/CustomResourcePolicy',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'appliesTo': ['Resource::*'],
+                    'reason': 'AWS-managed CDK custom resource policy for Cognito custom domain '
+                    'CloudFront lookup. The wildcard resource cannot be restricted.',
+                },
+            ],
+            apply_to_children=True,
         )
