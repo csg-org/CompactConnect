@@ -11,6 +11,7 @@ from aws_cdk.aws_cognito import (
     UserPool,
 )
 from cdk_nag import NagSuppressions
+from common_constructs.user_pool import UserPool as AppUserPool
 from constructs import Construct
 
 from common_constructs.resource_scope_mixin import ResourceScopeMixin
@@ -55,10 +56,22 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
         )
 
         self._add_resource_servers(stack=persistent_stack)
-        self.user_pool_domain = self.add_domain(
-            f'{construct_id}Domain',
-            cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
-        )
+        # Hosted-zone environments get state-auth.{zone}, same as staff-auth and licensee-auth.
+        # The Cognito prefix is only for sandboxes with no hosted zone, where it cannot collide
+        # with another account's pipeline environment.
+        if persistent_stack.hosted_zone:
+            AppUserPool.add_custom_app_client_domain(
+                self,
+                persistent_stack.hosted_zone,
+                self,
+                'State',
+            )
+            self.user_pool_domain = self.app_client_custom_domain
+        else:
+            self.user_pool_domain = self.add_domain(
+                f'{construct_id}Domain',
+                cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
+            )
 
         NagSuppressions.add_resource_suppressions(
             self,
