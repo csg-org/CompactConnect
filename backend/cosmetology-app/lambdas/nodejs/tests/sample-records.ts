@@ -318,3 +318,154 @@ export const SAMPLE_UNMARSHALLED_COMPACT_CONFIGURATION = {
     'dateOfUpdate': '2024-12-10T19:27:28+00:00',
     'type': 'compact'
 };
+
+export const SAMPLE_JURISDICTION_CONFIGURATION_KY = {
+    'pk': {
+        'S': 'cosm#CONFIGURATION'
+    },
+    'sk': {
+        'S': 'cosm#JURISDICTION#ky'
+    },
+    'compact': {
+        'S': 'cosm'
+    },
+    'jurisdictionName': {
+        'S': 'Kentucky'
+    },
+    'jurisdictionOperationsTeamEmails': {
+        'L': [
+            {
+                'S': 'kentucky-ops@example.com'
+            }
+        ]
+    },
+    'postalAbbreviation': {
+        'S': 'ky'
+    },
+    'type': {
+        'S': 'jurisdiction'
+    }
+};
+
+// Raw DynamoDB item returned by licenseUploadDateGSI query
+export const SAMPLE_GSI_LICENSE_UPLOAD_RECORD = {
+    licenseUploadDateGSIPK: { S: 'C#cosm#J#oh#D#2024-09' },
+    licenseUploadDateGSISK: { S: 'TIME#1725148800#LT#cos#PID#provider-uuid-1' },
+    providerId: { S: 'provider-uuid-1' },
+};
+
+export const SAMPLE_GSI_LICENSE_UPLOAD_RECORD_RENEWAL = {
+    licenseUploadDateGSIPK: { S: 'C#cosm#J#oh#D#2024-09' },
+    licenseUploadDateGSISK: { S: 'TIME#1725235200#LT#cos#PID#provider-uuid-2' },
+    providerId: { S: 'provider-uuid-2' },
+};
+
+export const SAMPLE_GSI_LICENSE_UPLOAD_RECORD_INELIGIBLE = {
+    licenseUploadDateGSIPK: { S: 'C#cosm#J#oh#D#2024-09' },
+    licenseUploadDateGSISK: { S: 'TIME#1725321600#LT#cos#PID#provider-uuid-3' },
+    providerId: { S: 'provider-uuid-3' },
+};
+
+export const SAMPLE_GSI_LICENSE_UPLOAD_RECORD_ESTHETICIAN = {
+    licenseUploadDateGSIPK: { S: 'C#cosm#J#oh#D#2024-09' },
+    licenseUploadDateGSISK: { S: 'TIME#1725408000#LT#esth#PID#provider-uuid-4' },
+    providerId: { S: 'provider-uuid-4' },
+};
+
+export const SAMPLE_GSI_LICENSE_UPLOAD_RECORD_CORRECTION = {
+    licenseUploadDateGSIPK: { S: 'C#cosm#J#oh#D#2024-09' },
+    licenseUploadDateGSISK: { S: 'TIME#1725494400#LT#cos#PID#provider-uuid-5' },
+    providerId: { S: 'provider-uuid-5' },
+};
+
+// Full DynamoDB license record — NEW (firstUploadDate in Sept 2024)
+export const SAMPLE_LICENSE_RECORD_NEW = {
+    pk: { S: 'cosm#PROVIDER#provider-uuid-1' },
+    sk: { S: 'cosm#PROVIDER#license/oh/cos#' },
+    type: { S: 'license' },
+    compact: { S: 'cosm' },
+    jurisdiction: { S: 'oh' },
+    licenseType: { S: 'cosmetologist' },
+    givenName: { S: 'Jane' },
+    familyName: { S: 'Smith' },
+    licenseNumber: { S: 'COS-12345' },
+    jurisdictionUploadedLicenseStatus: { S: 'active' },
+    jurisdictionUploadedCompactEligibility: { S: 'eligible' },
+    dateOfIssuance: { S: '2024-09-05' },
+    dateOfExpiration: { S: '2026-09-05' },
+    firstUploadDate: { S: '2024-09-10T00:00:00Z' },
+};
+
+// Full DynamoDB license record — RENEWAL (dateOfRenewal in Sept 2024)
+export const SAMPLE_LICENSE_RECORD_RENEWAL = {
+    pk: { S: 'cosm#PROVIDER#provider-uuid-2' },
+    sk: { S: 'cosm#PROVIDER#license/oh/cos#' },
+    type: { S: 'license' },
+    compact: { S: 'cosm' },
+    jurisdiction: { S: 'oh' },
+    licenseType: { S: 'cosmetologist' },
+    givenName: { S: 'John' },
+    familyName: { S: 'Doe' },
+    licenseNumber: { S: 'COS-67890' },
+    jurisdictionUploadedLicenseStatus: { S: 'active' },
+    jurisdictionUploadedCompactEligibility: { S: 'eligible' },
+    dateOfIssuance: { S: '2022-01-01' },
+    dateOfRenewal: { S: '2024-09-15' },
+    dateOfExpiration: { S: '2026-01-01' },
+    firstUploadDate: { S: '2022-01-10T00:00:00Z' },
+};
+
+// Full DynamoDB license record — INELIGIBLE (should be excluded from invoice)
+export const SAMPLE_LICENSE_RECORD_INELIGIBLE = {
+    pk: { S: 'cosm#PROVIDER#provider-uuid-3' },
+    sk: { S: 'cosm#PROVIDER#license/oh/cos#' },
+    type: { S: 'license' },
+    compact: { S: 'cosm' },
+    jurisdiction: { S: 'oh' },
+    licenseType: { S: 'cosmetologist' },
+    givenName: { S: 'Alex' },
+    familyName: { S: 'Jones' },
+    licenseNumber: { S: 'COS-00001' },
+    jurisdictionUploadedLicenseStatus: { S: 'inactive' },
+    jurisdictionUploadedCompactEligibility: { S: 'ineligible' },
+    dateOfIssuance: { S: '2024-09-01' },
+    dateOfExpiration: { S: '2025-09-01' },
+    firstUploadDate: { S: '2024-09-01T00:00:00Z' },
+};
+
+// Full DynamoDB license record — ESTHETICIAN
+export const SAMPLE_LICENSE_RECORD_ESTHETICIAN = {
+    pk: { S: 'cosm#PROVIDER#provider-uuid-4' },
+    sk: { S: 'cosm#PROVIDER#license/oh/esth#' },
+    type: { S: 'license' },
+    compact: { S: 'cosm' },
+    jurisdiction: { S: 'oh' },
+    licenseType: { S: 'esthetician' },
+    givenName: { S: 'Maria' },
+    familyName: { S: 'Garcia' },
+    licenseNumber: { S: 'EST-11111' },
+    jurisdictionUploadedLicenseStatus: { S: 'active' },
+    jurisdictionUploadedCompactEligibility: { S: 'eligible' },
+    dateOfIssuance: { S: '2024-09-03' },
+    dateOfExpiration: { S: '2026-09-03' },
+    firstUploadDate: { S: '2024-09-03T00:00:00Z' },
+};
+
+// Eligible upload in the billing month that is neither a first upload nor a renewal
+export const SAMPLE_LICENSE_RECORD_CORRECTION = {
+    pk: { S: 'cosm#PROVIDER#provider-uuid-5' },
+    sk: { S: 'cosm#PROVIDER#license/oh/cos#' },
+    type: { S: 'license' },
+    compact: { S: 'cosm' },
+    jurisdiction: { S: 'oh' },
+    licenseType: { S: 'cosmetologist' },
+    givenName: { S: 'Pat' },
+    familyName: { S: 'Lee' },
+    licenseNumber: { S: 'COS-99999' },
+    jurisdictionUploadedLicenseStatus: { S: 'active' },
+    jurisdictionUploadedCompactEligibility: { S: 'eligible' },
+    dateOfIssuance: { S: '2022-01-01' },
+    dateOfRenewal: { S: '2023-01-15' },
+    dateOfExpiration: { S: '2025-01-01' },
+    firstUploadDate: { S: '2022-01-10T00:00:00Z' },
+};
