@@ -4,3 +4,4 @@ coverage
 ruff
 pip-tools
 pip-audit
+urllib3>=2.8.0, <3
