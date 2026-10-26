@@ -100,8 +100,15 @@
                             <div v-else class="title-subtext">{{ $t('navigation.loginAsProviderSubtext') }}</div>
                         </div>
                     </div>
+                    <router-link
+                        v-if="!isUsingMockApi && isCustomAuth"
+                        :to="inAppLoginLocation($appMode, authTypes.LICENSEE)"
+                        class="login-link"
+                    >
+                        {{ $t('navigation.login') }}
+                    </router-link>
                     <a
-                        v-if="!isUsingMockApi"
+                        v-else-if="!isUsingMockApi"
                         :href="licenseeLoginUri($appMode)"
                         class="login-link"
                         rel="noopener noreferrer"
@@ -140,8 +147,16 @@
                         </div>
                     </div>
                     <template v-if="$isAppModePsyPact">
+                        <router-link
+                            v-if="!isUsingMockApi && isCustomAuth"
+                            :to="inAppLoginLocation($appMode, authTypes.STAFF)"
+                            class="login-link staff"
+                            @click="setGotoCompact(compactTypes.PSYPACT)"
+                        >
+                            {{ $t('navigation.login') }}
+                        </router-link>
                         <a
-                            v-if="!isUsingMockApi"
+                            v-else-if="!isUsingMockApi"
                             :href="staffLoginUri($appMode)"
                             class="login-link staff"
                             rel="noopener noreferrer"
@@ -163,8 +178,16 @@
                     </template>
                     <div v-else class="staff-compacts">
                         <template v-for="compact in $compactsEnabledCompactConnect" :key="compact.type">
+                            <router-link
+                                v-if="!isUsingMockApi && isCustomAuth"
+                                :to="inAppLoginLocation(compact.appMode, authTypes.STAFF)"
+                                class="login-link small"
+                                @click="setGotoCompact(compact.type)"
+                            >
+                                {{ getCompactDisplay(compact) }}
+                            </router-link>
                             <a
-                                v-if="!isUsingMockApi"
+                                v-else-if="!isUsingMockApi"
                                 :href="staffLoginUri(compact.appMode)"
                                 class="login-link small"
                                 rel="noopener noreferrer"

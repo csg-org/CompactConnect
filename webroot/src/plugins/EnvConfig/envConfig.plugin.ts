@@ -63,20 +63,27 @@ export interface EnvConfig {
     cognitoRegion?: string;
     cognitoAuthDomainStaff?: string;
     cognitoClientIdStaff?: string;
+    cognitoUserPoolIdStaff?: string;
     cognitoAuthDomainLicensee?: string;
     cognitoClientIdLicensee?: string;
+    cognitoUserPoolIdLicensee?: string;
     cognitoAuthDomainStaffCosmo?: string;
     cognitoClientIdStaffCosmo?: string;
+    cognitoUserPoolIdStaffCosmo?: string;
     cognitoAuthDomainStaffSw?: string;
     cognitoClientIdStaffSw?: string;
+    cognitoUserPoolIdStaffSw?: string;
     cognitoAuthDomainStaffPsypact?: string;
     cognitoClientIdStaffPsypact?: string;
+    cognitoUserPoolIdStaffPsypact?: string;
     cognitoAuthDomainLicenseePsypact?: string;
     cognitoClientIdLicenseePsypact?: string;
+    cognitoUserPoolIdLicenseePsypact?: string;
     recaptchaKey?: string;
     statsigKey?: string;
     isStatsigDisabled?: boolean;
     isUsingMockApi?: boolean;
+    isCustomAuth?: boolean;
 }
 
 // @NOTE: Any custom keys in .env have to start with VUE_APP_ to be accessible at runtime
@@ -118,20 +125,28 @@ export const config: EnvConfig = {
     cognitoRegion: context.VUE_APP_COGNITO_REGION,
     cognitoAuthDomainStaff: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF,
     cognitoClientIdStaff: context.VUE_APP_COGNITO_CLIENT_ID_STAFF,
+    cognitoUserPoolIdStaff: context.VUE_APP_COGNITO_USER_POOL_ID_STAFF,
     cognitoAuthDomainLicensee: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE,
     cognitoClientIdLicensee: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE,
+    cognitoUserPoolIdLicensee: context.VUE_APP_COGNITO_USER_POOL_ID_LICENSEE,
     cognitoAuthDomainStaffCosmo: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_COSMO,
     cognitoClientIdStaffCosmo: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO,
+    cognitoUserPoolIdStaffCosmo: context.VUE_APP_COGNITO_USER_POOL_ID_STAFF_COSMO,
     cognitoAuthDomainStaffSw: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_SW,
     cognitoClientIdStaffSw: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_SW,
+    cognitoUserPoolIdStaffSw: context.VUE_APP_COGNITO_USER_POOL_ID_STAFF_SW,
     cognitoAuthDomainStaffPsypact: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_PSYPACT,
     cognitoClientIdStaffPsypact: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_PSYPACT,
+    cognitoUserPoolIdStaffPsypact: context.VUE_APP_COGNITO_USER_POOL_ID_STAFF_PSYPACT,
     cognitoAuthDomainLicenseePsypact: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_PSYPACT,
     cognitoClientIdLicenseePsypact: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE_PSYPACT,
+    cognitoUserPoolIdLicenseePsypact: context.VUE_APP_COGNITO_USER_POOL_ID_LICENSEE_PSYPACT,
     recaptchaKey: context.VUE_APP_RECAPTCHA_KEY,
     statsigKey: context.VUE_APP_STATSIG_KEY,
     isStatsigDisabled: (context.VUE_APP_STATSIG_DISABLED === 'true'),
     isUsingMockApi: (context.VUE_APP_MOCK_API === 'true'),
+    // Off until each environment's Cognito UI client allows USER_SRP_AUTH.
+    isCustomAuth: (context.VUE_APP_CUSTOM_AUTH === 'true'),
 };
 
 export default {

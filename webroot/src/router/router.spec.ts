@@ -11,7 +11,8 @@ import guards from '@router/_guards';
 import routes from '@router/routes';
 import store from '@/store';
 import { AppModes } from '@/app.config';
-import { AuthTypes, getAuthCallbackPath } from '@utils/auth';
+import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { AuthTypes, getAuthCallbackPath, getInAppLoginPath } from '@utils/auth';
 
 use(chaiMatchPattern);
 
@@ -36,6 +37,41 @@ describe('Router Guards', () => {
 
         expect(result).to.matchPattern({ name: 'Home' });
     });
+    it('should redirect in-app login to the public dashboard when custom auth is off', async () => {
+        const wasCustomAuth = envConfig.isCustomAuth;
+
+        envConfig.isCustomAuth = false;
+
+        const result = await guards.customAuthGuard();
+
+        envConfig.isCustomAuth = wasCustomAuth;
+
+        expect(result).to.matchPattern({ name: 'DashboardPublic' });
+    });
+    it('should allow in-app login when custom auth is on and the user is logged out', async () => {
+        const wasCustomAuth = envConfig.isCustomAuth;
+
+        envConfig.isCustomAuth = true;
+        await store.dispatch('user/logoutRequest', AuthTypes.STAFF);
+
+        const result = await guards.customAuthGuard();
+
+        envConfig.isCustomAuth = wasCustomAuth;
+
+        expect(result).to.equal(true);
+    });
+    it('should send a logged-in user home when custom auth is on', async () => {
+        const wasCustomAuth = envConfig.isCustomAuth;
+
+        envConfig.isCustomAuth = true;
+        await store.dispatch('user/loginSuccess');
+
+        const result = await guards.customAuthGuard();
+
+        envConfig.isCustomAuth = wasCustomAuth;
+
+        expect(result).to.matchPattern({ name: 'Home' });
+    });
 });
 describe('Router auth callback paths', () => {
     it('should successfully match getAuthCallbackPath for all auth callback routes', () => {
@@ -53,5 +89,14 @@ describe('Router auth callback paths', () => {
 
             expect(route?.path).to.equal(path);
         });
+    });
+    it('should successfully match the in-app login route', () => {
+        const route = routes.find((routeConfig) => routeConfig.name === 'AuthLogin');
+
+        expect(route?.path).to.equal('/auth/login/:authType/:appMode');
+        expect(route?.beforeEnter).to.equal(guards.customAuthGuard);
+        expect(getInAppLoginPath(AppModes.JCC, AuthTypes.STAFF)).to.equal('/auth/login/staff/jcc');
+        expect(getInAppLoginPath(AppModes.PSYPACT, AuthTypes.LICENSEE)).to.equal('/auth/login/licensee/psypact');
+        expect(getInAppLoginPath(AppModes.COSMETOLOGY, AuthTypes.PUBLIC)).to.equal('');
     });
 });

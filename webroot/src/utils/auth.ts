@@ -76,6 +76,7 @@ export type CognitoConfig = {
     scopes?: string;
     clientId?: string;
     authDomain?: string;
+    userPoolId?: string;
 };
 
 // ===========================
@@ -157,6 +158,7 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         scopes: '',
         clientId: '',
         authDomain: '',
+        userPoolId: '',
     };
 
     switch (authType) {
@@ -166,15 +168,19 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         if (appMode === AppModes.JCC) {
             config.clientId = envConfig.cognitoClientIdStaff;
             config.authDomain = envConfig.cognitoAuthDomainStaff;
+            config.userPoolId = envConfig.cognitoUserPoolIdStaff;
         } else if (appMode === AppModes.COSMETOLOGY) {
             config.clientId = envConfig.cognitoClientIdStaffCosmo;
             config.authDomain = envConfig.cognitoAuthDomainStaffCosmo;
+            config.userPoolId = envConfig.cognitoUserPoolIdStaffCosmo;
         } else if (appMode === AppModes.SOCIAL_WORK) {
             config.clientId = envConfig.cognitoClientIdStaffSw;
             config.authDomain = envConfig.cognitoAuthDomainStaffSw;
+            config.userPoolId = envConfig.cognitoUserPoolIdStaffSw;
         } else if (appMode === AppModes.PSYPACT) {
             config.clientId = envConfig.cognitoClientIdStaffPsypact;
             config.authDomain = envConfig.cognitoAuthDomainStaffPsypact;
+            config.userPoolId = envConfig.cognitoUserPoolIdStaffPsypact;
         }
 
         break;
@@ -184,9 +190,11 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         if (appMode === AppModes.JCC) {
             config.clientId = envConfig.cognitoClientIdLicensee;
             config.authDomain = envConfig.cognitoAuthDomainLicensee;
+            config.userPoolId = envConfig.cognitoUserPoolIdLicensee;
         } else if (appMode === AppModes.PSYPACT) {
             config.clientId = envConfig.cognitoClientIdLicenseePsypact;
             config.authDomain = envConfig.cognitoAuthDomainLicenseePsypact;
+            config.userPoolId = envConfig.cognitoUserPoolIdLicenseePsypact;
         }
         break;
     default:
@@ -194,6 +202,16 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
     }
 
     return config;
+};
+
+export const getInAppLoginPath = (appMode: AppModes, authType: AuthTypes): string => {
+    let path = '';
+
+    if (appMode && (authType === AuthTypes.STAFF || authType === AuthTypes.LICENSEE)) {
+        path = `/auth/login/${authType}/${appMode}`;
+    }
+
+    return path;
 };
 
 export const getAuthCallbackPath = (appMode: AppModes, authType: AuthTypes): string => {
@@ -309,6 +327,7 @@ export default {
     staffLoginScopes,
     licenseeLoginScopes,
     getCognitoConfig,
+    getInAppLoginPath,
     getAuthCallbackPath,
     getHostedLoginUri,
     revokeCognitoRefreshToken,
