@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from aws_cdk import Duration, RemovalPolicy
+from aws_cdk import CfnOutput, Duration, RemovalPolicy
+from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cognito import (
     CognitoDomainOptions,
+    CustomDomainOptions,
     FeaturePlan,
     Mfa,
     MfaSecondFactor,
@@ -10,8 +12,9 @@ from aws_cdk.aws_cognito import (
     StandardThreatProtectionMode,
     UserPool,
 )
+from aws_cdk.aws_route53 import ARecord, RecordTarget
+from aws_cdk.aws_route53_targets import UserPoolDomainTarget
 from cdk_nag import NagSuppressions
-from common_constructs.user_pool import UserPool as AppUserPool
 from constructs import Construct
 
 from common_constructs.resource_scope_mixin import ResourceScopeMixin
@@ -56,17 +59,35 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
         )
 
         self._add_resource_servers(stack=persistent_stack)
-        # Hosted-zone environments get state-auth.{zone}, same as staff-auth and licensee-auth.
-        # The Cognito prefix is only for sandboxes with no hosted zone, where it cannot collide
-        # with another account's pipeline environment.
+        # Hosted-zone environments get state-auth.{zone} (e.g. state-auth.test.dietitian.jcc.iaapi.io).
+        # This is unique per hosted zone, so two accounts deploying the same environment_name
+        # (e.g. internal test and CSG test) do not collide on the global Cognito prefix namespace.
+        # Managed Login Version 2 is intentionally omitted because this pool is on the Lite plan,
+        # which does not support it (the pool has no human users so the login UI is irrelevant).
+        # Sandboxes with no hosted zone still use the Cognito prefix, which is fine because
+        # sandbox environment names are unique per developer.
         if persistent_stack.hosted_zone:
-            AppUserPool.add_custom_app_client_domain(
-                self,
-                persistent_stack.hosted_zone,
-                self,
-                'State',
+            hosted_zone = persistent_stack.hosted_zone
+            domain_name = f'state-auth.{hosted_zone.zone_name}'
+            cert = Certificate(
+                scope,
+                'StateAuthCert',
+                domain_name=domain_name,
+                validation=CertificateValidation.from_dns(hosted_zone=hosted_zone),
             )
-            self.user_pool_domain = self.app_client_custom_domain
+            self.user_pool_domain = self.add_domain(
+                'StateUserPoolDomain',
+                custom_domain=CustomDomainOptions(certificate=cert, domain_name=domain_name),
+                # managed_login_version intentionally omitted — Lite plan does not support v2
+            )
+            self.state_auth_domain_record = ARecord(
+                self,
+                'StateAuthDomainARecord',
+                zone=hosted_zone,
+                record_name=domain_name,
+                target=RecordTarget.from_alias(UserPoolDomainTarget(self.user_pool_domain)),
+            )
+            CfnOutput(self, 'StateUserPoolDomainName', value=self.user_pool_domain.domain_name)
         else:
             self.user_pool_domain = self.add_domain(
                 f'{construct_id}Domain',
