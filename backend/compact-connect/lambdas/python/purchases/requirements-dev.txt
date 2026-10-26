@@ -53,7 +53,7 @@ docker==7.2.0
     # via moto
 faker==40.36.0
     # via -r requirements-dev.in
-filelock==3.32.2
+filelock==4.2.4
     # via cachecontrol
 idna==3.18
     # via requests

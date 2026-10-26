@@ -28,7 +28,7 @@ defusedxml==0.7.1
     # via py-serializable
 faker==40.36.0
     # via -r requirements-dev.in
-filelock==3.29.4
+filelock==4.2.4
     # via cachecontrol
 idna==3.18
     # via requests
