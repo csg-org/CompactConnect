@@ -43,6 +43,17 @@ const initMockStore = (store) => {
     }
 };
 
+const getCurrentCompact = (compact?: string | null): string | null =>
+    compact
+    || getImpliedCompactForAppMode(mockStore?.state?.appMode)
+    || mockStore?.state?.user?.currentCompact?.type
+    || null;
+
+const serializeProvidersForCompact = (providers: Array<any>, compact?: string | null) =>
+    providers.map((provider) => LicenseeSerializer.fromServer(
+        getMockProviderForCompact(provider, getCurrentCompact(compact))
+    ));
+
 // Authenticated provider index for the current session
 const authenticatedProviderUserIndex = 0;
 
@@ -50,8 +61,6 @@ const authenticatedProviderUserIndex = 0;
 const getAuthenticatedProvider = () => {
     const { providers } = licensees;
     const maxIndex = providers.length - 1;
-    const compactType = getImpliedCompactForAppMode(mockStore?.state?.appMode)
-        || mockStore?.state?.user?.currentCompact?.type;
     const provider = (authenticatedProviderUserIndex < 0 || authenticatedProviderUserIndex > maxIndex)
         ? providers[0]
         : providers[authenticatedProviderUserIndex];
@@ -62,7 +71,7 @@ const getAuthenticatedProvider = () => {
         console.error(errorMessage);
     }
 
-    return getMockProviderForCompact(provider, compactType);
+    return getMockProviderForCompact(provider, getCurrentCompact());
 };
 
 // License type mapping for matching abbreviations and full names to LicenseType enum values
@@ -166,7 +175,7 @@ export class DataApi {
         return wait(500).then(() => ({
             prevLastKey: licensees.prevLastKey,
             lastKey: licensees.lastKey,
-            licensees: licensees.providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            licensees: serializeProvidersForCompact(licensees.providers, params.compact),
             params,
         }));
     }
@@ -176,7 +185,7 @@ export class DataApi {
         return wait(500).then(() => ({
             prevLastKey: licensees.prevLastKey,
             lastKey: licensees.lastKey,
-            licensees: licensees.providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            licensees: serializeProvidersForCompact(licensees.providers, params.compact),
             params,
         }));
     }
@@ -188,7 +197,7 @@ export class DataApi {
 
         if (serverResponse) {
             response = wait(500).then(() => (
-                LicenseeSerializer.fromServer(getMockProviderForCompact(licensees.providers[0], compact))
+                LicenseeSerializer.fromServer(getMockProviderForCompact(serverResponse, compact))
             ));
         } else {
             response = wait(500).then(() => {
@@ -206,7 +215,7 @@ export class DataApi {
 
         if (serverResponse) {
             response = wait(500).then(() => (
-                LicenseeSerializer.fromServer(getMockProviderForCompact(licensees.providers[0], compact))
+                LicenseeSerializer.fromServer(getMockProviderForCompact(serverResponse, compact))
             ));
         } else {
             response = wait(500).then(() => {
@@ -555,7 +564,7 @@ export class DataApi {
 
         return wait(500).then(() => ({
             totalMatchCount: records.length * pages,
-            licensees: records.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            licensees: serializeProvidersForCompact(records, params.compact),
             params,
         }));
     }

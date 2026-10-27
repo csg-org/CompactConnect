@@ -35,6 +35,10 @@ class TestAppId(TestCase):
         """Test PSYPACT app ID has expected value."""
         self.assertEqual('psypact', AppId.PSYPACT.value)
 
+    def test_dietitian_value(self):
+        """Test DIETITIANS app ID has expected value."""
+        self.assertEqual('dietitian', AppId.DIETITIANS.value)
+
 
 class TestParameterNameGeneration(TestCase):
     """Tests for SSM parameter name generation functions."""
@@ -64,6 +68,11 @@ class TestParameterNameGeneration(TestCase):
         name = _get_persistent_stack_parameter_name(AppId.PSYPACT)
         self.assertEqual('/app/psypact/deployment/persistent-stack/frontend_app_configuration', name)
 
+    def test_persistent_stack_parameter_name_dietitian(self):
+        """Test parameter name for DIETITIANS app."""
+        name = _get_persistent_stack_parameter_name(AppId.DIETITIANS)
+        self.assertEqual('/app/dietitian/deployment/persistent-stack/frontend_app_configuration', name)
+
     def test_provider_users_stack_parameter_name_default(self):
         """Test default parameter name uses JCC."""
         name = _get_provider_users_stack_parameter_name()
@@ -89,6 +98,11 @@ class TestParameterNameGeneration(TestCase):
         name = _get_provider_users_stack_parameter_name(AppId.PSYPACT)
         self.assertEqual('/app/psypact/deployment/provider-users-stack/frontend_app_configuration', name)
 
+    def test_provider_users_stack_parameter_name_dietitian(self):
+        """Test parameter name for DIETITIANS app."""
+        name = _get_provider_users_stack_parameter_name(AppId.DIETITIANS)
+        self.assertEqual('/app/dietitian/deployment/provider-users-stack/frontend_app_configuration', name)
+
 
 class TestPersistentStackFrontendAppConfigUtility(TestCase):
     """Tests for the PersistentStackFrontendAppConfigUtility class."""
@@ -112,6 +126,11 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
         """Test setting PSYPACT app_id."""
         util = PersistentStackFrontendAppConfigUtility(app_id=AppId.PSYPACT)
         self.assertEqual(AppId.PSYPACT, util._app_id)  # noqa: SLF001
+
+    def test_dietitian_app_id(self):
+        """Test setting DIETITIANS app_id."""
+        util = PersistentStackFrontendAppConfigUtility(app_id=AppId.DIETITIANS)
+        self.assertEqual(AppId.DIETITIANS, util._app_id)  # noqa: SLF001
 
     def test_set_staff_cognito_values(self):
         """Test setting staff Cognito values."""
@@ -220,6 +239,26 @@ class TestPersistentStackFrontendAppConfigValues(TestCase):
             self.assertIsNotNone(result)
             self.assertEqual('psypact-domain', result.staff_cognito_domain)
 
+    def test_load_dietitian_uses_string_parameter_lookup(self):
+        """Test that DIETITIANS app uses standard StringParameter.value_from_lookup (same-account)."""
+        mock_stack = MagicMock()
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
+            mock_lookup.return_value = json.dumps(
+                {
+                    'staff_cognito_domain': 'dietitian-domain',
+                    'staff_cognito_client_id': 'dietitian-client',
+                }
+            )
+
+            result = PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
+                mock_stack,
+                app_id=AppId.DIETITIANS,
+            )
+
+            mock_lookup.assert_called_once()
+            self.assertIsNotNone(result)
+            self.assertEqual('dietitian-domain', result.staff_cognito_domain)
+
     def test_dummy_value_returns_dummy_config(self):
         """Test that dummy value returns dummy configuration."""
         mock_stack = MagicMock()
@@ -300,3 +339,23 @@ class TestProviderUsersStackFrontendAppConfigValues(TestCase):
             mock_lookup.assert_called_once()
             self.assertIsNotNone(result)
             self.assertEqual('psypact-provider-domain', result.provider_cognito_domain)
+
+    def test_load_dietitian_uses_string_parameter_lookup(self):
+        """Test that DIETITIANS app uses standard StringParameter.value_from_lookup."""
+        mock_stack = MagicMock()
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
+            mock_lookup.return_value = json.dumps(
+                {
+                    'provider_cognito_domain': 'dietitian-provider-domain',
+                    'provider_cognito_client_id': 'dietitian-provider-client',
+                }
+            )
+
+            result = ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(
+                mock_stack,
+                app_id=AppId.DIETITIANS,
+            )
+
+            mock_lookup.assert_called_once()
+            self.assertIsNotNone(result)
+            self.assertEqual('dietitian-provider-domain', result.provider_cognito_domain)

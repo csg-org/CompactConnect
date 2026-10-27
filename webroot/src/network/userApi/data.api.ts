@@ -13,6 +13,8 @@ import {
     responseError
 } from '@network/userApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { getApiBaseUrl } from '@network/apiUrls';
+import { getAppModeForCompact } from '@utils/compactConfig';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
@@ -82,6 +84,15 @@ export class UserDataApi implements DataApiInterface {
             responseSuccessInterceptor,
             responseErrorInterceptor
         );
+    }
+
+    /**
+     * Get the user API root for a compact, independent of the current app mode.
+     * @param  {string} [compact] A compact type.
+     * @return {string}           The API root URL; empty to fall back to the default base URL.
+     */
+    public getApiRootForCompact(compact?: string): string {
+        return (compact) ? getApiBaseUrl(getAppModeForCompact(compact), 'user') || '' : '';
     }
 
     /**
@@ -336,7 +347,23 @@ export class UserDataApi implements DataApiInterface {
      * @return {Promise<Array<Compact>>} A list of Compact instances.
      */
     public async getCompactStatesForRegistrationPublic() {
-        const serverResponse: any = await this.api.get(`/v1/public/jurisdictions/live`);
+        // Needs to compile the live states list from multiple compact backends
+        const apiRoots = [
+            envConfig.apiUrlUser,
+            envConfig.apiUrlUserDiet,
+        ].filter((apiRoot, index, roots) => apiRoot && roots.indexOf(apiRoot) === index);
+        const [primaryResult, ...otherResults] = await Promise.allSettled(
+            apiRoots.map((apiRoot) => this.api.get(`${apiRoot}/v1/public/jurisdictions/live`))
+        );
+
+        // For now, only fail on JCC lookup. Dietitians is still WIP.
+        if (primaryResult.status === 'rejected') {
+            throw primaryResult.reason;
+        }
+
+        const serverResponse: any = otherResults.reduce((merged, result) => (
+            (result.status === 'fulfilled') ? { ...merged, ...(result.value as any) } : merged
+        ), { ...(primaryResult.value as any) });
         const response = Object.entries(serverResponse).map(([compactAbbrev, stateList]) => {
             let states: Array<State> = [];
 
@@ -444,9 +471,10 @@ export class UserDataApi implements DataApiInterface {
      * @param  {object}          data The user request data.
      * @return {Promise<object>}      The server response.
      */
-    public async resetMfaLicenseeAccount(data: object) {
+    public async resetMfaLicenseeAccount(data: { compact?: string }) {
         const requestData = { ...data };
-        const serverResponse = await this.api.post(`/v1/provider-users/initiateRecovery`, requestData);
+        const apiRoot = this.getApiRootForCompact(data.compact);
+        const serverResponse = await this.api.post(`${apiRoot}/v1/provider-users/initiateRecovery`, requestData);
 
         return serverResponse;
     }
@@ -456,9 +484,10 @@ export class UserDataApi implements DataApiInterface {
      * @param  {object}          data The user request data.
      * @return {Promise<object>}      The server response.
      */
-    public async confirmMfaLicenseeAccount(data: object) {
+    public async confirmMfaLicenseeAccount(data: { compact?: string }) {
         const requestData = { ...data };
-        const serverResponse = await this.api.post(`/v1/provider-users/verifyRecovery`, requestData);
+        const apiRoot = this.getApiRootForCompact(data.compact);
+        const serverResponse = await this.api.post(`${apiRoot}/v1/provider-users/verifyRecovery`, requestData);
 
         return serverResponse;
     }
