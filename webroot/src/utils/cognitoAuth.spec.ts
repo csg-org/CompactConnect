@@ -90,6 +90,7 @@ describe('cognitoAuth utils', () => {
             message: 'Incorrect username or password.',
         });
         const unknownUser = mapCognitoAuthError({ name: 'UserNotFoundException', message: 'missing' });
+        const softwareToken = mapCognitoAuthError({ name: 'EnableSoftwareTokenMFAException', message: 'Code mismatch' });
         const expiredCode = mapCognitoAuthError({ name: 'ExpiredCodeException', message: 'expired' });
         const limited = mapCognitoAuthError({ name: 'LimitExceededException', message: 'limited' });
         const tooMany = mapCognitoAuthError({ name: 'TooManyRequestsException', message: 'slow down' });
@@ -101,6 +102,8 @@ describe('cognitoAuth utils', () => {
         expect(credentials.messageKey).to.equal('auth.invalidCredentials');
         expect(credentials.step).to.equal(undefined);
         expect(unknownUser.messageKey).to.equal('auth.invalidCredentials');
+        expect(softwareToken.messageKey).to.equal('auth.invalidCode');
+        expect(softwareToken.step).to.equal(undefined);
         expect(expiredCode.messageKey).to.equal('auth.expiredCode');
         expect(limited.messageKey).to.equal('auth.tooManyAttempts');
         expect(tooMany.messageKey).to.equal('auth.tooManyAttempts');

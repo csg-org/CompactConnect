@@ -155,7 +155,7 @@ export const mapCognitoAuthError = (error: unknown): MappedAuthError => {
         step = CognitoAuthStep.LOGIN;
     } else if (errorName === 'NotAuthorizedException' || errorName === 'UserNotFoundException') {
         messageKey = 'auth.invalidCredentials';
-    } else if (errorName === 'CodeMismatchException') {
+    } else if (errorName === 'CodeMismatchException' || errorName === 'EnableSoftwareTokenMFAException') {
         messageKey = 'auth.invalidCode';
     } else if (errorName === 'ExpiredCodeException') {
         messageKey = 'auth.expiredCode';
