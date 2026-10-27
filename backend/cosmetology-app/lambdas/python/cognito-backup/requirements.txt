@@ -4,13 +4,13 @@
 #
 #    pip-compile --no-emit-index-url --no-index --no-strip-extras lambdas/python/cognito-backup/requirements.in
 #
-aws-lambda-powertools==3.35.0
-    # via -r lambdas/python/cognito-backup/requirements.in
-boto3==1.43.106
-    # via -r lambdas/python/cognito-backup/requirements.in
-botocore==1.43.106
+aws-lambda-powertools==3.36.0
+    # via -r cognito-backup/requirements.in
+boto3==1.43.115
+    # via -r cognito-backup/requirements.in
+botocore==1.43.119
     # via
-    #   -r lambdas/python/cognito-backup/requirements.in
+    #   -r cognito-backup/requirements.in
     #   boto3
     #   s3transfer
 jmespath==1.1.0
