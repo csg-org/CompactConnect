@@ -10,6 +10,7 @@ from moto import mock_aws
 from .. import TstFunction
 
 CUID_PATTERN = re.compile(r'^SWC-[0-9]{4}-[1-9][0-9]*$')
+INGESTED_LICENSE_TIMESTAMP = '2024-11-08T23:59:59+00:00'
 
 
 @mock_aws
@@ -28,6 +29,16 @@ class TestIngest(TstFunction):
         # These tests only ever ingest a single single-state license, so no paired single-state/multi-state
         # license exists and a CUID is never assigned.
         del expected_provider['publicCompactIdentifier']
+        # Ingest stamps firstUploadDate with the patched clock, which the provider response
+        # reports as an issuance event.
+        for license_record in expected_provider['licenses']:
+            license_record['history'] = [
+                {
+                    'updateType': 'issuance',
+                    'effectiveDate': INGESTED_LICENSE_TIMESTAMP,
+                    'createDate': INGESTED_LICENSE_TIMESTAMP,
+                }
+            ]
 
         return expected_provider
 
@@ -293,6 +304,9 @@ class TestIngest(TstFunction):
         # We will look at the licenses separately
         del expected_provider['licenses']
         licenses = provider_data.pop('licenses')
+        # Canned licenses have no firstUploadDate, so the generated privilege timeline is empty.
+        for privilege in expected_provider['privileges']:
+            privilege['history'] = []
 
         # The loaded fixture already has a paired OH single-state/multi-state license, so the provider already
         # has a CUID assigned before this ingest occurs. The inactive KY license upload does not win the
@@ -456,6 +470,14 @@ class TestIngest(TstFunction):
             del expected_provider['licenses'][0]['dateOfRenewal']
         else:
             expected_provider['licenses'][0]['dateOfRenewal'] = '2025-03-03'
+        # Extending dateOfExpiration writes a renewal update at the same patched clock.
+        expected_provider['licenses'][0]['history'].append(
+            {
+                'updateType': 'renewal',
+                'effectiveDate': INGESTED_LICENSE_TIMESTAMP,
+                'createDate': INGESTED_LICENSE_TIMESTAMP,
+            }
+        )
 
         provider_data = self._get_provider_via_api(provider_id)
 

@@ -604,6 +604,7 @@ def test_home_state_change_notification(
     # The OH multi-state license completes the pairing with the OH single-state license, so a CUID
     # is issued at this point. Captured for the public search test that follows.
     practitioner_state.public_compact_identifier = _assert_cuid_assigned(updated_provider_details)
+    _assert_home_state_change_history(updated_provider_details)
 
     logger.info(
         'MANUAL VERIFICATION REQUIRED: check inbox for '
@@ -769,6 +770,73 @@ def test_provider_is_searchable_by_cuid(practitioner_state: PractitionerTestStat
         f'Successfully verified CUID {public_compact_identifier} returns only provider {provider_id} '
         'from the public search endpoint'
     )
+
+
+def _require_history_event(history: list[dict], update_type: str, owner: str) -> dict:
+    matches = [event for event in history if event.get('updateType') == update_type]
+    if len(matches) != 1:
+        raise SmokeTestFailureException(
+            f'Expected one {update_type} event on {owner}, found {len(matches)} in {history}'
+        )
+    return matches[0]
+
+
+def _assert_home_state_change_history(provider_details: dict) -> None:
+    """Staff provider response includes license and privilege history after a home state change."""
+    oh_multi_state_license = next(
+        (
+            license_record
+            for license_record in provider_details.get('licenses', [])
+            if license_record.get('jurisdiction') == HOME_STATE_CHANGE_NEW_JURISDICTION
+            and license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
+            and license_record.get('licenseScope') == 'multi-state'
+        ),
+        None,
+    )
+    if oh_multi_state_license is None or 'history' not in oh_multi_state_license:
+        raise SmokeTestFailureException('Expected history on the OH multi-state license')
+
+    license_history = oh_multi_state_license['history']
+    _require_history_event(license_history, 'issuance', 'the OH multi-state license')
+    license_home_change = _require_history_event(
+        license_history, 'homeJurisdictionChange', 'the OH multi-state license'
+    )
+    if license_home_change.get('previousHomeJurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
+        raise SmokeTestFailureException(
+            'Expected license homeJurisdictionChange previousHomeJurisdiction '
+            f'{HOME_STATE_CHANGE_FORMER_JURISDICTION}, '
+            f'found {license_home_change.get("previousHomeJurisdiction")}'
+        )
+    if license_home_change.get('newHomeJurisdiction') != HOME_STATE_CHANGE_NEW_JURISDICTION:
+        raise SmokeTestFailureException(
+            'Expected license homeJurisdictionChange newHomeJurisdiction '
+            f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {license_home_change.get("newHomeJurisdiction")}'
+        )
+
+    matching_privilege = None
+    for privilege in provider_details.get('privileges', []):
+        history = privilege.get('history')
+        if not isinstance(history, list):
+            continue
+        issuance_events = [event for event in history if event.get('updateType') == 'issuance']
+        home_change_events = [event for event in history if event.get('updateType') == 'homeJurisdictionChange']
+        if not issuance_events or not home_change_events:
+            continue
+        home_change = home_change_events[0]
+        if (
+            home_change.get('previousHomeJurisdiction') == HOME_STATE_CHANGE_FORMER_JURISDICTION
+            and home_change.get('newHomeJurisdiction') == HOME_STATE_CHANGE_NEW_JURISDICTION
+        ):
+            matching_privilege = privilege
+            break
+
+    if matching_privilege is None:
+        raise SmokeTestFailureException(
+            'Expected at least one privilege history with issuance and a homeJurisdictionChange '
+            f'from {HOME_STATE_CHANGE_FORMER_JURISDICTION} to {HOME_STATE_CHANGE_NEW_JURISDICTION}'
+        )
+
+    logger.info('Verified license and privilege history include issuance and the home state change')
 
 
 def _query_home_state_change_events_for_provider(provider_id: str):

@@ -95,6 +95,11 @@
           "isLive": {
             "description": "Whether the state is live and available for registrations.",
             "type": "boolean"
+          },
+          "dateOfLive": {
+            "description": "When the state went live. Set by the server when isLive becomes true.",
+            "format": "date-time",
+            "type": "string"
           }
         },
         "required": [
