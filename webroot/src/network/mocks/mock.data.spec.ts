@@ -7,7 +7,6 @@
 
 import { expect } from 'chai';
 import { CompactType } from '@models/Compact/Compact.model';
-import { LicenseType } from '@models/License/License.model';
 import {
     licensees,
     mockProviderCompactOverlays,
@@ -18,31 +17,51 @@ import {
 describe('mock provider compact overlays', () => {
     const sourceProvider = licensees.providers[0];
 
-    it('should leave the shared octp practitioner unchanged when no overlay applies', () => {
-        const provider = getMockProviderForCompact(sourceProvider, CompactType.OT);
-
-        expect(provider).to.equal(sourceProvider);
-        expect(sourceProvider.compact).to.equal(CompactType.OT);
-        expect(sourceProvider.licenseType).to.equal(LicenseType.OCCUPATIONAL_THERAPY_ASSISTANT);
-    });
-    it('should apply the psypact overlay without mutating the source practitioner', () => {
-        const provider = getMockProviderForCompact(sourceProvider, CompactType.PSYPACT);
-        const overlay = mockProviderCompactOverlays[CompactType.PSYPACT];
+    const expectProviderOverlay = (compactType: CompactType) => {
+        const sourceSnapshot = JSON.parse(JSON.stringify(sourceProvider));
+        const overlay = mockProviderCompactOverlays[compactType];
+        const provider = getMockProviderForCompact(sourceProvider, compactType);
 
         expect(provider).to.not.equal(sourceProvider);
-        expect(provider.compact).to.equal(overlay?.compact);
-        expect(provider.licenseType).to.equal(overlay?.licenseType);
-        expect(sourceProvider.compact).to.equal(CompactType.OT);
-        expect(sourceProvider.licenseType).to.equal(LicenseType.OCCUPATIONAL_THERAPY_ASSISTANT);
-        expect(provider.licenses.every((license) => license.compact === CompactType.PSYPACT)).to.equal(true);
-        expect(provider.licenses.every((license) => license.licenseType === LicenseType.PSYCHOLOGIST)).to.equal(true);
-        expect(provider.privileges.every((privilege) => privilege.compact === CompactType.PSYPACT)).to.equal(true);
+        expect(provider.compact).to.equal(overlay.compact);
+        expect(provider.licenseType).to.equal(overlay.licenseType);
+        /* eslint-disable function-paren-newline */
+        expect(provider.licenses.every((license) =>
+            license.compact === overlay.compact
+            && license.licenseType === overlay.licenseType
+        )).to.equal(true);
         expect(provider.privileges.every((privilege) =>
-            privilege.licenseType === LicenseType.PSYCHOLOGIST)).to.equal(true);
+            privilege.compact === overlay.compact
+            && privilege.licenseType === overlay.licenseType
+        )).to.equal(true);
         expect(provider.militaryAffiliations.every((affiliation) =>
-            affiliation.compact === CompactType.PSYPACT)).to.equal(true);
-        expect(provider.militaryAffiliations.every((affiliation) =>
-            affiliation.licenseType === undefined)).to.equal(true);
+            affiliation.compact === overlay.compact
+            && affiliation.licenseType === undefined
+        )).to.equal(true);
+        /* eslint-enable function-paren-newline */
+        expect(sourceProvider).to.deep.equal(sourceSnapshot);
+    };
+
+    it('should apply the ASLP overlay', () => {
+        expectProviderOverlay(CompactType.ASLP);
+    });
+    it('should apply the OT overlay', () => {
+        expectProviderOverlay(CompactType.OT);
+    });
+    it('should apply the counseling overlay', () => {
+        expectProviderOverlay(CompactType.COUNSELING);
+    });
+    it('should apply the cosmetology overlay', () => {
+        expectProviderOverlay(CompactType.COSMETOLOGY);
+    });
+    it('should apply the social work overlay', () => {
+        expectProviderOverlay(CompactType.SOCIAL_WORK);
+    });
+    it('should apply the PSYPACT overlay', () => {
+        expectProviderOverlay(CompactType.PSYPACT);
+    });
+    it('should apply the dietitian overlay', () => {
+        expectProviderOverlay(CompactType.DIETITIANS);
     });
     it('should return the original provider when an overlay is not provided', () => {
         expect(applyProviderCompactOverlay(sourceProvider)).to.equal(sourceProvider);

@@ -145,7 +145,9 @@ export default class DashboardPublic extends Vue {
 
     get hasPractitionerLogin(): boolean {
         const { selectedAppMode } = this;
-        const hasLogin = selectedAppMode === AppModes.JCC || selectedAppMode === AppModes.PSYPACT;
+        const hasLogin = selectedAppMode === AppModes.JCC
+            || selectedAppMode === AppModes.PSYPACT
+            || selectedAppMode === AppModes.DIETITIANS;
 
         return hasLogin;
     }
@@ -175,13 +177,22 @@ export default class DashboardPublic extends Vue {
         case 'login-staff-psypact':
             this.bypassToStaffLogin(AppModes.PSYPACT);
             break;
+        case 'login-staff-dietitian':
+            this.bypassToStaffLogin(AppModes.DIETITIANS);
+            break;
         case 'login-practitioner':
             this.bypassToLicenseeLogin(AppModes.JCC);
             break;
         case 'login-practitioner-psypact':
             this.bypassToLicenseeLogin(AppModes.PSYPACT);
             break;
+        case 'login-practitioner-dietitian':
+            this.bypassToLicenseeLogin(AppModes.DIETITIANS);
+            break;
         case 'recovery-practitioner':
+            this.bypassToLicenseeMfaRecovery();
+            break;
+        case 'recovery-practitioner-dietitian':
             this.bypassToLicenseeMfaRecovery();
             break;
         default:

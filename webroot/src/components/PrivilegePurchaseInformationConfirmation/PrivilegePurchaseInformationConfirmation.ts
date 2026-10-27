@@ -162,6 +162,10 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
                 addressAttestationId,
                 this.homeStateAttestationId,
             ],
+            diet: [
+                addressAttestationId,
+                this.homeStateAttestationId,
+            ],
         };
     }
 

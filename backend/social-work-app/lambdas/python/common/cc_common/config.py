@@ -64,23 +64,58 @@ class _Config:
 
         return CompactConfigurationClient(self)
 
+    def _populate_live_jurisdiction_cache(self) -> None:
+        """Load live jurisdictions and their go-live timestamps in one read per compact.
+
+        A value already stored on this instance is left in place, so a test override of the
+        abbreviation list is not replaced when issuance dates are read.
+        """
+        need_abbreviations = 'live_compact_jurisdictions' not in self.__dict__
+        need_dates = 'live_compact_jurisdiction_dates' not in self.__dict__
+        if not need_abbreviations and not need_dates:
+            return
+
+        abbreviations: dict[str, list[str]] = {}
+        live_dates: dict[str, dict[str, datetime]] = {}
+        for compact in self.compacts:
+            try:
+                live_states = self.compact_configuration_client.get_live_configured_states(compact)
+            except Exception:  # noqa: BLE001
+                logger.error('Failed to load live jurisdictions', compact=compact)
+                raise
+            abbreviations[compact] = [state['postalAbbreviation'] for state in live_states]
+            live_dates[compact] = {
+                state['postalAbbreviation']: state['dateOfLive']
+                for state in live_states
+                if state.get('dateOfLive') is not None
+            }
+
+        if need_abbreviations:
+            self.__dict__['live_compact_jurisdictions'] = abbreviations
+        if need_dates:
+            self.__dict__['live_compact_jurisdiction_dates'] = live_dates
+
     @cached_property
     def live_compact_jurisdictions(self) -> dict[str, list[str]]:
         """
         Cached mapping of compact -> list of member jurisdictions live in system (postal abbreviations).
 
-        Values come from get_live_compact_jurisdictions. Fetched once per Lambda cold start;
-        subsequent accesses return the cached value. Used when generating privileges at runtime
-        to avoid repeated DynamoDB reads.
+        Fetched once per Lambda cold start, together with live_compact_jurisdiction_dates.
+        Subsequent accesses return the cached value.
         """
-        result: dict[str, list[str]] = {}
-        for compact in self.compacts:
-            try:
-                result[compact] = self.compact_configuration_client.get_live_compact_jurisdictions(compact)
-            except Exception:  # noqa: BLE001
-                logger.error('Failed to load live jurisdictions', compact=compact)
-                raise
-        return result
+        self._populate_live_jurisdiction_cache()
+        return self.__dict__['live_compact_jurisdictions']
+
+    @cached_property
+    def live_compact_jurisdiction_dates(self) -> dict[str, dict[str, datetime]]:
+        """
+        Cached mapping of compact -> {postal abbreviation -> datetime the jurisdiction went live}.
+
+        Loaded with live_compact_jurisdictions from the same compact configuration read.
+        A jurisdiction that is live but has no recorded date is omitted.
+        """
+        self._populate_live_jurisdiction_cache()
+        return self.__dict__['live_compact_jurisdiction_dates']
 
     @cached_property
     def user_client(self):

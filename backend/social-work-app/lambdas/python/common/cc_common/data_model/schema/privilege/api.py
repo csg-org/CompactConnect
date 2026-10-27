@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow.fields import List, Nested, Raw, String
-from marshmallow.validate import Length
+from marshmallow.validate import Length, OneOf
 
 from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionGeneralResponseSchema,
@@ -14,6 +14,30 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
+
+PRIVILEGE_HISTORY_UPDATE_TYPES = (
+    'issuance',
+    'encumbrance',
+    'liftingEncumbrance',
+    'homeJurisdictionChange',
+)
+
+
+class PrivilegeHistoryEventPublicSchema(ForgivingSchema):
+    """History event returned on a privilege in the public provider response."""
+
+    updateType = String(required=True, allow_none=False, validate=OneOf(PRIVILEGE_HISTORY_UPDATE_TYPES))
+    effectiveDate = Raw(required=True, allow_none=False)
+    createDate = Raw(required=True, allow_none=False)
+    previousHomeJurisdiction = Jurisdiction(required=False, allow_none=False)
+    newHomeJurisdiction = Jurisdiction(required=False, allow_none=False)
+
+
+class PrivilegeHistoryEventSchema(PrivilegeHistoryEventPublicSchema):
+    """History event returned on a privilege in the staff provider response."""
+
+    npdbCategories = List(String(), required=False, allow_none=False)
+    encumbranceType = String(required=False, allow_none=False)
 
 
 class PrivilegeGeneralResponseSchema(ForgivingSchema):
@@ -33,6 +57,7 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
+    history = List(Nested(PrivilegeHistoryEventSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
     # This field is only set if the privilege is under investigation
@@ -56,6 +81,7 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
+    history = List(Nested(PrivilegeHistoryEventSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
     # This field is only set if the privilege is under investigation
@@ -82,5 +108,6 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     licenseType = String(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionPublicResponseSchema, required=False, allow_none=False))
+    history = List(Nested(PrivilegeHistoryEventPublicSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)

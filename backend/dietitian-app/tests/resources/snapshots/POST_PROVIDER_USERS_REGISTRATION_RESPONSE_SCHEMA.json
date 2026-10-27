@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "message": {
+      "description": "A message about the request",
+      "type": "string"
+    }
+  },
+  "required": [
+    "message"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

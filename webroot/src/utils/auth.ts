@@ -175,6 +175,9 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         } else if (appMode === AppModes.PSYPACT) {
             config.clientId = envConfig.cognitoClientIdStaffPsypact;
             config.authDomain = envConfig.cognitoAuthDomainStaffPsypact;
+        } else if (appMode === AppModes.DIETITIANS) {
+            config.clientId = envConfig.cognitoClientIdStaffDiet;
+            config.authDomain = envConfig.cognitoAuthDomainStaffDiet;
         }
 
         break;
@@ -187,6 +190,9 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         } else if (appMode === AppModes.PSYPACT) {
             config.clientId = envConfig.cognitoClientIdLicenseePsypact;
             config.authDomain = envConfig.cognitoAuthDomainLicenseePsypact;
+        } else if (appMode === AppModes.DIETITIANS) {
+            config.clientId = envConfig.cognitoClientIdLicenseeDiet;
+            config.authDomain = envConfig.cognitoAuthDomainLicenseeDiet;
         }
         break;
     default:

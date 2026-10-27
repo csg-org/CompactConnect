@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - backend/compact-connect-ui-app/**
+      # Shared CDK constructs; a change here can break this app's synth and unit tests
+      - backend/common-cdk/**
 
 env:
   AWS_REGION : "us-east-1"

@@ -133,6 +133,25 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain('&response_type=code');
         expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fpsypact');
     });
+    it('should get correct hosted login uri config for staff (dietitian)', async () => {
+        const wrapper = await mountShallow(PublicDashboard);
+        const component = wrapper.vm;
+
+        await nextTick();
+        await flushPromises();
+
+        const loginUri = component.staffLoginUri(AppModes.DIETITIANS);
+
+        expect(component.csrfState).to.be.a('string').with.length.above(0);
+        expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
+        expect(loginUri).to.contain('/login');
+        expect(loginUri).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(loginUri).to.contain(`&state=${component.csrfState}`);
+        expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(loginUri).to.contain('&code_challenge_method=S256');
+        expect(loginUri).to.contain('&response_type=code');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fdietitian');
+    });
     it('should successfully render compact list in alphabetical order', async () => {
         const wrapper = await mountFull(PublicDashboard);
         const component = wrapper.vm;
@@ -205,6 +224,18 @@ describe('PublicDashboard page', async () => {
 
         expect(wrapper.find('.privilege-search').exists()).to.equal(true);
         expect(wrapper.find('.provider-login-card').exists()).to.equal(false);
+        expect(wrapper.find('.staff-login-card').exists()).to.equal(true);
+    });
+    it('should successfully show practitioner login for dietitians', async () => {
+        const wrapper = await mountFull(PublicDashboard);
+        const component = wrapper.vm;
+
+        await component.selectCompact(CompactType.DIETITIANS);
+        await nextTick();
+        await flushPromises();
+
+        expect(wrapper.find('.privilege-search').exists()).to.equal(true);
+        expect(wrapper.find('.provider-login-card').exists()).to.equal(true);
         expect(wrapper.find('.staff-login-card').exists()).to.equal(true);
     });
     it('should successfully update login options when compact selection changes', async () => {
@@ -322,5 +353,24 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain('&code_challenge_method=S256');
         expect(loginUri).to.contain('&response_type=code');
         expect(loginUri).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fpsypact');
+    });
+    it('should get correct hosted login uri config for licensee (dietitian)', async () => {
+        const wrapper = await mountShallow(PublicDashboard);
+        const component = wrapper.vm;
+
+        await nextTick();
+        await flushPromises();
+
+        const loginUri = component.licenseeLoginUri(AppModes.DIETITIANS);
+
+        expect(component.csrfState).to.be.a('string').with.length.above(0);
+        expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
+        expect(loginUri).to.contain('/login');
+        expect(loginUri).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(loginUri).to.contain(`&state=${component.csrfState}`);
+        expect(loginUri).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(loginUri).to.contain('&code_challenge_method=S256');
+        expect(loginUri).to.contain('&response_type=code');
+        expect(loginUri).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fdietitian');
     });
 });
