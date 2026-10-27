@@ -25,6 +25,7 @@ import {
 import { MilitaryAffiliation } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
+import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 import moment from 'moment';
@@ -102,6 +103,7 @@ describe('Licensee model', () => {
         expect(licensee.bestLicensePhoneNumberDisplay()).to.equal('');
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.history()).to.matchPattern([]);
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
@@ -232,6 +234,7 @@ describe('Licensee model', () => {
         expect(licensee.bestLicensePhoneNumberDisplay()).to.equal('');
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.history()).to.matchPattern([]);
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
@@ -492,8 +495,7 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
         expect(licensee.privileges).to.be.an('array').with.length(1);
         expect(licensee.privileges[0]).to.be.an.instanceof(License);
-        expect(licensee.adverseActions).to.be.an('array').with.length(1);
-        expect(licensee.adverseActions[0]).to.be.an.instanceof(AdverseAction);
+        expect(licensee.adverseActions).to.matchPattern([]);
         expect(licensee.lastUpdated).to.equal(data.dateOfUpdate);
         expect(licensee.militaryAffiliations).to.be.an('array').with.length(2);
         expect(licensee.militaryAffiliations[0]).to.be.an.instanceof(MilitaryAffiliation);
@@ -709,6 +711,7 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.history()).to.matchPattern([]);
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
@@ -1295,13 +1298,14 @@ describe('Licensee model', () => {
         // Test hasEncumbranceLiftedWithinWaitPeriod method
         expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(true);
     });
-    it('should create a Licensee with adverse actions built from license & privilege data', () => {
+    it('should keep nested license adverse actions for encumbrance checks without flattening to licensee', () => {
         const data = {
             providerId: 'test-id',
             licenseJurisdiction: 'co',
             currentHomeJurisdiction: 'co',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseStatus: LicenseeStatus.ACTIVE,
+            adverseActions: [{ adverseActionId: 'test-licensee-adverseAction-id', jurisdiction: 'oh' }],
             licenses: [
                 {
                     providerId: 'test-id',
@@ -1356,148 +1360,15 @@ describe('Licensee model', () => {
             ],
         };
         const licensee = LicenseeSerializer.fromServer(data);
-        const serverLicenseAction = data.licenses[0].adverseActions[0];
-        const serverPrivilegeAction = data.privileges[0].adverseActions[0];
 
-        // Test field values; license adverse actions are listed ahead of privilege adverse actions
-        expect(licensee.adverseActions).to.be.an('array').with.length(2);
-        expect(licensee.adverseActions[0]).to.be.an.instanceof(AdverseAction);
-        expect(licensee.adverseActions[0].id).to.equal(serverLicenseAction.adverseActionId);
-        expect(licensee.adverseActions[0].state?.abbrev).to.equal(serverLicenseAction.jurisdiction);
-        expect(licensee.adverseActions[0].startDate).to.equal(serverLicenseAction.effectiveStartDate);
-        expect(licensee.adverseActions[0].endDate).to.equal(serverLicenseAction.effectiveLiftDate);
-        expect(licensee.adverseActions[1]).to.be.an.instanceof(AdverseAction);
-        expect(licensee.adverseActions[1].id).to.equal(serverPrivilegeAction.adverseActionId);
-        expect(licensee.adverseActions[1].state?.abbrev).to.equal(serverPrivilegeAction.jurisdiction);
-        expect(licensee.adverseActions[1].startDate).to.equal(serverPrivilegeAction.effectiveStartDate);
-        expect(licensee.adverseActions[1].endDate).to.equal(serverPrivilegeAction.effectiveLiftDate);
-
-        // Test methods
+        expect(licensee.adverseActions).to.matchPattern([]);
+        expect(licensee.licenses[0].adverseActions).to.be.an('array').with.length(1);
+        expect(licensee.licenses[0].adverseActions[0]).to.be.an.instanceof(AdverseAction);
+        expect(licensee.privileges[0].adverseActions).to.be.an('array').with.length(1);
+        expect(licensee.privileges[0].adverseActions[0]).to.be.an.instanceof(AdverseAction);
         expect(licensee.hasEncumberedLicenses()).to.equal(true);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(true);
-    });
-    it('should create a Licensee with adverse actions built from license data only', () => {
-        const data = {
-            providerId: 'test-id',
-            licenses: [
-                {
-                    providerId: 'test-id',
-                    type: 'license-home',
-                    jurisdiction: 'co',
-                    licenseType: LicenseType.AUDIOLOGIST,
-                    adverseActions: [{ adverseActionId: 'test-license-adverseAction-id', jurisdiction: 'co' }],
-                },
-            ],
-        };
-        const licensee = LicenseeSerializer.fromServer(data);
-
-        expect(licensee.adverseActions).to.be.an('array').with.length(1);
-        expect(licensee.adverseActions[0].id).to.equal('test-license-adverseAction-id');
-    });
-    it('should create a Licensee with adverse actions built from privilege data only', () => {
-        const data = {
-            providerId: 'test-id',
-            privileges: [
-                {
-                    providerId: 'test-id',
-                    type: 'privilege',
-                    jurisdiction: 'al',
-                    licenseType: LicenseType.AUDIOLOGIST,
-                    adverseActions: [{ adverseActionId: 'test-privilege-adverseAction-id', jurisdiction: 'al' }],
-                },
-            ],
-        };
-        const licensee = LicenseeSerializer.fromServer(data);
-
-        expect(licensee.adverseActions).to.be.an('array').with.length(1);
-        expect(licensee.adverseActions[0].id).to.equal('test-privilege-adverseAction-id');
-    });
-    it('should create a Licensee with adverse actions built from license & privilege data (null licensee level)', () => {
-        const data = {
-            providerId: 'test-id',
-            adverseActions: null,
-            licenses: [
-                {
-                    providerId: 'test-id',
-                    type: 'license-home',
-                    jurisdiction: 'co',
-                    licenseType: LicenseType.AUDIOLOGIST,
-                    adverseActions: [{ adverseActionId: 'test-license-adverseAction-id', jurisdiction: 'co' }],
-                },
-            ],
-            privileges: [
-                {
-                    providerId: 'test-id',
-                    type: 'privilege',
-                    jurisdiction: 'al',
-                    licenseType: LicenseType.AUDIOLOGIST,
-                    adverseActions: [{ adverseActionId: 'test-privilege-adverseAction-id', jurisdiction: 'al' }],
-                },
-            ],
-        };
-        const licensee = LicenseeSerializer.fromServer(data);
-
-        expect(licensee.adverseActions).to.be.an('array').with.length(2);
-        expect(licensee.adverseActions[0].id).to.equal('test-license-adverseAction-id');
-        expect(licensee.adverseActions[1].id).to.equal('test-privilege-adverseAction-id');
-    });
-    it('should create a Licensee with licensee-level adverse actions taking precedence over license & privilege data', () => {
-        const data = {
-            providerId: 'test-id',
-            adverseActions: [{ adverseActionId: 'test-licensee-adverseAction-id', jurisdiction: 'oh' }],
-            licenses: [
-                {
-                    providerId: 'test-id',
-                    type: 'license-home',
-                    jurisdiction: 'co',
-                    licenseType: LicenseType.AUDIOLOGIST,
-                    adverseActions: [{ adverseActionId: 'test-license-adverseAction-id', jurisdiction: 'co' }],
-                },
-            ],
-            privileges: [
-                {
-                    providerId: 'test-id',
-                    type: 'privilege',
-                    jurisdiction: 'al',
-                    licenseType: LicenseType.AUDIOLOGIST,
-                    adverseActions: [{ adverseActionId: 'test-privilege-adverseAction-id', jurisdiction: 'al' }],
-                },
-            ],
-        };
-        const licensee = LicenseeSerializer.fromServer(data);
-
-        expect(licensee.adverseActions).to.be.an('array').with.length(1);
-        expect(licensee.adverseActions[0].id).to.equal('test-licensee-adverseAction-id');
-        expect(licensee.licenses[0].adverseActions).to.be.an('array').with.length(1);
-        expect(licensee.privileges[0].adverseActions).to.be.an('array').with.length(1);
-    });
-    it('should create a Licensee with no adverse actions (empty licensee-level array)', () => {
-        const data = {
-            providerId: 'test-id',
-            adverseActions: [],
-            licenses: [
-                {
-                    providerId: 'test-id',
-                    type: 'license-home',
-                    jurisdiction: 'co',
-                    licenseType: LicenseType.AUDIOLOGIST,
-                    adverseActions: [{ adverseActionId: 'test-license-adverseAction-id', jurisdiction: 'co' }],
-                },
-            ],
-            privileges: [
-                {
-                    providerId: 'test-id',
-                    type: 'privilege',
-                    jurisdiction: 'al',
-                    licenseType: LicenseType.AUDIOLOGIST,
-                    adverseActions: [{ adverseActionId: 'test-privilege-adverseAction-id', jurisdiction: 'al' }],
-                },
-            ],
-        };
-        const licensee = LicenseeSerializer.fromServer(data);
-
-        expect(licensee.adverseActions).to.matchPattern([]);
     });
     it('should create a Licensee with no adverse actions (get-all response shape)', () => {
         const data = {
@@ -1508,6 +1379,117 @@ describe('Licensee model', () => {
         const licensee = LicenseeSerializer.fromServer(data);
 
         expect(licensee.adverseActions).to.matchPattern([]);
+    });
+    it('should create a Licensee with history built from license & privilege history', () => {
+        const data = {
+            providerId: 'test-id',
+            licenseJurisdiction: 'ne',
+            currentHomeJurisdiction: 'ne',
+            licenseType: LicenseType.AUDIOLOGIST,
+            licenseStatus: LicenseeStatus.ACTIVE,
+            licenses: [
+                {
+                    providerId: 'test-id',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'ne',
+                    licenseType: LicenseType.AUDIOLOGIST,
+                    licenseStatus: LicenseStatus.ACTIVE,
+                    compactEligibility: EligibilityStatus.ELIGIBLE,
+                    history: [
+                        {
+                            updateType: 'issuance',
+                            effectiveDate: '2021-03-15T00:00:00+00:00',
+                            createDate: '2021-03-15T00:00:00+00:00',
+                        },
+                        {
+                            updateType: 'encumbrance',
+                            effectiveDate: '2022-09-10',
+                            createDate: '2022-09-10T18:45:00+00:00',
+                            encumbranceType: 'required supervision',
+                            npdbCategories: [
+                                'Unsafe Practice or Substandard Care',
+                                'Misconduct or Abuse',
+                            ],
+                        },
+                        {
+                            updateType: 'liftingEncumbrance',
+                            effectiveDate: '2023-01-05',
+                            createDate: '2023-01-05T09:00:00+00:00',
+                        },
+                        {
+                            updateType: 'renewal',
+                            effectiveDate: '2023-03-15T00:00:00+00:00',
+                            createDate: '2023-03-15T00:00:00+00:00',
+                        },
+                    ],
+                },
+            ],
+            privilegeJurisdictions: ['tx'],
+            privileges: [
+                {
+                    providerId: 'test-id',
+                    compact: CompactType.ASLP,
+                    type: 'privilege',
+                    jurisdiction: 'tx',
+                    licenseType: LicenseType.AUDIOLOGIST,
+                    status: LicenseStatus.ACTIVE,
+                    history: [
+                        {
+                            updateType: 'issuance',
+                            effectiveDate: '2021-03-15T00:00:00+00:00',
+                            createDate: '2021-03-15T00:00:00+00:00',
+                        },
+                        {
+                            updateType: 'encumbrance',
+                            effectiveDate: '2023-05-20',
+                            createDate: '2023-05-20T11:00:00+00:00',
+                        },
+                    ],
+                },
+            ],
+        };
+        const licensee = LicenseeSerializer.fromServer(data);
+        const history = licensee.history();
+
+        expect(history).to.be.an('array').with.length(6);
+        expect(history[0]).to.be.an.instanceof(LicenseHistoryItem);
+        expect(history[0].updateType).to.equal('issuance');
+        expect(history[0].state.abbrev).to.equal('ne');
+        expect(history[1].updateType).to.equal('encumbrance');
+        expect(history[1].state.abbrev).to.equal('ne');
+        expect(history[1].encumbranceType).to.equal('required supervision');
+        expect(history[1].npdbTypeNames()).to.matchPattern([
+            'Unsafe Practice or Substandard Care',
+            'Misconduct or Abuse',
+        ]);
+        expect(history[2].updateType).to.equal('liftingEncumbrance');
+        expect(history[2].state.abbrev).to.equal('ne');
+        expect(history[3].updateType).to.equal('renewal');
+        expect(history[3].state.abbrev).to.equal('ne');
+        expect(history[4].updateType).to.equal('issuance');
+        expect(history[4].state.abbrev).to.equal('tx');
+        expect(history[5].updateType).to.equal('encumbrance');
+        expect(history[5].state.abbrev).to.equal('tx');
+    });
+    it('should return empty history when licenses and privileges are missing', () => {
+        const licensee = new Licensee();
+
+        licensee.licenses = null as any;
+        licensee.privileges = null as any;
+
+        expect(licensee.history()).to.matchPattern([]);
+    });
+    it('should return empty history entries when license and privilege history are missing', () => {
+        const licensee = new Licensee({
+            licenses: [new License()],
+            privileges: [new License({ isPrivilege: true })],
+        });
+
+        licensee.licenses[0].history = null as any;
+        licensee.privileges[0].history = null as any;
+
+        expect(licensee.history()).to.matchPattern([]);
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({
