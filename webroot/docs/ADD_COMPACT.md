@@ -70,7 +70,7 @@ These **do** still need per-compact work (not automatic):
 **`src/utils/compactConfig.ts`**
 
 - [ ] Add `CompactType.YOUR_COMPACT = 'abbr'`
-- [ ] Add `compactSetups` entry (`type`, `appMode`, `isEnabled`)
+- [ ] Add `compactSetups` entry (`type`, `appMode`, `hasLicenseeLogin`, `isEnabled`)
 - [ ] Add `appModeGroups[AppModes.YOUR_MODE]` → existing `PRIVILEGE_PURCHASE` or `MULTI_STATE`
 - [ ] Add `appModeEncumberConfigs[AppModes.YOUR_MODE]` (license + privilege discipline / NPDB lists; reuse shared helpers when possible)
 
@@ -167,7 +167,6 @@ Only if the new compact should participate in these flows:
 **`src/pages/PublicDashboard/PublicDashboard.ts`**
 
 - [ ] Add a `?bypass=login-staff-…` case if emails or deep links need it (see cosmo / social work)
-- [ ] `hasPractitionerLogin` is JCC / PsyPact only — add the new mode if this compact allows practitioner login
 
 **`src/pages/PublicDashboard/PublicDashboard.spec.ts`**
 

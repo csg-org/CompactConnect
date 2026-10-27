@@ -143,18 +143,29 @@
                         </section>
                     </Card>
                     <Card class="dashboard-card privilege-search" :allowOverflow="true">
-                        <section :aria-labelledby="publicLookupHeadingId">
+                        <section
+                            :aria-labelledby="(shouldShowCompactSelect)
+                                ? 'public-lookup-heading'
+                                : 'dashboard-step-heading'"
+                        >
                             <div class="header">
                                 <SearchIcon class="login-icon" aria-hidden="true" />
                                 <div class="title-container">
-                                    <component
-                                        :is="publicLookupHeadingTag"
-                                        :id="publicLookupHeadingId"
+                                    <h2
+                                        v-if="shouldShowCompactSelect"
+                                        id="public-lookup-heading"
                                         class="title"
-                                        :tabindex="(shouldShowCompactSelect) ? undefined : '-1'"
                                     >
                                         {{ $t('navigation.verifyPrivilege') }}
-                                    </component>
+                                    </h2>
+                                    <h1
+                                        v-else
+                                        id="dashboard-step-heading"
+                                        class="title"
+                                        tabindex="-1"
+                                    >
+                                        {{ $t('navigation.verifyPrivilege') }}
+                                    </h1>
                                     <p class="title-subtext">{{ $t('navigation.verifyPrivilegeSubtext') }}</p>
                                 </div>
                             </div>

@@ -56,6 +56,7 @@ describe('Compacts plugin', async () => {
         expect(aslp).to.matchPattern({
             type: CompactType.ASLP,
             appMode: AppModes.JCC,
+            hasLicenseeLogin: true,
             isEnabled: true,
             name: 'Audiology and Speech Language Pathology',
             abbrev: 'ASLP',

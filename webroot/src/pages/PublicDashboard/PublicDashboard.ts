@@ -46,7 +46,7 @@ export default class DashboardPublic extends Vue {
     csrfState = '';
     pkceChallenge = '';
     selectedCompactType: CompactType | null = null;
-    formData: any = {};
+    formData: any = {}; // Skip the form mixin for now; this page only has one dropdown
 
     //
     // Lifecycle
@@ -144,20 +144,7 @@ export default class DashboardPublic extends Vue {
     }
 
     get hasPractitionerLogin(): boolean {
-        const { selectedAppMode } = this;
-        const hasLogin = selectedAppMode === AppModes.JCC
-            || selectedAppMode === AppModes.PSYPACT
-            || selectedAppMode === AppModes.DIETITIANS;
-
-        return hasLogin;
-    }
-
-    get publicLookupHeadingTag(): string {
-        return (this.shouldShowCompactSelect) ? 'h2' : 'h1';
-    }
-
-    get publicLookupHeadingId(): string {
-        return (this.shouldShowCompactSelect) ? 'public-lookup-heading' : 'dashboard-step-heading';
+        return Boolean(this.selectedCompact?.hasLicenseeLogin);
     }
 
     //
@@ -302,17 +289,12 @@ export default class DashboardPublic extends Vue {
 
         if (shouldMoveFocus) {
             await this.$nextTick();
-
             this.focusStepHeading();
         }
     }
 
     focusStepHeading(): void {
-        const heading = this.$el?.querySelector('#dashboard-step-heading') as HTMLElement | null;
-
-        if (heading) {
-            heading.focus();
-        }
+        this.$el?.querySelector('#dashboard-step-heading')?.focus();
     }
 
     async handleCompactSelect(): Promise<void> {
