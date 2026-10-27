@@ -165,7 +165,6 @@ class TestPopulateProviderDocuments(TstFunction):
     @patch('handlers.populate_provider_documents.OpenSearchClient')
     def test_reset_indexes_rejects_non_boolean_values(self, mock_opensearch_client):
         from cc_common.exceptions import CCInvalidRequestException
-
         from handlers.populate_provider_documents import populate_provider_documents
 
         for value in ('false', 'true', 1, 0, None):
