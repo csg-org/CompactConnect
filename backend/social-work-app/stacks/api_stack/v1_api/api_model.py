@@ -1159,6 +1159,11 @@ class ApiModel:
                                     type=JsonSchemaType.BOOLEAN,
                                     description='Whether the state is live and available for registrations.',
                                 ),
+                                'dateOfLive': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    format='date-time',
+                                    description='When the state went live. Set by the server when isLive becomes true.',
+                                ),
                             },
                         ),
                     ),
@@ -1222,6 +1227,11 @@ class ApiModel:
                                 'isLive': JsonSchema(
                                     type=JsonSchemaType.BOOLEAN,
                                     description='Whether the state is live and available for registrations.',
+                                ),
+                                'dateOfLive': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    format='date-time',
+                                    description='When the state went live. Ignored on write; the server records it.',
                                 ),
                             },
                         ),

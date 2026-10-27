@@ -257,12 +257,12 @@ class CompactConfigurationClient:
             },
         )
 
-    def get_live_compact_jurisdictions(self, compact: str) -> list[str]:
+    def get_live_configured_states(self, compact: str) -> list[dict]:
         """
-        Get all live (isLive: true) jurisdiction postal abbreviations for a specific compact.
+        Get configured states that are live for a compact, including dateOfLive when it was recorded.
 
         :param compact: The compact abbreviation
-        :return: List of jurisdiction postal abbreviations that are live in the compact
+        :return: Live configuredStates entries
         """
         logger.info('Getting live jurisdictions for compact', compact=compact)
 
@@ -272,15 +272,21 @@ class CompactConfigurationClient:
             logger.info('Compact configuration not found, returning empty list', compact=compact)
             return []
 
-        # Filter configuredStates for those with isLive: true and extract postal abbreviations
-        live_jurisdictions = [
-            state['postalAbbreviation'] for state in compact_config.configuredStates if state.get('isLive', False)
-        ]
+        live_states = [state for state in compact_config.configuredStates if state.get('isLive', False)]
 
         logger.info(
             'Retrieved live jurisdictions for compact',
             compact=compact,
-            live_jurisdictions_count=len(live_jurisdictions),
+            live_jurisdictions_count=len(live_states),
         )
 
-        return live_jurisdictions
+        return live_states
+
+    def get_live_compact_jurisdictions(self, compact: str) -> list[str]:
+        """
+        Get all live (isLive: true) jurisdiction postal abbreviations for a specific compact.
+
+        :param compact: The compact abbreviation
+        :return: List of jurisdiction postal abbreviations that are live in the compact
+        """
+        return [state['postalAbbreviation'] for state in self.get_live_configured_states(compact)]

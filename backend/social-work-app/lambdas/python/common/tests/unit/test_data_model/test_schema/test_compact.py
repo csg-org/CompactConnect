@@ -93,3 +93,17 @@ class TestCompactRecordSchema(TstLambdas):
 
         compact_data = schema.dump(loaded_schema)
         self.assertEqual([], compact_data['configuredStates'])
+
+    def test_compact_config_round_trips_date_of_live(self):
+        """dateOfLive is stored with the configured state and omitted when it was never recorded."""
+        from cc_common.data_model.schema.compact.record import CompactRecordSchema
+
+        with open('tests/resources/dynamo/compact.json') as f:
+            expected_compact = json.load(f, parse_float=Decimal)
+        expected_compact['configuredStates'][0]['dateOfLive'] = '2024-03-01T00:00:00+00:00'
+
+        schema = CompactRecordSchema()
+        compact_data = schema.dump(schema.load(expected_compact.copy()))
+
+        self.assertEqual('2024-03-01T00:00:00+00:00', compact_data['configuredStates'][0]['dateOfLive'])
+        self.assertNotIn('dateOfLive', compact_data['configuredStates'][1])

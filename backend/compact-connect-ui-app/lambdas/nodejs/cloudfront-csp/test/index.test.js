@@ -43,6 +43,13 @@ const environmentValues = {
     s3UploadUrlProviderPsyPact: 'prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwl.s3.amazonaws.com',
     cognitoStaffPsyPact: 'staff-auth.psypact.org',
     cognitoProviderPsyPact: 'licensee-auth.psypact.org',
+    // DIETITIANS
+    dataApiDietitians: 'api.dietitian.compactconnect.org',
+    searchApiDietitians: 'search.dietitian.compactconnect.org',
+    s3UploadUrlStateDietitians: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5l.s3.amazonaws.com',
+    s3UploadUrlProviderDietitians: 'prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwl.s3.amazonaws.com',
+    cognitoStaffDietitians: 'staff-auth.dietitian.compactconnect.org',
+    cognitoProviderDietitians: 'licensee-auth.dietitian.compactconnect.org',
 };
 
 /**
@@ -88,6 +95,13 @@ const prepareLambdaForTest = () => {
         '##S3_UPLOAD_URL_PROVIDER_PSYPACT##': environmentValues.s3UploadUrlProviderPsyPact,
         '##COGNITO_STAFF_PSYPACT##': environmentValues.cognitoStaffPsyPact,
         '##COGNITO_PROVIDER_PSYPACT##': environmentValues.cognitoProviderPsyPact,
+        // DIETITIANS
+        '##DATA_API_DIETITIANS##': environmentValues.dataApiDietitians,
+        '##SEARCH_API_DIETITIANS##': environmentValues.searchApiDietitians,
+        '##S3_UPLOAD_URL_STATE_DIETITIANS##': environmentValues.s3UploadUrlStateDietitians,
+        '##S3_UPLOAD_URL_PROVIDER_DIETITIANS##': environmentValues.s3UploadUrlProviderDietitians,
+        '##COGNITO_STAFF_DIETITIANS##': environmentValues.cognitoStaffDietitians,
+        '##COGNITO_PROVIDER_DIETITIANS##': environmentValues.cognitoProviderDietitians,
     };
 
     // Apply all replacements to the Lambda code
@@ -131,6 +145,13 @@ const buildCspHeaders = (environment) => {
     const s3UploadUrlProviderPsyPact = (environment?.s3UploadUrlProviderPsyPact) ? `https://${environment.s3UploadUrlProviderPsyPact}` : '';
     const cognitoStaffUrlPsyPact = (environment?.cognitoStaffPsyPact) ? `https://${environment.cognitoStaffPsyPact}` : '';
     const cognitoProviderUrlPsyPact = (environment?.cognitoProviderPsyPact) ? `https://${environment.cognitoProviderPsyPact}` : '';
+    // DIETITIANS
+    const dataApiUrlDietitians = (environment?.dataApiDietitians) ? `https://${environment.dataApiDietitians}` : '';
+    const searchApiUrlDietitians = (environment?.searchApiDietitians) ? `https://${environment.searchApiDietitians}` : '';
+    const s3UploadUrlStateDietitians = (environment?.s3UploadUrlStateDietitians) ? `https://${environment.s3UploadUrlStateDietitians}` : '';
+    const s3UploadUrlProviderDietitians = (environment?.s3UploadUrlProviderDietitians) ? `https://${environment.s3UploadUrlProviderDietitians}` : '';
+    const cognitoStaffUrlDietitians = (environment?.cognitoStaffDietitians) ? `https://${environment.cognitoStaffDietitians}` : '';
+    const cognitoProviderUrlDietitians = (environment?.cognitoProviderDietitians) ? `https://${environment.cognitoProviderDietitians}` : '';
     // src configs are maintained here as arrays for ease of maintenance;
     // defining them as static strings could lead to long lines of code.
     const cspDefaultSrc = [
@@ -185,6 +206,7 @@ const buildCspHeaders = (environment) => {
         dataApiUrlCosmo,
         dataApiUrlSw,
         dataApiUrlPsyPact,
+        dataApiUrlDietitians,
         'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspMediaSrc = [
@@ -193,6 +215,7 @@ const buildCspHeaders = (environment) => {
         dataApiUrlCosmo,
         dataApiUrlSw,
         dataApiUrlPsyPact,
+        dataApiUrlDietitians,
     ].join(' ');
     const cspFrameSrc = [
         '\'self\'',
@@ -238,6 +261,13 @@ const buildCspHeaders = (environment) => {
         s3UploadUrlProviderPsyPact,
         cognitoStaffUrlPsyPact,
         cognitoProviderUrlPsyPact,
+        // DIETITIANS
+        dataApiUrlDietitians,
+        searchApiUrlDietitians,
+        s3UploadUrlStateDietitians,
+        s3UploadUrlProviderDietitians,
+        cognitoStaffUrlDietitians,
+        cognitoProviderUrlDietitians,
         // Begin Statsig domains
         'https://api.statsig.com/',
         'https://featuregates.org/',

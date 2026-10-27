@@ -16,8 +16,9 @@ def get_provider_information(compact: str, provider_id: str, is_public_response:
     not be included in the response.
     :return: Provider profile information.
     """
-    # Collect all main provider records and privilege update records, which are included in tier one.
+    # Tier three includes provider and license update records, which the history on each
+    # license and privilege is assembled from.
     provider_user_records = config.data_client.get_provider_user_records(
-        compact=compact, provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_ONE
+        compact=compact, provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
     )
     return provider_user_records.generate_api_response_object(is_public_response=is_public_response)

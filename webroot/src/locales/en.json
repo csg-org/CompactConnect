@@ -81,6 +81,7 @@
         "gender": "Gender",
         "race": "Race",
         "ethnicity": "Ethnicity",
+        "date": "Date",
         "startDate": "Start date",
         "endDate": "End date",
         "welcome": "Welcome",
@@ -526,6 +527,11 @@
             "name": "PSYPACT",
             "abbrev": "PSYPACT",
             "key": "psypact"
+        },
+        {
+            "name": "Dietitians",
+            "abbrev": "Dietitians",
+            "key": "diet"
         }
     ],
     "compact": {
@@ -694,10 +700,10 @@
         "iUnderstand": "I understand",
         "jurisprudenceConfirmation": "Jurisprudence Confirmation",
         "lastUpdate": "Latest upload",
-        "disciplineTitle": "Disciplinary information",
         "disciplineStatus": "Discipline status",
         "noDiscipline": "No discipline",
-        "disciplineDisclaimer": "For further information regarding disciplinary action, please visit the website of the relevant licensing board in the state where the license or privilege is held.",
+        "noHistory": "No history",
+        "historyDisclaimer": "For further information regarding disciplinary action, please visit the website of the relevant licensing board in the state where the license or privilege is held.",
         "twoHomeStateErrorMessage": "Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.",
         "jurisprudenceExplanationText": "I attest I have successfully completed a jurisprudence exam for this state, if required",
         "scopeAttestTitle": "Scope of practice attestation",
@@ -740,6 +746,9 @@
         "confirmPrivilegeDeactivateSubtext": "The practitioner will no longer be able to use this privilege. This does not constitute a disciplinary action.",
         "deactivateNotesTitle": "Deactivation notes",
         "deactivation": "Deactivation",
+        "licenseIssuance": "License issuance ({scope})",
+        "licenseIssuanceNoScope": "License issuance",
+        "privilegeIssuance": "Privilege issuance",
         "deactivateNotesPlaceholder": "Enter notes here",
         "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
         "encumber": "Encumber",
@@ -800,12 +809,13 @@
         "underInvestigationAlertMultipleLocations": "multiple states",
         "underInvestigationAlertStatus": "Privileges can still be used while under investigation.",
         "expiringIn": "Expiring in",
+        "event": "Event",
         "events": "Events",
         "expirationTimeExplanation": "Privilege dates use the <em>UTC-4 time zone</em>. This means that privileges will expire at 11:59PM US Eastern Time during Daylight Savings (summer), and at 10:59 PM in the US Eastern time zone during Standard Time (winter).",
         "uploadedOn": "Uploaded on",
         "licenseEvents": [
             {
-                "name": "Privilege purchased",
+                "name": "Privilege issuance",
                 "key": "issuance"
             },
             {
@@ -831,6 +841,10 @@
             {
                 "name": "Privilege Unencumbered",
                 "key": "lifting_encumbrance"
+            },
+            {
+                "name": "Encumbrance lifted",
+                "key": "liftingEncumbrance"
             },
             {
                 "name": "Encumbrance",
@@ -903,6 +917,12 @@
                 "key": "psychologist",
                 "compactKey": "psypact",
                 "abbrev": "PSY"
+            },
+            {
+                "name": "Dietitian",
+                "key": "dietitian",
+                "compactKey": "diet",
+                "abbrev": "DIET"
             }
         ],
         "licenseScopes": [

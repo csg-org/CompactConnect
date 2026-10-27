@@ -164,6 +164,15 @@ class TestTransformations(TstFunction):
         expected_provider['providerId'] = provider_id
         # privileges tied to active states
         expected_provider['privileges'] = []
+        # Both ingested licenses receive firstUploadDate from the patched clock.
+        for license_data in expected_provider['licenses']:
+            license_data['history'] = [
+                {
+                    'updateType': 'issuance',
+                    'effectiveDate': MOCK_CURRENT_DATETIME_STRING,
+                    'createDate': MOCK_CURRENT_DATETIME_STRING,
+                }
+            ]
 
         # Drop dynamic fields from comparison
         del provider_data['dateOfUpdate']

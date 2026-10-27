@@ -40,8 +40,10 @@ def generate_csp_lambda_code(
     persistent_stack_values_cosmetology: PersistentStackFrontendAppConfigValues,
     persistent_stack_values_socialwork: PersistentStackFrontendAppConfigValues,
     persistent_stack_values_psypact: PersistentStackFrontendAppConfigValues,
+    persistent_stack_values_dietitian: PersistentStackFrontendAppConfigValues,
     provider_users_stack_values: ProviderUsersStackFrontendAppConfigValues,
     provider_users_stack_values_psypact: ProviderUsersStackFrontendAppConfigValues,
+    provider_users_stack_values_dietitian: ProviderUsersStackFrontendAppConfigValues,
 ) -> str:
     """
     Generate CSP Lambda code with injected configuration values.
@@ -89,6 +91,13 @@ def generate_csp_lambda_code(
         '##S3_UPLOAD_URL_PROVIDER_PSYPACT##': f'{persistent_stack_values_psypact.provider_users_bucket_name}{S3_URL_SUFFIX}',
         '##COGNITO_STAFF_PSYPACT##': persistent_stack_values_psypact.staff_cognito_domain,
         '##COGNITO_PROVIDER_PSYPACT##': provider_users_stack_values_psypact.provider_cognito_domain,
+        # DIETITIANS
+        '##DATA_API_DIETITIANS##': persistent_stack_values_dietitian.api_domain_name,
+        '##SEARCH_API_DIETITIANS##': persistent_stack_values_dietitian.search_api_domain_name,
+        '##S3_UPLOAD_URL_STATE_DIETITIANS##': f'{persistent_stack_values_dietitian.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
+        '##S3_UPLOAD_URL_PROVIDER_DIETITIANS##': f'{persistent_stack_values_dietitian.provider_users_bucket_name}{S3_URL_SUFFIX}',
+        '##COGNITO_STAFF_DIETITIANS##': persistent_stack_values_dietitian.staff_cognito_domain,
+        '##COGNITO_PROVIDER_DIETITIANS##': provider_users_stack_values_dietitian.provider_cognito_domain,
     }
 
     for placeholder, value in replacements.items():
@@ -110,8 +119,10 @@ class UIDistribution(Distribution):
         persistent_stack_frontend_app_config_values_cosmetology: PersistentStackFrontendAppConfigValues,
         persistent_stack_frontend_app_config_values_socialwork: PersistentStackFrontendAppConfigValues,
         persistent_stack_frontend_app_config_values_psypact: PersistentStackFrontendAppConfigValues,
+        persistent_stack_frontend_app_config_values_dietitian: PersistentStackFrontendAppConfigValues,
         provider_users_stack_frontend_app_config_values: ProviderUsersStackFrontendAppConfigValues,
         provider_users_stack_frontend_app_config_values_psypact: ProviderUsersStackFrontendAppConfigValues,
+        provider_users_stack_frontend_app_config_values_dietitian: ProviderUsersStackFrontendAppConfigValues,
     ):
         stack: AppStack = AppStack.of(scope)
 
@@ -153,8 +164,10 @@ class UIDistribution(Distribution):
             persistent_stack_frontend_app_config_values_cosmetology,
             persistent_stack_frontend_app_config_values_socialwork,
             persistent_stack_frontend_app_config_values_psypact,
+            persistent_stack_frontend_app_config_values_dietitian,
             provider_users_stack_frontend_app_config_values,
             provider_users_stack_frontend_app_config_values_psypact,
+            provider_users_stack_frontend_app_config_values_dietitian,
         )
 
         self.csp_function = Function(

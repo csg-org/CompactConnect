@@ -11,7 +11,7 @@ import { dateDisplay } from '@models/_formatters/date';
 import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
-import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
+import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
 import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation, InvestigationSerializer } from '@models/Investigation/Investigation.model';
@@ -33,7 +33,11 @@ export enum LicenseType {
     PROFESSIONAL_CLINICAL_COUNSELOR = 'licensed professional clinical counselor',
     COSMETOLOGIST = 'cosmetologist',
     ESTHETICIAN = 'esthetician',
+    LICENSED_CLINICAL_SOCIAL_WORKER = 'licensed clinical social worker',
+    LICENSED_MASTERS_SOCIAL_WORKER = 'licensed master social worker',
+    LICENSED_BACHELORS_SOCIAL_WORKER = 'licensed bachelors social worker',
     PSYCHOLOGIST = 'psychologist',
+    DIETITIAN = 'dietitian',
 }
 
 export enum LicenseScope {
@@ -261,9 +265,24 @@ export class LicenseSerializer {
             eligibility: (json.type === 'license' || json.type === 'license-home')
                 ? json.compactEligibility
                 : EligibilityStatus.NA,
+            history: [] as Array<LicenseHistoryItem>,
             adverseActions: [] as Array<AdverseAction>,
             investigations: [] as Array<Investigation>,
         };
+
+        if (Array.isArray(json.history)) {
+            const jurisdiction = json.jurisdiction || json.licenseJurisdiction;
+
+            json.history.forEach((serverHistoryItem) => {
+                licenseData.history.push(LicenseHistoryItemSerializer.fromServer({
+                    ...serverHistoryItem,
+                    type: serverHistoryItem.type
+                        || ((licenseData.isPrivilege) ? 'privilegeUpdate' : 'licenseUpdate'),
+                    licenseScope: serverHistoryItem.licenseScope || licenseData.licenseScope,
+                    jurisdiction: serverHistoryItem.jurisdiction || jurisdiction,
+                }));
+            });
+        }
 
         if (Array.isArray(json.adverseActions)) {
             json.adverseActions.forEach((serverAdverseAction) => {

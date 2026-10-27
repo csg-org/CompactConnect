@@ -109,6 +109,26 @@ updates:
           - "minor"
           - "patch"
 
+  # dietitian-app
+  - package-ecosystem: "pip"
+    directories:
+      - "/backend/dietitian-app"
+      - "/backend/dietitian-app/lambdas/python/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    cooldown:
+      default-days: 7
+    groups:
+      dietitian-python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
   # multi-account
   - package-ecosystem: "pip"
     directories:

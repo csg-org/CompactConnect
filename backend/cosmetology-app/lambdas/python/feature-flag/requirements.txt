@@ -4,7 +4,7 @@
 #
 #    pip-compile --cert=None --client-cert=None --index-url=None --no-emit-index-url --pip-args=None compact-connect/lambdas/python/feature-flag/requirements.in
 #
-certifi==2025.8.3
+certifi==2026.10.19
     # via requests
 charset-normalizer==3.4.3
     # via requests
@@ -14,7 +14,7 @@ requests==2.34.2
     # via statsig-python-core
 statsig-python-core==0.23.0
     # via -r feature-flag/requirements.in
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via statsig-python-core
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests

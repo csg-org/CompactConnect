@@ -65,6 +65,7 @@ export const appModeFlags = [
     'isAppModeCosmetology',
     'isAppModeSocialWork',
     'isAppModePsyPact',
+    'isAppModeDietitians',
     'isAppGroupModePrivilegePurchase',
     'isAppGroupModeMultiState',
 ] as const;

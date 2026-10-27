@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import Schema, ValidationError
-from marshmallow.fields import Boolean, String
+from marshmallow.fields import AwareDateTime, Boolean, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
@@ -18,6 +18,9 @@ class ConfiguredStateSchema(Schema):
 
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     isLive = Boolean(required=True, allow_none=False)
+    # Recorded by the server when isLive changes to true. States that went live before this
+    # field existed, and states that are not live, omit it.
+    dateOfLive = AwareDateTime(required=False, allow_none=False)
 
 
 def validate_no_duplicates_in_configured_states(data):  # noqa: ARG001 unused-argument

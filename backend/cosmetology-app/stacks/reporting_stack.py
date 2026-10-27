@@ -26,6 +26,7 @@ class ReportingStack(AppStack):
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         self._add_ingest_event_reporting_chain(persistent_stack)
+        self._add_invoice_reporting(persistent_stack)
 
     def _add_ingest_event_reporting_chain(self, persistent_stack: ps.PersistentStack):
         from_address = f'noreply@{persistent_stack.user_email_notifications.email_identity.email_identity_name}'
@@ -124,6 +125,70 @@ class ReportingStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[event_collector.log_group],
+        )
+
+    def _add_invoice_reporting(self, persistent_stack: ps.PersistentStack):
+        from_address = f'noreply@{persistent_stack.user_email_notifications.email_identity.email_identity_name}'
+        ui_base_path_url = self._get_ui_base_path_url()
+
+        invoice_reporter = NodejsFunction(
+            self,
+            'InvoiceReporter',
+            description='Monthly compact invoice reporter',
+            lambda_dir='invoice-reporter',
+            handler='generateInvoice',
+            timeout=Duration.minutes(15),
+            # This lambda sends email notifications, so we do not want it to retry in the event of a failure
+            # we will instead trigger an alert for support to investigate and address as needed.
+            retry_attempts=0,
+            memory_size=2048,
+            environment={
+                'FROM_ADDRESS': from_address,
+                'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
+                'UI_BASE_PATH_URL': ui_base_path_url,
+                'FEE_PER_LICENSE': '25',
+                **self.common_env_vars,
+            },
+        )
+        persistent_stack.provider_table.grant_read_data(invoice_reporter)
+        persistent_stack.compact_configuration_table.grant_read_data(invoice_reporter)
+        persistent_stack.setup_ses_permissions_for_lambda(invoice_reporter)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{invoice_reporter.role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """
+                    This policy contains wild-carded actions and resources but they are scoped to the
+                    specific actions, KMS key, Table, and Email Identity that this lambda specifically needs access to.
+                    """,
+                },
+            ],
+        )
+
+        Alarm(
+            self,
+            'InvoiceReporterFailure',
+            metric=invoice_reporter.metric_errors(statistic=Stats.SUM),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'{invoice_reporter.node.path} failed to generate an invoice',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+
+        # The 2nd of the month, so the prior month's uploads are complete.
+        Rule(
+            self,
+            'MonthlyInvoiceRule',
+            schedule=Schedule.cron(minute='0', hour='6', day='2', month='*', year='*'),
+            targets=[
+                LambdaFunction(handler=invoice_reporter, event=RuleTargetInput.from_object({'eventType': 'monthly'}))
+            ],
         )
 
     def _get_ui_base_path_url(self) -> str:

@@ -204,58 +204,64 @@
                     </template>
                 </div>
             </div>
-            <div v-if="$isAppGroupModeMultiState" class="discipline-section">
+            <div v-if="$isAppGroupModeMultiState" class="history-section">
                 <div class="title-row">
                     <div class="title-info">
-                        <div class="discipline-logo-container">
+                        <div class="history-logo-container">
                             <AlertCircleIcon class="alert-icon" />
                         </div>
-                        <div class="title-text">{{ $t('licensing.disciplineTitle') }}</div>
+                        <div class="title-text">{{ $t('common.history') }}</div>
                     </div>
-                    <CollapseCaretButton @toggleCollapse="toggleDisciplineCollapsed" />
+                    <CollapseCaretButton @toggleCollapse="toggleHistoryCollapsed" />
                 </div>
-                <div v-if="!isDisciplineCollapsed" class="discipline-list-container">
-                    <div v-if="!licenseeDiscipline.length" class="no-discipline">
-                        {{ $t('licensing.noDiscipline') }}
+                <div v-if="!isHistoryCollapsed" class="history-list-container">
+                    <div v-if="!licenseeHistory.length" class="no-history">
+                        {{ $t('licensing.noHistory') }}
                     </div>
-                    <div v-else class="discipline-list">
-                        <div v-if="$matches.tablet.min" class="discipline-row header">
-                            <div class="discipline-cell state">{{ $t('common.state') }}</div>
-                            <div class="discipline-cell start-date">{{ $t('common.startDate') }}</div>
-                            <div class="discipline-cell end-date">{{ $t('common.endDate') }}</div>
-                            <div class="discipline-cell action-type">{{ $t('licensing.encumberAction') }}</div>
-                            <div class="discipline-cell action-basis">{{ $t('licensing.encumberBasisLabel') }}</div>
+                    <div v-else class="history-list">
+                        <div v-if="$matches.tablet.min" class="history-row header">
+                            <div class="history-cell state">{{ $t('common.state') }}</div>
+                            <div class="history-cell event">{{ $t('licensing.event') }}</div>
+                            <div class="history-cell date">{{ $t('common.date') }}</div>
+                            <div class="history-cell action-type">{{ $t('licensing.encumberAction') }}</div>
+                            <div class="history-cell action-basis">{{ $t('licensing.encumberBasisLabel') }}</div>
                         </div>
-                        <div v-for="(discipline, index) in licenseeDiscipline" :key="index" class="discipline-row">
-                            <div class="discipline-cell state">
+                        <div v-for="(historyItem, index) in licenseeHistory" :key="index" class="history-row">
+                            <div class="history-cell state">
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('common.state') }}:
                                 </span>
-                                {{ discipline.state.name() }}
+                                {{ historyItem.state.name() }}
                             </div>
-                            <div class="discipline-cell start-date">
+                            <div class="history-cell event">
                                 <span v-if="$matches.phone.only" class="cell-title">
-                                    {{ $t('common.startDate') }}:
+                                    {{ $t('licensing.event') }}:
                                 </span>
-                                {{ discipline.startDateDisplay() }}
+                                {{ historyItem.updateTypeDisplay() }}
                             </div>
-                            <div class="discipline-cell end-date">
+                            <div class="history-cell date">
                                 <span v-if="$matches.phone.only" class="cell-title">
-                                    {{ $t('common.endDate') }}:
+                                    {{ $t('common.date') }}:
                                 </span>
-                                {{ discipline.endDateDisplay() }}
+                                {{ historyItem.effectiveDateDisplay() }}
                             </div>
-                            <div class="discipline-cell action-type">
+                            <div
+                                v-if="!$matches.phone.only || historyItem.isDisciplineEvent()"
+                                class="history-cell action-type"
+                            >
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('licensing.encumberAction') }}:
                                 </span>
-                                {{ discipline.encumbranceTypeName() }}
+                                {{ historyItem.encumbranceTypeName() }}
                             </div>
-                            <div class="discipline-cell action-basis">
+                            <div
+                                v-if="!$matches.phone.only || historyItem.isDisciplineEvent()"
+                                class="history-cell action-basis"
+                            >
                                 <span v-if="$matches.phone.only" class="cell-title">
                                     {{ $t('licensing.encumberBasisLabel') }}:
                                 </span>
-                                {{ discipline.npdbTypeNames().join('; ') }}
+                                {{ historyItem.npdbTypeNames().join('; ') || historyItem.noteDisplay() }}
                             </div>
                         </div>
                     </div>

@@ -382,6 +382,39 @@ export const staffAccount = {
                 },
             },
         },
+        diet: {
+            actions: {
+                admin: true,
+                readPrivate: true,
+                readSSN: true,
+            },
+            jurisdictions: {
+                ak: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ar: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+            },
+        },
     },
 };
 
@@ -986,6 +1019,32 @@ export const licensees = {
                     licenseStatus: 'inactive',
                     licenseStatusName: '',
                     compactEligibility: 'ineligible',
+                    history: [
+                        {
+                            updateType: 'issuance',
+                            effectiveDate: '2023-08-29',
+                            createDate: moment().subtract(2, 'years').format(serverDatetimeFormat),
+                        },
+                        {
+                            updateType: 'encumbrance',
+                            effectiveDate: moment().subtract(1, 'year').format(serverDateFormat),
+                            createDate: moment().subtract(1, 'year').format(serverDatetimeFormat),
+                            encumbranceType: 'fine',
+                            npdbCategories: ['Non-compliance With Requirements'],
+                        },
+                        {
+                            updateType: 'liftingEncumbrance',
+                            effectiveDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            createDate: moment().subtract(1, 'month').format(serverDatetimeFormat),
+                        },
+                        {
+                            updateType: 'encumbrance',
+                            effectiveDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            createDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            encumbranceType: 'fine',
+                            npdbCategories: ['Non-compliance With Requirements'],
+                        },
+                    ],
                     adverseActions: [
                         {
                             adverseActionId: '12345-MNO',
@@ -1122,6 +1181,20 @@ export const licensees = {
                     dateOfRenewal: '2025-03-26T15:56:58+00:00',
                     dateOfExpiration: moment().format(serverDateFormat),
                     attestations: attestationResponses.map((response) => ({ ...response })),
+                    history: [
+                        {
+                            updateType: 'issuance',
+                            effectiveDate: '2024-03-19T21:30:27+00:00',
+                            createDate: '2024-03-19T21:30:27+00:00',
+                        },
+                        {
+                            updateType: 'encumbrance',
+                            effectiveDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            createDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            encumbranceType: 'fine',
+                            npdbCategories: ['Non-compliance With Requirements'],
+                        },
+                    ],
                     adverseActions: [
                         {
                             adverseActionId: '12345-ABC',
@@ -1831,6 +1904,39 @@ export const users = {
                         },
                     },
                 },
+                diet: {
+                    actions: {
+                        admin: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                                readPrivate: true,
+                                readSSN: true,
+                            },
+                        },
+                    },
+                },
             },
         },
         {
@@ -2003,6 +2109,7 @@ export const compactStatesForRegistration = {
     coun: [ 'al', 'ak', 'co', 'il', 'ia', 'ky', 'ne', 'nm' ],
     octp: [ 'al', 'ar', 'co', 'ct', 'il', 'ky' ],
     psypact: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
+    diet: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
 };
 
 export const compactConfig = {
@@ -2540,10 +2647,34 @@ export interface MockProviderCompactOverlay {
     licenseType?: string;
 }
 
-export const mockProviderCompactOverlays: Partial<Record<CompactType, MockProviderCompactOverlay>> = {
+export const mockProviderCompactOverlays: Record<CompactType, MockProviderCompactOverlay> = {
+    [CompactType.ASLP]: {
+        compact: CompactType.ASLP,
+        licenseType: LicenseType.AUDIOLOGIST,
+    },
+    [CompactType.OT]: {
+        compact: CompactType.OT,
+        licenseType: LicenseType.OCCUPATIONAL_THERAPY_ASSISTANT,
+    },
+    [CompactType.COUNSELING]: {
+        compact: CompactType.COUNSELING,
+        licenseType: LicenseType.PROFESSIONAL_COUNSELOR,
+    },
+    [CompactType.COSMETOLOGY]: {
+        compact: CompactType.COSMETOLOGY,
+        licenseType: LicenseType.COSMETOLOGIST,
+    },
+    [CompactType.SOCIAL_WORK]: {
+        compact: CompactType.SOCIAL_WORK,
+        licenseType: LicenseType.LICENSED_CLINICAL_SOCIAL_WORKER,
+    },
     [CompactType.PSYPACT]: {
         compact: CompactType.PSYPACT,
         licenseType: LicenseType.PSYCHOLOGIST,
+    },
+    [CompactType.DIETITIANS]: {
+        compact: CompactType.DIETITIANS,
+        licenseType: LicenseType.DIETITIAN,
     },
 };
 

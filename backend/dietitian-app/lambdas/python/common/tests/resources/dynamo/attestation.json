@@ -1,0 +1,15 @@
+{
+  "pk": "COMPACT#diet#ATTESTATIONS",
+  "sk": "COMPACT#diet#LOCALE#en#ATTESTATION#jurisprudence-confirmation#VERSION#1",
+  "type": "attestation",
+  "attestationId": "jurisprudence-confirmation",
+  "displayName": "Jurisprudence Confirmation",
+  "description": "For displaying the jurisprudence confirmation",
+  "compact": "diet",
+  "version": "1",
+  "dateCreated": "2024-06-06T23:59:59+00:00",
+  "dateOfUpdate": "2024-06-06T23:59:59+00:00",
+  "text": "You attest that you have read and understand the jurisprudence requirements for all states you are purchasing privileges for.",
+  "required": true,
+  "locale": "en"
+}
