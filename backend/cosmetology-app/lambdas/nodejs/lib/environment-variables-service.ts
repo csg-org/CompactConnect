@@ -8,6 +8,8 @@ export class EnvironmentVariablesService {
     private readonly transactionReportsBucketNameVariable = 'TRANSACTION_REPORTS_BUCKET_NAME';
     private readonly userPoolTypeVariable = 'USER_POOL_TYPE';
     private readonly environmentNameVariable = 'ENVIRONMENT_NAME';
+    private readonly providerTableNameVariable = 'PROVIDER_TABLE_NAME';
+    private readonly feePerLicenseVariable = 'FEE_PER_LICENSE';
 
     public getEnvVar(name: string): string {
         return process.env[name]?.trim() || '';
@@ -47,5 +49,20 @@ export class EnvironmentVariablesService {
 
     public getEnvironmentName() {
         return this.getEnvVar(this.environmentNameVariable);
+    }
+
+    public getProviderTableName() {
+        return this.getEnvVar(this.providerTableNameVariable);
+    }
+
+    public getFeePerLicense() {
+        const raw = this.getEnvVar(this.feePerLicenseVariable) || '25';
+        const fee = Number(raw);
+
+        if (!Number.isFinite(fee)) {
+            throw new Error(`Invalid FEE_PER_LICENSE: ${raw}`);
+        }
+
+        return fee;
     }
 }

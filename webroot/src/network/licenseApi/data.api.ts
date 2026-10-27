@@ -6,7 +6,9 @@
 //
 
 import { authStorage, tokens } from '@utils/auth';
+import { getAppModeForCompact } from '@utils/compactConfig';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { getApiBaseUrl } from '@network/apiUrls';
 import {
     requestError,
     requestSuccess,
@@ -195,7 +197,8 @@ export class LicenseDataApi implements DataApiInterface {
      */
     public async createAccount(compact: string, data: object) {
         const requestData = { ...data, compact };
-        const serverResponse = await this.api.post(`/v1/provider-users/registration`, requestData);
+        const apiRoot = getApiBaseUrl(getAppModeForCompact(compact), 'license') || '';
+        const serverResponse = await this.api.post(`${apiRoot}/v1/provider-users/registration`, requestData);
 
         return serverResponse;
     }

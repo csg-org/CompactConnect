@@ -556,6 +556,123 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(configured_states[0]['postalAbbreviation'], 'ky')
         self.assertTrue(configured_states[0]['isLive'])
 
+    def test_put_compact_configuration_records_date_of_live_when_state_becomes_live(self):
+        """Going live records the server time and ignores a date supplied by the client."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [{'postalAbbreviation': 'ky', 'isLive': False}]
+        event['body'] = json.dumps(body)
+        compact_configuration_api_handler(event, self.mock_context)
+
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': True, 'dateOfLive': '1999-01-01T00:00:00+00:00'}
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        stored_compact_data = self.config.compact_configuration_client.get_compact_configuration(
+            original_config.compactAbbr
+        )
+        self.assertEqual(
+            datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            stored_compact_data.configuredStates[0]['dateOfLive'],
+        )
+
+        get_event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='socw/admin')
+        get_response = compact_configuration_api_handler(get_event, self.mock_context)
+        self.assertEqual(200, get_response['statusCode'], msg=json.loads(get_response['body']))
+        get_body = json.loads(get_response['body'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, get_body['configuredStates'][0]['dateOfLive'])
+
+    def test_put_compact_configuration_preserves_date_of_live_on_later_updates(self):
+        """A later compact update keeps the original go-live time, including when the client sends another."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [{'postalAbbreviation': 'ky', 'isLive': True}]
+        event['body'] = json.dumps(body)
+        compact_configuration_api_handler(event, self.mock_context)
+
+        later = datetime.fromisoformat('2025-06-01T12:00:00+00:00')
+        with patch('cc_common.config._Config.current_standard_datetime', later):
+            event, _ = self._when_testing_put_compact_configuration()
+            body = json.loads(event['body'])
+            body['configuredStates'] = [
+                {'postalAbbreviation': 'ky', 'isLive': True, 'dateOfLive': '1999-01-01T00:00:00+00:00'}
+            ]
+            event['body'] = json.dumps(body)
+            response = compact_configuration_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        stored_compact_data = self.config.compact_configuration_client.get_compact_configuration(
+            original_config.compactAbbr
+        )
+        self.assertEqual(
+            datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            stored_compact_data.configuredStates[0]['dateOfLive'],
+        )
+
+    def test_put_compact_configuration_does_not_store_date_of_live_for_a_state_that_is_not_live(self):
+        """A date sent for a state that is not live is not stored."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': False, 'dateOfLive': '1999-01-01T00:00:00+00:00'}
+        ]
+        event['body'] = json.dumps(body)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        stored_compact_data = self.config.compact_configuration_client.get_compact_configuration(
+            original_config.compactAbbr
+        )
+        self.assertEqual('ky', stored_compact_data.configuredStates[0]['postalAbbreviation'])
+        self.assertFalse(stored_compact_data.configuredStates[0]['isLive'])
+        self.assertNotIn('dateOfLive', stored_compact_data.configuredStates[0])
+
+    def test_put_compact_configuration_does_not_backfill_date_of_live_for_a_state_already_live(self):
+        """A state that went live before the timestamp existed keeps no date on a later save."""
+        from cc_common.utils import ResponseEncoder
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={'configuredStates': [{'postalAbbreviation': 'ky', 'isLive': True}]}
+        )
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = compact_config.compactAbbr
+        event['requestContext']['authorizer']['claims']['scope'] = f'{compact_config.compactAbbr}/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+        event['body'] = json.dumps(
+            {
+                'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
+                'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
+                'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': True, 'dateOfLive': '1999-01-01T00:00:00+00:00'}
+                ],
+            },
+            cls=ResponseEncoder,
+        )
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        stored_compact_data = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        self.assertTrue(stored_compact_data.configuredStates[0]['isLive'])
+        self.assertNotIn('dateOfLive', stored_compact_data.configuredStates[0])
+
     def test_put_compact_configuration_rejects_adding_new_states(self):
         """Test that adding new states to configuredStates is rejected."""
         from handlers.compact_configuration import compact_configuration_api_handler

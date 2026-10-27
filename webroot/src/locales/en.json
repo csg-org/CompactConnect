@@ -526,6 +526,11 @@
             "name": "PSYPACT",
             "abbrev": "PSYPACT",
             "key": "psypact"
+        },
+        {
+            "name": "Dietitians",
+            "abbrev": "Dietitians",
+            "key": "diet"
         }
     ],
     "compact": {
@@ -903,6 +908,12 @@
                 "key": "psychologist",
                 "compactKey": "psypact",
                 "abbrev": "PSY"
+            },
+            {
+                "name": "Dietitian",
+                "key": "dietitian",
+                "compactKey": "diet",
+                "abbrev": "DIET"
             }
         ],
         "licenseScopes": [

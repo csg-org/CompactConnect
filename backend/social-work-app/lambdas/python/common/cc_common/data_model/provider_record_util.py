@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterable
-from datetime import date
+from datetime import UTC, date, datetime
 from enum import StrEnum
 from uuid import UUID
 
@@ -42,6 +42,16 @@ DEACTIVATION_EVENT_TYPES: list[UpdateCategory] = [
     UpdateCategory.ENCUMBRANCE,
     UpdateCategory.LICENSE_DEACTIVATION,
 ]
+
+
+def _history_effective_date(event: dict) -> datetime:
+    """Normalize a history effectiveDate so dates and datetimes sort together."""
+    value = event['effectiveDate']
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, date):
+        return datetime.combine(value, datetime.min.time(), tzinfo=UTC)
+    return value
 
 
 def _license_sort_key(license_record: dict | LicenseData) -> tuple:
@@ -795,6 +805,175 @@ class ProviderUserRecords:
             and (filter_condition is None or filter_condition(record))
         ]
 
+    def construct_license_history(
+        self, license_record: LicenseData, should_include_encumbrance_details: bool = False
+    ) -> list[dict]:
+        """Build the timeline shown on one license in the provider response."""
+        events = []
+        if license_record.firstUploadDate is not None:
+            events.append(
+                {
+                    'updateType': 'issuance',
+                    'effectiveDate': license_record.firstUploadDate,
+                    'createDate': license_record.firstUploadDate,
+                }
+            )
+
+        for update in self.get_update_records_for_license(
+            license_record.jurisdiction, license_record.licenseType, license_record.licenseScope
+        ):
+            if update.updateType != UpdateCategory.RENEWAL:
+                continue
+            events.append(
+                {
+                    'updateType': 'renewal',
+                    'effectiveDate': update.effectiveDate,
+                    'createDate': update.createDate,
+                }
+            )
+
+        for adverse_action in self.get_adverse_action_records_for_license(
+            license_record.jurisdiction,
+            license_record.licenseTypeAbbreviation,
+            license_record.licenseScope,
+        ):
+            events.extend(self._encumbrance_history_events(adverse_action, should_include_encumbrance_details))
+
+        if license_record.licenseScope == LicenseScopeEnum.MULTI_STATE:
+            events.extend(self._home_jurisdiction_change_events())
+
+        return sorted(events, key=_history_effective_date)
+
+    def construct_privilege_history(
+        self, privilege: dict, should_include_encumbrance_details: bool = False
+    ) -> list[dict]:
+        """Build the timeline shown on one privilege in the provider response."""
+        events = []
+        issuance_date = self._privilege_issuance_date(privilege)
+        if issuance_date is not None:
+            events.append(
+                {
+                    'updateType': 'issuance',
+                    'effectiveDate': issuance_date,
+                    'createDate': issuance_date,
+                }
+            )
+
+        license_type_abbreviation = self._license_type_abbreviation_for_privilege(privilege)
+        if license_type_abbreviation is not None:
+            for adverse_action in self.get_adverse_action_records_for_privilege(
+                privilege['jurisdiction'], license_type_abbreviation
+            ):
+                events.extend(self._encumbrance_history_events(adverse_action, should_include_encumbrance_details))
+
+        events.extend(self._home_jurisdiction_change_events())
+        return sorted(events, key=_history_effective_date)
+
+    def _privilege_issuance_date(self, privilege: dict) -> datetime | None:
+        """When this privilege came into existence.
+
+        A privilege in a jurisdiction starts at the later of that jurisdiction going live and the
+        earliest multi-state upload of the privilege's license type.
+
+        The upload_date fallback (when live_date is None) applies to beta environments where a
+        jurisdiction was already live before the system began recording go-live dates. In prod, no
+        jurisdictions are live yet, so this path is never reached. If live_date is missing for a live
+        jurisdiction in prod, the returned issuance date will be incorrect (upload_date only, rather
+        than the true go-live date). This log message should never appear in production.
+        """
+        upload_date = self._earliest_multi_state_first_upload_date(privilege.get('licenseType'))
+        live_date = self._privilege_jurisdiction_live_date(privilege)
+        if upload_date is None:
+            return live_date
+        if live_date is None:
+            logger.warning(
+                'Privilege jurisdiction is live but has no recorded go-live date. '
+                'Falling back to license upload date for issuance date, which may be incorrect. '
+                'This log message should never appear in production.',
+                compact=privilege.get('compact'),
+                jurisdiction=privilege.get('jurisdiction'),
+                license_type=privilege.get('licenseType'),
+            )
+            return upload_date
+        return max(upload_date, live_date)
+
+    def _privilege_jurisdiction_live_date(self, privilege: dict) -> datetime | None:
+        compact = privilege.get('compact')
+        if compact is None and self._provider_records:
+            compact = self.get_provider_record().compact
+        jurisdiction = privilege.get('jurisdiction')
+        if compact is None or jurisdiction is None:
+            return None
+        return config.live_compact_jurisdiction_dates.get(compact, {}).get(jurisdiction)
+
+    def _earliest_multi_state_first_upload_date(self, license_type: str | None) -> datetime | None:
+        """Earliest firstUploadDate among multi-state licenses of one license type.
+
+        Privileges are generated per license type, and each license stores its own
+        firstUploadDate, so the issuance event is built from that type alone.
+        """
+        if not license_type:
+            return None
+        upload_dates = [
+            license_record.firstUploadDate
+            for license_record in self.get_license_records()
+            if license_record.licenseScope == LicenseScopeEnum.MULTI_STATE
+            and license_record.licenseType == license_type
+            and license_record.firstUploadDate is not None
+        ]
+        if not upload_dates:
+            return None
+        return min(upload_dates)
+
+    def _license_type_abbreviation_for_privilege(self, privilege: dict) -> str | None:
+        compact = privilege.get('compact')
+        if compact is None and self._provider_records:
+            compact = self.get_provider_record().compact
+        license_type = privilege.get('licenseType')
+        if compact is None or license_type is None:
+            return None
+        abbreviation = config.license_type_abbreviations.get(compact, {}).get(license_type)
+        return abbreviation.lower() if abbreviation else None
+
+    def _home_jurisdiction_change_events(self) -> list[dict]:
+        events = []
+        for update in self.get_all_provider_update_records():
+            if update.updateType != UpdateCategory.HOME_JURISDICTION_CHANGE:
+                continue
+            events.append(
+                {
+                    'updateType': 'homeJurisdictionChange',
+                    'effectiveDate': update.createDate,
+                    'createDate': update.createDate,
+                    'previousHomeJurisdiction': update.previous['licenseJurisdiction'],
+                    'newHomeJurisdiction': update.updatedValues['licenseJurisdiction'],
+                }
+            )
+        return events
+
+    @staticmethod
+    def _encumbrance_history_events(
+        adverse_action: AdverseActionData, should_include_encumbrance_details: bool
+    ) -> list[dict]:
+        encumbrance = {
+            'updateType': 'encumbrance',
+            'effectiveDate': adverse_action.effectiveStartDate,
+            'createDate': adverse_action.creationDate,
+        }
+        if should_include_encumbrance_details:
+            encumbrance['npdbCategories'] = adverse_action.clinicalPrivilegeActionCategories
+            encumbrance['encumbranceType'] = adverse_action.encumbranceType
+        events = [encumbrance]
+        if adverse_action.effectiveLiftDate is not None:
+            events.append(
+                {
+                    'updateType': 'liftingEncumbrance',
+                    'effectiveDate': adverse_action.effectiveLiftDate,
+                    'createDate': adverse_action.creationDate,
+                }
+            )
+        return events
+
     def generate_api_response_object(self, is_public_response: bool = False) -> dict:
         """
         Assemble a list of provider records into a single object used by the provider details api.
@@ -835,10 +1014,17 @@ class ProviderUserRecords:
                     license_record.licenseScope,
                 )
             ]
+            license_dict['history'] = self.construct_license_history(
+                license_record, should_include_encumbrance_details=not is_public_response
+            )
             licenses.append(license_dict)
 
         # Build privileges at runtime from eligible licenses (one privilege per license type per compact jurisdiction)
         privileges = self.generate_privileges_for_provider()
+        for privilege in privileges:
+            privilege['history'] = self.construct_privilege_history(
+                privilege, should_include_encumbrance_details=not is_public_response
+            )
 
         provider['licenses'] = licenses
         provider['privileges'] = privileges

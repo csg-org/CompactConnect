@@ -80,8 +80,13 @@ describe('Router auth callback paths', () => {
             { name: 'AuthCallbackStaffCosmo', path: getAuthCallbackPath(AppModes.COSMETOLOGY, AuthTypes.STAFF) },
             { name: 'AuthCallbackStaffSocialWork', path: getAuthCallbackPath(AppModes.SOCIAL_WORK, AuthTypes.STAFF) },
             { name: 'AuthCallbackStaffPsyPact', path: getAuthCallbackPath(AppModes.PSYPACT, AuthTypes.STAFF) },
+            { name: 'AuthCallbackStaffDietitians', path: getAuthCallbackPath(AppModes.DIETITIANS, AuthTypes.STAFF) },
             { name: 'AuthCallbackLicenseeJcc', path: getAuthCallbackPath(AppModes.JCC, AuthTypes.LICENSEE) },
             { name: 'AuthCallbackLicenseePsyPact', path: getAuthCallbackPath(AppModes.PSYPACT, AuthTypes.LICENSEE) },
+            {
+                name: 'AuthCallbackLicenseeDietitians',
+                path: getAuthCallbackPath(AppModes.DIETITIANS, AuthTypes.LICENSEE),
+            },
         ];
 
         expectedPaths.forEach(({ name, path }) => {

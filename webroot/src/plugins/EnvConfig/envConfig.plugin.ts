@@ -58,6 +58,10 @@ export interface EnvConfig {
     apiUrlLicensePsypact?: string;
     apiUrlSearchPsypact?: string;
     apiUrlUserPsypact?: string;
+    apiUrlStateDiet?: string;
+    apiUrlLicenseDiet?: string;
+    apiUrlSearchDiet?: string;
+    apiUrlUserDiet?: string;
     apiUrlExample?: string;
     apiKeyExample?: string;
     cognitoRegion?: string;
@@ -79,6 +83,10 @@ export interface EnvConfig {
     cognitoAuthDomainLicenseePsypact?: string;
     cognitoClientIdLicenseePsypact?: string;
     cognitoUserPoolIdLicenseePsypact?: string;
+    cognitoAuthDomainStaffDiet?: string;
+    cognitoClientIdStaffDiet?: string;
+    cognitoAuthDomainLicenseeDiet?: string;
+    cognitoClientIdLicenseeDiet?: string;
     recaptchaKey?: string;
     statsigKey?: string;
     isStatsigDisabled?: boolean;
@@ -120,6 +128,10 @@ export const config: EnvConfig = {
     apiUrlLicensePsypact: context.VUE_APP_API_LICENSE_ROOT_PSYPACT,
     apiUrlSearchPsypact: context.VUE_APP_API_SEARCH_ROOT_PSYPACT,
     apiUrlUserPsypact: context.VUE_APP_API_USER_ROOT_PSYPACT,
+    apiUrlStateDiet: context.VUE_APP_API_STATE_ROOT_DIET,
+    apiUrlLicenseDiet: context.VUE_APP_API_LICENSE_ROOT_DIET,
+    apiUrlSearchDiet: context.VUE_APP_API_SEARCH_ROOT_DIET,
+    apiUrlUserDiet: context.VUE_APP_API_USER_ROOT_DIET,
     apiUrlExample: '/api',
     apiKeyExample: 'example',
     cognitoRegion: context.VUE_APP_COGNITO_REGION,
@@ -141,6 +153,10 @@ export const config: EnvConfig = {
     cognitoAuthDomainLicenseePsypact: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_PSYPACT,
     cognitoClientIdLicenseePsypact: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE_PSYPACT,
     cognitoUserPoolIdLicenseePsypact: context.VUE_APP_COGNITO_USER_POOL_ID_LICENSEE_PSYPACT,
+    cognitoAuthDomainStaffDiet: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_DIET,
+    cognitoClientIdStaffDiet: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_DIET,
+    cognitoAuthDomainLicenseeDiet: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_DIET,
+    cognitoClientIdLicenseeDiet: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE_DIET,
     recaptchaKey: context.VUE_APP_RECAPTCHA_KEY,
     statsigKey: context.VUE_APP_STATSIG_KEY,
     isStatsigDisabled: (context.VUE_APP_STATSIG_DISABLED === 'true'),

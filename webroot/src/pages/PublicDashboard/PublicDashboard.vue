@@ -100,32 +100,96 @@
                             <div v-else class="title-subtext">{{ $t('navigation.loginAsProviderSubtext') }}</div>
                         </div>
                     </div>
-                    <router-link
-                        v-if="!isUsingMockApi && isCustomAuth"
-                        :to="inAppLoginLocation($appMode, authTypes.LICENSEE)"
-                        class="login-link"
-                    >
-                        {{ $t('navigation.login') }}
-                    </router-link>
-                    <a
-                        v-else-if="!isUsingMockApi"
-                        :href="licenseeLoginUri($appMode)"
-                        class="login-link"
-                        rel="noopener noreferrer"
-                    >
-                        {{ $t('navigation.login') }}
-                    </a>
-                    <div
-                        v-else
-                        class="login-link"
-                        @click="mockLicenseeLogin($appMode)"
-                        @keyup.enter="mockLicenseeLogin($appMode)"
-                        tabindex="0"
-                        role="button"
-                        :aria-label="$t('navigation.login')"
-                    >
-                        {{ $t('navigation.login') }}
-                    </div>
+                    <template v-if="$isAppModePsyPact">
+                        <router-link
+                            v-if="!isUsingMockApi && isCustomAuth"
+                            :to="inAppLoginLocation($appMode, authTypes.LICENSEE)"
+                            class="login-link"
+                        >
+                            {{ $t('navigation.login') }}
+                        </router-link>
+                        <a
+                            v-else-if="!isUsingMockApi"
+                            :href="licenseeLoginUri($appMode)"
+                            class="login-link"
+                            rel="noopener noreferrer"
+                        >
+                            {{ $t('navigation.login') }}
+                        </a>
+                        <div
+                            v-else
+                            class="login-link"
+                            @click="mockLicenseeLogin($appMode)"
+                            @keyup.enter="mockLicenseeLogin($appMode)"
+                            tabindex="0"
+                            role="button"
+                            :aria-label="$t('navigation.login')"
+                        >
+                            {{ $t('navigation.login') }}
+                        </div>
+                    </template>
+                    <template v-else-if="!isUsingMockApi">
+                        <router-link
+                            v-if="isCustomAuth"
+                            :to="inAppLoginLocation(appModes.JCC, authTypes.LICENSEE)"
+                            class="login-link"
+                        >
+                            <span class="jcc">{{ appModes.JCC }}</span>
+                            {{ $t('navigation.login') }}
+                        </router-link>
+                        <a
+                            v-else
+                            :href="licenseeLoginUri(appModes.JCC)"
+                            class="login-link"
+                            rel="noopener noreferrer"
+                        >
+                            <span class="jcc">{{ appModes.JCC }}</span>
+                            {{ $t('navigation.login') }}
+                        </a>
+                        <router-link
+                            v-if="isCustomAuth
+                                && $compactsEnabled.some((compact) => compact.type === compactTypes.DIETITIANS)"
+                            :to="inAppLoginLocation(appModes.DIETITIANS, authTypes.LICENSEE)"
+                            class="login-link extra"
+                        >
+                            <span class="dietitians">{{ appModes.DIETITIANS }}</span>
+                            {{ $t('navigation.login') }}
+                        </router-link>
+                        <a
+                            v-else-if="$compactsEnabled.some((compact) => compact.type === compactTypes.DIETITIANS)"
+                            :href="licenseeLoginUri(appModes.DIETITIANS)"
+                            class="login-link extra"
+                            rel="noopener noreferrer"
+                        >
+                            <span class="dietitians">{{ appModes.DIETITIANS }}</span>
+                            {{ $t('navigation.login') }}
+                        </a>
+                    </template>
+                    <template v-else>
+                        <div
+                            class="login-link"
+                            @click="mockLicenseeLogin(appModes.JCC)"
+                            @keyup.enter="mockLicenseeLogin(appModes.JCC)"
+                            tabindex="0"
+                            role="button"
+                            :aria-label="`${appModes.JCC} ${$t('navigation.login')}`"
+                        >
+                            <span class="jcc">{{ appModes.JCC }}</span>
+                            {{ $t('navigation.login') }}
+                        </div>
+                        <div
+                            v-if="$compactsEnabled.some((compact) => compact.type === compactTypes.DIETITIANS)"
+                            class="login-link extra"
+                            @click="mockLicenseeLogin(appModes.DIETITIANS)"
+                            @keyup.enter="mockLicenseeLogin(appModes.DIETITIANS)"
+                            tabindex="0"
+                            role="button"
+                            :aria-label="`${appModes.DIETITIANS} ${$t('navigation.login')}`"
+                        >
+                            <span class="dietitians">{{ appModes.DIETITIANS }}</span>
+                            {{ $t('navigation.login') }}
+                        </div>
+                    </template>
                     <div class="separator" />
                     {{ $t('navigation.registerAsProviderSubtext') }}
                     <router-link
