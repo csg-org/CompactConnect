@@ -245,6 +245,15 @@
             - Prod: `3dp0nf7acvtavqlbec6p4t20to`
         - _Local_ :arrow_heading_down:
             - `topd4vhftng5cfm3ccgkb6ejd`
+    - **`VUE_APP_COGNITO_USER_POOL_ID_LICENSEE`**
+        - Cognito user pool id for JCC practitioner login. Needed for the in-app login screens. Hosted login ignores it
+        - _Server_ :arrow_heading_up:
+            - IA Test: TODO
+            - CSG Test: TODO
+            - Beta: TODO
+            - Prod: TODO
+        - _Local_ :arrow_heading_down:
+            - `us-east-1_MockLicn1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://staff-auth.test.jcc.iaapi.io`
@@ -261,6 +270,15 @@
             - Prod: `4mnd3u2rp30ssgnm7dk81jcqsc`
         - _Local_ :arrow_heading_down:
             - `15mh24ea4af3of8jcnv8h2ic10`
+    - **`VUE_APP_COGNITO_USER_POOL_ID_STAFF`**
+        - Cognito user pool id for JCC staff login. Needed for the in-app login screens. Hosted login ignores it
+        - _Server_ :arrow_heading_up:
+            - IA Test: TODO
+            - CSG Test: TODO
+            - Beta: TODO
+            - Prod: TODO
+        - _Local_ :arrow_heading_down:
+            - `us-east-1_MockStaf1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_COSMO`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://staff-auth.test.cosmetology.jcc.iaapi.io`
@@ -277,6 +295,15 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `42km9ho786d28dp812j88kvscq`
+    - **`VUE_APP_COGNITO_USER_POOL_ID_STAFF_COSMO`**
+        - Cognito user pool id for Cosmetology staff login. Needed for the in-app login screens. Hosted login ignores it
+        - _Server_ :arrow_heading_up:
+            - IA Test: TODO
+            - CSG Test: TODO
+            - Beta: TODO
+            - Prod: TODO
+        - _Local_ :arrow_heading_down:
+            - `us-east-1_MockCosm1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_SW`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://staff-auth.test.socialwork.jcc.iaapi.io`
@@ -293,6 +320,15 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `42km9ho786d28dp812j88kvscq`
+    - **`VUE_APP_COGNITO_USER_POOL_ID_STAFF_SW`**
+        - Cognito user pool id for Social Work staff login. Needed for the in-app login screens. Hosted login ignores it
+        - _Server_ :arrow_heading_up:
+            - IA Test: TODO
+            - CSG Test: TODO
+            - Beta: TODO
+            - Prod: TODO
+        - _Local_ :arrow_heading_down:
+            - `us-east-1_MockSocw1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_PSYPACT`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://staff-auth.test.psypact.jcc.iaapi.io`
@@ -309,6 +345,15 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `7j8edjf4p4dppq5aniq38r3e7f`
+    - **`VUE_APP_COGNITO_USER_POOL_ID_STAFF_PSYPACT`**
+        - Cognito user pool id for PsyPact staff login. Needed for the in-app login screens. Hosted login ignores it
+        - _Server_ :arrow_heading_up:
+            - IA Test: TODO
+            - CSG Test: TODO
+            - Beta: TODO
+            - Prod: TODO
+        - _Local_ :arrow_heading_down:
+            - `us-east-1_MockPsSt1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_PSYPACT`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://licensee-auth.test.psypact.jcc.iaapi.io`
@@ -325,6 +370,15 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `264639h8fgdggvt29r7ldggn5u`
+    - **`VUE_APP_COGNITO_USER_POOL_ID_LICENSEE_PSYPACT`**
+        - Cognito user pool id for PsyPact practitioner login. Needed for the in-app login screens. Hosted login ignores it
+        - _Server_ :arrow_heading_up:
+            - IA Test: TODO
+            - CSG Test: TODO
+            - Beta: TODO
+            - Prod: TODO
+        - _Local_ :arrow_heading_down:
+            - `us-east-1_MockPsLi1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_DIET`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://staff-auth.test.dietitian.jcc.iaapi.io`
@@ -381,6 +435,17 @@
             - Prod: `false`
         - _Local_ :arrow_heading_down:
             - `true` or `false` as needed
+    - **`VUE_APP_CUSTOM_AUTH`**
+        - `false` keeps Cognito's hosted login pages
+        - `true` uses the in-app login screens
+        - The value is fixed when the app is served or built. Restart `yarn serve` after changing it
+        - _Server_ :arrow_heading_up:
+            - IA Test: `false`
+            - CSG Test: `false`
+            - Beta: `false`
+            - Prod: `false`
+        - _Local_ :arrow_heading_down:
+            - `false`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used
@@ -560,25 +625,25 @@ Note that testing the **built** app locally will require a running web server; f
 
 ---
 ## Auth
-- We use two cognito user pools with hosted login pages to authenticate users as Provider users and Staff users respectively
-- Cognito's somewhat opinionated functionality combined with this set up introduces some complexity to make the app function in a secure and expected way
+- We use two Cognito user pools to authenticate users as Provider users and Staff users
+- By default, login uses Cognito's hosted login pages. `VUE_APP_CUSTOM_AUTH` is false
+- Set `VUE_APP_CUSTOM_AUTH` to true to use the in-app login screens instead. Those screens cover sign-in, a new password, MFA setup, the MFA code, and forgot password. They do not set Cognito's hosted login cookie
+- Hosted login, combined with two separate pools, adds some complexity so the app can stay secure and behave as expected
 
-- **Cognito's functionality:**
-    - When a user logs in to Cognito, it saves an http only cookie allowing the user to log back in without entering credentials for an hour
-    - Cognito has no way to totally log a user out except for visiting the hosted logout url in the browser
-        - Using the token revocation endpoint, the user can invalidate their reresh token, but the http only cookie is not removed so if
-        they logged in within the last hour they are not totally logged out
-- **Two user pools with their own hosted login pages:**
-    - If a user is logged in to one user pool, they can still log in to the second as they are not aware of each other
-    - The downstream effect of this point is that the app needs to handle users being logged in to both user pools in an expected and secure way:
-        - When a user logs out they must be logged out from all user pools they are logged into
-        - When a user logs in to the second user pool, the app must treat them as only logged into the second user pool
-- **How the app handles this situation:**
-    - Firstly, the user being logged into both pools is very unlikely as there is not natural way to do this within the app, they would need to manually visit the
-    second hosted login page after logging in normally to the first
-    - When the user logs in as to the second user pool we record that the app should treat them as the second user type and save the initial access token
-        - When the user logs out we check the existence of the access tokens to see which user pools we need to log out, and then chain logout redirects
-        to visit all necessary logout pages
+- **Hosted login:**
+    - When a user logs in through a hosted page, Cognito saves an http-only cookie. That cookie lets them sign back in without entering credentials for about an hour
+    - Cognito does not fully log that user out unless the browser visits the hosted logout URL
+        - Revoking the refresh token invalidates the token, but it does not remove the cookie. If they logged in within the last hour, they are not fully logged out
+- **Two user pools:**
+    - The pools are not aware of each other, so a user can be logged in to both
+    - The app has to handle that in a secure, expected way:
+        - Logging out must log the user out of every pool they are logged in to
+        - Logging in to the second pool must make the app treat them as only that second user type
+- **How the app handles this:**
+    - With hosted login, the only way to be in both pools is to manually open the second hosted login page
+    - With in-app login, both logins are available from the dashboard
+    - When the user logs in to the second pool, we record that the app should treat them as that user type and we save that pool's access token
+    - On logout we revoke the refresh token, then check which access tokens exist and send the browser through each hosted logout page that is needed. This still happens after an in-app login
 - **Registration**
     - Licensee users have the ability to self-register an account, provided matching data can be found in the state data.
     - The registration form utilizes recaptcha (Google recaptcha v3)
