@@ -33,13 +33,14 @@ import cognitoAuth, {
     getTotpIssuer,
     OAuthTokenResponse
 } from '@utils/cognitoAuth';
-import MixinForm from '@components/Forms/_mixins/form.mixin';
-import Section from '@components/Section/Section.vue';
+import AuthHelper from '@components/AuthHelper/AuthHelper.vue';
 import Card from '@components/Card/Card.vue';
-import InputText from '@components/Forms/InputText/InputText.vue';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputPassword from '@components/Forms/InputPassword/InputPassword.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
-import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import InputText from '@components/Forms/InputText/InputText.vue';
+import Section from '@components/Section/Section.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 import { joiPasswordExtendCore } from 'joi-password';
@@ -57,6 +58,7 @@ const successMessageKeys = ['auth.codeSent', 'auth.passwordUpdated'];
         InputPassword,
         InputSubmit,
         InputButton,
+        AuthHelper,
     },
 })
 class AuthLogin extends mixins(MixinForm) {
@@ -172,24 +174,6 @@ class AuthLogin extends mixins(MixinForm) {
         }
 
         return label;
-    }
-
-    get instructions(): string {
-        let instructions = '';
-
-        if (this.isNewPasswordStep) {
-            instructions = this.$t('auth.newPasswordInstructions');
-        } else if (this.isMfaSetupStep) {
-            instructions = this.$t('auth.mfaSetupInstructions');
-        } else if (this.isMfaCodeStep) {
-            instructions = this.$t('auth.mfaCodeInstructions');
-        } else if (this.isForgotPasswordStep) {
-            instructions = this.$t('auth.forgotPasswordInstructions');
-        } else if (this.isForgotPasswordConfirmStep) {
-            instructions = this.$t('auth.confirmForgotPasswordInstructions');
-        }
-
-        return instructions;
     }
 
     get countdownLabel(): string {

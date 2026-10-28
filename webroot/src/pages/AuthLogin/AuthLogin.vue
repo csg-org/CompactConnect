@@ -48,7 +48,7 @@
                 </div>
                 <p v-if="compactLabel" class="auth-compact">{{ compactLabel }}</p>
                 <h1 ref="stepTitle" class="auth-title" tabindex="-1">{{ title }}</h1>
-                <p v-if="instructions" class="auth-instructions">{{ instructions }}</p>
+                <AuthHelper :screen="step" />
                 <p v-if="isMfaSetupStep" class="auth-countdown">{{ countdownLabel }}</p>
                 <form @submit.prevent="handleSubmit">
                     <InputText v-if="showsEmail" :formInput="formData.email" />

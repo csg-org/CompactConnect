@@ -16,6 +16,7 @@ import { AuthTypes, authStorage, AUTH_LOGIN_GOTO_COMPACT } from '@utils/auth';
 import { CompactType } from '@utils/compactConfig';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import cognitoAuth, { CognitoAuthStep } from '@utils/cognitoAuth';
+import AuthHelper from '@components/AuthHelper/AuthHelper.vue';
 
 describe('AuthLogin page', async () => {
     const originalClientId = envConfig.cognitoClientIdStaff;
@@ -171,6 +172,7 @@ describe('AuthLogin page', async () => {
         expect(wrapper.vm.totpSecret).to.equal('SECRETKEY');
         expect(wrapper.vm.qrCodeDataUrl).to.be.a('string').with.length.above(0);
         expect(wrapper.vm.remainingMs).to.be.above(14 * 60 * 1000);
+        expect(wrapper.findComponent(AuthHelper).props('screen')).to.equal(CognitoAuthStep.MFA_SETUP);
     });
     it('should keep the email and focus the step title when opening forgot password', async () => {
         envConfig.cognitoClientIdStaff = 'staff-client';

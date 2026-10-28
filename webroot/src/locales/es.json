@@ -1330,7 +1330,6 @@
         "newPasswordTitle": "Establecer una nueva contraseña",
         "newPasswordInstructions": "Debe reemplazar su contraseña temporal antes de continuar.",
         "mfaSetupTitle": "Configurar autenticador",
-        "mfaSetupInstructions": "Escanee el código QR con su aplicación de autenticación, o ingrese la clave de configuración. Luego ingrese el código de 6 dígitos. Tiene 15 minutos.",
         "mfaSetupKey": "Clave de configuración",
         "mfaSetupQr": "Código QR del autenticador",
         "copyKey": "Copiar clave",
@@ -1351,6 +1350,22 @@
         "backToLogin": "Volver al inicio de sesión",
         "backToDashboard": "Volver al panel",
         "codeSent": "Si existe una cuenta para ese correo electrónico, un código de restablecimiento está en camino.",
-        "passwordUpdated": "Su contraseña fue actualizada. Inicie sesión con la nueva contraseña."
+        "passwordUpdated": "Su contraseña fue actualizada. Inicie sesión con la nueva contraseña.",
+        "helper": {
+            "mfaSetupTitle": "Autenticación multifactor (MFA)",
+            "mfaSetupIntro": "Una aplicación de autenticación genera un código de 6 dígitos que cambia cada 30 segundos. Ingrese ese código en esta página para terminar de iniciar sesión.",
+            "mfaAppsTitle": "Aplicaciones de autenticación recomendadas",
+            "android": "Android",
+            "ios": "iOS",
+            "googleAuthenticator": "Google Authenticator",
+            "microsoftAuthenticator": "Microsoft Authenticator",
+            "authy": "Authy",
+            "mfaStepsTitle": "En esta página",
+            "mfaStepDownload": "Descargue una de las aplicaciones de autenticación anteriores si aún no tiene una.",
+            "mfaStepScan": "En la aplicación, agregue una cuenta y escanee el código QR de abajo, o ingrese la clave de configuración.",
+            "mfaStepCode": "Ingrese el código actual de 6 dígitos. Los códigos se actualizan cada 30 segundos.",
+            "mfaStepContinue": "Seleccione Continuar.",
+            "mfaTimeLimit": "Tiene 15 minutos desde que inició sesión para terminar este paso. Si se acaba el tiempo, inicie sesión de nuevo. Si se le pide configurar la MFA otra vez, elimine la entrada anterior de esta cuenta en su aplicación de autenticación antes de escanear el código nuevo."
+        }
     }
 }
