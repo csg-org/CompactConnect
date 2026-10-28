@@ -204,7 +204,7 @@ class MfaResetConfirmLicensee extends Vue {
                 name: 'AuthLogin',
                 params: {
                     authType: AuthTypes.LICENSEE,
-                    appMode: this.$appMode,
+                    appMode: this.loginAppMode,
                 },
             });
         } else {

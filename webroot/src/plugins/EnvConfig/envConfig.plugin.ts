@@ -85,8 +85,10 @@ export interface EnvConfig {
     cognitoUserPoolIdLicenseePsypact?: string;
     cognitoAuthDomainStaffDiet?: string;
     cognitoClientIdStaffDiet?: string;
+    cognitoUserPoolIdStaffDiet?: string;
     cognitoAuthDomainLicenseeDiet?: string;
     cognitoClientIdLicenseeDiet?: string;
+    cognitoUserPoolIdLicenseeDiet?: string;
     recaptchaKey?: string;
     statsigKey?: string;
     isStatsigDisabled?: boolean;
@@ -155,8 +157,10 @@ export const config: EnvConfig = {
     cognitoUserPoolIdLicenseePsypact: context.VUE_APP_COGNITO_USER_POOL_ID_LICENSEE_PSYPACT,
     cognitoAuthDomainStaffDiet: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_DIET,
     cognitoClientIdStaffDiet: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_DIET,
+    cognitoUserPoolIdStaffDiet: context.VUE_APP_COGNITO_USER_POOL_ID_STAFF_DIET,
     cognitoAuthDomainLicenseeDiet: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_DIET,
     cognitoClientIdLicenseeDiet: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE_DIET,
+    cognitoUserPoolIdLicenseeDiet: context.VUE_APP_COGNITO_USER_POOL_ID_LICENSEE_DIET,
     recaptchaKey: context.VUE_APP_RECAPTCHA_KEY,
     statsigKey: context.VUE_APP_STATSIG_KEY,
     isStatsigDisabled: (context.VUE_APP_STATSIG_DISABLED === 'true'),

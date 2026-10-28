@@ -184,6 +184,7 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         } else if (appMode === AppModes.DIETITIANS) {
             config.clientId = envConfig.cognitoClientIdStaffDiet;
             config.authDomain = envConfig.cognitoAuthDomainStaffDiet;
+            config.userPoolId = envConfig.cognitoUserPoolIdStaffDiet;
         }
 
         break;
@@ -201,6 +202,7 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         } else if (appMode === AppModes.DIETITIANS) {
             config.clientId = envConfig.cognitoClientIdLicenseeDiet;
             config.authDomain = envConfig.cognitoAuthDomainLicenseeDiet;
+            config.userPoolId = envConfig.cognitoUserPoolIdLicenseeDiet;
         }
         break;
     default:

@@ -395,6 +395,15 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `21a0k2iv0r431rofp4u75ktd12`
+    - **`VUE_APP_COGNITO_USER_POOL_ID_STAFF_DIET`**
+        - Cognito user pool id for Dietitian staff login. Needed for the in-app login screens. Hosted login ignores it
+        - _Server_ :arrow_heading_up:
+            - IA Test: TODO
+            - CSG Test: TODO
+            - Beta: TODO
+            - Prod: TODO
+        - _Local_ :arrow_heading_down:
+            - `us-east-1_MockDtSt1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE_DIET`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://licensee-auth.test.dietitian.jcc.iaapi.io`
@@ -411,6 +420,15 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `64itcer8m6v83m3vet68cbd4dm`
+    - **`VUE_APP_COGNITO_USER_POOL_ID_LICENSEE_DIET`**
+        - Cognito user pool id for Dietitian practitioner login. Needed for the in-app login screens. Hosted login ignores it
+        - _Server_ :arrow_heading_up:
+            - IA Test: TODO
+            - CSG Test: TODO
+            - Beta: TODO
+            - Prod: TODO
+        - _Local_ :arrow_heading_down:
+            - `us-east-1_MockDtLi1`
     - **`VUE_APP_RECAPTCHA_KEY`**
         - _Server_ :arrow_heading_up:
             - IA Test: `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
