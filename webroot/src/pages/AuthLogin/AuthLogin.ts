@@ -15,10 +15,17 @@ import { AppModes } from '@/app.config';
 import {
     authStorage,
     AuthTypes,
+    AUTH_LOGIN_GOTO_COMPACT,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     getCognitoConfig
 } from '@utils/auth';
+import {
+    CompactType,
+    getCompactSetup,
+    getImpliedCompactForAppMode
+} from '@utils/compactConfig';
+import { getCompactConfig } from '@plugins/Compacts/compacts.plugin';
 import cognitoAuth, {
     CognitoAuthResult,
     CognitoAuthStep,
@@ -129,7 +136,11 @@ class AuthLogin extends mixins(MixinForm) {
     }
 
     get title(): string {
-        let title = this.$t('auth.loginTitle');
+        let title = this.$t('auth.staffLoginTitle');
+
+        if (this.authType === AuthTypes.LICENSEE) {
+            title = this.$t('auth.practitionerLoginTitle');
+        }
 
         if (this.isNewPasswordStep) {
             title = this.$t('auth.newPasswordTitle');
@@ -144,6 +155,23 @@ class AuthLogin extends mixins(MixinForm) {
         }
 
         return title;
+    }
+
+    get compactLabel(): string {
+        const storedCompact = authStorage.getItem(AUTH_LOGIN_GOTO_COMPACT);
+        const storedSetup = getCompactSetup(storedCompact);
+        const compactType = (storedSetup?.appMode === this.appMode)
+            ? storedCompact
+            : getImpliedCompactForAppMode(this.appMode);
+        const compact = getCompactConfig(compactType);
+        const shouldAddAbbrev = compact?.type === CompactType.ASLP || compact?.type === CompactType.OT;
+        let label = compact?.name || '';
+
+        if (shouldAddAbbrev && compact?.abbrev) {
+            label = `${label} (${compact.abbrev})`;
+        }
+
+        return label;
     }
 
     get instructions(): string {

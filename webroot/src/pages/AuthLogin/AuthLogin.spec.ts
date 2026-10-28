@@ -12,17 +12,23 @@ import { flushPromises } from '@vue/test-utils';
 import { mountShallow } from '@tests/helpers/setup';
 import AuthLogin from '@pages/AuthLogin/AuthLogin.vue';
 import { AppModes } from '@/app.config';
-import { AuthTypes } from '@utils/auth';
+import { AuthTypes, authStorage, AUTH_LOGIN_GOTO_COMPACT } from '@utils/auth';
+import { CompactType } from '@utils/compactConfig';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import cognitoAuth, { CognitoAuthStep } from '@utils/cognitoAuth';
 
 describe('AuthLogin page', async () => {
     const originalClientId = envConfig.cognitoClientIdStaff;
     const originalAuthDomain = envConfig.cognitoAuthDomainStaff;
+    const originalLicenseeClientId = envConfig.cognitoClientIdLicensee;
+    const originalLicenseeAuthDomain = envConfig.cognitoAuthDomainLicensee;
 
     afterEach(() => {
         envConfig.cognitoClientIdStaff = originalClientId;
         envConfig.cognitoAuthDomainStaff = originalAuthDomain;
+        envConfig.cognitoClientIdLicensee = originalLicenseeClientId;
+        envConfig.cognitoAuthDomainLicensee = originalLicenseeAuthDomain;
+        authStorage.removeItem(AUTH_LOGIN_GOTO_COMPACT);
     });
 
     it('should mount the page component', async () => {
@@ -46,9 +52,43 @@ describe('AuthLogin page', async () => {
         expect(wrapper.vm.appMode).to.equal(AppModes.JCC);
         expect(wrapper.vm.authType).to.equal(AuthTypes.STAFF);
         expect(wrapper.vm.isLoginStep).to.equal(true);
+        expect(wrapper.vm.title).to.equal(wrapper.vm.$t('auth.staffLoginTitle'));
+        expect(wrapper.vm.compactLabel).to.equal('');
+        expect(wrapper.find('.auth-compact').exists()).to.equal(false);
         expect(wrapper.vm.formData.email).to.not.equal(undefined);
         expect(wrapper.vm.formData.password).to.not.equal(undefined);
+        const returnLink = wrapper.find('.auth-return-link');
+
+        expect(returnLink.text()).to.equal(wrapper.vm.$t('auth.backToDashboard'));
+        expect(returnLink.attributes('href')).to.equal('/Dashboard');
         expect(wrapper.find('img.auth-logo').attributes('alt')).to.equal(wrapper.vm.$t('common.appName'));
+    });
+    it('should name the selected compact above the staff login title', async () => {
+        envConfig.cognitoClientIdStaff = 'staff-client';
+        envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
+        authStorage.setItem(AUTH_LOGIN_GOTO_COMPACT, CompactType.ASLP);
+
+        const wrapper = await mountShallow(AuthLogin);
+
+        await wrapper.vm.$router.push('/auth/login/staff/jcc');
+        wrapper.vm.applyRoute();
+        await nextTick();
+
+        expect(wrapper.find('.auth-compact').text()).to.equal('Audiology and Speech Language Pathology (ASLP)');
+        expect(wrapper.find('h1.auth-title').text()).to.equal(wrapper.vm.$t('auth.staffLoginTitle'));
+    });
+    it('should title a practitioner login separately from staff', async () => {
+        envConfig.cognitoClientIdLicensee = 'licensee-client';
+        envConfig.cognitoAuthDomainLicensee = 'https://licensee.example.com';
+
+        const wrapper = await mountShallow(AuthLogin);
+
+        await wrapper.vm.$router.push('/auth/login/licensee/jcc');
+        wrapper.vm.applyRoute();
+        await nextTick();
+
+        expect(wrapper.vm.authType).to.equal(AuthTypes.LICENSEE);
+        expect(wrapper.find('h1.auth-title').text()).to.equal(wrapper.vm.$t('auth.practitionerLoginTitle'));
     });
     it('should label the login button as logging in while the request is in progress', async () => {
         envConfig.cognitoClientIdStaff = 'staff-client';
