@@ -23,12 +23,20 @@ describe('AuthLogin page', async () => {
     const originalAuthDomain = envConfig.cognitoAuthDomainStaff;
     const originalLicenseeClientId = envConfig.cognitoClientIdLicensee;
     const originalLicenseeAuthDomain = envConfig.cognitoAuthDomainLicensee;
+    const originalCustomAuth = envConfig.isCustomAuth;
+
+    beforeEach(() => {
+        // The login route redirects away unless custom auth is on.
+        // CI leaves the flag off; local .env often turns it on.
+        envConfig.isCustomAuth = true;
+    });
 
     afterEach(() => {
         envConfig.cognitoClientIdStaff = originalClientId;
         envConfig.cognitoAuthDomainStaff = originalAuthDomain;
         envConfig.cognitoClientIdLicensee = originalLicenseeClientId;
         envConfig.cognitoAuthDomainLicensee = originalLicenseeAuthDomain;
+        envConfig.isCustomAuth = originalCustomAuth;
         authStorage.removeItem(AUTH_LOGIN_GOTO_COMPACT);
     });
 
