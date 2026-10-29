@@ -38,7 +38,7 @@
     "uuid": "^14.0.1",
     "vue": "^3.5.41",
     "vue-facing-decorator": "^3.0.4",
-    "vue-i18n": "^11.4.8",
+    "vue-i18n": "^11.4.14",
     "vue-responsiveness": "^0.2.5",
     "vue-router": "^4.5.1",
     "vue3-lazyload": "^0.4.2",
