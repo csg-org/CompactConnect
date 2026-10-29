@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "yarn lint --no-fix && vue-cli-service serve",
+    "serve": "yarn audit:dependencies && yarn lint --no-fix && vue-cli-service serve",
     "build": "yarn audit:dependencies && vue-cli-service build",
     "test:unit:all": "export NODE_OPTIONS=--openssl-legacy-provider && yarn lint --no-fix && vue-cli-service test:unit 'src/**/*.spec.ts'",
     "test:unit": "export NODE_OPTIONS=--openssl-legacy-provider && yarn lint --no-fix && vue-cli-service test:unit",
@@ -37,7 +37,7 @@
     "uuid": "^14.0.1",
     "vue": "^3.5.41",
     "vue-facing-decorator": "^3.0.4",
-    "vue-i18n": "^11.4.8",
+    "vue-i18n": "^11.4.16",
     "vue-responsiveness": "^0.2.5",
     "vue-router": "^4.5.1",
     "vue3-lazyload": "^0.4.2",
