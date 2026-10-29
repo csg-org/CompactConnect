@@ -153,6 +153,30 @@ describe('AuthLogin page', async () => {
         expect(wrapper.vm.formData.email).to.not.equal(undefined);
         expect(wrapper.vm.formData.password).to.equal(undefined);
     });
+    it('should reapply the target and step when the login route changes', async () => {
+        envConfig.cognitoClientIdStaff = 'staff-client';
+        envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
+        envConfig.cognitoClientIdLicensee = 'licensee-client';
+        envConfig.cognitoAuthDomainLicensee = 'https://licensee.example.com';
+
+        const wrapper = await mountShallow(AuthLogin);
+
+        await wrapper.vm.$router.push('/auth/login/staff/jcc?step=forgot-password');
+        await nextTick();
+
+        expect(wrapper.vm.authType).to.equal(AuthTypes.STAFF);
+        expect(wrapper.vm.isForgotPasswordStep).to.equal(true);
+        wrapper.vm.formData.email.value = 'user@example.com';
+
+        await wrapper.vm.$router.push('/auth/login/licensee/jcc');
+        await nextTick();
+
+        expect(wrapper.vm.authType).to.equal(AuthTypes.LICENSEE);
+        expect(wrapper.vm.appMode).to.equal(AppModes.JCC);
+        expect(wrapper.vm.isLoginStep).to.equal(true);
+        expect(wrapper.vm.formData.password).to.not.equal(undefined);
+        expect(wrapper.vm.formData.email.value).to.equal('');
+    });
     it('should move to MFA setup after a successful password challenge', async () => {
         const signInStub = sinon.stub(cognitoAuth, 'signInWithPassword').resolves({
             step: CognitoAuthStep.MFA_SETUP,

@@ -8,6 +8,7 @@
 import {
     Component,
     mixins,
+    Watch,
     toNative
 } from 'vue-facing-decorator';
 import { reactive, computed, nextTick } from 'vue';
@@ -245,7 +246,11 @@ class AuthLogin extends mixins(MixinForm) {
 
             if (stepParam === CognitoAuthStep.FORGOT_PASSWORD) {
                 this.step = CognitoAuthStep.FORGOT_PASSWORD;
+            } else {
+                this.step = CognitoAuthStep.LOGIN;
             }
+
+            this.clearCountdown();
         }
     }
 
@@ -539,6 +544,14 @@ class AuthLogin extends mixins(MixinForm) {
             await nextTick();
             this.$router.push({ name: 'Home' });
         }
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('$route.fullPath') onRouteChange(): void {
+        this.applyRoute();
+        this.initFormInputs();
     }
 }
 
