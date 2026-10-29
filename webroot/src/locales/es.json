@@ -688,6 +688,7 @@
         "jurisdictionFeeMilitary": "Tarifa Estatal (militar)",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Certifico que he completado con éxito o completaré con éxito el requisito de jurisprudencia para ese estado dentro del plazo requerido por ese estado.",
+        "jurisprudenceExamExplanationText": "Certifico que he completado con éxito un examen de jurisprudencia para este estado, si es necesario.",
         "scopeAttestTitle": "Alcance de la certificación de práctica",
         "scopeAttestLabel": "Haga clic aquí para leer y afirmar el alcance de la certificación de práctica.",
         "noDiscipline": "No disciplina",
