@@ -39,7 +39,6 @@ REQUIRED_ATTESTATION_IDS = [
     'scope-of-practice-attestation',
     'personal-information-address-attestation',
     'discipline-no-current-encumbrance-attestation',
-    'discipline-no-prior-encumbrance-attestation',
     'provision-of-true-information-attestation',
 ]
 

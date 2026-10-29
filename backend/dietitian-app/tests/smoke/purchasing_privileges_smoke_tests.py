@@ -151,7 +151,6 @@ def _required_attestation_ids(provider_data: dict) -> list[str]:
         'personal-information-home-state-attestation',
         'personal-information-address-attestation',
         'discipline-no-current-encumbrance-attestation',
-        'discipline-no-prior-encumbrance-attestation',
         'provision-of-true-information-attestation',
         'not-under-investigation-attestation',
     ]

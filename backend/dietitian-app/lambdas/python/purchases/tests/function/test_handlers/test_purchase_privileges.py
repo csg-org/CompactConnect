@@ -21,7 +21,6 @@ ALL_ATTESTATION_IDS = [
     'personal-information-home-state-attestation',
     'personal-information-address-attestation',
     'discipline-no-current-encumbrance-attestation',
-    'discipline-no-prior-encumbrance-attestation',
     'provision-of-true-information-attestation',
     'not-under-investigation-attestation',
     'military-affiliation-confirmation-attestation',
@@ -45,7 +44,6 @@ def generate_default_attestation_list(active_military: bool = False):
         {'attestationId': 'scope-of-practice-attestation', 'version': '1'},
         {'attestationId': 'personal-information-address-attestation', 'version': '1'},
         {'attestationId': 'discipline-no-current-encumbrance-attestation', 'version': '1'},
-        {'attestationId': 'discipline-no-prior-encumbrance-attestation', 'version': '1'},
         {'attestationId': 'provision-of-true-information-attestation', 'version': '1'},
         {'attestationId': 'not-under-investigation-attestation', 'version': '1'},
     ]
