@@ -27,7 +27,6 @@ describe('AuthLogin page', async () => {
 
     beforeEach(() => {
         // The login route redirects away unless custom auth is on.
-        // CI leaves the flag off; local .env often turns it on.
         envConfig.isCustomAuth = true;
     });
 
