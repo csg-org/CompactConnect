@@ -707,7 +707,7 @@
         "noHistory": "No history",
         "historyDisclaimer": "For further information regarding disciplinary action, please visit the website of the relevant licensing board in the state where the license or privilege is held.",
         "twoHomeStateErrorMessage": "Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.",
-        "jurisprudenceExplanationText": "I attest I have successfully completed a jurisprudence exam for this state, if required",
+        "jurisprudenceExplanationText": "I attest that I have successfully completed or will successfully complete the jurisprudence requirement for that state within the timeframe required by that state.",
         "scopeAttestTitle": "Scope of practice attestation",
         "scopeAttestLabel": "Click here to read and affirm the scope of practice attestation.",
         "attestations": "Attestations",
