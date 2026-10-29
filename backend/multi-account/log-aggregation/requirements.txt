@@ -45,7 +45,7 @@ typeguard==2.13.3
     # via
     #   aws-cdk-asset-node-proxy-agent-v6
     #   jsii
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   cattrs
     #   jsii

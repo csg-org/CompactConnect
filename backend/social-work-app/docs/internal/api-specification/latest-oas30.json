@@ -4305,6 +4305,11 @@
                 "isLive": {
                   "type": "boolean",
                   "description": "Whether the state is live and available for registrations."
+                },
+                "dateOfLive": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When the state went live. Ignored on write; the server records it."
                 }
               },
               "additionalProperties": false
@@ -4423,6 +4428,11 @@
                 "isLive": {
                   "type": "boolean",
                   "description": "Whether the state is live and available for registrations."
+                },
+                "dateOfLive": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When the state went live. Set by the server when isLive becomes true."
                 }
               }
             }

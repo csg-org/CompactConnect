@@ -41,6 +41,7 @@ describe('compactConfig utils', () => {
             CompactType.COSMETOLOGY,
             CompactType.SOCIAL_WORK,
             CompactType.PSYPACT,
+            CompactType.DIETITIANS,
         ]);
     });
     it('should successfully map each compact to its app mode', () => {
@@ -50,6 +51,7 @@ describe('compactConfig utils', () => {
         expect(getAppModeForCompact(CompactType.COSMETOLOGY)).to.equal(AppModes.COSMETOLOGY);
         expect(getAppModeForCompact(CompactType.SOCIAL_WORK)).to.equal(AppModes.SOCIAL_WORK);
         expect(getAppModeForCompact(CompactType.PSYPACT)).to.equal(AppModes.PSYPACT);
+        expect(getAppModeForCompact(CompactType.DIETITIANS)).to.equal(AppModes.DIETITIANS);
     });
     it('should successfully fall back to jcc for an unknown compact type', () => {
         expect(getAppModeForCompact('not-a-compact')).to.equal(AppModes.JCC);
@@ -60,10 +62,20 @@ describe('compactConfig utils', () => {
         expect(getCompactSetup(CompactType.ASLP)).to.matchPattern({
             type: CompactType.ASLP,
             appMode: AppModes.JCC,
+            hasLicenseeLogin: true,
             isEnabled: Function,
         });
         expect(getCompactSetup('not-a-compact')).to.equal(null);
         expect(getCompactSetup(null)).to.equal(null);
+    });
+    it('should successfully flag licensee login per compact', () => {
+        expect(compactSetups[CompactType.ASLP].hasLicenseeLogin).to.equal(true);
+        expect(compactSetups[CompactType.OT].hasLicenseeLogin).to.equal(true);
+        expect(compactSetups[CompactType.COUNSELING].hasLicenseeLogin).to.equal(true);
+        expect(compactSetups[CompactType.COSMETOLOGY].hasLicenseeLogin).to.equal(false);
+        expect(compactSetups[CompactType.SOCIAL_WORK].hasLicenseeLogin).to.equal(false);
+        expect(compactSetups[CompactType.PSYPACT].hasLicenseeLogin).to.equal(true);
+        expect(compactSetups[CompactType.DIETITIANS].hasLicenseeLogin).to.equal(true);
     });
     it('should successfully map each app mode to its app group mode', () => {
         expect(appModeGroups).to.matchPattern({
@@ -71,11 +83,13 @@ describe('compactConfig utils', () => {
             [AppModes.COSMETOLOGY]: AppGroupModes.MULTI_STATE,
             [AppModes.SOCIAL_WORK]: AppGroupModes.MULTI_STATE,
             [AppModes.PSYPACT]: AppGroupModes.MULTI_STATE,
+            [AppModes.DIETITIANS]: AppGroupModes.PRIVILEGE_PURCHASE,
         });
         expect(getAppGroupModeForAppMode(AppModes.JCC)).to.equal(AppGroupModes.PRIVILEGE_PURCHASE);
         expect(getAppGroupModeForAppMode(AppModes.COSMETOLOGY)).to.equal(AppGroupModes.MULTI_STATE);
         expect(getAppGroupModeForAppMode(AppModes.SOCIAL_WORK)).to.equal(AppGroupModes.MULTI_STATE);
         expect(getAppGroupModeForAppMode(AppModes.PSYPACT)).to.equal(AppGroupModes.MULTI_STATE);
+        expect(getAppGroupModeForAppMode(AppModes.DIETITIANS)).to.equal(AppGroupModes.PRIVILEGE_PURCHASE);
     });
     it('should successfully return null for an unknown app mode group lookup', () => {
         expect(getAppGroupModeForAppMode('not-an-app-mode' as AppModes)).to.equal(null);
@@ -108,11 +122,13 @@ describe('compactConfig utils', () => {
     it('should successfully gate expected compacts to non-production environments', () => {
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(true);
         expect(compactSetups[CompactType.PSYPACT].isEnabled()).to.equal(true);
+        expect(compactSetups[CompactType.DIETITIANS].isEnabled()).to.equal(true);
 
         envConfig.isAppProduction = true;
 
         expect(compactSetups[CompactType.SOCIAL_WORK].isEnabled()).to.equal(false);
         expect(compactSetups[CompactType.PSYPACT].isEnabled()).to.equal(false);
+        expect(compactSetups[CompactType.DIETITIANS].isEnabled()).to.equal(false);
     });
     it('should successfully return license encumber config per app mode', () => {
         expect(getEncumberConfigLicense(AppModes.JCC).disciplineTypes).to.include('surrender of license');
@@ -133,6 +149,8 @@ describe('compactConfig utils', () => {
         expect(getEncumberConfigLicense(AppModes.SOCIAL_WORK).npdbTypes).to.include('Conflict of Interest');
         expect(getEncumberConfigLicense(AppModes.PSYPACT).disciplineTypes).to.include('surrender of license');
         expect(getEncumberConfigLicense(AppModes.PSYPACT).npdbTypes).to.include('Conflict of Interest');
+        expect(getEncumberConfigLicense(AppModes.DIETITIANS).disciplineTypes).to.include('surrender of license');
+        expect(getEncumberConfigLicense(AppModes.DIETITIANS).npdbTypes).to.include('Conflict of Interest');
     });
     it('should successfully return privilege encumber config per app mode', () => {
         expect(getEncumberConfigPrivilege(AppModes.JCC).disciplineTypes).to.include('surrender of privilege');
@@ -147,6 +165,10 @@ describe('compactConfig utils', () => {
         );
         expect(getEncumberConfigPrivilege(AppModes.PSYPACT).disciplineTypes).to.include('surrender of privilege');
         expect(getEncumberConfigPrivilege(AppModes.PSYPACT).npdbTypes).to.include(
+            'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
+        );
+        expect(getEncumberConfigPrivilege(AppModes.DIETITIANS).disciplineTypes).to.include('surrender of privilege');
+        expect(getEncumberConfigPrivilege(AppModes.DIETITIANS).npdbTypes).to.include(
             'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
         );
     });
