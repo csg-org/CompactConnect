@@ -1,5 +1,5 @@
 import json
-from datetime import date, timedelta
+from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -39,7 +39,6 @@ REQUIRED_ATTESTATION_IDS = [
     'scope-of-practice-attestation',
     'personal-information-address-attestation',
     'discipline-no-current-encumbrance-attestation',
-    'discipline-no-prior-encumbrance-attestation',
     'provision-of-true-information-attestation',
 ]
 
@@ -73,12 +72,6 @@ def _get_caller_provider_id_custom_attribute(event: dict) -> str:
     except KeyError as e:
         logger.error(f'Missing custom provider attribute: {e}')
         raise CCInvalidRequestException('Missing required user profile attribute') from e
-
-
-def _get_latest_allowed_encumbrance_lift() -> date:
-    return_date = config.current_standard_datetime.astimezone(config.expiration_resolution_timezone)
-    return_date = return_date.replace(year=return_date.year - 2)
-    return (return_date - timedelta(days=1)).date()
 
 
 @api_handler
@@ -280,16 +273,13 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             'User should not be able to request privileges in this state.'
         )
 
-    # Check for any adverse actions that have been lifted 2 years ago
-    latest_allowed_encumbrance_lift = _get_latest_allowed_encumbrance_lift()
+    # A lifted encumbrance does not block a later purchase. Only an encumbrance that is still in effect does.
     blocking_encumbrance_records = provider_user_records.get_adverse_action_records(
-        filter_condition=lambda record: (
-            record.effectiveLiftDate is None or record.effectiveLiftDate > latest_allowed_encumbrance_lift
-        )
+        filter_condition=lambda record: record.effectiveLiftDate is None
     )
     if blocking_encumbrance_records:
         raise CCInvalidRequestException(
-            'You have a current or recent encumbrance that prevents you from purchasing privileges at this time.'
+            'You have a current encumbrance that prevents you from purchasing privileges at this time.'
         )
 
     # we now validate that the license type matches one of the license types from the home state license records

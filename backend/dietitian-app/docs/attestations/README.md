@@ -11,7 +11,7 @@ The following attestations must be defined for each compact:
 
 2. **Scope of Practice** (`scope-of-practice-attestation`)
    - Confirms understanding and agreement to abide by the state's scope of practice and applicable laws
-   - Acknowledges that violations may result in privilege revocation and two-year prohibition
+   - Acknowledges that violations may result in privilege revocation
 
 3. **Personal Information - Home State** (`personal-information-home-state-attestation`)
    - Confirms residency in the declared home state
@@ -26,20 +26,17 @@ The following attestations must be defined for each compact:
    - Confirms no current disciplinary restrictions on any state license
    - Includes probation, supervision, program completion, and CE requirements
 
-6. **Discipline - No Prior Encumbrance** (`discipline-no-prior-encumbrance-attestation`)
-   - Confirms no disciplinary restrictions on any state license within the past two years
-
-7. **Provision of True Information** (`provision-of-true-information-attestation`)
+6. **Provision of True Information** (`provision-of-true-information-attestation`)
    - General attestation that all provided information is true and accurate
 
-8. **Not Under Investigation** (`not-under-investigation-attestation`) - Mutually exclusive with #9
+7. **Not Under Investigation** (`not-under-investigation-attestation`) - Mutually exclusive with #8
    - Confirms no current investigations by any board or regulatory body
 
-9. **Under Investigation** (`under-investigation-attestation`) - Mutually exclusive with #8
+8. **Under Investigation** (`under-investigation-attestation`) - Mutually exclusive with #7
    - Declares current investigation status
    - Acknowledges that disciplinary action may result in privilege revocation
 
-10. **Military Affiliation** (`military-affiliation-confirmation-attestation`)
+9. **Military Affiliation** (`military-affiliation-confirmation-attestation`)
     - Required only for providers with active military affiliation
     - Confirms accuracy of uploaded military status documentation
 
@@ -70,7 +67,7 @@ When a provider views attestations, they always see the most recent version. Whe
 
 When a provider purchases a privilege, they must agree to all required attestations. The system performs the following validation:
 
-1. All required attestations must be included (the 7 core attestations, plus either "Not Under Investigation" OR "Under Investigation")
+1. All required attestations must be included (the 6 core attestations, plus either "Not Under Investigation" OR "Under Investigation")
 2. The Military Affiliation attestation is required if and only if the provider has an active military affiliation
 3. All attestations must include the current version number
 4. Exactly one of the investigation attestations must be provided (either "Not Under Investigation" OR "Under Investigation")

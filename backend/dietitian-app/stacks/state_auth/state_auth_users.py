@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from aws_cdk import Duration, RemovalPolicy
+from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
+from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cognito import (
     CognitoDomainOptions,
+    CustomDomainOptions,
     FeaturePlan,
     Mfa,
     MfaSecondFactor,
@@ -10,6 +12,8 @@ from aws_cdk.aws_cognito import (
     StandardThreatProtectionMode,
     UserPool,
 )
+from aws_cdk.aws_route53 import ARecord, RecordTarget
+from aws_cdk.aws_route53_targets import UserPoolDomainTarget
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
@@ -55,10 +59,41 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
         )
 
         self._add_resource_servers(stack=persistent_stack)
-        self.user_pool_domain = self.add_domain(
-            f'{construct_id}Domain',
-            cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
-        )
+        # Hosted-zone environments get state-auth.{zone} (e.g. state-auth.test.dietitian.jcc.iaapi.io).
+        # This is unique per hosted zone, so two accounts deploying the same environment_name
+        # (e.g. internal test and CSG test) do not collide on the global Cognito prefix namespace.
+        # Managed Login Version 2 is intentionally omitted because this pool is on the Lite plan,
+        # which does not support it (the pool has no human users so the login UI is irrelevant).
+        # Sandboxes with no hosted zone still use the Cognito prefix, which is fine because
+        # sandbox environment names are unique per developer.
+        if persistent_stack.hosted_zone:
+            hosted_zone = persistent_stack.hosted_zone
+            domain_name = f'state-auth.{hosted_zone.zone_name}'
+            cert = Certificate(
+                scope,
+                'StateAuthCert',
+                domain_name=domain_name,
+                validation=CertificateValidation.from_dns(hosted_zone=hosted_zone),
+            )
+            self.user_pool_domain = self.add_domain(
+                'StateUserPoolDomain',
+                custom_domain=CustomDomainOptions(certificate=cert, domain_name=domain_name),
+                # managed_login_version intentionally omitted — Lite plan does not support v2
+            )
+            self.state_auth_domain_record = ARecord(
+                self,
+                'StateAuthDomainARecord',
+                zone=hosted_zone,
+                record_name=domain_name,
+                target=RecordTarget.from_alias(UserPoolDomainTarget(self.user_pool_domain)),
+            )
+            CfnOutput(self, 'StateUserPoolDomainName', value=self.user_pool_domain.domain_name)
+            self._add_custom_domain_nag_suppressions()
+        else:
+            self.user_pool_domain = self.add_domain(
+                f'{construct_id}Domain',
+                cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
+            )
 
         NagSuppressions.add_resource_suppressions(
             self,
@@ -73,4 +108,54 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
                     'Cognito Plus features are not relevant for a user pool with no users.',
                 },
             ],
+        )
+
+    def _add_custom_domain_nag_suppressions(self) -> None:
+        """
+        Suppress cdk-nag findings on the CDK auto-generated custom resource Lambda that looks up
+        the CloudFront domain name for a Cognito custom domain.  CDK creates this Lambda at the
+        stack level (not inside StateAuthUsers) so we must target it by path from the stack root.
+        """
+        stack = Stack.of(self)
+
+        # The Lambda is a direct child of the stack — same suppression pattern used in
+        # provider_search_domain.py for the OpenSearch access-policy custom resource Lambda.
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{stack.node.path}/AWS679f53fac002430cb0da5b7982bd2287',
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-LambdaDLQ',
+                    'reason': 'AWS-managed CDK custom resource Lambda for Cognito custom domain '
+                    'CloudFront lookup. Deployment-time only; a DLQ is not applicable.',
+                },
+                {
+                    'id': 'HIPAA.Security-LambdaInsideVPC',
+                    'reason': 'AWS-managed CDK custom resource Lambda requires internet access '
+                    'to query CloudFront APIs. VPC placement is not applicable.',
+                },
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'appliesTo': [
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                    ],
+                    'reason': 'AWS-managed CDK custom resource Lambda uses the standard execution role.',
+                },
+            ],
+            apply_to_children=True,
+        )
+
+        # The wildcard custom resource policy is a nested child of StateUserPoolDomain.
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{self.node.path}/StateUserPoolDomain/CloudFrontDomainName/CustomResourcePolicy',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'appliesTo': ['Resource::*'],
+                    'reason': 'AWS-managed CDK custom resource policy for Cognito custom domain '
+                    'CloudFront lookup. The wildcard resource cannot be restricted.',
+                },
+            ],
+            apply_to_children=True,
         )
