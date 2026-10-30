@@ -237,6 +237,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     get jurisprudenceExplanationTextKey(): string {
         let key = 'licensing.jurisprudenceExplanationText';
 
+        // Dietitians still uses the older exam wording while the other compacts use the updated sentence
         if (this.currentCompactType === CompactType.DIETITIANS) {
             key = 'licensing.jurisprudenceExamExplanationText';
         }
