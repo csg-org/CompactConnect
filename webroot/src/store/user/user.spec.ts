@@ -219,6 +219,9 @@ describe('Use Store Mutations', () => {
         const state = {
             isLoggedInAsStaff: true,
             isLoggedInAsLicensee: true,
+            purchase: new PurchaseFlowState({
+                steps: [new PurchaseFlowStep({ stepNum: 0 })],
+            }),
         };
 
         mutations[MutationTypes.STORE_RESET_USER](state);
@@ -227,6 +230,8 @@ describe('Use Store Mutations', () => {
         expect(state.isLoadingAccount).to.equal(false);
         expect(state.isLoggedInAsStaff).to.equal(false);
         expect(state.isLoggedInAsLicensee).to.equal(false);
+        expect(state.purchase).to.be.an.instanceof(PurchaseFlowState);
+        expect(state.purchase.steps).to.deep.equal([]);
         expect(state.error).to.equal(null);
     });
     it('should successfully update account request', () => {
