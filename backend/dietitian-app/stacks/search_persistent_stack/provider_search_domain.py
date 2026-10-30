@@ -18,11 +18,11 @@ from aws_cdk.aws_opensearchservice import (
 )
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
-from common_constructs.constants import PROD_ENV_NAME
+from common_constructs.constants import BETA_ENV_NAME, PROD_ENV_NAME
 from common_constructs.stack import Stack
 from constructs import Construct
 
-from stacks.vpc_stack import VpcStack
+from stacks.vpc_stack import PRIVATE_SUBNET_ONE_NAME, VpcStack
 
 PROD_EBS_VOLUME_SIZE = 25
 NON_PROD_EBS_VOLUME_SIZE = 10
@@ -50,7 +50,8 @@ class ProviderSearchDomain(Construct):
     - CloudWatch alarms for capacity monitoring
 
     Instance sizing by environment:
-    - Non-prod (sandbox/test/beta): t3.small.search, 3 data nodes across 3 AZs
+    - Sandbox: t3.small.search, 3 data nodes across 3 AZs
+    - Test and beta: t3.medium.search, 1 node
     - Prod: m7g.medium.search, 3 master + 3 data nodes across 3 AZs (with standby)
     """
 
@@ -90,6 +91,7 @@ class ProviderSearchDomain(Construct):
         self._index_manager_lambda_role = index_manager_lambda_role
         self._search_api_lambda_role = search_api_lambda_role
         self._compact_abbreviations = compact_abbreviations
+        self._environment_name = environment_name
         self._is_prod_environment = environment_name == PROD_ENV_NAME
 
         # Determine removal policy based on environment
@@ -165,7 +167,7 @@ class ProviderSearchDomain(Construct):
         # Determine AZ awareness based on environment
         zone_awareness_config = self._get_zone_awareness_config()
         # Determine subnet selection based on environment
-        self.vpc_subnets = self._get_vpc_subnets()
+        self.vpc_subnets = self._get_vpc_subnets(vpc_stack)
 
         # Create OpenSearch Domain
         self.domain = Domain(
@@ -286,7 +288,8 @@ class ProviderSearchDomain(Construct):
         """
         Determine OpenSearch cluster capacity configuration based on environment.
 
-        Non-prod (sandbox, test, beta, etc.): 3 t3.small.search nodes across 3 AZs
+        Sandbox: 3 t3.small.search nodes across 3 AZs
+        Test and beta: single t3.medium.search node
         Prod: 3 dedicated master (r8g.medium.search) + 3 data nodes (m7g.medium.search) with standby
 
         :return: CapacityConfig with appropriate instance types and counts
@@ -310,8 +313,19 @@ class ProviderSearchDomain(Construct):
                 multi_az_with_standby_enabled=True,
             )
 
-        # Three-node configuration for all non-prod environments
-        # (test, beta, and developer sandboxes)
+        # test and beta use one t3.medium node. t3.medium provides enough JVM heap (~2GB)
+        # to avoid GC thrashing from OpenSearch's baseline plugin and system-index overhead.
+        if self._is_test_or_beta_environment():
+            return CapacityConfig(
+                data_node_instance_type='t3.medium.search',
+                data_nodes=1,
+                # No dedicated master nodes for single-node clusters
+                master_nodes=None,
+                # No multi-AZ for a single node
+                multi_az_with_standby_enabled=False,
+            )
+
+        # Three-node configuration for developer sandboxes.
         # Using 3 nodes provides proper quorum for primary election - with only
         # 2 nodes, if the primary goes down, there's no quorum to elect a new one.
         # 3 nodes also ensures data redundancy with replicas distributed across nodes.
@@ -324,30 +338,58 @@ class ProviderSearchDomain(Construct):
             multi_az_with_standby_enabled=False,
         )
 
+    def _is_test_or_beta_environment(self) -> bool:
+        return self._environment_name in ('test', BETA_ENV_NAME)
+
     def _get_zone_awareness_config(self) -> ZoneAwarenessConfig:
         """
         Determine OpenSearch cluster availability zone awareness based on environment.
 
-        Both prod and non-prod use 3 AZs for zone awareness to ensure proper
-        distribution of shards across availability zones.
+        Prod and sandbox use 3 AZs. Test and beta run a single node, so zone awareness is off.
 
         :return: ZoneAwarenessConfig with appropriate settings
         """
-        # Both prod and non-prod use 3 data nodes across 3 AZs
+        if self._is_test_or_beta_environment():
+            return ZoneAwarenessConfig(enabled=False)
+
         return ZoneAwarenessConfig(enabled=True, availability_zone_count=3)
 
-    def _get_vpc_subnets(self) -> SubnetSelection:
+    def _get_vpc_subnets(self, vpc_stack: VpcStack) -> SubnetSelection:
         """
         Determine VPC subnet selection based on environment.
 
-        Both prod and non-prod use all 3 private isolated subnets for zone awareness
-        and proper distribution of data nodes across availability zones.
+        Prod and sandbox use all 3 private isolated subnets. Test and beta use one subnet
+        because a single-node domain must be placed in exactly one subnet.
 
+        :param vpc_stack: The VPC stack containing the private subnets
         :return: SubnetSelection with appropriate subnet configuration
         """
-        # Both prod and non-prod use 3 data nodes across 3 AZs
-        # VPC is configured with max_azs=3, so this will select exactly 3 subnets
+        if self._is_test_or_beta_environment():
+            # OpenSearch requires exactly one subnet for single-node deployments.
+            # privateSubnet1 is selected by construct name so placement stays stable.
+            private_subnet1 = self._find_subnet_by_name(vpc_stack.vpc, PRIVATE_SUBNET_ONE_NAME)
+            return SubnetSelection(subnets=[private_subnet1])
+
+        # VPC is configured with max_azs=3, so this selects exactly 3 subnets
         return SubnetSelection(subnet_type=SubnetType.PRIVATE_ISOLATED)
+
+    def _find_subnet_by_name(self, vpc, subnet_name: str):
+        """
+        Find a specific subnet by its logical construct name in the VPC.
+
+        :param vpc: The VPC construct containing the subnet
+        :param subnet_name: The logical name of the subnet (e.g., 'privateSubnet1')
+        :return: The ISubnet instance
+        :raises ValueError: If the subnet cannot be found
+        """
+        subnet_construct = vpc.node.try_find_child(subnet_name)
+        if subnet_construct is None:
+            raise ValueError(
+                f'Subnet {subnet_name} not found in VPC construct tree. '
+                f'Available children: {[c.node.id for c in vpc.node.children]}'
+            )
+
+        return subnet_construct
 
     def _add_capacity_alarms(self, alarm_topic: ITopic):
         """
@@ -565,15 +607,15 @@ class ProviderSearchDomain(Construct):
                 suppressions=[
                     {
                         'id': 'AwsSolutions-OS4',
-                        'reason': 'Dedicated master nodes are only used in production environments. '
-                        'Non-prod environments use 3 data nodes which handle both data and cluster '
-                        'management without requiring dedicated master nodes.',
+                        'reason': 'Dedicated master nodes are only used in production. Sandbox uses 3 data '
+                        'nodes that also manage the cluster. Test and beta use a single data node, which '
+                        'does not require a dedicated master.',
                     },
                     {
                         'id': 'AwsSolutions-OS7',
-                        'reason': 'Multi-AZ with standby is only enabled for production. '
-                        'Non-prod environments use 3 data nodes across 3 AZs with zone awareness for '
-                        'proper quorum and redundancy.',
+                        'reason': 'Multi-AZ with standby is only enabled for production. Sandbox uses 3 data '
+                        'nodes across 3 AZs without standby. Test and beta use a single node, so zone '
+                        'awareness is disabled.',
                     },
                 ],
                 apply_to_children=True,

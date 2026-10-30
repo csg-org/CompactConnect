@@ -260,15 +260,15 @@ def print_email_template(environment, compact, state):
     """Print an email template with contextual information for the consuming team."""
     # Get environment-specific URLs
     auth_urls = {
-        'beta': 'https://compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com/oauth2/token',
-        'prod': 'https://compact-connect-state-auth.auth.us-east-1.amazoncognito.com/oauth2/token',
-        'test': 'https://compact-connect-state-auth-test.auth.us-east-1.amazoncognito.com/oauth2/token',
+        'beta': 'https://cosmetology-compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com/oauth2/token',
+        'prod': 'https://cosmetology-compact-connect-state-auth.auth.us-east-1.amazoncognito.com/oauth2/token',
+        'test': 'https://cosmetology-compact-connect-state-auth-test.auth.us-east-1.amazoncognito.com/oauth2/token',
     }
 
     api_base_urls = {
-        'beta': 'https://state-api.beta.compactconnect.org',
-        'prod': 'https://state-api.compactconnect.org',
-        'test': 'https://state-api.test.compactconnect.org',
+        'beta': 'https://state-api.beta.cosmetology.compactconnect.org',
+        'prod': 'https://state-api.cosmetology.compactconnect.org',
+        'test': 'https://state-api.test.cosmetology.compactconnect.org',
     }
 
     # Compact name mapping
@@ -299,7 +299,7 @@ expire in 7 days.**
 
 For more information on CompactConnect and how to integrate your state IT system with ours, see the documentation
 here:
-https://github.com/csg-org/CompactConnect/blob/main/backend/compact-connect/docs/it_staff_onboarding_instructions.md
+https://github.com/csg-org/CompactConnect/blob/main/backend/cosmetology-app/docs/it_staff_onboarding_instructions.md
 """
 
     print('\n' + '=' * 60)
