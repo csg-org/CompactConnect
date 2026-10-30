@@ -17,12 +17,13 @@ import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
 import { AppModes } from '@/app.config';
 import { AuthTypes, getCognitoConfig } from '@utils/auth';
 import axios from 'axios';
+import Joi from 'joi';
+import { joiPasswordExtendCore } from 'joi-password';
 
 // Cognito's maximum authentication-flow session. Managed login ignores this and
 // uses 3 minutes for MFA. User-pool API auth (SRP) honors AuthSessionValidity.
 export const AUTH_SESSION_MINUTES = 15;
 export const AUTH_SESSION_MS = AUTH_SESSION_MINUTES * 60 * 1000;
-
 export enum CognitoAuthStep {
     LOGIN = 'login',
     NEW_PASSWORD = 'new-password',
@@ -414,6 +415,23 @@ const confirmPasswordReset = async (
 
     return result;
 };
+
+const joiPassword = Joi.extend(joiPasswordExtendCore);
+
+type PasswordRuleMessages = {
+    string: Record<string, string>;
+    password: Record<string, string>;
+};
+
+export const passwordValidation = (messages: PasswordRuleMessages): Joi.Schema => joiPassword
+    .string()
+    .min(12)
+    .minOfLowercase(1)
+    .minOfNumeric(1)
+    .messages({
+        ...messages.string,
+        ...messages.password,
+    });
 
 const cognitoAuth = {
     signInWithPassword,

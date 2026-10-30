@@ -32,7 +32,8 @@ import cognitoAuth, {
     CognitoAuthStep,
     formatAuthCountdown,
     getTotpIssuer,
-    OAuthTokenResponse
+    OAuthTokenResponse,
+    passwordValidation
 } from '@utils/cognitoAuth';
 import AuthHelper from '@components/AuthHelper/AuthHelper.vue';
 import Card from '@components/Card/Card.vue';
@@ -44,10 +45,8 @@ import InputText from '@components/Forms/InputText/InputText.vue';
 import Section from '@components/Section/Section.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
-import { joiPasswordExtendCore } from 'joi-password';
 import QRCode from 'qrcode';
 
-const joiPassword = Joi.extend(joiPasswordExtendCore);
 const successMessageKeys = ['auth.codeSent', 'auth.passwordUpdated'];
 
 @Component({
@@ -231,15 +230,15 @@ class AuthLogin extends mixins(MixinForm) {
         const isStaff = authTypeParam === AuthTypes.STAFF;
         const isLicensee = authTypeParam === AuthTypes.LICENSEE;
         const isKnownMode = Object.values(AppModes).some((mode) => mode === appModeParam);
-        let supported = false;
+        let isSupported = false;
 
         if ((isStaff || isLicensee) && isKnownMode) {
-            supported = Boolean(getCognitoConfig(appModeParam as AppModes, authTypeParam as AuthTypes).clientId);
+            isSupported = Boolean(getCognitoConfig(appModeParam as AppModes, authTypeParam as AuthTypes).clientId);
         }
 
-        this.isSupportedTarget = supported;
+        this.isSupportedTarget = isSupported;
 
-        if (supported) {
+        if (isSupported) {
             this.authType = authTypeParam as AuthTypes;
             this.appMode = appModeParam as AppModes;
             this.$store.dispatch('setAppMode', this.appMode);
@@ -252,18 +251,6 @@ class AuthLogin extends mixins(MixinForm) {
 
             this.clearCountdown();
         }
-    }
-
-    passwordValidation(): Joi.Schema {
-        return joiPassword
-            .string()
-            .min(12)
-            .minOfLowercase(1)
-            .minOfNumeric(1)
-            .messages({
-                ...this.joiMessages.string,
-                ...this.joiMessages.password,
-            });
     }
 
     initFormInputs(): void {
@@ -311,7 +298,7 @@ class AuthLogin extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.newPassword')),
                 placeholder: computed(() => this.$t('common.newPassword')),
                 autocomplete: 'new-password',
-                validation: this.passwordValidation(),
+                validation: passwordValidation(this.joiMessages),
             });
             formData.confirmPassword = new FormInput({
                 id: 'auth-confirm-password',

@@ -21,6 +21,7 @@ import cognitoAuth, {
     formatAuthCountdown,
     getTotpIssuer,
     mapCognitoAuthError,
+    passwordValidation,
     mfaSetupDeadline,
     parseUserPoolId,
     resetCognitoAuthState,
@@ -63,6 +64,20 @@ describe('cognitoAuth utils', () => {
         expect(parseUserPoolId('https://example.com/not-a-pool')).to.equal('');
         expect(parseUserPoolId('')).to.equal('');
         expect(parseUserPoolId('///')).to.equal('');
+    });
+    it('should require a 12 character password with a lowercase letter and a number', () => {
+        const schema = passwordValidation({
+            string: { 'string.min': 'too short' },
+            password: {
+                'password.minOfLowercase': 'needs lowercase',
+                'password.minOfNumeric': 'needs number',
+            },
+        });
+
+        expect(schema.validate('short').error?.message).to.equal('too short');
+        expect(schema.validate('ALLUPPERCASE1').error?.message).to.equal('needs lowercase');
+        expect(schema.validate('lowercaseonly').error?.message).to.equal('needs number');
+        expect(schema.validate('lowercase1234').error).to.equal(undefined);
     });
     it('should use the PsyPact issuer only for that app mode', () => {
         expect(getTotpIssuer(AppModes.PSYPACT)).to.equal('PSYPACT');
