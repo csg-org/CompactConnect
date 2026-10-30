@@ -429,24 +429,47 @@ export const uploadRequestData = {
     },
 };
 
+// Privilege fees for compacts in AppGroupModes.PRIVILEGE_PURCHASE.
+const mockPrivilegeFeesByCompact: Partial<Record<CompactType, Array<{
+    licenseTypeAbbreviation: string,
+    amount: number,
+    militaryAmount: number,
+}>>> = {
+    [CompactType.ASLP]: [
+        { licenseTypeAbbreviation: 'aud', amount: 200, militaryAmount: 90 },
+        { licenseTypeAbbreviation: 'slp', amount: 100, militaryAmount: 50 },
+    ],
+    [CompactType.OT]: [
+        { licenseTypeAbbreviation: 'ot', amount: 200, militaryAmount: 90 },
+        { licenseTypeAbbreviation: 'ota', amount: 100, militaryAmount: 50 },
+    ],
+    [CompactType.COUNSELING]: [
+        { licenseTypeAbbreviation: 'lpc', amount: 100, militaryAmount: 50 },
+    ],
+    [CompactType.DIETITIANS]: [
+        { licenseTypeAbbreviation: 'diet', amount: 100, militaryAmount: 50 },
+    ],
+};
+
 export const createStatePrivilegePurchaseOption = (config: any = {}) => {
+    const compact = (config?.compact) ? config.compact as CompactType : CompactType.OT;
+    const compactFees = mockPrivilegeFeesByCompact[compact];
+    const otFees = mockPrivilegeFeesByCompact[CompactType.OT] || [];
+    const feeTemplates = compactFees || otFees;
     const purchaseOption: any = {
         type: 'jurisdiction',
         postalAbbreviation: config?.stateAbbrev,
         jurisdictionName: config?.stateName,
-        compact: 'octp',
-        privilegeFees: [
-            {
-                licenseTypeAbbreviation: 'ot',
-                amount: 200,
-                militaryRate: (config?.hasMilitaryDiscount) ? 90 : undefined,
-            },
-            {
-                licenseTypeAbbreviation: 'ota',
-                amount: 100,
-                militaryRate: (config?.hasMilitaryDiscount) ? 50 : undefined,
-            }
-        ],
+        compact,
+        privilegeFees: feeTemplates.map((fee) => {
+            const privilegeFee = {
+                licenseTypeAbbreviation: fee.licenseTypeAbbreviation,
+                amount: fee.amount,
+                militaryRate: (config?.hasMilitaryDiscount) ? fee.militaryAmount : undefined,
+            };
+
+            return privilegeFee;
+        }),
         jurisprudenceRequirements: {
             required: Boolean(config?.hasJurisprudence),
         },
@@ -459,195 +482,209 @@ export const createStatePrivilegePurchaseOption = (config: any = {}) => {
     return purchaseOption;
 };
 
-export const privilegePurchaseOptionsResponse = {
-    items: [
-        {
-            compactAbbr: 'octp',
-            compactCommissionFee: {
-                feeType: 'FLAT_RATE',
-                feeAmount: 3.5
+const privilegePurchaseStateConfigs = [
+    {
+        stateAbbrev: 'ak',
+        stateName: 'alaska',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: true,
+    },
+    {
+        stateAbbrev: 'al',
+        stateName: 'alabama',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'ar',
+        stateName: 'arkansas',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'co',
+        stateName: 'colorado',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: true,
+    },
+    {
+        stateAbbrev: 'ct',
+        stateName: 'connecticut',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'ks',
+        stateName: 'kansas',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'ky',
+        stateName: 'kentucky',
+        hasMilitaryDiscount: true,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: true,
+    },
+    {
+        stateAbbrev: 'ma',
+        stateName: 'massachusetts',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'md',
+        stateName: 'maryland',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'me',
+        stateName: 'maine',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'mt',
+        stateName: 'montana',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'ne',
+        stateName: 'nebraska',
+        hasMilitaryDiscount: true,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'nh',
+        stateName: 'new hampshire',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'nm',
+        stateName: 'new mexico',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'nv',
+        stateName: 'nevada',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'oh',
+        stateName: 'ohio',
+        hasMilitaryDiscount: true,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'ok',
+        stateName: 'oklahoma',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'or',
+        stateName: 'oregon',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'ri',
+        stateName: 'rhode island',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'ut',
+        stateName: 'utah',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'va',
+        stateName: 'virginia',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'vt',
+        stateName: 'vermont',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: true,
+        hasJurisprudenceLink: false,
+    },
+    {
+        stateAbbrev: 'wa',
+        stateName: 'washington',
+        hasMilitaryDiscount: false,
+        hasJurisprudence: false,
+        hasJurisprudenceLink: false,
+    },
+];
+
+export const getPrivilegePurchaseOptionsResponse = (compactType?: string | null) => {
+    const requestedCompact = compactType as CompactType;
+    const hasPrivilegeFees = Boolean(mockPrivilegeFeesByCompact[requestedCompact]);
+    const compact = (hasPrivilegeFees) ? requestedCompact : CompactType.OT;
+    const stateOptions = privilegePurchaseStateConfigs.map((stateConfig) => createStatePrivilegePurchaseOption({
+        ...stateConfig,
+        compact,
+    }));
+
+    return {
+        items: [
+            {
+                compactAbbr: compact,
+                compactCommissionFee: {
+                    feeType: 'FLAT_RATE',
+                    feeAmount: 3.5,
+                },
+                transactionFeeConfiguration: {
+                    licenseeCharges: {
+                        active: true,
+                        chargeType: 'FLAT_FEE_PER_PRIVILEGE',
+                        chargeAmount: 2,
+                    },
+                },
+                type: 'compact',
+                isSandbox: true,
+                paymentProcessorPublicFields: {
+                    apiLoginId: process.env.VUE_APP_MOCK_API_PAYMENT_LOGIN_ID,
+                    publicClientKey: process.env.VUE_APP_MOCK_API_PAYMENT_CLIENT_KEY,
+                },
             },
-            transactionFeeConfiguration: {
-                licenseeCharges: {
-                    active: true,
-                    chargeType: 'FLAT_FEE_PER_PRIVILEGE',
-                    chargeAmount: 2
-                }
-            },
-            type: 'compact',
-            isSandbox: true,
-            paymentProcessorPublicFields: {
-                apiLoginId: process.env.VUE_APP_MOCK_API_PAYMENT_LOGIN_ID,
-                publicClientKey: process.env.VUE_APP_MOCK_API_PAYMENT_CLIENT_KEY,
-            },
+            ...stateOptions,
+        ],
+        pagination: {
+            pageSize: 100,
+            prevLastKey: null,
+            lastKey: null,
         },
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ak',
-            stateName: 'alaska',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: true,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'al',
-            stateName: 'alabama',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ar',
-            stateName: 'arkansas',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'co',
-            stateName: 'colorado',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: true,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ct',
-            stateName: 'connecticut',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ks',
-            stateName: 'kansas',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ky',
-            stateName: 'kentucky',
-            hasMilitaryDiscount: true,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: true,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ma',
-            stateName: 'massachusetts',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'md',
-            stateName: 'maryland',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'me',
-            stateName: 'maine',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'mt',
-            stateName: 'montana',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ne',
-            stateName: 'nebraska',
-            hasMilitaryDiscount: true,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'nh',
-            stateName: 'new hampshire',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'nm',
-            stateName: 'new mexico',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'nv',
-            stateName: 'nevada',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'oh',
-            stateName: 'ohio',
-            hasMilitaryDiscount: true,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ok',
-            stateName: 'oklahoma',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'or',
-            stateName: 'oregon',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ri',
-            stateName: 'rhode island',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'ut',
-            stateName: 'utah',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'va',
-            stateName: 'virginia',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'vt',
-            stateName: 'vermont',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: true,
-            hasJurisprudenceLink: false,
-        }),
-        createStatePrivilegePurchaseOption({
-            stateAbbrev: 'wa',
-            stateName: 'washington',
-            hasMilitaryDiscount: false,
-            hasJurisprudence: false,
-            hasJurisprudenceLink: false,
-        }),
-    ],
-    pagination: {
-        pageSize: 100,
-        prevLastKey: null,
-        lastKey: null
-    }
+    };
 };
 
 export const attestationResponses = [
