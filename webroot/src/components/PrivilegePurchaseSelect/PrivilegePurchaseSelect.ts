@@ -68,6 +68,10 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
             'jurisprudence-confirmation',
             'scope-of-practice-attestation'
         ],
+        diet: [
+            'jurisprudence-confirmation',
+            'scope-of-practice-attestation'
+        ],
     }
     attestationRecords: Array<PrivilegeAttestation> = []; // eslint-disable-line lines-between-class-members
     areFormInputsSet = false;
