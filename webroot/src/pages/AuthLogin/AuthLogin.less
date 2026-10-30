@@ -1,0 +1,132 @@
+//
+//  AuthLogin.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 10/22/2026.
+//
+
+.auth-login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 2.4rem 1rem;
+
+    @media @tabletWidth {
+        min-height: 100vh;
+        padding: 2.4rem 1.6rem;
+    }
+
+    .auth-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        max-width: 50rem;
+        margin-top: 2.4rem;
+
+        @media @desktopWidth {
+            margin-top: 4.8rem;
+        }
+    }
+
+    .auth-return-link {
+        color: @midBlue;
+
+        &:hover {
+            text-decoration: underline;
+        }
+
+        &:focus {
+            .element-focus();
+        }
+    }
+
+    .auth-card {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        max-width: 50rem;
+        margin-top: 1.6rem;
+        padding-right: 2rem;
+        padding-left: 2rem;
+
+        @media @desktopWidth {
+            padding-right: 4rem;
+            padding-left: 4rem;
+        }
+    }
+
+    form {
+        width: 100%;
+    }
+
+    .auth-logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 8rem;
+        margin-bottom: 2rem;
+        text-align: center;
+
+        .auth-logo {
+            display: inline-block;
+            width: auto;
+            height: 100%;
+        }
+    }
+
+    .auth-compact {
+        margin-bottom: 0.4rem;
+        color: @fontColorLight;
+        font-size: @fontSizeSmaller;
+    }
+
+    .auth-title {
+        margin-bottom: 2rem;
+        font-size: @fontSizeLarge;
+
+        &:focus {
+            .element-focus();
+        }
+    }
+
+    .auth-countdown {
+        margin-bottom: 1.6rem;
+    }
+
+    .mfa-setup {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 1.6rem;
+    }
+
+    .mfa-qr {
+        width: 220px;
+        height: 220px;
+        margin-bottom: 1.2rem;
+    }
+
+    .setup-key-label {
+        margin-bottom: 0.4rem;
+    }
+
+    .setup-key {
+        width: 100%;
+        margin-bottom: 0.8rem;
+        padding: 0.8rem;
+        font-family: monospace;
+    }
+
+    .auth-text-link {
+        align-self: flex-start;
+        margin-top: 1.2rem;
+        color: @midBlue;
+    }
+
+    .copy-status {
+        .visually-hidden();
+    }
+}

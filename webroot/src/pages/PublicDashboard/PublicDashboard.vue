@@ -198,8 +198,18 @@
                                     </p>
                                 </div>
                             </div>
+                            <router-link
+                                v-if="!isUsingMockApi && isCustomAuth"
+                                id="practitioner-login"
+                                class="login-link"
+                                :to="inAppLoginLocation(selectedAppMode, authTypes.LICENSEE)"
+                                aria-labelledby="practitioner-login-heading practitioner-login-text"
+                                @click="handlePractitionerLoginClick"
+                            >
+                                <span id="practitioner-login-text">{{ $t('navigation.login') }}</span>
+                            </router-link>
                             <a
-                                v-if="!isUsingMockApi"
+                                v-else-if="!isUsingMockApi"
                                 id="practitioner-login"
                                 class="login-link"
                                 :href="licenseeLoginUri(selectedAppMode)"
@@ -241,8 +251,18 @@
                                     <p class="title-subtext">{{ $t('navigation.loginAsStaffSubtext') }}</p>
                                 </div>
                             </div>
+                            <router-link
+                                v-if="!isUsingMockApi && isCustomAuth"
+                                id="staff-login"
+                                class="login-link staff"
+                                :to="inAppLoginLocation(selectedAppMode, authTypes.STAFF)"
+                                aria-labelledby="staff-login-heading staff-login-text"
+                                @click="handleStaffLoginClick"
+                            >
+                                <span id="staff-login-text">{{ $t('navigation.login') }}</span>
+                            </router-link>
                             <a
-                                v-if="!isUsingMockApi"
+                                v-else-if="!isUsingMockApi"
                                 id="staff-login"
                                 class="login-link staff"
                                 :href="staffLoginUri(selectedAppMode)"

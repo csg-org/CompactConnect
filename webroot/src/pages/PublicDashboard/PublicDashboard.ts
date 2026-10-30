@@ -98,6 +98,14 @@ export default class DashboardPublic extends Vue {
         return this.$envConfig.isUsingMockApi || false;
     }
 
+    get isCustomAuth(): boolean {
+        return this.$envConfig.isCustomAuth || false;
+    }
+
+    get authTypes(): typeof AuthTypes {
+        return AuthTypes;
+    }
+
     get isAppTypeSelectorEnabled(): boolean {
         return Boolean(this.$envConfig.isAppLocal);
     }
@@ -207,12 +215,38 @@ export default class DashboardPublic extends Vue {
         );
     }
 
+    inAppLoginLocation(appMode: AppModes, authType: AuthTypes, step = ''): {
+        name: string;
+        params: { authType: AuthTypes; appMode: AppModes };
+        query?: { step: string };
+    } {
+        const location: {
+            name: string;
+            params: { authType: AuthTypes; appMode: AppModes };
+            query?: { step: string };
+        } = {
+            name: 'AuthLogin',
+            params: { authType, appMode },
+        };
+
+        if (step) {
+            location.query = { step };
+        }
+
+        return location;
+    }
+
     bypassToStaffLogin(appMode: AppModes, compactType?: CompactType): void {
         if (this.isUsingMockApi) {
             if (compactType) {
                 this.setGotoCompact(compactType);
             }
             this.mockStaffLogin(appMode);
+        } else if (this.isCustomAuth) {
+            if (compactType) {
+                this.setGotoCompact(compactType);
+            }
+            this.$router.push(this.inAppLoginLocation(appMode, AuthTypes.STAFF));
         } else {
             this.$store.dispatch('startLoading');
             window.location.replace(this.staffLoginUri(appMode));
@@ -225,6 +259,11 @@ export default class DashboardPublic extends Vue {
                 this.setGotoCompact(compactType);
             }
             this.mockLicenseeLogin(appMode);
+        } else if (this.isCustomAuth) {
+            if (compactType) {
+                this.setGotoCompact(compactType);
+            }
+            this.$router.push(this.inAppLoginLocation(appMode, AuthTypes.LICENSEE));
         } else {
             this.$store.dispatch('startLoading');
             window.location.replace(this.licenseeLoginUri(appMode));

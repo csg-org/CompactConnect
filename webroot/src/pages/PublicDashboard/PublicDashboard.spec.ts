@@ -11,6 +11,7 @@ import { mountFull, mountShallow } from '@tests/helpers/setup';
 import PublicDashboard from '@pages/PublicDashboard/PublicDashboard.vue';
 import { AppModes } from '@/app.config';
 import { AuthTypes, getCognitoConfig, getHostedLoginUri } from '@utils/auth';
+import mockEnvConfig from '@tests/mocks/mockEnvConfig';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
 import store from '@store/index';
@@ -20,6 +21,10 @@ import { flushPromises } from '@vue/test-utils';
 use(chaiMatchPattern);
 
 describe('PublicDashboard page', async () => {
+    afterEach(() => {
+        mockEnvConfig.isCustomAuth = false;
+        mockEnvConfig.isUsingMockApi = true;
+    });
     it('should mount the page component', async () => {
         const wrapper = await mountShallow(PublicDashboard);
 
@@ -52,6 +57,7 @@ describe('PublicDashboard page', async () => {
             scopes: '',
             clientId: '',
             authDomain: '',
+            userPoolId: '',
         });
     });
     it('should use fallback idp path in app.config', async () => {
@@ -372,5 +378,21 @@ describe('PublicDashboard page', async () => {
         expect(loginUri).to.contain('&code_challenge_method=S256');
         expect(loginUri).to.contain('&response_type=code');
         expect(loginUri).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fdietitian');
+    });
+    it('should link staff login to the in-app route when custom auth is enabled', async () => {
+        mockEnvConfig.isCustomAuth = true;
+        mockEnvConfig.isUsingMockApi = false;
+
+        const wrapper = await mountFull(PublicDashboard);
+        const component = wrapper.vm;
+
+        await component.selectCompact(CompactType.COUNSELING);
+        await nextTick();
+        await flushPromises();
+
+        const link = wrapper.find('#staff-login');
+
+        expect(link.exists()).to.equal(true);
+        expect(link.attributes('href') || '').to.contain('/auth/login/staff/');
     });
 });
