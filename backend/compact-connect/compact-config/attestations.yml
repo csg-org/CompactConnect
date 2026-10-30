@@ -3,7 +3,9 @@ attestations:
     displayName: "Jurisprudence Confirmation."
     description: "For displaying the jurisprudence confirmation."
     text: |-
-      I understand that my attestation is a legally binding statement. I understand that providing false information on this application could result in a loss of my licenses and/or privileges. I acknowledge that the Commission may audit jurisprudence attestations at their discretion.
+      If a jurisprudence requirement exists for the state(s) from which I have chosen to receive a privilege to practice, I attest that I have reviewed the jurisprudence requirements for that state, have successfully completed or will successfully complete the jurisprudence requirement for that state within the time frame required by that state, and understand that failure to successfully and timely complete any jurisprudence requirement may lead to revocation of my privilege to practice and disciplinary action from that state which could jeopardize my participation in the compact.
+
+      I understand that my attestation is a legally binding statement. I understand that providing false information on this application could result in a loss of my licenses and/or privileges. I acknowledge that the Commission and states may audit jurisprudence attestations at their discretion.
     required: true
     locale: "en"
   - attestationId: "scope-of-practice-attestation"
