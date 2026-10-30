@@ -651,6 +651,141 @@ class TestGetProvider(SignatureTestBase):
 
         self.assertEqual(404, resp['statusCode'])
 
+    def _get_signed_provider(self, provider_id: str, scope: str = 'openid email diet/readGeneral'):
+        from handlers.state_api import get_provider
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = scope
+        event['pathParameters'] = {'compact': 'diet', 'jurisdiction': 'ne', 'providerId': provider_id}
+        event = self._create_signed_event(event)
+        return get_provider(event, self.mock_context)
+
+    def _expected_general_privilege(self, provider_id: str, **overrides) -> dict:
+        privilege = {
+            'type': 'statePrivilege',
+            'providerId': provider_id,
+            'compact': 'diet',
+            'jurisdiction': 'ne',
+            'licenseType': 'dietitian',
+            'privilegeId': 'DIET-NE-1',
+            'licenseNumber': 'A0608337260',
+            'npi': '0608337260',
+            'status': 'active',
+            'compactEligibility': 'eligible',
+            'dateOfExpiration': '2025-04-04',
+            'dateOfIssuance': '2016-05-05T12:59:59+00:00',
+            'dateOfRenewal': '2020-05-05T12:59:59+00:00',
+            'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+            'familyName': 'Guðmundsdóttir',
+            'givenName': 'Björk',
+            'licenseJurisdiction': 'oh',
+            'licenseStatus': 'active',
+            'middleName': 'Gunnar',
+            'licenseStatusName': 'DEFINITELY_A_HUMAN',
+        }
+        privilege.update(overrides)
+        return privilege
+
+    def test_get_provider_with_license_level_encumbrance(self):
+        """A home-license encumbrance sets encumberedStatus on the license and every privilege.
+
+        Both records then carry the key, which used to raise TypeError while flattening.
+        """
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=True)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'encumbered', 'investigationStatus': 'underInvestigation'}
+        )
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'licenseEncumbered', 'investigationStatus': 'notUnderInvestigation'}
+        )
+        provider_id = str(provider.providerId)
+
+        resp = self._get_signed_provider(provider_id)
+
+        self.assertEqual(200, resp['statusCode'])
+        body = json.loads(resp['body'])
+        expected_privilege = self._expected_general_privilege(
+            provider_id,
+            status='inactive',
+            licenseStatus='inactive',
+            compactEligibility='ineligible',
+        )
+        self.assertEqual(
+            {
+                'privileges': [expected_privilege],
+                'providerUIUrl': f'https://app.compactconnect.org/diet/Licensing/{provider_id}',
+            },
+            body,
+        )
+        # The state read API does not publish the raw status fields. The calculated
+        # status, licenseStatus, and compactEligibility above are what the caller sees.
+        self.assertNotIn('encumberedStatus', body['privileges'][0])
+        self.assertNotIn('investigationStatus', body['privileges'][0])
+
+    def test_get_provider_with_privilege_encumbrance_and_unencumbered_license(self):
+        """Privilege encumbrance still succeeds when the license also stores encumberedStatus."""
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=True)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'unencumbered'}
+        )
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'encumbered'}
+        )
+        provider_id = str(provider.providerId)
+
+        resp = self._get_signed_provider(provider_id)
+
+        self.assertEqual(200, resp['statusCode'])
+        body = json.loads(resp['body'])
+        privilege = body['privileges'][0]
+        self.assertEqual('inactive', privilege['status'])
+        self.assertEqual('active', privilege['licenseStatus'])
+        self.assertEqual('eligible', privilege['compactEligibility'])
+        self.assertNotIn('encumberedStatus', privilege)
+
+    def test_get_provider_after_license_encumbrance_is_lifted(self):
+        """Lifting a license encumbrance leaves encumberedStatus='unencumbered' on both records."""
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=True)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'unencumbered'}
+        )
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'unencumbered'}
+        )
+        provider_id = str(provider.providerId)
+
+        resp = self._get_signed_provider(provider_id)
+
+        self.assertEqual(200, resp['statusCode'])
+        body = json.loads(resp['body'])
+        self.assertEqual(
+            [self._expected_general_privilege(provider_id)],
+            body['privileges'],
+        )
+
+    def test_create_flattened_privilege_keeps_privilege_status_fields(self):
+        """License status fields must not replace the privilege's when the records are merged."""
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=True)
+        license_record = self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'encumbered', 'investigationStatus': 'underInvestigation'}
+        )
+        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'licenseEncumbered', 'investigationStatus': 'notUnderInvestigation'}
+        )
+
+        from handlers.state_api import _create_flattened_privilege
+
+        flattened = _create_flattened_privilege(privilege, license_record, provider)
+
+        self.assertEqual('licenseEncumbered', flattened['encumberedStatus'])
+        self.assertEqual('notUnderInvestigation', flattened['investigationStatus'])
+        self.assertEqual('ne', flattened['jurisdiction'])
+        self.assertEqual(license_record.givenName, flattened['givenName'])
+        self.assertEqual('inactive', flattened['status'])
+        self.assertEqual('inactive', flattened['licenseStatus'])
+
     def test_get_provider_missing_parameters(self):
         """Test request with missing required parameters."""
         from handlers.state_api import get_provider
