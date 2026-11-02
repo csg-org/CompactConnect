@@ -49,6 +49,11 @@ import QRCode from 'qrcode';
 
 const successMessageKeys = ['auth.codeSent', 'auth.passwordUpdated'];
 
+type LoginTarget = {
+    appMode: AppModes;
+    authType: AuthTypes;
+};
+
 @Component({
     name: 'AuthLogin',
     components: {
@@ -371,6 +376,10 @@ class AuthLogin extends mixins(MixinForm) {
     }
 
     async submitCurrentStep(): Promise<void> {
+        const loginTarget = {
+            appMode: this.appMode,
+            authType: this.authType,
+        };
         const {
             email,
             password,
@@ -383,30 +392,30 @@ class AuthLogin extends mixins(MixinForm) {
 
         if (this.isLoginStep) {
             result = await cognitoAuth.signInWithPassword(
-                this.appMode,
-                this.authType,
+                loginTarget.appMode,
+                loginTarget.authType,
                 email,
                 password,
-                this.totpIssuer
+                getTotpIssuer(loginTarget.appMode)
             );
         } else if (this.isNewPasswordStep) {
-            result = await cognitoAuth.confirmChallenge(newPassword, this.totpIssuer);
+            result = await cognitoAuth.confirmChallenge(newPassword, getTotpIssuer(loginTarget.appMode));
         } else if (this.isMfaSetupStep || this.isMfaCodeStep) {
-            result = await cognitoAuth.confirmChallenge(mfaCode, this.totpIssuer);
+            result = await cognitoAuth.confirmChallenge(mfaCode, getTotpIssuer(loginTarget.appMode));
         } else if (this.isForgotPasswordStep) {
-            result = await cognitoAuth.requestPasswordReset(this.appMode, this.authType, email);
+            result = await cognitoAuth.requestPasswordReset(loginTarget.appMode, loginTarget.authType, email);
         } else if (this.isForgotPasswordConfirmStep) {
             result = await cognitoAuth.confirmPasswordReset(email || '', resetCode, newPassword || confirmPassword);
         }
 
-        await this.applyAuthResult(result);
+        await this.applyAuthResult(result, loginTarget);
     }
 
-    async applyAuthResult(result: CognitoAuthResult): Promise<void> {
+    async applyAuthResult(result: CognitoAuthResult, loginTarget: LoginTarget): Promise<void> {
         const isSuccessMessage = Boolean(result.messageKey) && successMessageKeys.indexOf(result.messageKey || '') !== -1;
 
         if (result.tokenResponse) {
-            await this.finishLogin(result.tokenResponse);
+            await this.finishLogin(result.tokenResponse, loginTarget);
         } else {
             this.rememberEmail();
 
@@ -515,21 +524,25 @@ class AuthLogin extends mixins(MixinForm) {
         return this.setStep(CognitoAuthStep.LOGIN);
     }
 
-    async finishLogin(tokenResponse: OAuthTokenResponse): Promise<void> {
-        const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
-        const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+    async finishLogin(tokenResponse: OAuthTokenResponse, loginTarget: LoginTarget): Promise<void> {
+        const isSameTarget = this.appMode === loginTarget.appMode && this.authType === loginTarget.authType;
 
-        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
-        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
-        this.$store.dispatch('setAppMode', this.appMode);
-        await this.$store.dispatch('user/updateAuthTokens', { tokenResponse, authType: this.authType });
-        await this.$store.dispatch('user/loginSuccess', this.authType);
+        if (isSameTarget) {
+            const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
+            const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
 
-        if (goto && (!gotoAuthType || gotoAuthType === this.authType)) {
-            this.$router.push({ path: goto });
-        } else {
-            await nextTick();
-            this.$router.push({ name: 'Home' });
+            authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+            authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+            this.$store.dispatch('setAppMode', loginTarget.appMode);
+            await this.$store.dispatch('user/updateAuthTokens', { tokenResponse, authType: loginTarget.authType });
+            await this.$store.dispatch('user/loginSuccess', loginTarget.authType);
+
+            if (goto && (!gotoAuthType || gotoAuthType === loginTarget.authType)) {
+                this.$router.push({ path: goto });
+            } else {
+                await nextTick();
+                this.$router.push({ name: 'Home' });
+            }
         }
     }
 
@@ -537,7 +550,15 @@ class AuthLogin extends mixins(MixinForm) {
     // Watchers
     //
     @Watch('$route.fullPath') onRouteChange(): void {
+        const previousAuthType = this.authType;
+        const previousAppMode = this.appMode;
+
         this.applyRoute();
+
+        if (this.authType !== previousAuthType || this.appMode !== previousAppMode) {
+            this.resetUsername = '';
+        }
+
         this.initFormInputs();
     }
 }

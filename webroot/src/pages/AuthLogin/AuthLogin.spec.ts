@@ -15,7 +15,7 @@ import { AppModes } from '@/app.config';
 import { AuthTypes, authStorage, AUTH_LOGIN_GOTO_COMPACT } from '@utils/auth';
 import { CompactType } from '@utils/compactConfig';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import cognitoAuth, { CognitoAuthStep } from '@utils/cognitoAuth';
+import cognitoAuth, { CognitoAuthResult, CognitoAuthStep } from '@utils/cognitoAuth';
 import AuthHelper from '@components/AuthHelper/AuthHelper.vue';
 
 describe('AuthLogin page', async () => {
@@ -177,6 +177,44 @@ describe('AuthLogin page', async () => {
         expect(wrapper.vm.formData.password).to.not.equal(undefined);
         expect(wrapper.vm.formData.email.value).to.equal('');
     });
+    it('should clear the remembered email when the login target changes', async () => {
+        envConfig.cognitoClientIdStaff = 'staff-client';
+        envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
+        envConfig.cognitoClientIdLicensee = 'licensee-client';
+        envConfig.cognitoAuthDomainLicensee = 'https://licensee.example.com';
+
+        const wrapper = await mountShallow(AuthLogin);
+
+        await wrapper.vm.$router.push('/auth/login/staff/jcc?step=forgot-password');
+        await nextTick();
+        wrapper.vm.resetUsername = 'staff@example.com';
+
+        await wrapper.vm.$router.push('/auth/login/licensee/jcc');
+        await nextTick();
+
+        expect(wrapper.vm.authType).to.equal(AuthTypes.LICENSEE);
+        expect(wrapper.vm.resetUsername).to.equal('');
+        expect(wrapper.vm.formData.email.value).to.equal('');
+    });
+    it('should keep the remembered email when the step changes on the same login', async () => {
+        envConfig.cognitoClientIdStaff = 'staff-client';
+        envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
+
+        const wrapper = await mountShallow(AuthLogin);
+
+        await wrapper.vm.$router.push('/auth/login/staff/jcc');
+        await nextTick();
+        wrapper.vm.resetUsername = 'staff@example.com';
+
+        await wrapper.vm.$router.push('/auth/login/staff/jcc?step=forgot-password');
+        await nextTick();
+
+        expect(wrapper.vm.authType).to.equal(AuthTypes.STAFF);
+        expect(wrapper.vm.appMode).to.equal(AppModes.JCC);
+        expect(wrapper.vm.isForgotPasswordStep).to.equal(true);
+        expect(wrapper.vm.resetUsername).to.equal('staff@example.com');
+        expect(wrapper.vm.formData.email.value).to.equal('staff@example.com');
+    });
     it('should move to MFA setup after a successful password challenge', async () => {
         const signInStub = sinon.stub(cognitoAuth, 'signInWithPassword').resolves({
             step: CognitoAuthStep.MFA_SETUP,
@@ -204,6 +242,54 @@ describe('AuthLogin page', async () => {
         expect(wrapper.vm.qrCodeDataUrl).to.be.a('string').with.length.above(0);
         expect(wrapper.vm.remainingMs).to.be.above(14 * 60 * 1000);
         expect(wrapper.findComponent(AuthHelper).props('screen')).to.equal(CognitoAuthStep.MFA_SETUP);
+    });
+    it('should not store a staff sign-in after the route changes to licensee login', async () => {
+        let resolveSignIn: (result: CognitoAuthResult) => void = () => undefined;
+        const signInResult = new Promise<CognitoAuthResult>((resolve) => {
+            resolveSignIn = resolve;
+        });
+        const signInStub = sinon.stub(cognitoAuth, 'signInWithPassword').returns(signInResult);
+
+        envConfig.cognitoClientIdStaff = 'staff-client';
+        envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
+        envConfig.cognitoClientIdLicensee = 'licensee-client';
+        envConfig.cognitoAuthDomainLicensee = 'https://licensee.example.com';
+
+        const wrapper = await mountShallow(AuthLogin);
+
+        await wrapper.vm.$router.push('/auth/login/staff/jcc');
+        wrapper.vm.applyRoute();
+        wrapper.vm.initFormInputs();
+        wrapper.vm.formData.email.value = 'user@example.com';
+        wrapper.vm.formData.password.value = 'temporary-password';
+
+        const pendingLogin = wrapper.vm.handleSubmit();
+
+        await flushPromises();
+        expect(signInStub.calledOnce).to.equal(true);
+        expect(signInStub.firstCall.args[1]).to.equal(AuthTypes.STAFF);
+
+        await wrapper.vm.$router.push('/auth/login/licensee/jcc');
+        await nextTick();
+
+        const dispatchSpy = sinon.spy(wrapper.vm.$store, 'dispatch');
+
+        resolveSignIn({
+            tokenResponse: {
+                access_token: 'staff-access',
+                id_token: 'staff-id',
+                refresh_token: 'staff-refresh',
+                token_type: 'Bearer',
+                expires_in: 300,
+            },
+        });
+        await pendingLogin;
+        await flushPromises();
+
+        expect(wrapper.vm.authType).to.equal(AuthTypes.LICENSEE);
+        expect(wrapper.vm.$route.path).to.equal('/auth/login/licensee/jcc');
+        expect(dispatchSpy.calledWith('user/updateAuthTokens')).to.equal(false);
+        expect(dispatchSpy.calledWith('user/loginSuccess')).to.equal(false);
     });
     it('should keep the email and focus the step title when opening forgot password', async () => {
         envConfig.cognitoClientIdStaff = 'staff-client';
