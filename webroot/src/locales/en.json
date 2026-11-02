@@ -1345,6 +1345,7 @@
         "expiredCode": "That code has expired. Request a new one.",
         "tooManyAttempts": "Too many attempts. Wait a few minutes and try again.",
         "invalidPassword": "The password does not meet the requirements.",
+        "passwordPreviouslyUsed": "Password has previously been used",
         "passwordResetRequired": "You need to reset your password before you can log in.",
         "genericError": "There was an error logging you in.",
         "unsupportedLogin": "This login is not available.",

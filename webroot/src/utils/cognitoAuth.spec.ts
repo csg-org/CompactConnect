@@ -110,6 +110,10 @@ describe('cognitoAuth utils', () => {
         const limited = mapCognitoAuthError({ name: 'LimitExceededException', message: 'limited' });
         const tooMany = mapCognitoAuthError({ name: 'TooManyRequestsException', message: 'slow down' });
         const invalidPassword = mapCognitoAuthError({ name: 'InvalidPasswordException', message: 'weak' });
+        const reusedPassword = mapCognitoAuthError({
+            name: 'PasswordHistoryPolicyViolationException',
+            message: 'Password has previously been used',
+        });
 
         expect(missing.messageKey).to.equal('auth.genericError');
         expect(missing.step).to.equal(undefined);
@@ -123,6 +127,8 @@ describe('cognitoAuth utils', () => {
         expect(limited.messageKey).to.equal('auth.tooManyAttempts');
         expect(tooMany.messageKey).to.equal('auth.tooManyAttempts');
         expect(invalidPassword.messageKey).to.equal('auth.invalidPassword');
+        expect(reusedPassword.messageKey).to.equal('auth.passwordPreviouslyUsed');
+        expect(reusedPassword.step).to.equal(undefined);
     });
     it('should shape Amplify tokens like the OAuth token response', () => {
         const nowSeconds = Math.floor(Date.now() / 1000);

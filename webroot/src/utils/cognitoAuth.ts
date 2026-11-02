@@ -164,6 +164,8 @@ export const mapCognitoAuthError = (error: unknown): MappedAuthError => {
         messageKey = 'auth.tooManyAttempts';
     } else if (errorName === 'InvalidPasswordException') {
         messageKey = 'auth.invalidPassword';
+    } else if (errorName === 'PasswordHistoryPolicyViolationException') {
+        messageKey = 'auth.passwordPreviouslyUsed';
     }
 
     return { messageKey, step };

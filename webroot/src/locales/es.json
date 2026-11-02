@@ -1344,6 +1344,7 @@
         "expiredCode": "Ese código ha caducado. Solicite uno nuevo.",
         "tooManyAttempts": "Demasiados intentos. Espere unos minutos e inténtelo de nuevo.",
         "invalidPassword": "La contraseña no cumple los requisitos.",
+        "passwordPreviouslyUsed": "La contraseña ya se ha utilizado anteriormente",
         "passwordResetRequired": "Debe restablecer su contraseña antes de poder iniciar sesión.",
         "genericError": "Hubo un error al iniciar sesión.",
         "unsupportedLogin": "Este inicio de sesión no está disponible.",
