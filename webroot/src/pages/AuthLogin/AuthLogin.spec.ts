@@ -291,6 +291,51 @@ describe('AuthLogin page', async () => {
         expect(dispatchSpy.calledWith('user/updateAuthTokens')).to.equal(false);
         expect(dispatchSpy.calledWith('user/loginSuccess')).to.equal(false);
     });
+    it('should ignore a staff MFA setup result after the route changes to licensee login', async () => {
+        let resolveSignIn: (result: CognitoAuthResult) => void = () => undefined;
+        const signInResult = new Promise<CognitoAuthResult>((resolve) => {
+            resolveSignIn = resolve;
+        });
+        const signInStub = sinon.stub(cognitoAuth, 'signInWithPassword').returns(signInResult);
+
+        envConfig.cognitoClientIdStaff = 'staff-client';
+        envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
+        envConfig.cognitoClientIdLicensee = 'licensee-client';
+        envConfig.cognitoAuthDomainLicensee = 'https://licensee.example.com';
+
+        const wrapper = await mountShallow(AuthLogin);
+
+        await wrapper.vm.$router.push('/auth/login/staff/jcc');
+        wrapper.vm.applyRoute();
+        wrapper.vm.initFormInputs();
+        wrapper.vm.formData.email.value = 'user@example.com';
+        wrapper.vm.formData.password.value = 'temporary-password';
+
+        const pendingLogin = wrapper.vm.handleSubmit();
+
+        await flushPromises();
+        expect(signInStub.calledOnce).to.equal(true);
+
+        await wrapper.vm.$router.push('/auth/login/licensee/jcc');
+        await nextTick();
+
+        resolveSignIn({
+            step: CognitoAuthStep.MFA_SETUP,
+            totpSecret: 'SECRETKEY',
+            totpSetupUri: 'otpauth://totp/CompactConnect:user@example.com?secret=SECRETKEY',
+            mfaSetupExpiresAt: Date.now() + (15 * 60 * 1000),
+            messageKey: 'auth.genericError',
+        });
+        await pendingLogin;
+        await flushPromises();
+
+        expect(wrapper.vm.authType).to.equal(AuthTypes.LICENSEE);
+        expect(wrapper.vm.isLoginStep).to.equal(true);
+        expect(wrapper.vm.totpSecret).to.equal('');
+        expect(wrapper.vm.formData.mfaCode).to.equal(undefined);
+        expect(wrapper.vm.isFormError).to.equal(false);
+        expect(wrapper.vm.formData.submit.errorMessage).to.equal('');
+    });
     it('should keep the email and focus the step title when opening forgot password', async () => {
         envConfig.cognitoClientIdStaff = 'staff-client';
         envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';

@@ -413,10 +413,11 @@ class AuthLogin extends mixins(MixinForm) {
 
     async applyAuthResult(result: CognitoAuthResult, loginTarget: LoginTarget): Promise<void> {
         const isSuccessMessage = Boolean(result.messageKey) && successMessageKeys.indexOf(result.messageKey || '') !== -1;
+        const isSameTarget = this.appMode === loginTarget.appMode && this.authType === loginTarget.authType;
 
-        if (result.tokenResponse) {
+        if (isSameTarget && result.tokenResponse) {
             await this.finishLogin(result.tokenResponse, loginTarget);
-        } else {
+        } else if (isSameTarget) {
             this.rememberEmail();
 
             if (result.step) {
