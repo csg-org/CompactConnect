@@ -7,7 +7,7 @@ from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_opensearchservice import Domain
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
-from common_constructs.constants import BETA_ENV_NAME, PROD_ENV_NAME
+from common_constructs.constants import PROD_ENV_NAME
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
@@ -15,12 +15,9 @@ from constructs import Construct
 from stacks.vpc_stack import VpcStack
 
 # Index configuration constants
-# Sandbox uses 3 data nodes across 3 AZs.
-# With 1 primary shard and 2 replicas, each node holds one copy of the data.
+# Non-prod uses a single data node, so replica shards cannot be placed.
 NON_PROD_NUMBER_OF_SHARDS = 1
-NON_PROD_NUMBER_OF_REPLICAS = 2
-# test and beta use a single data node, so replica shards cannot be placed.
-TEST_BETA_NUMBER_OF_REPLICAS = 0
+NON_PROD_NUMBER_OF_REPLICAS = 0
 # Production uses 3 data nodes across 3 AZs, so 1 primary and 2 replica ensures data availability
 # if this is updated, the total of primary + replica shards must be a multiple of 3
 PROD_NUMBER_OF_SHARDS = 1
@@ -60,7 +57,6 @@ class IndexManagerCustomResource(Construct):
         super().__init__(scope, construct_id)
         stack = Stack.of(scope)
 
-        self._environment_name = environment_name
         self._is_prod_environment = environment_name == PROD_ENV_NAME
 
         # Create Lambda function for managing OpenSearch indices
@@ -186,14 +182,8 @@ class IndexManagerCustomResource(Construct):
             service_token=provider.service_token,
             properties={
                 'numberOfShards': PROD_NUMBER_OF_SHARDS if self._is_prod_environment else NON_PROD_NUMBER_OF_SHARDS,
-                'numberOfReplicas': self._number_of_replicas(),
+                'numberOfReplicas': PROD_NUMBER_OF_REPLICAS
+                if self._is_prod_environment
+                else NON_PROD_NUMBER_OF_REPLICAS,
             },
         )
-
-    def _number_of_replicas(self) -> int:
-        """Replica count for this environment's data-node layout."""
-        if self._is_prod_environment:
-            return PROD_NUMBER_OF_REPLICAS
-        if self._environment_name in ('test', BETA_ENV_NAME):
-            return TEST_BETA_NUMBER_OF_REPLICAS
-        return NON_PROD_NUMBER_OF_REPLICAS

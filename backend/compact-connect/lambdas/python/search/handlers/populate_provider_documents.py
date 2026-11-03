@@ -25,7 +25,7 @@ Optional parameters:
   indexing (uses numberOfShards / numberOfReplicas). Run during low traffic; do not
   combine with resumption (startingCompact / startingLastKey) for the same run.
 - numberOfShards: Primary shard count for recreated indexes (default: 1).
-- numberOfReplicas: Replica shard count for recreated indexes (default: 0 in test and beta, 2 otherwise).
+- numberOfReplicas: Replica shard count for recreated indexes (default: 0 in non-prod, 2 in prod).
 
 Race Condition Consideration:
 A potential race condition can occur when running this function while provider
@@ -67,16 +67,15 @@ OPENSEARCH_BULK_SIZE = 1000
 # Time threshold in milliseconds - stop when less than 3 minutes remain
 # This leaves a 3-minute buffer before the 15-minute Lambda timeout
 TIME_THRESHOLD_MS = 60 * 3000
-# test and beta run a single data node, so the default recreate must not request replicas.
-SINGLE_NODE_ENVIRONMENTS = {'test', 'beta'}
-DEFAULT_SINGLE_NODE_REPLICAS = 0
-DEFAULT_MULTI_NODE_REPLICAS = 2
+# Non-prod runs a single data node, so the default recreate must not request replicas.
+DEFAULT_NON_PROD_REPLICAS = 0
+DEFAULT_PROD_REPLICAS = 2
 
 
 def _default_number_of_replicas() -> int:
-    if config.environment_name in SINGLE_NODE_ENVIRONMENTS:
-        return DEFAULT_SINGLE_NODE_REPLICAS
-    return DEFAULT_MULTI_NODE_REPLICAS
+    if config.environment_name == 'prod':
+        return DEFAULT_PROD_REPLICAS
+    return DEFAULT_NON_PROD_REPLICAS
 
 
 def populate_provider_documents(event: dict, context: LambdaContext):
@@ -94,7 +93,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
         - startingLastKey: The DynamoDB pagination key to resume from
         - resetIndexes: If true, delete and recreate all compact indexes first
         - numberOfShards: Shards for recreated indexes (default 1)
-        - numberOfReplicas: Replicas for recreated indexes (default 0 in test and beta, 2 otherwise)
+        - numberOfReplicas: Replicas for recreated indexes (default 0 in non-prod, 2 in prod)
     :param context: Lambda context
     :return: Summary of indexing operation, including pagination info if incomplete
     """
