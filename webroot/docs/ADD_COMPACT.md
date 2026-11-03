@@ -28,7 +28,7 @@ Example: `AppModes.SOCIAL_WORK = 'socialwork'` → `/auth/callback/staff/socialw
 
 Once the config and infra wiring below are in place, these do **not** need per-compact UI lists or interceptor edits:
 
-- PublicDashboard staff login cards (`$compactsEnabledCompactConnect`; `$compactsEnabled` includes host-pinned compacts like psypact)
+- PublicDashboard compact picker and staff login (`$compactsEnabledCompactConnect`; `$compactsEnabled` includes host-pinned compacts like psypact)
 - CompactSelector (public + permission-based options)
 - Logout, token refresh, and token revoke (`getCognitoConfig`)
 - Auth callback path string (`getAuthCallbackPath`)
@@ -70,7 +70,7 @@ These **do** still need per-compact work (not automatic):
 **`src/utils/compactConfig.ts`**
 
 - [ ] Add `CompactType.YOUR_COMPACT = 'abbr'`
-- [ ] Add `compactSetups` entry (`type`, `appMode`, `isEnabled`)
+- [ ] Add `compactSetups` entry (`type`, `appMode`, `hasLicenseeLogin`, `isEnabled`)
 - [ ] Add `appModeGroups[AppModes.YOUR_MODE]` → existing `PRIVILEGE_PURCHASE` or `MULTI_STATE`
 - [ ] Add `appModeEncumberConfigs[AppModes.YOUR_MODE]` (license + privilege discipline / NPDB lists; reuse shared helpers when possible)
 
@@ -155,6 +155,7 @@ Needed when exercising the new compact under the mock API:
   (Cosmetology and social work are omitted there on purpose because they do not allow registration.)
 - [ ] Add or extend licensee / search fixtures only if you need mock flows for that compact (many fixtures stay on `octp` by default)
 - [ ] Add mock overlay to `mockProviderCompactOverlays()`
+- [ ] If the new compact's `AppGroupMode` is `PRIVILEGE_PURCHASE`, add its privilege fees to `mockPrivilegeFeesByCompact`. Include one `licenseTypeAbbreviation` per license type the purchase-options API returns. Cosmetology, social work, and PSYPACT are omitted because they are `MULTI_STATE` and do not sell privileges.
 
 ### 8. Optional / situational UI
 
@@ -164,13 +165,14 @@ Only if the new compact should participate in these flows:
 
 - [ ] If the new compact will have a different app mode based on deployed host domain (e.g. psypact), update the `get appTypeOptions()` computed and `handleAppTypeSelect()` method.
 
-**`src/pages/PublicDashboard/PublicDashboard.ts` → `bypassRedirect`**
+**`src/pages/PublicDashboard/PublicDashboard.ts`**
 
 - [ ] Add a `?bypass=login-staff-…` case if emails or deep links need it (see cosmo / social work)
 
 **`src/pages/PublicDashboard/PublicDashboard.spec.ts`**
 
 - [ ] Staff login URI for the new mode (optional)
+- [ ] Practitioner login visibility if the compact allows it (optional)
 
 **`RegisterLicensee` / `MfaResetStartLicensee`**
 

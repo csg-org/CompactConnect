@@ -21,6 +21,7 @@ export enum CompactType {
 export interface CompactSetup {
     type: CompactType;
     appMode: AppModes;
+    hasLicenseeLogin: boolean;
     isEnabled: () => boolean; // Evaluated lazily as predicate function; so environment gating stays testable, resolved to a boolean by the Compacts plugin.
 }
 
@@ -28,36 +29,43 @@ export const compactSetups: Record<CompactType, CompactSetup> = {
     [CompactType.ASLP]: {
         type: CompactType.ASLP,
         appMode: AppModes.JCC,
+        hasLicenseeLogin: true,
         isEnabled: () => true,
     },
     [CompactType.OT]: {
         type: CompactType.OT,
         appMode: AppModes.JCC,
+        hasLicenseeLogin: true,
         isEnabled: () => true,
     },
     [CompactType.COUNSELING]: {
         type: CompactType.COUNSELING,
         appMode: AppModes.JCC,
+        hasLicenseeLogin: true,
         isEnabled: () => true,
     },
     [CompactType.COSMETOLOGY]: {
         type: CompactType.COSMETOLOGY,
         appMode: AppModes.COSMETOLOGY,
+        hasLicenseeLogin: false,
         isEnabled: () => true,
     },
     [CompactType.SOCIAL_WORK]: {
         type: CompactType.SOCIAL_WORK,
         appMode: AppModes.SOCIAL_WORK,
+        hasLicenseeLogin: false,
         isEnabled: () => !envConfig.isAppProduction, // @NOTE: No Prod infra yet
     },
     [CompactType.PSYPACT]: {
         type: CompactType.PSYPACT,
         appMode: AppModes.PSYPACT,
+        hasLicenseeLogin: true,
         isEnabled: () => !envConfig.isAppProduction, // @NOTE: No Prod infra yet
     },
     [CompactType.DIETITIANS]: {
         type: CompactType.DIETITIANS,
         appMode: AppModes.DIETITIANS,
+        hasLicenseeLogin: true,
         isEnabled: () => !envConfig.isAppProduction, // @NOTE: No Prod infra yet
     },
 };

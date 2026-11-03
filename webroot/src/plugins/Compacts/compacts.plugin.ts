@@ -20,6 +20,7 @@ import store from '@/store';
 export interface CompactConfig {
     type: CompactType;
     appMode: AppModes;
+    hasLicenseeLogin: boolean;
     isEnabled: boolean;
     name: string;
     abbrev: string;
@@ -43,6 +44,7 @@ export const compactConfigs = computed<Array<CompactConfig>>(() => {
         return {
             type: setup.type,
             appMode: setup.appMode,
+            hasLicenseeLogin: setup.hasLicenseeLogin,
             isEnabled: setup.isEnabled(),
             name: translation?.name || '',
             abbrev: translation?.abbrev || '',

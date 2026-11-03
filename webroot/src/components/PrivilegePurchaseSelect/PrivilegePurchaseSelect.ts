@@ -30,6 +30,7 @@ import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/Acc
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { State } from '@/models/State/State.model';
+import { CompactType } from '@/utils/compactConfig';
 import { dataApi } from '@network/data.api';
 import moment from 'moment';
 import Joi from 'joi';
@@ -64,6 +65,10 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
             'scope-of-practice-attestation'
         ],
         octp: [
+            'jurisprudence-confirmation',
+            'scope-of-practice-attestation'
+        ],
+        diet: [
             'jurisprudence-confirmation',
             'scope-of-practice-attestation'
         ],
@@ -229,6 +234,17 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         return this.numPrivilegesChosen > 0;
     }
 
+    get jurisprudenceExplanationTextKey(): string {
+        let key = 'licensing.jurisprudenceExplanationText';
+
+        // Dietitians still uses the older exam wording while the other compacts use the updated sentence
+        if (this.currentCompactType === CompactType.DIETITIANS) {
+            key = 'licensing.jurisprudenceExamExplanationText';
+        }
+
+        return key;
+    }
+
     get jurisprudenceAttestation(): PrivilegeAttestation {
         return this.attestationRecords.find((record) => ((record as any)?.id === 'jurisprudence-confirmation')) || new PrivilegeAttestation();
     }
@@ -307,7 +323,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
             this.formData[`jurisprudence-${stateAbbrev}`] = new FormInput({
                 id: `jurisprudence-${stateAbbrev}`,
                 name: `jurisprudence-${stateAbbrev}`,
-                label: computed(() => this.$t('licensing.jurisprudenceExplanationText')),
+                label: computed(() => this.$t(this.jurisprudenceExplanationTextKey)),
                 value: false,
                 validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
             });

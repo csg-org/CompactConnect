@@ -62,10 +62,20 @@ describe('compactConfig utils', () => {
         expect(getCompactSetup(CompactType.ASLP)).to.matchPattern({
             type: CompactType.ASLP,
             appMode: AppModes.JCC,
+            hasLicenseeLogin: true,
             isEnabled: Function,
         });
         expect(getCompactSetup('not-a-compact')).to.equal(null);
         expect(getCompactSetup(null)).to.equal(null);
+    });
+    it('should successfully flag licensee login per compact', () => {
+        expect(compactSetups[CompactType.ASLP].hasLicenseeLogin).to.equal(true);
+        expect(compactSetups[CompactType.OT].hasLicenseeLogin).to.equal(true);
+        expect(compactSetups[CompactType.COUNSELING].hasLicenseeLogin).to.equal(true);
+        expect(compactSetups[CompactType.COSMETOLOGY].hasLicenseeLogin).to.equal(false);
+        expect(compactSetups[CompactType.SOCIAL_WORK].hasLicenseeLogin).to.equal(false);
+        expect(compactSetups[CompactType.PSYPACT].hasLicenseeLogin).to.equal(true);
+        expect(compactSetups[CompactType.DIETITIANS].hasLicenseeLogin).to.equal(true);
     });
     it('should successfully map each app mode to its app group mode', () => {
         expect(appModeGroups).to.matchPattern({
