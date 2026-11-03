@@ -186,4 +186,4 @@ class IndexManagerCustomResource(Construct):
                 if self._is_prod_environment
                 else NON_PROD_NUMBER_OF_REPLICAS,
             },
-        }
+        )
