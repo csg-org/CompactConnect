@@ -29,6 +29,8 @@ describe('AuthHelper component', async () => {
         expect(text).to.contain(wrapper.vm.$t('auth.helper.mfaSetupTitle'));
         expect(text).to.contain(wrapper.vm.$t('auth.helper.mfaStepScan'));
         expect(text).to.contain('15 minutes');
+        expect(text).to.contain('Do not refresh or leave this page');
+        expect(text).to.contain('new QR code');
         expect(text).to.not.contain('temporary');
         expect(text).to.not.contain('3-minute');
         expect(wrapper.find('a[href*="google.android.apps.authenticator2"]').attributes('target')).to.equal('_blank');

@@ -1366,7 +1366,7 @@
             "mfaStepScan": "En la aplicación, agregue una cuenta y escanee el código QR de abajo, o ingrese la clave de configuración.",
             "mfaStepCode": "Ingrese el código actual de 6 dígitos. Los códigos se actualizan cada 30 segundos.",
             "mfaStepContinue": "Seleccione Continuar.",
-            "mfaTimeLimit": "Tiene 15 minutos desde que inició sesión para terminar este paso. Si se acaba el tiempo, inicie sesión de nuevo. Si se le pide configurar la MFA otra vez, elimine la entrada anterior de esta cuenta en su aplicación de autenticación antes de escanear el código nuevo."
+            "mfaTimeLimit": "Tiene 15 minutos desde que inició sesión para terminar este paso. No actualice ni abandone esta página. Si lo hace, o si se acaba el tiempo, inicie sesión de nuevo para obtener un código QR nuevo. Si se le pide configurar la MFA otra vez, elimine la entrada anterior de esta cuenta en su aplicación de autenticación antes de escanear el código nuevo."
         }
     }
 }

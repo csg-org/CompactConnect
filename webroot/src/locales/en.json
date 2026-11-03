@@ -1367,7 +1367,7 @@
             "mfaStepScan": "In the app, add an account and scan the QR code below, or enter the setup key.",
             "mfaStepCode": "Enter the current 6-digit code. Codes refresh every 30 seconds.",
             "mfaStepContinue": "Choose Continue.",
-            "mfaTimeLimit": "You have 15 minutes from when you signed in to finish this step. If time runs out, sign in again. If you are asked to set up MFA again, delete the previous entry for this account from your authenticator app before you scan the new code."
+            "mfaTimeLimit": "You have 15 minutes from when you signed in to finish this step. Do not refresh or leave this page. If you do, or if time runs out, sign in again to get a new QR code. If you are asked to set up MFA again, delete the previous entry for this account from your authenticator app before you scan the new code."
         }
     }
 }
