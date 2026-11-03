@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/search/requirements.in
 #
-certifi==2026.6.17
+certifi==2026.10.19
     # via
     #   opensearch-py
     #   requests
