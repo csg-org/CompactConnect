@@ -76,7 +76,7 @@ mdurl==0.1.2
     # via markdown-it-py
 moto[dynamodb,s3]==5.2.2
     # via -r requirements-dev.in
-msgpack==1.2.1
+msgpack==1.2.3
     # via cachecontrol
 packageurl-python==0.17.6
     # via cyclonedx-python-lib

@@ -8,6 +8,7 @@ import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
+import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 import { AuthTypes } from '@utils/auth';
 import { getImpliedCompactForHost } from './user.state';
 
@@ -171,6 +172,7 @@ export default {
         state.isAutoLogoutWarning = false;
         state.userType = null;
         state.currentCompact = getImpliedCompactForHost();
+        state.purchase = new PurchaseFlowState();
         state.error = null;
     },
     [MutationTypes.UPDATE_ACCOUNT_REQUEST]: (state: any) => {
