@@ -47,7 +47,7 @@ export default class PrivilegePurchase extends Vue {
     // Lifecycle
     //
     created() {
-        if (this.licensee?.canPurchasePrivileges() && this.currentCompactType) {
+        if (this.licensee?.canPurchasePrivileges(this.currentCompactType) && this.currentCompactType) {
             this.handlePurchaseFlowState();
         } else {
             this.$router.push({
@@ -149,7 +149,7 @@ export default class PrivilegePurchase extends Vue {
     // Watchers
     //
     @Watch('routeName') handlePurchaseFlowNavigation() {
-        if (this.licensee?.canPurchasePrivileges() && this.currentCompactType) {
+        if (this.licensee?.canPurchasePrivileges(this.currentCompactType) && this.currentCompactType) {
             this.handlePurchaseFlowState();
         }
     }

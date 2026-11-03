@@ -20,6 +20,7 @@ import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/Mili
 import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
+import { CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import moment from 'moment';
 import { StatsigClient } from '@statsig/js-client';
@@ -427,11 +428,17 @@ export class Licensee implements InterfaceLicensee {
             .filter((license: License) => (license.eligibility === EligibilityStatus.ELIGIBLE));
     }
 
-    public canPurchasePrivileges(): boolean {
+    public isPurchaseBlockedByEncumbranceWaitPeriod(compactType?: string | null): boolean {
+        const appliesEncumbranceWaitPeriod = compactType !== CompactType.DIETITIANS;
+
+        return appliesEncumbranceWaitPeriod && this.hasEncumbranceLiftedWithinWaitPeriod();
+    }
+
+    public canPurchasePrivileges(compactType?: string | null): boolean {
         return !!this.purchaseEligibleLicenses().length
             && !this.isMilitaryStatusInitializing()
             && !this.isEncumbered()
-            && !this.hasEncumbranceLiftedWithinWaitPeriod();
+            && !this.isPurchaseBlockedByEncumbranceWaitPeriod(compactType);
     }
 
     public history(): Array<LicenseHistoryItem> {

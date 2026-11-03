@@ -18,12 +18,13 @@
     "@statsig/web-analytics": "^3.33.4",
     "@vue/compat": "3.5.41",
     "@vuepic/vue-datepicker": "^11.0.3",
+    "aws-amplify": "^6.22.2",
     "axios": "^1.19.0",
     "caniuse-lite": "^1.0.30001809",
     "click-outside-vue3": "^4.0.1",
     "core-js": "^3.50.0",
     "country-codes-flags-phone-codes": "^1.1.1",
-    "joi": "^18.2.9",
+    "joi": "^18.3.1",
     "joi-password": "^4.3.0",
     "libphonenumber-js": "^1.13.11",
     "lodash.clonedeep": "^4.5.0",
@@ -37,7 +38,7 @@
     "uuid": "^14.0.1",
     "vue": "^3.5.41",
     "vue-facing-decorator": "^3.0.4",
-    "vue-i18n": "^11.4.8",
+    "vue-i18n": "^11.4.14",
     "vue-responsiveness": "^0.2.5",
     "vue-router": "^4.5.1",
     "vue3-lazyload": "^0.4.2",
@@ -109,7 +110,8 @@
     "@vue/cli-plugin-unit-mocha/mocha/minimatch": "^3.0.5",
     "@vue/cli-plugin-unit-mocha/mocha/nanoid": "^3.1.31",
     "@vue/cli-plugin-eslint/**/cross-spawn": "^6.0.6",
-    "joi-password/joi": "^18.0.1"
+    "**/follow-redirects": "1.16.2",
+    "joi-password/joi": "^18.3.1"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"
