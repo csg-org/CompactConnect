@@ -1076,8 +1076,7 @@
         "militaryStatusLinkAriaLabel": "Ver página de estado militar"
     },
     "application": {
-        "authorization": "Autorización",
-        "authorizationTypes": [
+        "applicationTypes": [
             {
                 "name": "APIT",
                 "key": "apit",
@@ -1091,8 +1090,90 @@
                 "compactKey": "psypact",
                 "abbrev": "TAP",
                 "description": "Práctica presencial a corto plazo en otro estado participante."
+            },
+            {
+                "name": "Desconocido",
+                "key": "unknown",
+                "compactKey": "psypact",
+                "abbrev": "UKWN",
+                "description": "Tipo de aplicación desconocido."
             }
         ],
+        "applicationStatusTypes": [
+            {
+                "name": "Comenzó",
+                "key": "started"
+            },
+            {
+                "name": "Incompleto",
+                "key": "incomplete"
+            },
+            {
+                "name": "Completo",
+                "key": "complete"
+            },
+            {
+                "name": "Enviado",
+                "key": "submitted"
+            },
+            {
+                "name": "Revisión del personal",
+                "key": "staff-review"
+            },
+            {
+                "name": "Asignación de necesidades",
+                "key": "needs-assignment"
+            },
+            {
+                "name": "Pendiente",
+                "key": "pending"
+            },
+            {
+                "name": "Primera revisión",
+                "key": "first-review"
+            },
+            {
+                "name": "Segunda revisión",
+                "key": "second-review"
+            },
+            {
+                "name": "Revisión final",
+                "key": "final-review"
+            },
+            {
+                "name": "Revisión del comité",
+                "key": "committee-review"
+            },
+            {
+                "name": "En espera del solicitante",
+                "key": "awaiting-applicant"
+            },
+            {
+                "name": "Necesita atención",
+                "key": "needs-attention"
+            },
+            {
+                "name": "Confirmar detalles",
+                "key": "confirm-details"
+            },
+            {
+                "name": "Aprobado",
+                "key": "approved"
+            },
+            {
+                "name": "Rechazado",
+                "key": "rejected"
+            },
+            {
+                "name": "Desactivado",
+                "key": "deactivated"
+            },
+            {
+                "name": "Desconocido",
+                "key": "unknown"
+            }
+        ],
+        "authorization": "Autorización",
         "authorizationStatusOptions": {
             "active": "Activo",
             "inactive": "Inactivo"

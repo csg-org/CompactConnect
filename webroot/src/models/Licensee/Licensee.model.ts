@@ -21,6 +21,8 @@ import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { State } from '@models/State/State.model';
+import { Application, ApplicationSerializer } from '@models/Application/Application.model';
+import { Authorization, AuthorizationSerializer } from '@models/Authorization/Authorization.model';
 import moment from 'moment';
 import { StatsigClient } from '@statsig/js-client';
 
@@ -69,6 +71,8 @@ export interface InterfaceLicensee {
     lastUpdated?: string | null;
     status?: LicenseeStatus;
     eligibility?: LicenseeEligibility | null;
+    applications?: Array<Application>;
+    authorizations?: Array<Authorization>;
 }
 
 // ========================================================
@@ -103,6 +107,8 @@ export class Licensee implements InterfaceLicensee {
     public lastUpdated? = null;
     public status? = LicenseeStatus.INACTIVE;
     public eligibility? = null;
+    public applications? = [];
+    public authorizations? = [];
 
     constructor(data?: InterfaceLicensee) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -476,6 +482,8 @@ export class LicenseeSerializer {
             status: json.licenseStatus,
             eligibility: json.licenseEligibility,
             lastUpdated: json.dateOfUpdate,
+            applications: [] as Array<Application>,
+            authorizations: [] as Array<Authorization>,
         };
 
         // In get-all responses, server only returns a license state, not the actual license objects
@@ -508,6 +516,20 @@ export class LicenseeSerializer {
         if (Array.isArray(json.militaryAffiliations)) {
             json.militaryAffiliations.forEach((serverAffiliation) => {
                 licenseeData.militaryAffiliations.push(MilitaryAffiliationSerializer.fromServer(serverAffiliation));
+            });
+        }
+
+        // In PSYPACT the server returns applications
+        if (Array.isArray(json.applications)) {
+            json.applications.forEach((serverApplication) => {
+                licenseeData.applications.push(ApplicationSerializer.fromServer(serverApplication));
+            });
+        }
+
+        // In PSYPACT the server returns authorizations
+        if (Array.isArray(json.authorizations)) {
+            json.authorizations.forEach((serverAuthorization) => {
+                licenseeData.authorizations.push(AuthorizationSerializer.fromServer(serverAuthorization));
             });
         }
 

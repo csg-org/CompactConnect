@@ -74,7 +74,7 @@ export class Authorization implements InterfaceAuthorizationCreate {
     }
 
     public typeDisplay(): string {
-        const authorizationTypes = this.$tm('application.authorizationTypes') || [];
+        const authorizationTypes = this.$tm('application.applicationTypes') || [];
         const authorizationType = authorizationTypes.find((translate) => translate.key === this.type);
         const authorizationTypeDisplay = authorizationType?.name || '';
 
@@ -82,7 +82,7 @@ export class Authorization implements InterfaceAuthorizationCreate {
     }
 
     public typeAbbreviation(): string {
-        const authorizationTypes = this.$tm('application.authorizationTypes') || [];
+        const authorizationTypes = this.$tm('application.applicationTypes') || [];
         const authorizationType = authorizationTypes.find((translate) => translate.key === this.type);
         const authorizationTypeAbbrev = authorizationType?.abbrev || '';
         const upperCaseAbbrev = authorizationTypeAbbrev.toUpperCase();
