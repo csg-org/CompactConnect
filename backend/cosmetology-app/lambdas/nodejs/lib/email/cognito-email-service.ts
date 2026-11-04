@@ -96,6 +96,23 @@ export class CognitoEmailService extends BaseEmailService {
             }
         );
 
+        this.insertBody(
+            template,
+            `When you log in for the first time, you will need to set up multi-factor authentication. If you don't already have an app for this, you can use one of the apps listed below. For security reasons, the setup window is limited to 15 minutes. After the authenticator setup page appears, you have 15 minutes to finish setup, or you will have to start the log in process again. If you are asked to set up MFA again, delete the previous entry for this account from your authenticator app before you scan the new code.
+
+**Additional Reminders**
+
+Do not refresh the page or close the tab or browser during MFA setup. If you leave that page, sign in again.
+
+You must use an authenticator app. CompactConnect cannot text or email a code.
+
+A computer is easiest for the first setup. On a phone, type the setup key shown under the QR code.
+
+If you cannot scan the QR code, take a screenshot of it and scan the screenshot.`,
+            'left',
+            true
+        );
+
         // Add MFA instructions block
         this.insertStyledBlock(template, {
             blockType: 'warning',
@@ -114,11 +131,9 @@ An authenticator app generates time-based codes that change every 30 seconds. Yo
 1. Download one of the authenticator apps above
 2. Click the sign-in link above and sign in to CompactConnect with your temporary credentials
 3. Reset your password when prompted
-4. In your authenticator app, add an account and scan the QR code presented on the MFA setup page
+4. In your authenticator app, add an account and scan the QR code presented on the MFA setup page, or enter the setup key
 5. Enter the 6-digit code from your authenticator into the CompactConnect MFA setup page (codes refresh every 30 seconds)
 6. Click "Continue" to complete setup
-
-> **Note:** You have 15 minutes from when you sign in to finish MFA setup. If time runs out, sign in again. If you are prompted to set up MFA again, delete your previous account entry from your MFA app before you try again.
 
 **How to sign in with MFA (after setup):**
 1. Click the sign-in link above or go to ${loginUrl}
