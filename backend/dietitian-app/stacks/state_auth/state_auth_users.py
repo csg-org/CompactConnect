@@ -62,7 +62,7 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
         # Hosted-zone environments get state-auth.{zone} (e.g. state-auth.test.dietitian.jcc.iaapi.io).
         # This is unique per hosted zone, so two accounts deploying the same environment_name
         # (e.g. internal test and CSG test) do not collide on the global Cognito prefix namespace.
-        # Managed Login Version 2 is intentionally omitted because this pool is on the Lite plan,
+        # Managed Login is intentionally omitted because this pool is on the Lite plan,
         # which does not support it (the pool has no human users so the login UI is irrelevant).
         # Sandboxes with no hosted zone still use the Cognito prefix, which is fine because
         # sandbox environment names are unique per developer.
@@ -78,7 +78,7 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
             self.user_pool_domain = self.add_domain(
                 'StateUserPoolDomain',
                 custom_domain=CustomDomainOptions(certificate=cert, domain_name=domain_name),
-                # managed_login_version intentionally omitted — Lite plan does not support v2
+                # managed_login_version intentionally omitted — Lite plan does not support Managed Login
             )
             self.state_auth_domain_record = ARecord(
                 self,
