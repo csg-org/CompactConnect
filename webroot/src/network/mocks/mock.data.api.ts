@@ -25,7 +25,7 @@ import {
     licensees,
     users,
     pets,
-    privilegePurchaseOptionsResponse,
+    getPrivilegePurchaseOptionsResponse,
     getAttestation,
     compactStates,
     compactStatesForRegistration,
@@ -685,9 +685,15 @@ export class DataApi {
     // Get Privilege Purchase Information for Licensee User
     public getPrivilegePurchaseInformation() {
         return wait(500).then(() => {
-            const { items } = privilegePurchaseOptionsResponse;
-            const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
-            const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => (CompactFeeConfigSerializer.fromServer(serverFeeObject)))[0];
+            const { items } = getPrivilegePurchaseOptionsResponse(getCurrentCompact());
+            const privilegePurchaseOptions = items
+                .filter((serverItem) => (serverItem.type === 'jurisdiction'))
+                .map((serverPurchaseOption) => (
+                    PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)
+                ));
+            const compactCommissionFee = items
+                .filter((serverItem) => (serverItem.type === 'compact'))
+                .map((serverFeeObject) => CompactFeeConfigSerializer.fromServer(serverFeeObject))[0];
 
             return { privilegePurchaseOptions, compactCommissionFee };
         });

@@ -155,6 +155,7 @@ Needed when exercising the new compact under the mock API:
   (Cosmetology and social work are omitted there on purpose because they do not allow registration.)
 - [ ] Add or extend licensee / search fixtures only if you need mock flows for that compact (many fixtures stay on `octp` by default)
 - [ ] Add mock overlay to `mockProviderCompactOverlays()`
+- [ ] If the new compact's `AppGroupMode` is `PRIVILEGE_PURCHASE`, add its privilege fees to `mockPrivilegeFeesByCompact`. Include one `licenseTypeAbbreviation` per license type the purchase-options API returns. Cosmetology, social work, and PSYPACT are omitted because they are `MULTI_STATE` and do not sell privileges.
 
 ### 8. Optional / situational UI
 
