@@ -126,6 +126,42 @@ export default {
     getPrivilegeHistoryFailureLicensee: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE, error);
     },
+    // GET LICENSEE APPLICATIONS
+    getApplicationsRequestLicensee: async ({ commit, dispatch }) => {
+        commit(MutationTypes.GET_APPLICATIONS_REQUEST);
+        return dataApi.getAuthenticatedLicenseeApplications().then(({ applications }) => {
+            dispatch('getApplicationsSuccessLicensee', applications);
+
+            return applications;
+        }).catch((error) => {
+            dispatch('getApplicationsFailureLicensee', error);
+        });
+    },
+    // GET LICENSEE APPLICATIONS SUCCESS / FAIL HANDLERS
+    getApplicationsSuccessLicensee: ({ commit }, applications) => {
+        commit(MutationTypes.GET_APPLICATIONS_SUCCESS, applications);
+    },
+    getApplicationsFailureLicensee: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_APPLICATIONS_FAILURE, error);
+    },
+    // GET LICENSEE APPLICATION
+    getApplicationRequestLicensee: async ({ commit, dispatch }, { applicationId }) => {
+        commit(MutationTypes.GET_APPLICATION_REQUEST);
+        return dataApi.getAuthenticatedLicenseeApplication(applicationId).then((application) => {
+            dispatch('getApplicationSuccessLicensee', application);
+
+            return application;
+        }).catch((error) => {
+            dispatch('getApplicationFailureLicensee', error);
+        });
+    },
+    // GET LICENSEE APPLICATION SUCCESS / FAIL HANDLERS
+    getApplicationSuccessLicensee: ({ commit }, application) => {
+        commit(MutationTypes.GET_APPLICATION_SUCCESS, application);
+    },
+    getApplicationFailureLicensee: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_APPLICATION_FAILURE, error);
+    },
     // GET COMPACT STATES FOR USER
     getCompactStatesRequest: async ({ commit, dispatch, state }, { compact }) => {
         commit(MutationTypes.GET_COMPACT_STATES_REQUEST);

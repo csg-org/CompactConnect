@@ -22,6 +22,7 @@ import { State } from '@models/State/State.model';
 import { License } from '@models/License/License.model';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
+import { Application } from '@models/Application/Application.model';
 import { Address } from '@models/Address/Address.model';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
@@ -215,6 +216,59 @@ describe('Use Store Mutations', () => {
 
         expect(state.model).to.equal(user);
     });
+    it('should successfully update user and keep existing applications for the same user', () => {
+        const existingApplications = [new Application({ id: 'test-application-id' })];
+        const state: any = {
+            model: new LicenseeUser({
+                id: 'test-user-id',
+                licensee: new Licensee({ applications: existingApplications }),
+            }),
+        };
+        const user = new LicenseeUser({
+            id: 'test-user-id',
+            licensee: new Licensee(),
+        });
+
+        mutations[MutationTypes.STORE_UPDATE_USER](state, user);
+
+        expect(state.model).to.equal(user);
+        expect(state.model.licensee.applications).to.equal(existingApplications);
+    });
+    it('should successfully update user and not keep existing applications for a different user', () => {
+        const state: any = {
+            model: new LicenseeUser({
+                id: 'test-user-id-1',
+                licensee: new Licensee({ applications: [new Application({ id: 'test-application-id' })] }),
+            }),
+        };
+        const user = new LicenseeUser({
+            id: 'test-user-id-2',
+            licensee: new Licensee(),
+        });
+
+        mutations[MutationTypes.STORE_UPDATE_USER](state, user);
+
+        expect(state.model).to.equal(user);
+        expect(state.model.licensee.applications).to.matchPattern([]);
+    });
+    it('should successfully update user and not override applications on the incoming user', () => {
+        const incomingApplications = [new Application({ id: 'test-application-id-2' })];
+        const state: any = {
+            model: new LicenseeUser({
+                id: 'test-user-id',
+                licensee: new Licensee({ applications: [new Application({ id: 'test-application-id-1' })] }),
+            }),
+        };
+        const user = new LicenseeUser({
+            id: 'test-user-id',
+            licensee: new Licensee({ applications: incomingApplications }),
+        });
+
+        mutations[MutationTypes.STORE_UPDATE_USER](state, user);
+
+        expect(state.model).to.equal(user);
+        expect(state.model.licensee.applications).to.equal(incomingApplications);
+    });
     it('should successfully reset user', () => {
         const state = {
             isLoggedInAsStaff: true,
@@ -225,6 +279,7 @@ describe('Use Store Mutations', () => {
 
         expect(state.model).to.equal(null);
         expect(state.isLoadingAccount).to.equal(false);
+        expect(state.isLoadingApplications).to.equal(false);
         expect(state.isLoggedInAsStaff).to.equal(false);
         expect(state.isLoggedInAsLicensee).to.equal(false);
         expect(state.error).to.equal(null);
@@ -560,6 +615,111 @@ describe('Use Store Mutations', () => {
 
         expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(null);
+    });
+    it('should successfully get applications request', () => {
+        const state: any = {};
+
+        mutations[MutationTypes.GET_APPLICATIONS_REQUEST](state);
+
+        expect(state.isLoadingApplications).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get applications failure', () => {
+        const state: any = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_APPLICATIONS_FAILURE](state, error);
+
+        expect(state.isLoadingApplications).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get applications success', () => {
+        const state: any = {
+            model: new LicenseeUser({ licensee: new Licensee() }),
+        };
+        const applications = [new Application({ id: 'test-application-id' })];
+
+        mutations[MutationTypes.GET_APPLICATIONS_SUCCESS](state, applications);
+
+        expect(state.isLoadingApplications).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model.licensee.applications).to.equal(applications);
+    });
+    it('should successfully get applications success (no user model)', () => {
+        const state: any = { model: null };
+        const applications = [new Application({ id: 'test-application-id' })];
+
+        mutations[MutationTypes.GET_APPLICATIONS_SUCCESS](state, applications);
+
+        expect(state.isLoadingApplications).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model).to.equal(null);
+    });
+    it('should successfully get application request', () => {
+        const state: any = {};
+
+        mutations[MutationTypes.GET_APPLICATION_REQUEST](state);
+
+        expect(state.isLoadingApplications).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get application failure', () => {
+        const state: any = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_APPLICATION_FAILURE](state, error);
+
+        expect(state.isLoadingApplications).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get application success (replaces existing application)', () => {
+        const otherApplication = new Application({ id: 'test-application-id-1' });
+        const state: any = {
+            model: new LicenseeUser({
+                licensee: new Licensee({
+                    applications: [
+                        otherApplication,
+                        new Application({ id: 'test-application-id-2' }),
+                    ],
+                }),
+            }),
+        };
+        const application = new Application({ id: 'test-application-id-2' });
+
+        mutations[MutationTypes.GET_APPLICATION_SUCCESS](state, application);
+
+        expect(state.isLoadingApplications).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model.licensee.applications).to.have.length(2);
+        expect(state.model.licensee.applications[0]).to.equal(otherApplication);
+        expect(state.model.licensee.applications[1]).to.equal(application);
+    });
+    it('should successfully get application success (adds new application)', () => {
+        const otherApplication = new Application({ id: 'test-application-id-1' });
+        const state: any = {
+            model: new LicenseeUser({
+                licensee: new Licensee({ applications: [otherApplication] }),
+            }),
+        };
+        const application = new Application({ id: 'test-application-id-2' });
+
+        mutations[MutationTypes.GET_APPLICATION_SUCCESS](state, application);
+
+        expect(state.isLoadingApplications).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model.licensee.applications).to.have.length(2);
+        expect(state.model.licensee.applications[0]).to.equal(otherApplication);
+        expect(state.model.licensee.applications[1]).to.equal(application);
+    });
+    it('should successfully get application success (no user model)', () => {
+        const state: any = { model: null };
+        const application = new Application({ id: 'test-application-id' });
+
+        mutations[MutationTypes.GET_APPLICATION_SUCCESS](state, application);
+
+        expect(state.isLoadingApplications).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model).to.equal(null);
     });
 });
 describe('User Store Actions', async () => {
@@ -1289,6 +1449,83 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_FAILURE, error]);
+    });
+    it('should successfully start applications request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        const applications = await actions.getApplicationsRequestLicensee({ commit, dispatch });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATIONS_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('getApplicationsSuccessLicensee');
+        expect(dispatch.firstCall.args[1]).to.equal(applications);
+        expect(applications).to.be.an('array').that.is.not.empty;
+        expect(applications.every((application) => application instanceof Application)).to.equal(true);
+    });
+    it('should successfully start applications success', () => {
+        const commit = sinon.spy();
+        const applications = [new Application()];
+
+        actions.getApplicationsSuccessLicensee({ commit }, applications);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATIONS_SUCCESS, applications]);
+    });
+    it('should successfully start applications failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.getApplicationsFailureLicensee({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATIONS_FAILURE, error]);
+    });
+    it('should successfully start application request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const applicationId = '1';
+
+        const application = await actions.getApplicationRequestLicensee({ commit, dispatch }, { applicationId });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('getApplicationSuccessLicensee');
+        expect(dispatch.firstCall.args[1]).to.equal(application);
+        expect(application).to.be.an.instanceof(Application);
+        expect(application.id).to.equal(applicationId);
+    });
+    it('should successfully start application request (not found)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.getApplicationRequestLicensee({ commit, dispatch }, { applicationId: 'not-an-application-id' });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('getApplicationFailureLicensee');
+        expect(dispatch.firstCall.args[1]).to.be.an('error').with.property('message', 'not found');
+    });
+    it('should successfully start application success', () => {
+        const commit = sinon.spy();
+        const application = new Application();
+
+        actions.getApplicationSuccessLicensee({ commit }, application);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_SUCCESS, application]);
+    });
+    it('should successfully start application failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.getApplicationFailureLicensee({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_FAILURE, error]);
     });
 });
 describe('User Store Getters', async () => {

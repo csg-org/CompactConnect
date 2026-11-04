@@ -9,6 +9,7 @@ import { stateDataApi } from '@network/stateApi/data.api';
 import { licenseDataApi } from '@network/licenseApi/data.api';
 import { searchDataApi } from '@network/searchApi/data.api';
 import { userDataApi } from '@network/userApi/data.api';
+import { applicationsDataApi } from '@network/applicationsApi/data.api';
 import { exampleDataApi } from '@network/exampleApi/data.api';
 import { PaymentProcessorConfig, CompactConfig, CompactStateConfig } from '@models/Compact/Compact.model';
 
@@ -23,6 +24,7 @@ export class DataApi {
         licenseDataApi.initInterceptors(router, store);
         searchDataApi.initInterceptors(router, store);
         userDataApi.initInterceptors(router, store);
+        applicationsDataApi.initInterceptors(router, store);
         exampleDataApi.initInterceptors(router);
     }
 
@@ -698,6 +700,26 @@ export class DataApi {
      */
     public confirmMfaLicenseeAccount(data: object) {
         return userDataApi.confirmMfaLicenseeAccount(data);
+    }
+
+    // ========================================================================
+    //                              APPLICATIONS API
+    // ========================================================================
+    /**
+     * GET Authenticated Licensee User applications.
+     * @return {Promise<object>} Response pagination metadata + an array of Application model instances.
+     */
+    public getAuthenticatedLicenseeApplications() {
+        return applicationsDataApi.getAuthenticatedLicenseeApplications();
+    }
+
+    /**
+     * GET Authenticated Licensee User application by ID.
+     * @param  {string}               applicationId The application ID.
+     * @return {Promise<Application>}               An Application model instance.
+     */
+    public getAuthenticatedLicenseeApplication(applicationId: string) {
+        return applicationsDataApi.getAuthenticatedLicenseeApplication(applicationId);
     }
 
     // ========================================================================
