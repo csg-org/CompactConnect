@@ -135,11 +135,16 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
     def test_set_staff_cognito_values(self):
         """Test setting staff Cognito values."""
         util = PersistentStackFrontendAppConfigUtility()
-        util.set_staff_cognito_values(domain_name='test-domain', client_id='test-client')
+        util.set_staff_cognito_values(
+            domain_name='test-domain',
+            client_id='test-client',
+            user_pool_id='us-east-1_TestStaff',
+        )
 
         config = json.loads(util.get_config_json())
         self.assertEqual('test-domain', config['staff_cognito_domain'])
         self.assertEqual('test-client', config['staff_cognito_client_id'])
+        self.assertEqual('us-east-1_TestStaff', config['staff_cognito_user_pool_id'])
 
     def test_set_domain_names(self):
         """Test setting domain names."""
