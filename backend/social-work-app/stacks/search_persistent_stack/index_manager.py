@@ -15,11 +15,9 @@ from constructs import Construct
 from stacks.vpc_stack import VpcStack
 
 # Index configuration constants
-# Both prod and non-prod use 3 data nodes across 3 AZs
-# With 1 primary shard and 2 replicas, each node holds one copy of the data
-# This ensures proper quorum for primary election and data availability if a node fails
+# Non-prod uses a single data node, so replica shards cannot be placed.
 NON_PROD_NUMBER_OF_SHARDS = 1
-NON_PROD_NUMBER_OF_REPLICAS = 2
+NON_PROD_NUMBER_OF_REPLICAS = 0
 # Production uses 3 data nodes across 3 AZs, so 1 primary and 2 replica ensures data availability
 # if this is updated, the total of primary + replica shards must be a multiple of 3
 PROD_NUMBER_OF_SHARDS = 1

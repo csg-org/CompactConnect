@@ -78,8 +78,9 @@ class PopulateProviderDocumentsHandler(Construct):
             alarm_topic=alarm_topic,
         )
 
-        # Grant the handler write access to the OpenSearch domain
-        opensearch_domain.grant_write(self.handler)
+        # Grant read/write HTTP to the domain (same as index manager). resetIndexes and normal indexing need
+        # HEAD/GET for alias and index existence checks, plus PUT/POST for bulk index and DELETE for index reset.
+        opensearch_domain.grant_read_write(self.handler)
 
         # Grant the handler read access to the provider table
         provider_table.grant_read_data(self.handler)
@@ -91,9 +92,10 @@ class PopulateProviderDocumentsHandler(Construct):
             [
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'The grant_write method requires wildcard permissions on the OpenSearch domain to '
-                    'write to indices. This is appropriate for a function that needs to bulk index '
-                    'provider documents. The DynamoDB grant_read_data also requires index permissions.',
+                    'reason': 'The grant_read_write method requires wildcard permissions on the OpenSearch domain to '
+                    'create, read, delete, and manage indices and aliases (including optional resetIndexes). This '
+                    'matches the index manager custom resource pattern in index_manager.py. The DynamoDB '
+                    'grant_read_data also requires index permissions.',
                 },
             ],
         )
