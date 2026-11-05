@@ -129,9 +129,9 @@ def state_api_encumbered_provider_smoke_test():
     logger.info('Starting state API encumbered provider smoke test')
     setup_test_environment()
 
-    provider_data = call_provider_users_me_endpoint()
-    helper = EncumbranceTestHelper(provider_data)
-    private_key_pem, public_key_pem = load_test_keys()
+    helper = None
+    private_key_pem = None
+    public_key_pem = None
     client_id = None
     license_adverse_action_id = None
     privilege_adverse_action_id = None
@@ -139,6 +139,11 @@ def state_api_encumbered_provider_smoke_test():
     privilege_lifted = False
 
     try:
+        # Helper creates Cognito staff users; keep construction inside try so finally can clean them up.
+        provider_data = call_provider_users_me_endpoint()
+        helper = EncumbranceTestHelper(provider_data)
+        private_key_pem, public_key_pem = load_test_keys()
+
         if helper.compact != COMPACT or helper.privilege_jurisdiction != JURISDICTION:
             raise SmokeTestFailureException(
                 f'Signature client is configured for {COMPACT}/{JURISDICTION}, but the test privilege is '
@@ -206,21 +211,35 @@ def state_api_encumbered_provider_smoke_test():
         helper.validate_privilege_encumbered_state(expected_status='unencumbered')
         logger.info('State API encumbered provider smoke test completed successfully')
     finally:
-        if license_adverse_action_id and not license_lifted:
+        if helper is not None and license_adverse_action_id and not license_lifted:
             try:
                 helper.lift_license_encumbrance({'effectiveLiftDate': '2025-02-01'}, license_adverse_action_id)
             except Exception as e:  # noqa: BLE001 cleanup must not hide the original failure
                 logger.warning(f'Failed to lift license encumbrance during cleanup: {e}')
-        if privilege_adverse_action_id and not privilege_lifted:
+        if helper is not None and privilege_adverse_action_id and not privilege_lifted:
             try:
                 helper.lift_privilege_encumbrance({'effectiveLiftDate': '2025-04-01'}, privilege_adverse_action_id)
             except Exception as e:  # noqa: BLE001 cleanup must not hide the original failure
                 logger.warning(f'Failed to lift privilege encumbrance during cleanup: {e}')
-        clean_adverse_actions()
-        helper.cleanup_staff_users()
-        remove_signature_public_key()
+        # Isolate each step so a DynamoDB/provider failure cannot leave signing keys or OAuth clients behind.
+        try:
+            clean_adverse_actions()
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f'Failed to clean adverse actions during cleanup: {e}')
+        if helper is not None:
+            try:
+                helper.cleanup_staff_users()
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f'Failed to clean up staff users during cleanup: {e}')
+        try:
+            remove_signature_public_key()
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f'Failed to remove signature public key during cleanup: {e}')
         if client_id is not None:
-            delete_test_app_client(client_id)
+            try:
+                delete_test_app_client(client_id)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f'Failed to delete test app client during cleanup: {e}')
 
 
 if __name__ == '__main__':

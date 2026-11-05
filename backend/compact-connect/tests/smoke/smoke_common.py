@@ -88,10 +88,30 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
                     Permanent=True,
                 )
             except ClientError as password_error:
-                # Pool keeps a password history; reusing the smoke-test password is fine.
+                # History rejection does not mean the current password is already the smoke-test one —
+                # Cognito also rejects reuse when that password appears earlier in the history.
                 if password_error.response['Error']['Code'] != 'PasswordHistoryPolicyViolationException':
                     raise
-                logger.info(f"Staff user, '{email}', already uses the smoke-test password.")
+                try:
+                    get_user_tokens(email, _TEST_STAFF_USER_PASSWORD, is_staff=True)
+                    logger.info(f"Staff user, '{email}', already authenticates with the smoke-test password.")
+                except ClientError:
+                    logger.info(
+                        f"Staff user, '{email}', cannot authenticate with the smoke-test password; "
+                        'rotating through a temporary password so it can be set again.'
+                    )
+                    config.cognito_client.admin_set_user_password(
+                        UserPoolId=config.cognito_staff_user_pool_id,
+                        Username=email,
+                        Password=_TEMP_STAFF_PASSWORD,
+                        Permanent=True,
+                    )
+                    config.cognito_client.admin_set_user_password(
+                        UserPoolId=config.cognito_staff_user_pool_id,
+                        Username=email,
+                        Password=_TEST_STAFF_USER_PASSWORD,
+                        Permanent=True,
+                    )
             user_data = config.cognito_client.admin_get_user(
                 UserPoolId=config.cognito_staff_user_pool_id, Username=email
             )

@@ -183,27 +183,31 @@ class EncumbranceTestHelper:
         # Track created users for cleanup
         self.created_staff_users = []
 
-        # Create staff users for both jurisdictions
-        self.privilege_jurisdiction_staff_user = self._create_privilege_jurisdiction_staff_user()
-        self.license_jurisdiction_staff_user = self._create_license_jurisdiction_staff_user()
+        # Create staff users for both jurisdictions. Track before auth so a failure during
+        # token acquisition still leaves the Cognito user on the cleanup list; if setup
+        # raises before the caller can finally-clean, delete whatever we created here.
+        try:
+            self.privilege_jurisdiction_staff_user = self._create_privilege_jurisdiction_staff_user()
+            self.license_jurisdiction_staff_user = self._create_license_jurisdiction_staff_user()
+        except Exception:
+            self.cleanup_staff_users()
+            raise
 
     def _create_privilege_jurisdiction_staff_user(self) -> dict:
         """Create and return privilege jurisdiction staff user info."""
         email, user_sub = self._create_test_staff_user_for_encumbrance(self.compact, self.privilege_jurisdiction)
-        headers = get_staff_user_auth_headers(email)
-
-        # Track for cleanup
+        # Track before token acquisition so auth failures still clean up the Cognito user.
         self.created_staff_users.append((email, user_sub, self.compact))
+        headers = get_staff_user_auth_headers(email)
 
         return {'email': email, 'user_sub': user_sub, 'headers': headers}
 
     def _create_license_jurisdiction_staff_user(self) -> dict:
         """Create and return license jurisdiction staff user info."""
         email, user_sub = self._create_test_staff_user_for_encumbrance(self.compact, self.license_jurisdiction)
-        headers = get_staff_user_auth_headers(email)
-
-        # Track for cleanup
+        # Track before token acquisition so auth failures still clean up the Cognito user.
         self.created_staff_users.append((email, user_sub, self.compact))
+        headers = get_staff_user_auth_headers(email)
 
         return {'email': email, 'user_sub': user_sub, 'headers': headers}
 
