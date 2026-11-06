@@ -22,7 +22,10 @@
                     <hr class="form-section-separator" />
                     <div class="form-section-title">{{ $t('licensing.discipline') }} *</div>
                     <InputCheckbox :formInput="formData.disciplineCurrent" />
-                    <InputCheckbox :formInput="formData.disciplinePrior" />
+                    <InputCheckbox
+                        v-if="showsPriorEncumbranceAttestation"
+                        :formInput="formData.disciplinePrior"
+                    />
                     <hr class="form-section-separator" />
                     <div class="form-section-title">
                         {{ $t('licensing.provisionOfInformation') }} *

@@ -100,7 +100,7 @@ class PageMainNav extends Vue {
     }
 
     get isPrivilegePurchaseEnabled(): boolean {
-        return this.licensee?.canPurchasePrivileges() || false;
+        return this.licensee?.canPurchasePrivileges(this.currentCompact?.type) || false;
     }
 
     get staffPermission(): CompactPermission | null {
