@@ -112,7 +112,7 @@ specific compact. See the
 [Technical User Guide](./README.md) for more details about API use:
 
 ```bash
-curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses' \
+curl --location --request POST 'https://state-api.beta.cosmetology.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses' \
 --header 'Authorization: Bearer <access_token>' \
 --header 'Content-Type: application/json' \
 --header 'User-Agent: <your-app-name>/<version> (<contact-email-or-url>)' \
@@ -168,7 +168,7 @@ The CSV upload process involves two steps:
 First, obtain the upload URL and required form fields:
 
 ```bash
-curl --location --request GET 'https://state-api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses/bulk-upload' \
+curl --location --request GET 'https://state-api.beta.cosmetology.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses/bulk-upload' \
 --header 'Authorization: Bearer <access_token>' \
 --header 'Accept: application/json' \
 --header 'User-Agent: <your-app-name>/<version> (<contact-email-or-url>)'

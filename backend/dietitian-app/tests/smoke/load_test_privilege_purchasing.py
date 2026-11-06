@@ -71,7 +71,6 @@ def get_required_attestations(provider_data: dict) -> list[dict]:
         'personal-information-home-state-attestation',
         'personal-information-address-attestation',
         'discipline-no-current-encumbrance-attestation',
-        'discipline-no-prior-encumbrance-attestation',
         'provision-of-true-information-attestation',
         'not-under-investigation-attestation',
     ]

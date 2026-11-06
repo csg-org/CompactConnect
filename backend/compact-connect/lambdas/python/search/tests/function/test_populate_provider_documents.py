@@ -152,6 +152,73 @@ class TestPopulateProviderDocuments(TstFunction):
         )
 
     @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_reset_indexes_recreates_each_compact_index_before_populating(self, mock_opensearch_client):
+        from handlers.populate_provider_documents import TIME_THRESHOLD_MS, populate_provider_documents
+
+        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        for compact in ('aslp', 'octp', 'coun'):
+            self._put_test_provider_and_license_record_in_dynamodb_table(compact)
+
+        mock_context = MagicMock()
+        mock_context.get_remaining_time_in_millis.return_value = TIME_THRESHOLD_MS + 60000
+
+        populate_provider_documents({'resetIndexes': True, 'numberOfShards': 1, 'numberOfReplicas': 0}, mock_context)
+
+        self.assertEqual(
+            [
+                call(alias_name='compact_aslp_providers'),
+                call(alias_name='compact_octp_providers'),
+                call(alias_name='compact_coun_providers'),
+            ],
+            mock_client_instance.delete_provider_index_with_alias.call_args_list,
+        )
+        self.assertEqual(
+            [
+                call(
+                    index_name='compact_aslp_providers_v1',
+                    alias_name='compact_aslp_providers',
+                    number_of_shards=1,
+                    number_of_replicas=0,
+                ),
+                call(
+                    index_name='compact_octp_providers_v1',
+                    alias_name='compact_octp_providers',
+                    number_of_shards=1,
+                    number_of_replicas=0,
+                ),
+                call(
+                    index_name='compact_coun_providers_v1',
+                    alias_name='compact_coun_providers',
+                    number_of_shards=1,
+                    number_of_replicas=0,
+                ),
+            ],
+            mock_client_instance.create_provider_index_with_alias.call_args_list,
+        )
+        self.assertEqual(3, mock_client_instance.bulk_index.call_count)
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_reset_indexes_is_rejected_in_production(self, _mock_opensearch_client):
+        from cc_common.exceptions import CCInternalException
+        from handlers.populate_provider_documents import populate_provider_documents
+
+        with patch.dict('os.environ', {'ENVIRONMENT_NAME': 'prod'}):
+            with self.assertRaises(CCInternalException) as caught:
+                populate_provider_documents({'resetIndexes': True}, MagicMock())
+        self.assertIn('resetIndexes is not supported in production', str(caught.exception))
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_reset_indexes_rejects_non_boolean_values(self, mock_opensearch_client):
+        from cc_common.exceptions import CCInvalidRequestException
+        from handlers.populate_provider_documents import populate_provider_documents
+
+        for value in ('false', 'true', 1, 0, None):
+            with self.subTest(value=value), self.assertRaises(CCInvalidRequestException) as caught:
+                populate_provider_documents({'resetIndexes': value}, MagicMock())
+            self.assertIn('resetIndexes must be a boolean', str(caught.exception))
+        mock_opensearch_client.return_value.delete_provider_index_with_alias.assert_not_called()
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
     def test_provider_records_from_all_three_compacts_are_indexed_in_expected_index(self, mock_opensearch_client):
         from handlers.populate_provider_documents import TIME_THRESHOLD_MS, populate_provider_documents
 

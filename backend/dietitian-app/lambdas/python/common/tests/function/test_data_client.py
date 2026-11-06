@@ -424,10 +424,6 @@ class TestDataClient(TstFunction):
         """A renewal rewrites the whole privilege record from the purchase inputs. Encumbrance and
         investigation status are set by board actions, not by a purchase, so they have to be carried
         forward, otherwise repurchasing a privilege silently clears those status fields.
-
-        For encumbrances, this is not an issue since a privilege can only be renewed if the practitioner
-        hasn't had any encumbrance for over two years. Practitioners can however renew a privilege even when
-        under investigation, so we need to ensure that status flag remains upon renewal.
         """
         from cc_common.data_model.provider_record_util import ProviderUserRecords
 
