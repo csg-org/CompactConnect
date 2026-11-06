@@ -231,6 +231,7 @@ class TestVpcStack(TstAppABC, TestCase):
         """
         vpc_stack = self.app.sandbox_backend_stage.vpc_stack
         vpc_template = Template.from_stack(vpc_stack)
+        subnet_resources = vpc_template.find_resources('AWS::EC2::Subnet')
         stack_outputs = vpc_template.find_outputs('*')
 
         # These suffixes are the auto-generated CDK export names created when
@@ -247,13 +248,23 @@ class TestVpcStack(TstAppABC, TestCase):
         }
 
         for subnet_name, expected_export_name in expected_export_names.items():
-            matching_exports = [
-                output_value['Export']['Name']
-                for output_value in stack_outputs.values()
-                if output_value.get('Export', {}).get('Name') == expected_export_name
+            matching_subnet_ids = [
+                logical_id for logical_id in subnet_resources if subnet_name in logical_id
             ]
             self.assertEqual(
-                [expected_export_name],
-                matching_exports,
-                f'Expected retained CloudFormation export for {subnet_name} named {expected_export_name}',
+                1,
+                len(matching_subnet_ids),
+                f'Expected exactly one CloudFormation subnet for {subnet_name}',
+            )
+            subnet_logical_id = matching_subnet_ids[0]
+            matching_exports = [
+                output_value
+                for output_value in stack_outputs.values()
+                if output_value.get('Export', {}).get('Name') == expected_export_name
+                and output_value.get('Value', {}).get('Ref') == subnet_logical_id
+            ]
+            self.assertEqual(
+                1,
+                len(matching_exports),
+                f'Expected retained export {expected_export_name} referencing {subnet_logical_id}',
             )
