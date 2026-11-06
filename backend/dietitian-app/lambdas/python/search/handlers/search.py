@@ -579,6 +579,9 @@ def _create_flattened_privilege(privilege: dict, license_record: dict, provider:
         'dateOfExpiration',
         'status',
         'administratorSetStatus',
+        # Same clash as state_api._create_flattened_privilege: keep the privilege's value.
+        'encumberedStatus',
+        'investigationStatus',
         # Also remove nested objects that don't belong in flattened output
         'adverseActions',
         'investigations',
