@@ -64,7 +64,10 @@ FIELDS = (
     'givenName',
     'middleName',
     'familyName',
+    'altFamilyName',
     'suffix',
+    'country',
+    'militaryStatus',
     'dateOfIssuance',
     'dateOfRenewal',
     'dateOfExpiration',
@@ -234,8 +237,11 @@ def get_mock_license(
         'givenName': name_faker.first_name(),
         'middleName': name_faker.first_name(),
         'familyName': name_faker.last_name(),
+        'altFamilyName': name_faker.last_name() if choice([True, False]) else None,
         # A few will have a suffix
         'suffix': name_faker.suffix() if randint(0, 10) == 10 else None,
+        'country': faker.country() if choice([True, False]) else None,
+        'militaryStatus': choice([True, False]) if choice([True, False]) else None,
         'homeAddressStreet1': faker.street_address(),
         # Flip a coin, add secondary address line?
         'homeAddressStreet2': faker.secondary_address() if choice([True, False]) else None,
