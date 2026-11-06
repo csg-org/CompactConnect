@@ -1,0 +1,62 @@
+//
+//  AuthHelper.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 10/28/2026.
+//
+
+.auth-instructions {
+    margin-bottom: 1.6rem;
+}
+
+.auth-helper {
+    width: 100%;
+    margin-bottom: 1.6rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 0.1rem solid @midGrey;
+    color: @fontColor;
+
+    h2,
+    h3 {
+        margin-bottom: 0.8rem;
+        font-size: @fontSize;
+    }
+
+    h3 {
+        margin-top: 1.6rem;
+    }
+
+    p,
+    li {
+        margin-bottom: 0.8rem;
+        font-size: @fontSizeMedium;
+    }
+
+    ul,
+    ol {
+        margin: 0 0 0.8rem;
+        padding-left: 1.8rem;
+        font-size: @fontSizeMedium;
+    }
+
+    ul li {
+        font-size: @fontSizeMedium;
+        list-style: disc;
+    }
+
+    a {
+        color: @midBlue;
+        text-decoration: underline;
+
+        &:focus {
+            .element-focus();
+        }
+    }
+
+    .app-links {
+        a,
+        .app-link-separator {
+            margin-left: 0.8rem;
+        }
+    }
+}
