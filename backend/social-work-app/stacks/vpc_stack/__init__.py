@@ -109,6 +109,16 @@ class VpcStack(AppStack):
         self._assign_subnet_cidr(PRIVATE_SUBNET_TWO_NAME, private_cidrs[1])
         self._assign_subnet_cidr(PRIVATE_SUBNET_THREE_NAME, private_cidrs[2])
 
+        # Non-prod OpenSearch now uses only privateSubnet1. Previously all three private
+        # subnets were cross-stack referenced by SearchPersistentStack, which created
+        # auto-generated CloudFormation exports. Retain exports for privateSubnet2/3 so
+        # VpcStack can deploy before SearchPersistentStack stops importing them ("deadly
+        # embrace").
+        # TODO: remove these exports once SearchPersistentStack no longer imports them in  # noqa: FIX002
+        #  every environment.
+        self._retain_private_subnet_export(PRIVATE_SUBNET_TWO_NAME)
+        self._retain_private_subnet_export(PRIVATE_SUBNET_THREE_NAME)
+
         # grant access to Cloudwatch logs for vpc encryption key
         logs_principal = ServicePrincipal('logs.amazonaws.com')
         self.vpc_encryption_key.grant_encrypt_decrypt(logs_principal)
@@ -202,6 +212,27 @@ class VpcStack(AppStack):
             description='Allow HTTPS traffic from Lambda functions',
         )
 
+    def _find_subnet(self, subnet_name: str):
+        """
+        Find a VPC subnet construct by its logical name.
+
+        :param subnet_name: The logical name of the subnet (e.g., 'privateSubnet1')
+        :return: The subnet construct
+        """
+        subnet_construct = self.vpc.node.try_find_child(subnet_name)
+        if subnet_construct is None:
+            raise ValueError(f'Subnet {subnet_name} not found in VPC')
+        return subnet_construct
+
+    def _retain_private_subnet_export(self, subnet_name: str) -> None:
+        """
+        Retain the CloudFormation export for a private subnet that may no longer be
+        referenced by this stack's consumers.
+
+        :param subnet_name: The logical name of the subnet (e.g., 'privateSubnet2')
+        """
+        self.export_value(self._find_subnet(subnet_name).subnet_id)
+
     def _assign_subnet_cidr(self, subnet_name: str, cidr: str):
         """
         Explicitly assign a CIDR block to a subnet by overriding the CloudFormation property.
@@ -213,11 +244,7 @@ class VpcStack(AppStack):
         param subnet_name: The logical name of the subnet (e.g., 'privateSubnet1')
         param cidr: The CIDR block to assign (e.g., '10.0.0.0/20')
         """
-
-        # Navigate the construct tree to find the subnet
-        subnet_construct = self.vpc.node.try_find_child(subnet_name)
-        if subnet_construct is None:
-            raise ValueError(f'Subnet {subnet_name} not found in VPC')
+        subnet_construct = self._find_subnet(subnet_name)
 
         # Get the underlying CloudFormation subnet resource
         cfn_subnet = subnet_construct.node.try_find_child('Subnet')

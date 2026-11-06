@@ -220,3 +220,36 @@ class TestVpcStack(TstAppABC, TestCase):
             'Subnet CIDR blocks do not match expected explicit allocation. '
             'This is critical for preventing conflicts when expanding the VPC.',
         )
+
+    def test_retains_unused_private_subnet_exports(self):
+        """
+        Non-prod OpenSearch only references privateSubnet1, but privateSubnet2/3 must still
+        be exported so existing SearchPersistentStack imports can be removed safely.
+        """
+        vpc_stack = self.app.sandbox_backend_stage.vpc_stack
+        vpc_template = Template.from_stack(vpc_stack)
+        subnet_resources = vpc_template.find_resources('AWS::EC2::Subnet')
+        stack_outputs = vpc_template.find_outputs('*')
+
+        retained_subnet_names = ('privateSubnet2', 'privateSubnet3')
+        for subnet_name in retained_subnet_names:
+            matching_subnet_ids = [
+                logical_id for logical_id in subnet_resources if subnet_name in logical_id
+            ]
+            self.assertEqual(
+                1,
+                len(matching_subnet_ids),
+                f'Expected exactly one CloudFormation subnet for {subnet_name}',
+            )
+            subnet_logical_id = matching_subnet_ids[0]
+            matching_exports = [
+                output_id
+                for output_id, output_value in stack_outputs.items()
+                if output_value.get('Export', {}).get('Name')
+                and output_value.get('Value', {}).get('Ref') == subnet_logical_id
+            ]
+            self.assertEqual(
+                1,
+                len(matching_exports),
+                f'Expected a retained CloudFormation export for {subnet_name} ({subnet_logical_id})',
+            )
