@@ -220,3 +220,51 @@ class TestVpcStack(TstAppABC, TestCase):
             'Subnet CIDR blocks do not match expected explicit allocation. '
             'This is critical for preventing conflicts when expanding the VPC.',
         )
+
+    def test_retains_unused_private_subnet_exports(self):
+        """
+        Non-prod OpenSearch only references privateSubnet1, but privateSubnet2/3 must still
+        be exported so existing SearchPersistentStack imports can be removed safely.
+
+        The export names must match the previous auto-generated CDK names. A renamed export
+        would still leave VpcStack unable to deploy while SearchPersistentStack imports the old name.
+        """
+        vpc_stack = self.app.sandbox_backend_stage.vpc_stack
+        vpc_template = Template.from_stack(vpc_stack)
+        subnet_resources = vpc_template.find_resources('AWS::EC2::Subnet')
+        stack_outputs = vpc_template.find_outputs('*')
+
+        # These suffixes are the auto-generated CDK export names created when
+        # SearchPersistentStack previously imported all three private subnets.
+        expected_export_names = {
+            'privateSubnet2': (
+                f'{vpc_stack.stack_name}:'
+                'ExportsOutputRefCompactConnectVpcprivateSubnet2Subnet353981671F92C504'
+            ),
+            'privateSubnet3': (
+                f'{vpc_stack.stack_name}:'
+                'ExportsOutputRefCompactConnectVpcprivateSubnet3Subnet8913B4087BF652BD'
+            ),
+        }
+
+        for subnet_name, expected_export_name in expected_export_names.items():
+            matching_subnet_ids = [
+                logical_id for logical_id in subnet_resources if subnet_name in logical_id
+            ]
+            self.assertEqual(
+                1,
+                len(matching_subnet_ids),
+                f'Expected exactly one CloudFormation subnet for {subnet_name}',
+            )
+            subnet_logical_id = matching_subnet_ids[0]
+            matching_exports = [
+                output_value
+                for output_value in stack_outputs.values()
+                if output_value.get('Export', {}).get('Name') == expected_export_name
+                and output_value.get('Value', {}).get('Ref') == subnet_logical_id
+            ]
+            self.assertEqual(
+                1,
+                len(matching_exports),
+                f'Expected retained export {expected_export_name} referencing {subnet_logical_id}',
+            )
