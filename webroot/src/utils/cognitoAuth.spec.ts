@@ -132,7 +132,7 @@ describe('cognitoAuth utils', () => {
         expect(reusedPassword.messageKey).to.equal('auth.passwordPreviouslyUsed');
         expect(reusedPassword.step).to.equal(undefined);
     });
-    it('should shape Amplify tokens like the OAuth token response', () => {
+    it('should shape AWS Amplify tokens like the OAuth token response', () => {
         const nowSeconds = Math.floor(Date.now() / 1000);
         const response = toOAuthTokenResponse('access', 'id', 'refresh', nowSeconds + 120);
         const fallback = toOAuthTokenResponse('access', 'id', 'refresh');
@@ -211,7 +211,7 @@ describe('cognitoAuth flows', () => {
         expect(clearTokensStub.calledOnce).to.equal(true);
         expect(axiosGetStub.called).to.equal(false);
     });
-    it('should configure Amplify once for the same client', async () => {
+    it('should configure AWS Amplify once for the same client', async () => {
         signInStub.resolves(doneStep());
 
         await signInStaff();

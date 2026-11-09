@@ -12,7 +12,10 @@ import { flushPromises } from '@vue/test-utils';
 import { mountShallow } from '@tests/helpers/setup';
 import AuthLogin from '@pages/AuthLogin/AuthLogin.vue';
 import { AppModes } from '@/app.config';
-import { AuthTypes, authStorage, AUTH_LOGIN_GOTO_COMPACT } from '@utils/auth';
+import { MutationTypes } from '@store/user/user.mutations';
+import {
+    AuthTypes, authStorage, tokens, AUTH_LOGIN_GOTO_COMPACT
+} from '@utils/auth';
 import { CompactType } from '@utils/compactConfig';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import cognitoAuth, { CognitoAuthResult, CognitoAuthStep } from '@utils/cognitoAuth';
@@ -272,7 +275,8 @@ describe('AuthLogin page', async () => {
         await wrapper.vm.$router.push('/auth/login/licensee/jcc');
         await nextTick();
 
-        const dispatchSpy = sinon.spy(wrapper.vm.$store, 'dispatch');
+        authStorage.removeItem(tokens.staff.AUTH_TOKEN);
+        wrapper.vm.$store.commit(`user/${MutationTypes.LOGOUT_SUCCESS}`);
 
         resolveSignIn({
             tokenResponse: {
@@ -286,10 +290,13 @@ describe('AuthLogin page', async () => {
         await pendingLogin;
         await flushPromises();
 
+        const userState = wrapper.vm.$store.getters['user/state'];
+
         expect(wrapper.vm.authType).to.equal(AuthTypes.LICENSEE);
         expect(wrapper.vm.$route.path).to.equal('/auth/login/licensee/jcc');
-        expect(dispatchSpy.calledWith('user/updateAuthTokens')).to.equal(false);
-        expect(dispatchSpy.calledWith('user/loginSuccess')).to.equal(false);
+        expect(authStorage.getItem(tokens.staff.AUTH_TOKEN)).to.equal(null);
+        expect(userState.isLoggedIn).to.equal(false);
+        expect(userState.isLoggedInAsStaff).to.equal(false);
     });
     it('should ignore a staff MFA setup result after the route changes to licensee login', async () => {
         let resolveSignIn: (result: CognitoAuthResult) => void = () => undefined;
