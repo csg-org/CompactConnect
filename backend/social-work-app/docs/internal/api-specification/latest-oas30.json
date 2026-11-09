@@ -3433,6 +3433,19 @@
                     "single-state",
                     "multi-state"
                   ]
+                },
+                "altFamilyName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "country": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "militaryStatus": {
+                  "type": "boolean"
                 }
               }
             }
@@ -6316,6 +6329,19 @@
                               "single-state",
                               "multi-state"
                             ]
+                          },
+                          "altFamilyName": {
+                            "maxLength": 100,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "country": {
+                            "maxLength": 100,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "militaryStatus": {
+                            "type": "boolean"
                           }
                         }
                       },
@@ -6500,6 +6526,19 @@
                               "single-state",
                               "multi-state"
                             ]
+                          },
+                          "altFamilyName": {
+                            "maxLength": 100,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "country": {
+                            "maxLength": 100,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "militaryStatus": {
+                            "type": "boolean"
                           }
                         }
                       },
@@ -6725,6 +6764,19 @@
                     "single-state",
                     "multi-state"
                   ]
+                },
+                "altFamilyName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "country": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "militaryStatus": {
+                  "type": "boolean"
                 }
               }
             }
@@ -7373,4 +7425,3 @@
   },
   "x-amazon-apigateway-security-policy": "TLS_1_0"
 }
-
