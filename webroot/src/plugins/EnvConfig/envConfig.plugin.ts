@@ -165,7 +165,6 @@ export const config: EnvConfig = {
     statsigKey: context.VUE_APP_STATSIG_KEY,
     isStatsigDisabled: (context.VUE_APP_STATSIG_DISABLED === 'true'),
     isUsingMockApi: (context.VUE_APP_MOCK_API === 'true'),
-    // Off until each environment's Cognito UI client allows USER_SRP_AUTH.
     isCustomAuth: (context.VUE_APP_CUSTOM_AUTH === 'true'),
 };
 

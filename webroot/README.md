@@ -645,8 +645,7 @@ Note that testing the **built** app locally will require a running web server; f
 ## Auth
 - We use two Cognito user pools to authenticate users as Provider users and Staff users
 - By default, login uses Cognito's hosted login pages. `VUE_APP_CUSTOM_AUTH` is false
-- Set `VUE_APP_CUSTOM_AUTH` to true to use the in-app login screens instead. Those screens cover sign-in, a new password, MFA setup, the MFA code, and forgot password. They do not set Cognito's hosted login cookie
-- Hosted login, combined with two separate pools, adds some complexity so the app can stay secure and behave as expected
+- Set `VUE_APP_CUSTOM_AUTH` to true to use the in-app login screens instead. Those screens cover sign-in, a new password, MFA setup, the MFA code, and forgot password. They do not set Cognito's hosted login cookie, so the next visit does not sign the user in automatically. They enter their email, password, and authenticator code again
 
 - **Hosted login:**
     - When a user logs in through a hosted page, Cognito saves an http-only cookie. That cookie lets them sign back in without entering credentials for about an hour
@@ -661,7 +660,7 @@ Note that testing the **built** app locally will require a running web server; f
     - With hosted login, the only way to be in both pools is to manually open the second hosted login page
     - With in-app login, both logins are available from the dashboard
     - When the user logs in to the second pool, we record that the app should treat them as that user type and we save that pool's access token
-    - On logout we revoke the refresh token for one pool and send the browser to that pool's hosted logout page. A staff access token selects the staff logout page. Otherwise we use the practitioner logout page. This still happens after an in-app login
+    - On logout, a staff access token is cleared first. The staff logout page sends the browser back to this app, and that second pass clears the practitioner session. If there is no staff access token, logout clears the practitioner session only. Either way, the user finishes on the public dashboard, logged out. This still happens after an in-app login
 - **Registration**
     - Licensee users have the ability to self-register an account, provided matching data can be found in the state data.
     - The registration form utilizes recaptcha (Google recaptcha v3)

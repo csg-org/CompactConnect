@@ -138,7 +138,7 @@ describe('AuthLogin page', async () => {
 
         expect(wrapper.vm.submitLabel).to.equal(wrapper.vm.$t('auth.verifyingCode'));
     });
-    it('should open forgot password from the query step', async () => {
+    it('should open forgot password from the query parameter step', async () => {
         envConfig.cognitoClientIdStaff = 'staff-client';
         envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
 
@@ -177,7 +177,7 @@ describe('AuthLogin page', async () => {
         expect(wrapper.vm.formData.password).to.not.equal(undefined);
         expect(wrapper.vm.formData.email.value).to.equal('');
     });
-    it('should clear the remembered email when the login target changes', async () => {
+    it('should clear the remembered email when staff login changes to licensee', async () => {
         envConfig.cognitoClientIdStaff = 'staff-client';
         envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
         envConfig.cognitoClientIdLicensee = 'licensee-client';
@@ -196,7 +196,7 @@ describe('AuthLogin page', async () => {
         expect(wrapper.vm.resetUsername).to.equal('');
         expect(wrapper.vm.formData.email.value).to.equal('');
     });
-    it('should keep the remembered email when the step changes on the same login', async () => {
+    it('should keep the remembered email when staff login changes to forgot password', async () => {
         envConfig.cognitoClientIdStaff = 'staff-client';
         envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
 

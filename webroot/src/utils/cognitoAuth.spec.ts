@@ -53,6 +53,8 @@ describe('cognitoAuth utils', () => {
         expect(mfaSetupDeadline(1_000)).to.equal(1_000 + AUTH_SESSION_MS);
         expect(deadline).to.be.greaterThan(Date.now());
         expect(AUTH_SESSION_MS).to.equal(15 * 60 * 1000);
+    });
+    it('should format the MFA countdown as minutes and seconds', () => {
         expect(formatAuthCountdown(AUTH_SESSION_MS)).to.equal('15:00');
         expect(formatAuthCountdown(90_000)).to.equal('1:30');
         expect(formatAuthCountdown(0)).to.equal('0:00');
@@ -265,7 +267,7 @@ describe('cognitoAuth flows', () => {
         expect(confirmSignInStub.firstCall.args[0].challengeResponse).to.equal('NewPassword1');
         expect(confirmSignInStub.firstCall.args[0].options.userAttributes.email).to.equal(staffUsername);
     });
-    it('should continue when Cognito does not list missing attributes', async () => {
+    it('should confirm a new password with no user attributes when Cognito lists none', async () => {
         signInStub.resolves({
             isSignedIn: false,
             nextStep: { signInStep: 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED' },
