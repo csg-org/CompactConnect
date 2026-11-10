@@ -1,7 +1,7 @@
-pytest>=6.2.5
+pytest>=9.2.0
 pytest-cov
 coverage
 ruff
 pip-tools
 pip-audit
-Faker>=40.43.0, <41
+Faker>=40.44.0, <41
