@@ -85,7 +85,15 @@
                                     v-html="$t('account.resetAccountPasswordSubtext')"
                                 />
                                 <div class="forgot-password-container">
+                                    <router-link
+                                        v-if="isCustomAuth"
+                                        :to="inAppForgotPasswordLocation"
+                                        class="forgot-password-link"
+                                    >
+                                        {{ $t('account.resetAccountForgotPassword') }}
+                                    </router-link>
                                     <a
+                                        v-else
                                         :href="hostedForgotPasswordUriLicensee"
                                         class="forgot-password-link"
                                         rel="noopener noreferrer"

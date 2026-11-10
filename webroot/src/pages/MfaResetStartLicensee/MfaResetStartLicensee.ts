@@ -17,6 +17,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
+import { RouteLocationRaw } from 'vue-router';
 import {
     stateList,
     dateFormatPatterns
@@ -189,6 +190,21 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
             this.csrfState,
             this.pkceChallenge
         );
+    }
+
+    get isCustomAuth(): boolean {
+        return this.$envConfig.isCustomAuth || false;
+    }
+
+    get inAppForgotPasswordLocation(): RouteLocationRaw {
+        return {
+            name: 'AuthLogin',
+            params: {
+                authType: AuthTypes.LICENSEE,
+                appMode: this.$appMode,
+            },
+            query: { step: 'forgot-password' },
+        };
     }
 
     get isUsingMockApi(): boolean {

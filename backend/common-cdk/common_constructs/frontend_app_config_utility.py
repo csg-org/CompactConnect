@@ -65,15 +65,17 @@ class PersistentStackFrontendAppConfigUtility:
         self._app_id = app_id
         self._config: dict[str, str] = {}
 
-    def set_staff_cognito_values(self, domain_name: str, client_id: str) -> None:
+    def set_staff_cognito_values(self, domain_name: str, client_id: str, user_pool_id: str) -> None:
         """
         Set Cognito configuration values for staff users.
 
         :param domain_name: The Cognito domain name for staff users
         :param client_id: The UI client ID for staff users
+        :param user_pool_id: The Cognito user pool ID for staff users
         """
         self._config['staff_cognito_domain'] = domain_name
         self._config['staff_cognito_client_id'] = client_id
+        self._config['staff_cognito_user_pool_id'] = user_pool_id
 
     def set_domain_names(self, ui_domain_name: str, api_domain_name: str, search_api_domain_name: str) -> None:
         """
@@ -146,15 +148,17 @@ class ProviderUsersStackFrontendAppConfigUtility:
         self._app_id = app_id
         self._config: dict[str, str] = {}
 
-    def set_provider_cognito_values(self, domain_name: str, client_id: str) -> None:
+    def set_provider_cognito_values(self, domain_name: str, client_id: str, user_pool_id: str) -> None:
         """
         Set Cognito configuration values for provider users.
 
         :param domain_name: The Cognito domain name for provider users
         :param client_id: The UI client ID for provider users
+        :param user_pool_id: The Cognito user pool ID for provider users
         """
         self._config['provider_cognito_domain'] = domain_name
         self._config['provider_cognito_client_id'] = client_id
+        self._config['provider_cognito_user_pool_id'] = user_pool_id
 
     def get_config_json(self) -> str:
         """
@@ -260,8 +264,10 @@ class PersistentStackFrontendAppConfigValues:
         test_config = {
             'staff_cognito_domain': 'test-staff-domain',
             'staff_cognito_client_id': 'test-staff-client-id',
+            'staff_cognito_user_pool_id': 'us-east-1_TestStaff',
             'provider_cognito_domain': 'test-provider-domain',
             'provider_cognito_client_id': 'test-provider-client-id',
+            'provider_cognito_user_pool_id': 'us-east-1_TestProvider',
             'ui_domain_name': 'test-ui.example.com',
             'api_domain_name': 'test-api.example.com',
             'search_api_domain_name': 'test-search-api.example.com',
@@ -281,6 +287,11 @@ class PersistentStackFrontendAppConfigValues:
     def staff_cognito_client_id(self) -> str:
         """Get the UI client ID for staff users."""
         return self._config['staff_cognito_client_id']
+
+    @property
+    def staff_cognito_user_pool_id(self) -> str:
+        """Get the Cognito user pool ID for staff users."""
+        return self._config['staff_cognito_user_pool_id']
 
     @property
     def ui_domain_name(self) -> str:
@@ -376,6 +387,7 @@ class ProviderUsersStackFrontendAppConfigValues:
         test_config = {
             'provider_cognito_domain': 'test-provider-domain',
             'provider_cognito_client_id': 'test-provider-client-id',
+            'provider_cognito_user_pool_id': 'us-east-1_TestProvider',
         }
         return ProviderUsersStackFrontendAppConfigValues(json.dumps(test_config))
 
@@ -388,3 +400,8 @@ class ProviderUsersStackFrontendAppConfigValues:
     def provider_cognito_client_id(self) -> str:
         """Get the UI client ID for provider users."""
         return self._config['provider_cognito_client_id']
+
+    @property
+    def provider_cognito_user_pool_id(self) -> str:
+        """Get the Cognito user pool ID for provider users."""
+        return self._config['provider_cognito_user_pool_id']

@@ -523,6 +523,7 @@ class PersistentStack(AppStack):
         frontend_app_config.set_staff_cognito_values(
             domain_name=auth_domain_name,
             client_id=self.staff_users.ui_client.user_pool_client_id,
+            user_pool_id=self.staff_users.user_pool_id,
         )
 
         # Add UI and API domain names

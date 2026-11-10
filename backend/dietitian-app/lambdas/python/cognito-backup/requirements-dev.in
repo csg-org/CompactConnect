@@ -1,5 +1,5 @@
-boto3>=1.43.119
+boto3>=1.43.123
 botocore>=1.29.0
-aws-lambda-powertools>=3.37.0
+aws-lambda-powertools>=3.38.0
 pytest
-moto[cognitoidp,s3]>=5.2.4, <6
+moto[cognitoidp,s3]>=5.2.5, <6

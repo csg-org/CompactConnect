@@ -97,6 +97,10 @@ class MfaResetConfirmLicensee extends Vue {
         return this.$envConfig.isUsingMockApi || false;
     }
 
+    get isCustomAuth(): boolean {
+        return this.$envConfig.isCustomAuth || false;
+    }
+
     //
     // Methods
     //
@@ -195,6 +199,14 @@ class MfaResetConfirmLicensee extends Vue {
     goToLogin(): void {
         if (this.isUsingMockApi) {
             this.mockLicenseeLogin();
+        } else if (this.isCustomAuth) {
+            this.$router.replace({
+                name: 'AuthLogin',
+                params: {
+                    authType: AuthTypes.LICENSEE,
+                    appMode: this.loginAppMode,
+                },
+            });
         } else {
             window.location.replace(this.hostedLoginUriLicensee);
         }
