@@ -96,7 +96,7 @@ export default class LicenseeDashboard extends Vue {
         return this.licensee?.isEncumbered() || false;
     }
 
-    get hasEncumbranceLiftedWithinWaitPeriod(): boolean {
+    get isPurchaseBlockedByEncumbranceWaitPeriod(): boolean {
         return this.licensee?.isPurchaseBlockedByEncumbranceWaitPeriod(this.currentCompactType) || false;
     }
 

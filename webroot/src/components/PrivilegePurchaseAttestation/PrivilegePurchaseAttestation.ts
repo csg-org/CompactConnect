@@ -166,7 +166,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     async initFormInputs(): Promise<void> {
         await this.fetchAttestations();
 
-        const formInputs: any = {
+        this.formData = reactive({
             investigations: new FormInput({
                 id: 'investigations',
                 name: 'investigations',
@@ -192,10 +192,10 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
                 isSubmitInput: true,
                 id: 'submit',
             }),
-        };
+        });
 
         if (this.showsPriorEncumbranceAttestation) {
-            formInputs.disciplinePrior = new FormInput({
+            this.formData.disciplinePrior = new FormInput({
                 id: 'discipline-prior',
                 name: 'discipline-prior',
                 label: this.getAttestation('discipline-no-prior-encumbrance-attestation')?.textDisplay() || '',
@@ -205,7 +205,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         }
 
         if (this.isMilitaryAffiliated) {
-            formInputs.militaryAffiliation = new FormInput({
+            this.formData.militaryAffiliation = new FormInput({
                 id: 'military-affiliation',
                 name: 'military-affiliation',
                 label: this.getAttestation('military-affiliation-confirmation-attestation')?.textDisplay() || '',
@@ -214,7 +214,6 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             });
         }
 
-        this.formData = reactive(formInputs);
         this.watchFormInputs(); // Important if you want automated form validation
         this.areFormInputsSet = true;
     }

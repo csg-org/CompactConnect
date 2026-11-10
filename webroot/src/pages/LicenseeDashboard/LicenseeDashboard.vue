@@ -123,7 +123,7 @@
                                     {{ $t('common.here') }}
                                 </router-link>.
                             </li>
-                            <li v-if="hasEncumbranceLiftedWithinWaitPeriod">
+                            <li v-if="isPurchaseBlockedByEncumbranceWaitPeriod">
                                 {{ $t('licensing.purchaseUnavailableEncumbranceLiftedWithinWaitPeriod') }}
                             </li>
                         </ol>
