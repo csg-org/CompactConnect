@@ -131,21 +131,28 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
 
     def test_sandbox_instance_type(self):
         """
-        Test that sandbox environment uses t3.small.search instance type for cost optimization.
+        Test that sandbox environment uses a single t3.medium.search node like test/beta.
         """
         search_stack = self.app.sandbox_backend_stage.search_persistent_stack
         search_template = Template.from_stack(search_stack)
 
-        # Verify sandbox uses t3.small.search with 3 data nodes
         search_template.has_resource_properties(
             'AWS::OpenSearchService::Domain',
             {
                 'ClusterConfig': {
-                    'InstanceType': 't3.small.search',
-                    'InstanceCount': 3,
+                    'InstanceType': 't3.medium.search',
+                    'InstanceCount': 1,
                     'DedicatedMasterEnabled': False,
+                    'ZoneAwarenessEnabled': False,
                     'MultiAZWithStandbyEnabled': False,
                 },
+            },
+        )
+        search_template.has_resource_properties(
+            'Custom::IndexManager',
+            {
+                'numberOfShards': 1,
+                'numberOfReplicas': 0,
             },
         )
 
@@ -258,10 +265,10 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
 
     def test_sandbox_uses_expected_private_subnet(self):
         """
-        Test that the OpenSearch Domain in sandbox uses expected private Subnets.
+        Test that the OpenSearch Domain in sandbox uses expected private Subnet.
 
-        For non-prod three-node deployments, OpenSearch uses all 3 private isolated
-        subnets across 3 AZs for zone awareness and proper shard distribution.
+        For non-prod single-node deployments, OpenSearch must use exactly one subnet.
+        We explicitly select privateSubnet1 to ensure deterministic placement.
         """
         search_stack = self.app.sandbox_backend_stage.search_persistent_stack
         search_template = Template.from_stack(search_stack)
@@ -272,20 +279,14 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         vpc_options = opensearch_properties['VPCOptions']
         subnet_ids = vpc_options['SubnetIds']
 
-        # For sandbox (non-prod), should use three subnets
-        self.assertEqual(len(subnet_ids), 3, 'Sandbox OpenSearch should use three subnets')
-
-        # Get the subnet references for each AZ
-        for index, subnet_id in enumerate(subnet_ids):
-            # Extract the export name that OpenSearch is importing
-            import_value = subnet_id['Fn::ImportValue']
-            # Verify OpenSearch is importing the correct subnet
-            self.assertIn(
-                f'privateSubnet{index + 1}',
-                str(import_value),
-                f'OpenSearch should import {subnet_id}, but is importing: {import_value}. '
-                'This is critical for deterministic subnet placement in non-prod environments.',
-            )
+        # For sandbox (non-prod), should use exactly one subnet
+        self.assertEqual(len(subnet_ids), 1, 'Sandbox OpenSearch should use one subnet')
+        self.assertIn(
+            'privateSubnet1',
+            str(subnet_ids[0]['Fn::ImportValue']),
+            f'OpenSearch should import privateSubnet1, but is importing: {subnet_ids[0]}. '
+            'This is critical for deterministic subnet placement in non-prod environments.',
+        )
 
 
 class TestProdSearchPersistentStack(TstAppABC, TestCase):
@@ -434,3 +435,48 @@ class TestProdSearchPersistentStack(TstAppABC, TestCase):
                 'EvaluationPeriods': 1,
             },
         )
+
+
+class TestTestAndBetaSearchPersistentStack(TstAppABC, TestCase):
+    """Test and beta use one t3.medium.search node and zero index replicas."""
+
+    @classmethod
+    def get_context(cls):
+        with open('cdk.json') as f:
+            context = json.load(f)['context']
+
+        context['aws:cdk:bundling-stacks'] = []
+        return context
+
+    def test_test_and_beta_use_single_medium_node(self):
+        stages = (
+            self.app.test_backend_pipeline_stack.test_stage,
+            self.app.beta_backend_pipeline_stack.beta_backend_stage,
+        )
+        for stage in stages:
+            with self.subTest(stage.node.id):
+                search_template = Template.from_stack(stage.search_persistent_stack)
+                search_template.has_resource_properties(
+                    'AWS::OpenSearchService::Domain',
+                    {
+                        'ClusterConfig': {
+                            'InstanceType': 't3.medium.search',
+                            'InstanceCount': 1,
+                            'DedicatedMasterEnabled': False,
+                            'ZoneAwarenessEnabled': False,
+                            'MultiAZWithStandbyEnabled': False,
+                        },
+                    },
+                )
+                search_template.has_resource_properties(
+                    'Custom::IndexManager',
+                    {
+                        'numberOfShards': 1,
+                        'numberOfReplicas': 0,
+                    },
+                )
+
+                opensearch_resources = search_template.find_resources('AWS::OpenSearchService::Domain')
+                subnet_ids = list(opensearch_resources.values())[0]['Properties']['VPCOptions']['SubnetIds']
+                self.assertEqual(1, len(subnet_ids))
+                self.assertIn('privateSubnet1', str(subnet_ids[0]['Fn::ImportValue']))

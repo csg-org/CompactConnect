@@ -427,21 +427,27 @@ class TestOpenSearchIndexManager(TstFunction):
         mock_client_instance.create_alias.assert_has_calls(expected_alias_calls, any_order=False)
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
-    def test_on_update_is_noop(self, mock_opensearch_client):
-        """Test that on_update does not create or modify indices."""
+    def test_on_update_sets_replica_count(self, mock_opensearch_client):
+        """Test that on_update changes the replica count when it differs from the index."""
         from handlers.manage_opensearch_indices import on_event
 
-        # Create the event for an 'Update' request
-        event = self._create_event('Update')
+        mock_client_instance = mock_opensearch_client.return_value
+        mock_client_instance.cluster_health.return_value = {'status': 'green', 'number_of_nodes': 1}
+        mock_client_instance.alias_exists.return_value = True
+        mock_client_instance.get_index_settings.return_value = {
+            'compact_socw_providers_v1': {
+                'settings': {'index': {'number_of_replicas': '2'}},
+            }
+        }
 
-        # Call the handler
-        result = on_event(event, self.mock_context)
+        event = self._create_event('Update', {'numberOfReplicas': 0})
+        on_event(event, self.mock_context)
 
-        # Assert that the OpenSearchClient was NOT instantiated
-        mock_opensearch_client.assert_not_called()
-
-        # Result should be None (no-op)
-        self.assertIsNone(result)
+        mock_opensearch_client.assert_called_once()
+        mock_client_instance.update_index_settings.assert_called_once_with(
+            'compact_socw_providers',
+            {'index': {'number_of_replicas': 0}},
+        )
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
     def test_on_delete_is_noop(self, mock_opensearch_client):

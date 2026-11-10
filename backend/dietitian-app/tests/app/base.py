@@ -194,7 +194,20 @@ class TstAppABC(ABC):
                     },
                 },
             )
-            state_auth_stack_template.has_resource(CfnUserPoolDomain.CFN_RESOURCE_TYPE_NAME, {})
+            hosted_zone = state_auth_stack.persistent_stack.hosted_zone
+            if hosted_zone is not None:
+                state_auth_stack_template.has_resource_properties(
+                    CfnUserPoolDomain.CFN_RESOURCE_TYPE_NAME,
+                    {
+                        'Domain': f'state-auth.{hosted_zone.zone_name}',
+                        'CustomDomainConfig': Match.any_value(),
+                    },
+                )
+            else:
+                state_auth_stack_template.has_resource_properties(
+                    CfnUserPoolDomain.CFN_RESOURCE_TYPE_NAME,
+                    {'Domain': Match.string_like_regexp(r'.+-state-auth(-.+)?')},
+                )
             state_auth_stack_template.has_resource(CfnUserPoolResourceServer.CFN_RESOURCE_TYPE_NAME, {})
 
     def _inspect_persistent_stack(
