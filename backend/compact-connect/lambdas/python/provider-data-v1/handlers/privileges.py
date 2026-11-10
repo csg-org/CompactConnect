@@ -7,14 +7,14 @@ from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact_level_only_action, sqs_handler
+from cc_common.utils import api_handler, authorize_compact_or_matching_jurisdiction_action, sqs_handler
 
 
 @api_handler
-@authorize_compact_level_only_action(action=CCPermissionsAction.ADMIN)
+@authorize_compact_or_matching_jurisdiction_action(action=CCPermissionsAction.ADMIN)
 def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Deactivate a provider's privilege for a specific jurisdiction.
-    This endpoint requires admin permissions for the compact.
+    This endpoint requires compact admin permissions, or admin permissions for the privilege's jurisdiction.
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
