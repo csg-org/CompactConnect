@@ -7,9 +7,7 @@
 
 /* eslint-disable max-classes-per-file */
 import { deleteUndefinedProperties } from '@models/_helpers';
-// import { serverDateFormat } from '@/app.config';
 import { dateDisplay } from '@models/_formatters/date';
-// import moment from 'moment';
 import { StatsigClient } from '@statsig/js-client';
 
 export enum ApplicationType {
