@@ -64,6 +64,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
+        path: '/auth/login/:authType/:appMode',
+        name: 'AuthLogin',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthLogin/AuthLogin.vue'),
+        beforeEnter: guards.customAuthGuard,
+    },
+    {
         path: '/auth/callback/staff/jcc',
         name: 'AuthCallbackStaffJcc',
         component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/StaffJcc/StaffJcc.vue'),

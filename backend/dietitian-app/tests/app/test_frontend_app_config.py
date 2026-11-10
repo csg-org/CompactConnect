@@ -18,7 +18,11 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
         util = PersistentStackFrontendAppConfigUtility()
 
         # Set values
-        util.set_staff_cognito_values(domain_name='staff-domain.example.com', client_id='staff-client-123')
+        util.set_staff_cognito_values(
+            domain_name='staff-domain.example.com',
+            client_id='staff-client-123',
+            user_pool_id='us-east-1_StaffPool',
+        )
         util.set_domain_names(
             ui_domain_name='ui.example.com',
             api_domain_name='api.example.com',
@@ -34,6 +38,7 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
             {
                 'staff_cognito_domain': 'staff-domain.example.com',
                 'staff_cognito_client_id': 'staff-client-123',
+                'staff_cognito_user_pool_id': 'us-east-1_StaffPool',
                 'ui_domain_name': 'ui.example.com',
                 'api_domain_name': 'api.example.com',
                 'search_api_domain_name': 'search.example.com',
@@ -49,6 +54,7 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
                 {
                     'staff_cognito_domain': 'staff-domain.example.com',
                     'staff_cognito_client_id': 'staff-client-123',
+                    'staff_cognito_user_pool_id': 'us-east-1_StaffPool',
                     'ui_domain_name': 'ui.example.com',
                     'api_domain_name': 'api.example.com',
                     'search_api_domain_name': 'search.example.com',
@@ -59,6 +65,7 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
         # Test getters
         self.assertEqual(util.staff_cognito_domain, 'staff-domain.example.com')
         self.assertEqual(util.staff_cognito_client_id, 'staff-client-123')
+        self.assertEqual(util.staff_cognito_user_pool_id, 'us-east-1_StaffPool')
         self.assertEqual(util.ui_domain_name, 'ui.example.com')
         self.assertEqual(util.api_domain_name, 'api.example.com')
         self.assertEqual(util.search_api_domain_name, 'search.example.com')
@@ -73,7 +80,11 @@ class TestProviderUserStackFrontendAppConfigUtility(TestCase):
         util = ProviderUsersStackFrontendAppConfigUtility()
 
         # Set values
-        util.set_provider_cognito_values(domain_name='provider-domain.example.com', client_id='provider-client-456')
+        util.set_provider_cognito_values(
+            domain_name='provider-domain.example.com',
+            client_id='provider-client-456',
+            user_pool_id='us-east-1_ProviderPool',
+        )
 
         # Get JSON representation
         config_json = util.get_config_json()
@@ -84,6 +95,7 @@ class TestProviderUserStackFrontendAppConfigUtility(TestCase):
             {
                 'provider_cognito_domain': 'provider-domain.example.com',
                 'provider_cognito_client_id': 'provider-client-456',
+                'provider_cognito_user_pool_id': 'us-east-1_ProviderPool',
             },
             config_dict,
         )
@@ -96,6 +108,7 @@ class TestProviderUserStackFrontendAppConfigUtility(TestCase):
                 {
                     'provider_cognito_domain': 'provider-domain.example.com',
                     'provider_cognito_client_id': 'provider-client-456',
+                    'provider_cognito_user_pool_id': 'us-east-1_ProviderPool',
                 }
             )
         )
@@ -103,3 +116,4 @@ class TestProviderUserStackFrontendAppConfigUtility(TestCase):
         # Test getters
         self.assertEqual(util.provider_cognito_domain, 'provider-domain.example.com')
         self.assertEqual(util.provider_cognito_client_id, 'provider-client-456')
+        self.assertEqual(util.provider_cognito_user_pool_id, 'us-east-1_ProviderPool')

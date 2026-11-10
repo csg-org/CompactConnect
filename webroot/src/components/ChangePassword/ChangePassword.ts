@@ -8,6 +8,7 @@
 import { Component, mixins, toNative } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
 import { authStorage, AuthTypes, tokens } from '@utils/auth';
+import { passwordValidation } from '@utils/cognitoAuth';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputPassword from '@components/Forms/InputPassword/InputPassword.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
@@ -17,9 +18,6 @@ import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
-import { joiPasswordExtendCore } from 'joi-password';
-
-const joiPassword = Joi.extend(joiPasswordExtendCore);
 
 @Component({
     name: 'ChangePassword',
@@ -103,15 +101,7 @@ class ChangePassword extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.newPassword')),
                 placeholder: computed(() => this.$t('common.newPassword')),
                 autocomplete: 'new-password',
-                validation: joiPassword
-                    .string()
-                    .min(12)
-                    .minOfLowercase(1)
-                    .minOfNumeric(1)
-                    .messages({
-                        ...this.joiMessages.string,
-                        ...this.joiMessages.password,
-                    }),
+                validation: passwordValidation(this.joiMessages),
             }),
             confirmPassword: new FormInput({
                 id: 'confirm-password',
