@@ -1717,7 +1717,6 @@
         { "name": "Patois jamaicano", "abbrev": "jam" },
         { "name": "Japonés", "abbrev": "ja" },
         { "name": "Javanés", "abbrev": "jv" },
-        { "name": "Jingpo", "abbrev": "kac" },
         { "name": "Jola-fonyi", "abbrev": "dyo" },
         { "name": "Kabardiano", "abbrev": "kbd" },
         { "name": "Cabilio", "abbrev": "kab" },
@@ -1860,6 +1859,6 @@
         { "name": "Yoruba", "abbrev": "yo" },
         { "name": "Maya yucateco", "abbrev": "yua" },
         { "name": "Zapoteco", "abbrev": "zap" },
-        { "name": " Zulú", "abbrev": "zu" }
+        { "name": "Zulú", "abbrev": "zu" }
     ]
 }
