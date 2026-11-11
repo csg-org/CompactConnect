@@ -41,7 +41,23 @@ const noAuthGuard = (/* to: Route, from: Route */): Promise<void | boolean | Rou
     return action;
 };
 
+/**
+ * In-app login stays closed unless custom auth is enabled.
+ * When it is enabled, logged-in visitors still follow the no-auth guard.
+ */
+const customAuthGuard = async (): Promise<void | boolean | RouteConfig> => {
+    const dashboardRoute: RouteConfig = { name: 'DashboardPublic' };
+    let action: void | boolean | RouteConfig = dashboardRoute;
+
+    if (config.isCustomAuth) {
+        action = await noAuthGuard();
+    }
+
+    return action;
+};
+
 export default {
     authGuard,
     noAuthGuard,
+    customAuthGuard,
 };

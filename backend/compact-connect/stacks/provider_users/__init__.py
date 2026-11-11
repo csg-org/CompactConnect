@@ -117,6 +117,7 @@ class ProviderUsersStack(AppStack):
         provider_app_config.set_provider_cognito_values(
             domain_name=auth_domain_name,
             client_id=self.provider_users.ui_client.user_pool_client_id,
+            user_pool_id=self.provider_users.user_pool_id,
         )
 
         # Generate the SSM parameter
