@@ -96,8 +96,8 @@ export default class LicenseeDashboard extends Vue {
         return this.licensee?.isEncumbered() || false;
     }
 
-    get hasEncumbranceLiftedWithinWaitPeriod(): boolean {
-        return this.licensee?.hasEncumbranceLiftedWithinWaitPeriod() || false;
+    get isPurchaseBlockedByEncumbranceWaitPeriod(): boolean {
+        return this.licensee?.isPurchaseBlockedByEncumbranceWaitPeriod(this.currentCompactType) || false;
     }
 
     get isGenerateProofEnabled(): boolean {
@@ -106,7 +106,7 @@ export default class LicenseeDashboard extends Vue {
     }
 
     get isPrivilegePurchaseEnabled(): boolean {
-        return this.licensee?.canPurchasePrivileges() || false;
+        return this.licensee?.canPurchasePrivileges(this.currentCompactType) || false;
     }
 
     get isMilitaryStatusInitializing(): boolean {

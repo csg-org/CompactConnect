@@ -1297,6 +1297,34 @@ describe('Licensee model', () => {
 
         // Test hasEncumbranceLiftedWithinWaitPeriod method
         expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(true);
+        expect(licensee.isPurchaseBlockedByEncumbranceWaitPeriod()).to.equal(true);
+        expect(licensee.isPurchaseBlockedByEncumbranceWaitPeriod(CompactType.ASLP)).to.equal(true);
+        expect(licensee.isPurchaseBlockedByEncumbranceWaitPeriod(CompactType.DIETITIANS)).to.equal(false);
+    });
+    it('should allow dietitians to purchase privileges when an encumbrance was lifted within the wait period', () => {
+        const privilegeWithRecentLift = new License({
+            licenseNumber: 'privilege-with-recent-lift',
+            status: LicenseStatus.ACTIVE,
+        });
+        const homeLicense = new License({
+            status: LicenseStatus.ACTIVE,
+            eligibility: EligibilityStatus.ELIGIBLE,
+            issueState: new State({ abbrev: 'co' }),
+        });
+
+        privilegeWithRecentLift.isLatestLiftedEncumbranceWithinWaitPeriod = () => true;
+
+        const licensee = new Licensee({
+            homeJurisdiction: new State({ abbrev: 'co' }),
+            licenses: [homeLicense],
+            privileges: [privilegeWithRecentLift],
+        });
+
+        expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.canPurchasePrivileges(CompactType.ASLP)).to.equal(false);
+        expect(licensee.canPurchasePrivileges(CompactType.OT)).to.equal(false);
+        expect(licensee.canPurchasePrivileges(CompactType.COUNSELING)).to.equal(false);
+        expect(licensee.canPurchasePrivileges(CompactType.DIETITIANS)).to.equal(true);
     });
     it('should keep nested license adverse actions for encumbrance checks without flattening to licensee', () => {
         const data = {
