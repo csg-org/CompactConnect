@@ -2,7 +2,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { BatchGetItemCommand, DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeAll, beforeEach, describe, it, jest } from '@jest/globals';
 
 import { InvoiceClient } from '../../lib/invoice-client';
 import {
