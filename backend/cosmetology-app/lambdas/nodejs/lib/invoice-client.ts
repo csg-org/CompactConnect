@@ -30,23 +30,29 @@ interface LicenseRecord {
     /** What the jurisdiction reported. The calculated compactEligibility field is not stored. */
     jurisdictionUploadedCompactEligibility?: string;
     firstUploadDate?: string;
-    dateOfRenewal?: string;
 }
 
 type LicenseKey = Record<string, AttributeValue>;
+
+interface IndexedLicense {
+    key: LicenseKey;
+    /** True when any index hit for this license in the billing month is a renewal upload. */
+    renewalUploaded: boolean;
+}
 
 /*
  * Reads compact-eligible license uploads for a billing month.
  *
  * licenseUploadDateGSI partition key is C#{compact}#J#{jurisdiction}#D#{YYYY-MM}.
- * License rows are indexed by firstUploadDate. License update rows for upload events, including
- * renewals, are indexed by the update createDate. The index only projects providerId, so each hit
- * is resolved to the current license row and billed when that license was first uploaded or renewed
- * during the month.
+ * License rows are indexed by firstUploadDate and do not carry updateType. License update rows
+ * for upload events are indexed by the update createDate and project updateType. Each hit is
+ * resolved to the current license row.
  *
  * A license is billable when the jurisdiction uploaded it as multi-state
- * (jurisdictionUploadedCompactEligibility) and it was first uploaded or renewed in the billing
- * month. Expiration and encumbrance do not change the invoice.
+ * (jurisdictionUploadedCompactEligibility) and it was first uploaded in the billing month, or a
+ * renewal update was processed in that month. The jurisdiction's dateOfRenewal is not used, so a
+ * renewal uploaded after its renewal date is still billed in the upload month. Expiration and
+ * encumbrance do not change the invoice.
  */
 export class InvoiceClient {
     private readonly logger: Logger;
@@ -84,8 +90,8 @@ export class InvoiceClient {
             };
         }
 
-        const keys = this.licenseKeysForUploads(compact, jurisdiction, gsiItems);
-        const records = await this.batchGetLicenses(keys);
+        const indexedLicenses = this.indexedLicensesForUploads(compact, jurisdiction, gsiItems);
+        const records = await this.batchGetLicenses(indexedLicenses.map((indexed) => indexed.key));
         const recordsByKey = new Map<string, LicenseRecord>();
 
         for (const record of records) {
@@ -96,8 +102,8 @@ export class InvoiceClient {
 
         const lineItems: InvoiceLineItem[] = [];
 
-        for (const key of keys) {
-            const record = recordsByKey.get(`${key.pk.S}|${key.sk.S}`);
+        for (const indexed of indexedLicenses) {
+            const record = recordsByKey.get(`${indexed.key.pk.S}|${indexed.key.sk.S}`);
 
             // Ineligible and otherwise non-billable licenses still count as uploads for this license type.
             if (record?.licenseType) {
@@ -105,7 +111,7 @@ export class InvoiceClient {
             }
 
             const lineItem = record
-                ? this.toLineItem(record, jurisdiction, billingMonth)
+                ? this.toLineItem(record, jurisdiction, billingMonth, indexed.renewalUploaded)
                 : undefined;
 
             if (!lineItem) {
@@ -155,13 +161,12 @@ export class InvoiceClient {
         return items;
     }
 
-    private licenseKeysForUploads(
+    private indexedLicensesForUploads(
         compact: string,
         jurisdiction: string,
         gsiItems: Record<string, AttributeValue>[]
-    ): LicenseKey[] {
-        const keys: LicenseKey[] = [];
-        const seen = new Set<string>();
+    ): IndexedLicense[] {
+        const indexed = new Map<string, IndexedLicense>();
 
         for (const item of gsiItems) {
             const sortKey = item.licenseUploadDateGSISK?.S ?? '';
@@ -180,16 +185,18 @@ export class InvoiceClient {
                 sk: { S: `${compact}#PROVIDER#license/${jurisdiction}/${licenseTypeAbbr}#` },
             };
             const keyId = `${key.pk.S}|${key.sk.S}`;
+            const renewalUploaded = item.updateType?.S === 'renewal';
+            const existing = indexed.get(keyId);
 
-            if (seen.has(keyId)) {
+            if (existing) {
+                existing.renewalUploaded = existing.renewalUploaded || renewalUploaded;
                 continue;
             }
 
-            seen.add(keyId);
-            keys.push(key);
+            indexed.set(keyId, { key, renewalUploaded });
         }
 
-        return keys;
+        return [...indexed.values()];
     }
 
     private async batchGetLicenses(keys: LicenseKey[]): Promise<LicenseRecord[]> {
@@ -225,13 +232,14 @@ export class InvoiceClient {
     private toLineItem(
         record: LicenseRecord,
         jurisdiction: string,
-        billingMonth: string
+        billingMonth: string,
+        renewalUploaded: boolean
     ): InvoiceLineItem | undefined {
         if (record.jurisdictionUploadedCompactEligibility !== 'eligible') {
             return undefined;
         }
 
-        const category = this.categoryForBillingMonth(record, billingMonth);
+        const category = this.categoryForBillingMonth(record, billingMonth, renewalUploaded);
 
         if (!category || !record.licenseType || !record.licenseNumber) {
             return undefined;
@@ -248,11 +256,15 @@ export class InvoiceClient {
         };
     }
 
-    private categoryForBillingMonth(record: LicenseRecord, billingMonth: string): InvoiceCategory | undefined {
+    private categoryForBillingMonth(
+        record: LicenseRecord,
+        billingMonth: string,
+        renewalUploaded: boolean
+    ): InvoiceCategory | undefined {
         if (this.isInBillingMonth(record.firstUploadDate, billingMonth)) {
             return 'new';
         }
-        if (this.isInBillingMonth(record.dateOfRenewal, billingMonth)) {
+        if (renewalUploaded) {
             return 'renewal';
         }
         return undefined;

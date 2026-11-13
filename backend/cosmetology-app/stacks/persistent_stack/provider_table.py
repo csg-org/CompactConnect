@@ -70,8 +70,9 @@ class ProviderTable(Table):
             sort_key=Attribute(name='licenseGSISK', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL,
         )
-        # in this case, we only need to include the provider id since this GSI is used to
-        # determine which providers were associated with a particular license upload time
+        # providerId identifies the practitioner. updateType is present on license update rows
+        # (renewal, deactivation, other) and absent on the license row itself, so the invoice can
+        # bill a renewal in the month the upload was processed.
         self.add_global_secondary_index(
             index_name=self.license_upload_date_gsi_name,
             partition_key=Attribute(name='licenseUploadDateGSIPK', type=AttributeType.STRING),
@@ -79,6 +80,7 @@ class ProviderTable(Table):
             projection_type=ProjectionType.INCLUDE,
             non_key_attributes=[
                 'providerId',
+                'updateType',
             ],
         )
         # This GSI maps a state's own license number back to the practitioner it belongs to, so that a
