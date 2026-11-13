@@ -43,7 +43,7 @@ interface IndexedLicense {
 /*
  * Reads compact-eligible license uploads for a billing month.
  *
- * licenseUploadDateGSI partition key is C#{compact}#J#{jurisdiction}#D#{YYYY-MM}.
+ * The invoice index partition key is C#{compact}#J#{jurisdiction}#D#{YYYY-MM}.
  * License rows are indexed by firstUploadDate and do not carry updateType. License update rows
  * for upload events are indexed by the update createDate and project updateType. Each hit is
  * resolved to the current license row.
@@ -141,7 +141,7 @@ export class InvoiceClient {
         do {
             const input: QueryCommandInput = {
                 TableName: tableName,
-                IndexName: 'licenseUploadDateGSI',
+                IndexName: environmentVariables.getLicenseUploadDateInvoiceIndexName(),
                 KeyConditionExpression: 'licenseUploadDateGSIPK = :pk',
                 ExpressionAttributeValues: {
                     ':pk': { S: partitionKey },

@@ -172,7 +172,7 @@ class TstFunction(TstLambdas):
                     ],
                     'Projection': {
                         'ProjectionType': 'INCLUDE',
-                        'NonKeyAttributes': ['providerId', 'updateType'],
+                        'NonKeyAttributes': ['providerId'],
                     },
                 },
             ],

@@ -30,6 +30,7 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
     beforeAll(() => {
         process.env.DEBUG = 'true';
         process.env.PROVIDER_TABLE_NAME = 'provider-table';
+        process.env.LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME = 'licenseUploadDateInvoiceGSI';
         process.env.FEE_PER_LICENSE = '25';
     });
 
@@ -65,7 +66,7 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
 
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(QueryCommand, {
             TableName: 'provider-table',
-            IndexName: 'licenseUploadDateGSI',
+            IndexName: 'licenseUploadDateInvoiceGSI',
             KeyConditionExpression: 'licenseUploadDateGSIPK = :pk',
             ExpressionAttributeValues: {
                 ':pk': { S: GSI_PK },
