@@ -8,7 +8,7 @@
 import { AppModes } from '@/app.config';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 
-export type ApiFamily = 'state' | 'license' | 'search' | 'user';
+export type ApiFamily = 'state' | 'license' | 'search' | 'user' | 'application';
 
 export const appModeApiUrls: Record<AppModes, Record<ApiFamily, string | undefined>> = {
     [AppModes.JCC]: {
@@ -16,30 +16,36 @@ export const appModeApiUrls: Record<AppModes, Record<ApiFamily, string | undefin
         license: envConfig.apiUrlLicense,
         search: envConfig.apiUrlSearch,
         user: envConfig.apiUrlUser,
+        application: undefined,
     },
     [AppModes.COSMETOLOGY]: {
         state: envConfig.apiUrlStateCosmo,
         license: envConfig.apiUrlLicenseCosmo,
         search: envConfig.apiUrlSearchCosmo,
         user: envConfig.apiUrlUserCosmo,
+        application: undefined,
     },
     [AppModes.SOCIAL_WORK]: {
         state: envConfig.apiUrlStateSw,
         license: envConfig.apiUrlLicenseSw,
         search: envConfig.apiUrlSearchSw,
         user: envConfig.apiUrlUserSw,
+        application: undefined,
     },
     [AppModes.PSYPACT]: {
         state: envConfig.apiUrlStatePsypact,
         license: envConfig.apiUrlLicensePsypact,
         search: envConfig.apiUrlSearchPsypact,
         user: envConfig.apiUrlUserPsypact,
+        // Applications are PSYPACT-only and are served from the PSYPACT user API root
+        application: envConfig.apiUrlUserPsypact,
     },
     [AppModes.DIETITIANS]: {
         state: envConfig.apiUrlStateDiet,
         license: envConfig.apiUrlLicenseDiet,
         search: envConfig.apiUrlSearchDiet,
         user: envConfig.apiUrlUserDiet,
+        application: undefined,
     },
 };
 

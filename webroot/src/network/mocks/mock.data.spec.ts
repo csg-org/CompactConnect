@@ -7,8 +7,13 @@
 
 import { expect } from 'chai';
 import { CompactType } from '@models/Compact/Compact.model';
+import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
+import { Application } from '@models/Application/Application.model';
+import { Authorization } from '@models/Authorization/Authorization.model';
 import {
     licensees,
+    applicantApplications,
+    applicantAuthorizations,
     mockProviderCompactOverlays,
     applyProviderCompactOverlay,
     getMockProviderForCompact
@@ -40,6 +45,16 @@ describe('mock provider compact overlays', () => {
         )).to.equal(true);
         /* eslint-enable function-paren-newline */
         expect(sourceProvider).to.deep.equal(sourceSnapshot);
+
+        if (compactType === CompactType.PSYPACT) {
+            expect(provider.applications).to.deep.equal(applicantApplications);
+            expect(provider.applications).to.not.equal(applicantApplications);
+            expect(provider.authorizations).to.deep.equal(applicantAuthorizations);
+            expect(provider.authorizations).to.not.equal(applicantAuthorizations);
+        } else {
+            expect(provider.applications).to.equal(undefined);
+            expect(provider.authorizations).to.equal(undefined);
+        }
     };
 
     it('should apply the ASLP overlay', () => {
@@ -62,6 +77,28 @@ describe('mock provider compact overlays', () => {
     });
     it('should apply the dietitian overlay', () => {
         expectProviderOverlay(CompactType.DIETITIANS);
+    });
+    it('should serialize PSYPACT applications and authorizations onto the licensee', () => {
+        const licensee = LicenseeSerializer.fromServer(getMockProviderForCompact(sourceProvider, CompactType.PSYPACT));
+
+        expect(licensee.applications).to.have.length(applicantApplications.length);
+        expect(licensee.applications?.every((application: any) =>
+            application instanceof Application)).to.equal(true);
+        expect(licensee.authorizations).to.have.length(applicantAuthorizations.length);
+        expect(licensee.authorizations?.every((authorization: any) =>
+            authorization instanceof Authorization)).to.equal(true);
+    });
+    it('should not mutate the shared application mocks between calls', () => {
+        const firstProvider = getMockProviderForCompact(sourceProvider, CompactType.PSYPACT);
+        const secondProvider = getMockProviderForCompact(sourceProvider, CompactType.PSYPACT);
+
+        firstProvider.applications[0].status = 'mutated';
+        firstProvider.authorizations[0].status = 'mutated';
+
+        expect(secondProvider.applications[0].status).to.not.equal('mutated');
+        expect(secondProvider.authorizations[0].status).to.not.equal('mutated');
+        expect(applicantApplications[0].status).to.not.equal('mutated');
+        expect(applicantAuthorizations[0].status).to.not.equal('mutated');
     });
     it('should return the original provider when an overlay is not provided', () => {
         expect(applyProviderCompactOverlay(sourceProvider)).to.equal(sourceProvider);

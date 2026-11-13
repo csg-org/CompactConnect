@@ -9,6 +9,7 @@ import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
+import { Application } from '@models/Application/Application.model';
 import { AuthTypes } from '@utils/auth';
 import { getImpliedCompactForHost } from './user.state';
 
@@ -67,6 +68,12 @@ export enum MutationTypes {
     CONFIRM_MFA_LICENSEE_ACCOUNT_REQUEST = '[User] Confirm MFA Licensee Account Request',
     CONFIRM_MFA_LICENSEE_ACCOUNT_FAILURE = '[User] Confirm MFA Licensee Account Failure',
     CONFIRM_MFA_LICENSEE_ACCOUNT_SUCCESS = '[User] Confirm MFA Licensee Account Success',
+    GET_APPLICATIONS_REQUEST = '[User] Get Applications Request',
+    GET_APPLICATIONS_FAILURE = '[User] Get Applications Failure',
+    GET_APPLICATIONS_SUCCESS = '[User] Get Applications Success',
+    GET_APPLICATION_REQUEST = '[User] Get Application Request',
+    GET_APPLICATION_FAILURE = '[User] Get Application Failure',
+    GET_APPLICATION_SUCCESS = '[User] Get Application Success',
 }
 
 export default {
@@ -159,6 +166,17 @@ export default {
         state.currentCompact = compact;
     },
     [MutationTypes.STORE_UPDATE_USER]: (state: any, user: LicenseeUser|StaffUser|null) => {
+        const existingApplications = state.model?.licensee?.applications;
+        const incomingLicensee: any = (user as LicenseeUser)?.licensee;
+
+        // Applications are fetched separately from the account, so keep them across account refetches
+        if (incomingLicensee
+            && state.model?.id === user?.id
+            && !incomingLicensee.applications?.length
+            && existingApplications?.length) {
+            incomingLicensee.applications = existingApplications;
+        }
+
         state.model = user;
     },
     [MutationTypes.STORE_RESET_USER]: (state: any) => {
@@ -167,6 +185,7 @@ export default {
         state.isLoggedInAsLicensee = false;
         state.isLoggedInAsStaff = false;
         state.isLoadingAccount = false;
+        state.isLoadingApplications = false;
         state.refreshTokenTimeoutId = null;
         state.autoLogoutTimeoutId = null;
         state.isAutoLogoutWarning = false;
@@ -308,6 +327,45 @@ export default {
     },
     [MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_SUCCESS]: (state: any) => {
         state.isLoadingAccount = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_APPLICATIONS_REQUEST]: (state: any) => {
+        state.isLoadingApplications = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_APPLICATIONS_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingApplications = false;
+        state.error = error;
+    },
+    [MutationTypes.GET_APPLICATIONS_SUCCESS]: (state: any, applications: Array<Application>) => {
+        if (state.model?.licensee) {
+            state.model.licensee.applications = applications;
+        }
+
+        state.isLoadingApplications = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_APPLICATION_REQUEST]: (state: any) => {
+        state.isLoadingApplications = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_APPLICATION_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingApplications = false;
+        state.error = error;
+    },
+    [MutationTypes.GET_APPLICATION_SUCCESS]: (state: any, application: Application) => {
+        const licensee = state.model?.licensee;
+
+        if (licensee && application) {
+            const applications = licensee.applications || [];
+            const existingIndex = applications.findIndex((existing) => existing.id === application.id);
+
+            licensee.applications = (existingIndex > -1)
+                ? applications.map((existing, index) => ((index === existingIndex) ? application : existing))
+                : [...applications, application];
+        }
+
+        state.isLoadingApplications = false;
         state.error = null;
     },
 };

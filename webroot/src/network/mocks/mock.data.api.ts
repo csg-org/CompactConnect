@@ -18,6 +18,7 @@ import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFee
 import { CompactSerializer } from '@models/Compact/Compact.model';
 import { State, StateSerializer } from '@models/State/State.model';
 import { LicenseType } from '@models/License/License.model';
+import { ApplicationSerializer } from '@models/Application/Application.model';
 import {
     userData,
     staffAccount,
@@ -32,6 +33,7 @@ import {
     compactConfig,
     stateConfig,
     mockPrivilegeHistoryResponses,
+    applicantApplications,
     getMockProviderForCompact
 } from '@network/mocks/mock.data';
 
@@ -71,7 +73,14 @@ const getAuthenticatedProvider = () => {
         console.error(errorMessage);
     }
 
-    return getMockProviderForCompact(provider, getCurrentCompact());
+    const compactProvider = getMockProviderForCompact(provider, getCurrentCompact());
+
+    // The authenticated licensee's own applications are fetched from the separate applications endpoint
+    if (compactProvider !== provider) {
+        delete compactProvider.applications;
+    }
+
+    return compactProvider;
 };
 
 // License type mapping for matching abbreviations and full names to LicenseType enum values
@@ -809,6 +818,30 @@ export class DataApi {
         }
 
         return wait(2000).then(() => ({ message: 'success', ...data }));
+    }
+
+    // ========================================================================
+    //                              APPLICATIONS API
+    // ========================================================================
+    // Get Authenticated Licensee User applications
+    public getAuthenticatedLicenseeApplications() {
+        return wait(500).then(() => ({
+            prevLastKey: null,
+            lastKey: null,
+            applications: JSON.parse(JSON.stringify(applicantApplications))
+                .map((serverItem) => ApplicationSerializer.fromServer(serverItem)),
+        }));
+    }
+
+    // Get Authenticated Licensee User application by ID
+    public getAuthenticatedLicenseeApplication(applicationId: string) {
+        const serverApplication = applicantApplications.find((application) => application.id === applicationId);
+
+        if (!serverApplication) {
+            return wait(500).then(() => { throw new Error('not found'); });
+        }
+
+        return wait(500).then(() => ApplicationSerializer.fromServer(JSON.parse(JSON.stringify(serverApplication))));
     }
 
     // ========================================================================
