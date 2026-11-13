@@ -140,7 +140,8 @@
     "webpack-dev-server": "^5.2.6",
     "webpack-dev-middleware": "^7.4.6",
     "**/sockjs/uuid": "^11.1.1",
-    "**/istanbul-lib-processinfo/uuid": "^11.1.1"
+    "**/istanbul-lib-processinfo/uuid": "^11.1.1",
+    "webpack": "5.104.1"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"
