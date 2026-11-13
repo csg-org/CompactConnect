@@ -60,6 +60,7 @@ class TestReportingStack(TstAppABC, TestCase):
 
         self.assertEqual('index.generateInvoice', resource['Properties']['Handler'])
         self.assertIn('PROVIDER_TABLE_NAME', env_vars)
+        self.assertEqual('licenseUploadDateInvoiceGSI', env_vars['LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME'])
         self.assertIn('COMPACT_CONFIGURATION_TABLE_NAME', env_vars)
         self.assertEqual('25', env_vars['FEE_PER_LICENSE'])
 

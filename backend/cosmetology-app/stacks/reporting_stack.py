@@ -145,6 +145,9 @@ class ReportingStack(AppStack):
             environment={
                 'FROM_ADDRESS': from_address,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME': (
+                    persistent_stack.provider_table.license_upload_date_invoice_gsi_name
+                ),
                 'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 'UI_BASE_PATH_URL': ui_base_path_url,
                 'FEE_PER_LICENSE': '25',

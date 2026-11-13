@@ -50,6 +50,9 @@ class ProviderTable(Table):
         self.provider_date_of_update_index_name = 'providerDateOfUpdate'
         self.license_gsi_name = 'licenseGSI'
         self.license_upload_date_gsi_name = 'licenseUploadDateGSI'
+        # Separate index so existing environments do not have to change licenseUploadDateGSI.
+        # CloudFormation cannot update a GSI projection in place.
+        self.license_upload_date_invoice_gsi_name = 'licenseUploadDateInvoiceGSI'
         self.license_number_gsi_name = 'licenseNumberGSI'
 
         self.add_global_secondary_index(
@@ -70,8 +73,8 @@ class ProviderTable(Table):
             sort_key=Attribute(name='licenseGSISK', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL,
         )
-        # in this case, we only need to include the provider id since this GSI is used to
-        # determine which providers were associated with a particular license upload time
+        # providerId is enough for readers that only need to know which practitioner was uploaded.
+        # Do not add attributes here: an existing table cannot change this projection in place.
         self.add_global_secondary_index(
             index_name=self.license_upload_date_gsi_name,
             partition_key=Attribute(name='licenseUploadDateGSIPK', type=AttributeType.STRING),
@@ -79,6 +82,19 @@ class ProviderTable(Table):
             projection_type=ProjectionType.INCLUDE,
             non_key_attributes=[
                 'providerId',
+            ],
+        )
+        # Invoice billing needs updateType, which is present on license update rows and absent on
+        # the license row. This index uses the same keys as licenseUploadDateGSI. It is added
+        # beside that index so the deployment creates a new GSI instead of editing the old one.
+        self.add_global_secondary_index(
+            index_name=self.license_upload_date_invoice_gsi_name,
+            partition_key=Attribute(name='licenseUploadDateGSIPK', type=AttributeType.STRING),
+            sort_key=Attribute(name='licenseUploadDateGSISK', type=AttributeType.STRING),
+            projection_type=ProjectionType.INCLUDE,
+            non_key_attributes=[
+                'providerId',
+                'updateType',
             ],
         )
         # This GSI maps a state's own license number back to the practitioner it belongs to, so that a

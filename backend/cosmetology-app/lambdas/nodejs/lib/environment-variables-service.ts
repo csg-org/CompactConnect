@@ -9,6 +9,7 @@ export class EnvironmentVariablesService {
     private readonly userPoolTypeVariable = 'USER_POOL_TYPE';
     private readonly environmentNameVariable = 'ENVIRONMENT_NAME';
     private readonly providerTableNameVariable = 'PROVIDER_TABLE_NAME';
+    private readonly licenseUploadDateInvoiceIndexNameVariable = 'LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME';
     private readonly feePerLicenseVariable = 'FEE_PER_LICENSE';
 
     public getEnvVar(name: string): string {
@@ -53,6 +54,16 @@ export class EnvironmentVariablesService {
 
     public getProviderTableName() {
         return this.getEnvVar(this.providerTableNameVariable);
+    }
+
+    public getLicenseUploadDateInvoiceIndexName() {
+        const indexName = this.getEnvVar(this.licenseUploadDateInvoiceIndexNameVariable);
+
+        if (!indexName) {
+            throw new Error('LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME is required');
+        }
+
+        return indexName;
     }
 
     public getFeePerLicense() {

@@ -358,6 +358,7 @@ export const SAMPLE_GSI_LICENSE_UPLOAD_RECORD_RENEWAL = {
     licenseUploadDateGSIPK: { S: 'C#cosm#J#oh#D#2024-09' },
     licenseUploadDateGSISK: { S: 'TIME#1725235200#LT#cos#PID#provider-uuid-2' },
     providerId: { S: 'provider-uuid-2' },
+    updateType: { S: 'renewal' },
 };
 
 export const SAMPLE_GSI_LICENSE_UPLOAD_RECORD_INELIGIBLE = {
@@ -376,6 +377,7 @@ export const SAMPLE_GSI_LICENSE_UPLOAD_RECORD_CORRECTION = {
     licenseUploadDateGSIPK: { S: 'C#cosm#J#oh#D#2024-09' },
     licenseUploadDateGSISK: { S: 'TIME#1725494400#LT#cos#PID#provider-uuid-5' },
     providerId: { S: 'provider-uuid-5' },
+    updateType: { S: 'other' },
 };
 
 // Full DynamoDB license record — NEW (firstUploadDate in Sept 2024)
