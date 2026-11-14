@@ -418,6 +418,11 @@
                       "minLength": 1,
                       "type": "string"
                     },
+                    "altFamilyName": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
                     "dateOfBirth": {
                       "format": "date",
                       "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
@@ -446,6 +451,11 @@
                     "homeAddressPostalCode": {
                       "maxLength": 7,
                       "minLength": 5,
+                      "type": "string"
+                    },
+                    "country": {
+                      "maxLength": 100,
+                      "minLength": 1,
                       "type": "string"
                     },
                     "dateOfIssuance": {
@@ -481,6 +491,9 @@
                       "maxLength": 100,
                       "minLength": 1,
                       "type": "string"
+                    },
+                    "militaryStatus": {
+                      "type": "boolean"
                     },
                     "compactEligibility": {
                       "enum": [
@@ -558,6 +571,11 @@
                       "minLength": 1,
                       "type": "string"
                     },
+                    "altFamilyName": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
                     "dateOfBirth": {
                       "format": "date",
                       "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
@@ -586,6 +604,11 @@
                     "homeAddressPostalCode": {
                       "maxLength": 7,
                       "minLength": 5,
+                      "type": "string"
+                    },
+                    "country": {
+                      "maxLength": 100,
+                      "minLength": 1,
                       "type": "string"
                     },
                     "dateOfIssuance": {
@@ -621,6 +644,9 @@
                       "maxLength": 100,
                       "minLength": 1,
                       "type": "string"
+                    },
+                    "militaryStatus": {
+                      "type": "boolean"
                     },
                     "compactEligibility": {
                       "enum": [
@@ -974,6 +1000,11 @@
             "minLength": 1,
             "type": "string"
           },
+          "altFamilyName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
           "dateOfBirth": {
             "format": "date",
             "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
@@ -1004,6 +1035,11 @@
             "minLength": 5,
             "type": "string"
           },
+          "country": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
           "dateOfIssuance": {
             "format": "date",
             "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
@@ -1030,6 +1066,9 @@
             "maxLength": 100,
             "minLength": 1,
             "type": "string"
+          },
+          "militaryStatus": {
+            "type": "boolean"
           },
           "emailAddress": {
             "format": "email",

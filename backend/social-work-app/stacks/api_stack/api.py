@@ -36,6 +36,8 @@ class LicenseApi(CompactConnectApi):
             api_lambda_stack=api_lambda_stack,
             search_persistent_stack=search_persistent_stack,
         )
+        # Serialize CreateModel — parallel creates hit API Gateway rate limits (429).
+        self.serialize_api_gateway_scaffolding()
 
     @cached_property
     def staff_users_authorizer(self):

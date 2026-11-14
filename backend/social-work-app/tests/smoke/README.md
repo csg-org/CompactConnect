@@ -111,6 +111,16 @@ Expect long runtimes (up to ~15 minutes) due to SQS batching windows during lice
 
 ## Special Test Requirements
 
+### Optional License Fields (`optional_license_fields_smoke_tests.py`)
+
+Validates that `country`, `altFamilyName`, and `militaryStatus` survive state API license upload into DynamoDB.
+Creates the Cognito state app client via `app_clients/bin/create_app_client.py` and asserts via the license GSI
+(no staff Cognito password auth), so it does **not** require `security_profile: VULNERABLE`.
+
+```bash
+python3 tests/smoke/optional_license_fields_smoke_tests.py
+```
+
 ### Tests Creating Test Data
 
 Many tests create temporary test data (staff users, configurations, etc.) and clean it up automatically. However, if a test fails partway through, you may need to manually clean up test data.

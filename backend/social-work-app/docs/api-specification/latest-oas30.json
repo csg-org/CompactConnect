@@ -356,9 +356,19 @@
               "minLength": 1,
               "type": "string"
             },
+            "altFamilyName": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
             "homeAddressCity": {
               "maxLength": 100,
               "minLength": 2,
+              "type": "string"
+            },
+            "country": {
+              "maxLength": 100,
+              "minLength": 1,
               "type": "string"
             },
             "licenseNumber": {
@@ -375,6 +385,9 @@
               "maxLength": 100,
               "minLength": 1,
               "type": "string"
+            },
+            "militaryStatus": {
+              "type": "boolean"
             },
             "licenseScope": {
               "type": "string",

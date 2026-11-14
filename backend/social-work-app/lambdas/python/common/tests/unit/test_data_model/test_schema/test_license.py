@@ -120,6 +120,46 @@ class TestLicensePostSchema(TstLambdas):
 
         LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
 
+    def test_optional_upload_fields_are_accepted_and_normalized(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['country'] = ' United States '
+        license_data['altFamilyName'] = ' García '
+        license_data['militaryStatus'] = 'false'
+
+        result = LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+
+        self.assertEqual('United States', result['country'])
+        self.assertEqual('García', result['altFamilyName'])
+        self.assertIs(False, result['militaryStatus'])
+
+    def test_optional_upload_fields_may_be_omitted(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+
+        result = LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+
+        self.assertNotIn('country', result)
+        self.assertNotIn('altFamilyName', result)
+        self.assertNotIn('militaryStatus', result)
+
+    def test_optional_upload_fields_reject_null(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        for field_name in ('country', 'altFamilyName', 'militaryStatus'):
+            with open('tests/resources/api/license-post.json') as f:
+                license_data = json.load(f)
+            license_data[field_name] = None
+
+            with self.assertRaises(ValidationError) as context:
+                LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+
+            self.assertIn(field_name, context.exception.messages)
+
 
 class TestLicenseRecordSchema(TstLambdas):
     def test_serde(self):
@@ -247,6 +287,26 @@ class TestLicenseRecordSchema(TstLambdas):
         self.assertEqual('inactive', license_data['licenseStatus'])
         self.assertEqual('ineligible', license_data['compactEligibility'])
 
+    def test_optional_upload_fields_round_trip(self):
+        from cc_common.data_model.schema import LicenseRecordSchema
+
+        with open('tests/resources/dynamo/license.json') as f:
+            license_data = json.load(f)
+        license_data['country'] = 'United States'
+        license_data['altFamilyName'] = 'García'
+        license_data['militaryStatus'] = False
+
+        schema = LicenseRecordSchema()
+        loaded_license = schema.load(license_data)
+        dumped_license = schema.dump(loaded_license)
+
+        self.assertEqual('United States', loaded_license['country'])
+        self.assertEqual('García', loaded_license['altFamilyName'])
+        self.assertIs(False, loaded_license['militaryStatus'])
+        self.assertEqual('United States', dumped_license['country'])
+        self.assertEqual('García', dumped_license['altFamilyName'])
+        self.assertIs(False, dumped_license['militaryStatus'])
+
 
 class TestLicenseUpdateRecordSchema(TstLambdas):
     @patch('cc_common.config.datetime', autospec=True)
@@ -351,6 +411,30 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             {'investigationDetails': ['This field is required when update was investigation type']},
             context.exception.messages,
         )
+
+    def test_optional_upload_fields_are_kept_on_change_and_removal(self):
+        from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
+
+        with open('tests/resources/dynamo/license-update.json') as f:
+            record = json.load(f)
+        record['previous']['country'] = 'Canada'
+        record['previous']['altFamilyName'] = 'García'
+        record['previous']['militaryStatus'] = False
+        record['updatedValues']['country'] = 'United States'
+        record['updatedValues']['militaryStatus'] = True
+        record['removedValues'] = ['altFamilyName']
+
+        schema = LicenseUpdateRecordSchema()
+        dumped_record = schema.dump(schema.load(record))
+        reloaded_record = schema.load(dumped_record)
+
+        self.assertEqual('Canada', reloaded_record['previous']['country'])
+        self.assertEqual('García', reloaded_record['previous']['altFamilyName'])
+        self.assertIs(False, reloaded_record['previous']['militaryStatus'])
+        self.assertEqual('United States', reloaded_record['updatedValues']['country'])
+        self.assertIs(True, reloaded_record['updatedValues']['militaryStatus'])
+        self.assertNotIn('altFamilyName', reloaded_record['updatedValues'])
+        self.assertEqual(['altFamilyName'], reloaded_record['removedValues'])
 
 
 class TestLicenseIngestSchema(TstLambdas):
@@ -476,6 +560,21 @@ class TestLicenseOpenSearchDocumentSchema(TstLambdas):
         result = LicenseOpenSearchDocumentSchema().load(license_data)
 
         self.assertNotIn('ssnLastFour', result)
+
+    def test_strips_non_searchable_upload_fields(self):
+        """country, altFamilyName, and militaryStatus are returned by the API but not indexed."""
+        from cc_common.data_model.schema.license.api import LicenseOpenSearchDocumentSchema
+
+        license_data = self._make_license_data()
+        license_data['country'] = 'United States'
+        license_data['altFamilyName'] = 'García'
+        license_data['militaryStatus'] = True
+
+        result = LicenseOpenSearchDocumentSchema().load(license_data)
+
+        self.assertNotIn('country', result)
+        self.assertNotIn('altFamilyName', result)
+        self.assertNotIn('militaryStatus', result)
 
 
 class TestLicenseGeneralResponseSchemaExpirationCheck(TstLambdas):
@@ -645,3 +744,65 @@ class TestLicenseRecordFieldOwnership(TstLambdas):
             'pin it at its existing value and prevent a state from ever changing it. Remove it from '
             'SYSTEM_OWNED_LICENSE_FIELDS.',
         )
+
+
+class TestOptionalLicenseUploadFieldsOnResponses(TstLambdas):
+    def _license_data(self):
+        return {
+            'providerId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+            'type': 'license',
+            'dateOfUpdate': '2024-01-01T00:00:00+00:00',
+            'compact': 'socw',
+            'jurisdiction': 'oh',
+            'licenseType': 'licensed clinical social worker',
+            'licenseScope': 'single-state',
+            'licenseStatus': 'active',
+            'jurisdictionUploadedLicenseStatus': 'active',
+            'compactEligibility': 'eligible',
+            'jurisdictionUploadedCompactEligibility': 'eligible',
+            'givenName': 'John',
+            'familyName': 'Doe',
+            'altFamilyName': 'García',
+            'dateOfIssuance': '2024-01-01',
+            'dateOfExpiration': '2100-01-01',
+            'homeAddressStreet1': '123 Main St',
+            'homeAddressCity': 'Columbus',
+            'homeAddressState': 'OH',
+            'homeAddressPostalCode': '43215',
+            'country': 'United States',
+            'licenseNumber': 'LIC12345',
+            'militaryStatus': True,
+        }
+
+    def test_staff_and_public_responses_include_the_fields(self):
+        from cc_common.data_model.schema.license.api import (
+            LicenseGeneralResponseSchema,
+            LicensePublicResponseSchema,
+            LicenseReadPrivateResponseSchema,
+            LicenseReportResponseSchema,
+        )
+
+        license_data = self._license_data()
+        for schema in (
+            LicenseGeneralResponseSchema(),
+            LicenseReadPrivateResponseSchema(),
+            LicensePublicResponseSchema(),
+            LicenseReportResponseSchema(),
+        ):
+            result = schema.load(license_data)
+            self.assertEqual('United States', result['country'])
+            self.assertEqual('García', result['altFamilyName'])
+            self.assertIs(True, result['militaryStatus'])
+
+    def test_public_response_keeps_the_fields_when_other_staff_fields_are_stripped(self):
+        from cc_common.data_model.schema.license.api import LicensePublicResponseSchema
+
+        license_data = self._license_data()
+        license_data['emailAddress'] = 'person@example.com'
+        license_data['ssnLastFour'] = '1234'
+
+        result = LicensePublicResponseSchema().load(license_data)
+
+        self.assertEqual('United States', result['country'])
+        self.assertNotIn('emailAddress', result)
+        self.assertNotIn('ssnLastFour', result)

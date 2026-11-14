@@ -59,6 +59,10 @@ SSN_LESS_LICENSE_NUMBER = 'AZ-NO-SSN-TEST'
 SSN_LESS_LICENSE_SCOPE = 'single-state'
 UNRECOGNIZED_LICENSE_TYPE_JURISDICTION = 'co'
 UNRECOGNIZED_LICENSE_TYPE_MOCK_SSN = '999-77-7777'
+# Optional, non-searchable license upload fields. Included on successful uploads and asserted on staff GET.
+OPTIONAL_UPLOAD_COUNTRY = 'United States'
+OPTIONAL_UPLOAD_ALT_FAMILY_NAME = 'García'
+OPTIONAL_UPLOAD_MILITARY_STATUS = False
 # three states, co does not recognize license type, oh is home state, so only az should be returned in
 # list of privileges
 EXPECTED_PRIVILEGE_JURISDICTIONS = {'az'}
@@ -136,6 +140,27 @@ def _cleanup_test_generated_records(provider_id: str, license_ingest_record_resp
     logger.info('Successfully deleted license ingest record from data events table')
 
 
+def _optional_upload_fields() -> dict:
+    return {
+        'country': OPTIONAL_UPLOAD_COUNTRY,
+        'altFamilyName': OPTIONAL_UPLOAD_ALT_FAMILY_NAME,
+        'militaryStatus': OPTIONAL_UPLOAD_MILITARY_STATUS,
+    }
+
+
+def _assert_optional_upload_fields(license_record: dict, *, owner: str) -> None:
+    """Assert country, altFamilyName, and militaryStatus survived upload and are returned on staff GET."""
+    expected = _optional_upload_fields()
+    for field_name, expected_value in expected.items():
+        actual_value = license_record.get(field_name)
+        if actual_value != expected_value:
+            raise SmokeTestFailureException(
+                f'Expected {field_name}={expected_value!r} on {owner}, found {actual_value!r}'
+            )
+
+    logger.info(f'Verified optional upload fields on {owner}: {expected}')
+
+
 def _build_home_state_change_license_post_body(
     jurisdiction: str,
     date_of_issuance: str,
@@ -159,6 +184,7 @@ def _build_home_state_change_license_post_body(
             'homeAddressCity': 'Omaha',
             'compactEligibility': 'eligible',
             'licenseStatus': 'active',
+            **_optional_upload_fields(),
         }
     ]
 
@@ -357,6 +383,7 @@ def _build_ssn_less_license_post_body(family_name: str, include_ssn: bool):
         'homeAddressCity': 'Omaha',
         'compactEligibility': 'eligible',
         'licenseStatus': 'active',
+        **_optional_upload_fields(),
     }
     if include_ssn:
         license_record['ssn'] = SSN_LESS_MOCK_SSN
@@ -439,6 +466,11 @@ def test_license_upload_without_ssn(client_id: str, client_secret: str):
         if updated_license_record.get('licenseNumber') != SSN_LESS_LICENSE_NUMBER:
             raise SmokeTestFailureException('License number changed on the record uploaded without an SSN.')
 
+        _assert_optional_upload_fields(
+            updated_license_record,
+            owner='the license updated by an upload without an SSN',
+        )
+
         # the provider's own name is derived from their best license, so it must reflect the update too
         if provider_details.get('familyName') != SSN_LESS_PROVIDER_UPDATED_FAMILY_NAME:
             raise SmokeTestFailureException(
@@ -508,6 +540,11 @@ def test_home_state_change_notification(
             'Expected first home state license jurisdiction to be '
             f'{HOME_STATE_CHANGE_FORMER_JURISDICTION}, found {az_social_work_licenses[0].get("jurisdiction")}'
         )
+
+    _assert_optional_upload_fields(
+        az_social_work_licenses[0],
+        owner=f'the {HOME_STATE_CHANGE_FORMER_JURISDICTION} license after first upload',
+    )
 
     if az_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
         raise SmokeTestFailureException(
@@ -593,6 +630,15 @@ def test_home_state_change_notification(
     if oh_license_scopes != {'single-state', 'multi-state'}:
         raise SmokeTestFailureException(
             f'Expected OH licenses in both single-state and multi-state scopes, found {sorted(oh_license_scopes)}'
+        )
+
+    for license_record in updated_social_work_licenses:
+        _assert_optional_upload_fields(
+            license_record,
+            owner=(
+                f'the {license_record.get("jurisdiction")} '
+                f'{license_record.get("licenseScope")} license after home state change'
+            ),
         )
 
     if updated_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_NEW_JURISDICTION:
