@@ -155,16 +155,43 @@ class TestDeactivatePrivilege(TstFunction):
         )
 
     @patch('cc_common.config._Config.email_service_client')
-    def test_board_admin_cannot_deactivate_privilege(self, mock_email_service_client):  # noqa: ARG002 unused-argument
+    @patch('handlers.privileges.EventBatchWriter', autospec=True)
+    def test_board_admin_can_deactivate_privilege_in_their_jurisdiction(
+        self,
+        mock_event_writer,
+        _mock_email_service_client,  # noqa: ARG002 unused-argument
+    ):
         """
-        If a board admin has admin permission in the privilege jurisdiction, they can deactivate a privilege
+        A state admin with admin permission for the privilege jurisdiction can deactivate that privilege.
         """
         self._load_provider_data()
 
-        # The user has admin permission for ne
         resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
+
+        self._assert_the_privilege_was_deactivated()
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
+
+    @patch('cc_common.config._Config.email_service_client')
+    def test_board_admin_cannot_deactivate_privilege_in_another_jurisdiction(self, mock_email_service_client):
+        """
+        A state admin cannot deactivate a privilege outside the jurisdiction they administer.
+        """
+        self._load_provider_data()
+
+        resp = self._request_deactivation_with_scopes('openid email oh/aslp.admin')
         self.assertEqual(403, resp['statusCode'])
         self.assertEqual({'message': 'Access denied'}, json.loads(resp['body']))
+
+        privilege = self._provider_table.get_item(
+            Key={
+                'pk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'sk': 'aslp#PROVIDER#privilege/ne/slp#',
+            }
+        )['Item']
+        self.assertEqual('active', privilege['administratorSetStatus'])
+        mock_email_service_client.send_provider_privilege_deactivation_email.assert_not_called()
 
     def test_deactivate_privilege_handler_sends_expected_email_notifications(self):
         """
@@ -278,6 +305,16 @@ class TestDeactivatePrivilege(TstFunction):
         # The user has read permission for aslp
         resp = self._request_deactivation_with_scopes('openid email aslp/readGeneral ne/aslp.readPrivate')
         self.assertEqual(403, resp['statusCode'])
+
+    def test_state_write_cannot_deactivate_privilege(self):
+        """
+        Write permission for the privilege jurisdiction does not allow deactivation.
+        """
+        self._load_provider_data()
+
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.write')
+        self.assertEqual(403, resp['statusCode'])
+        self.assertEqual({'message': 'Access denied'}, json.loads(resp['body']))
 
     def test_deactivate_privilege_not_found(self):
         """

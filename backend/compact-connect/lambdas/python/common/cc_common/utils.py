@@ -328,6 +328,49 @@ class authorize_state_level_only_action:  # noqa: N801 invalid-name
         return authorized
 
 
+class authorize_compact_or_matching_jurisdiction_action:  # noqa: N801 invalid-name
+    """Authorize endpoint when the caller has the action at compact level or for the path jurisdiction.
+
+    Compact-level scope is ``{compact}/{action}`` (i.e. aslp/admin), which allows the action for any
+    jurisdiction in the compact. Jurisdiction-level scope is ``{jurisdiction}/{compact}.{action}``
+    (i.e. ne/aslp.admin), which allows the action only when the path jurisdiction matches.
+
+    A jurisdiction scope for a different jurisdiction than the one in the path is not accepted.
+    """
+
+    def __init__(self, action: str):
+        super().__init__()
+        self.action = action
+
+    def __call__(self, fn: Callable):
+        @wraps(fn)
+        @logger.inject_lambda_context
+        def authorized(event: dict, context: LambdaContext):
+            try:
+                compact = event['pathParameters']['compact']
+                jurisdiction = event['pathParameters']['jurisdiction']
+            except KeyError as e:
+                logger.error('Access attempt with missing path parameter!')
+                raise CCInvalidRequestException('Missing path parameter!') from e
+
+            logger.debug('Checking authorizer context', request_context=event['requestContext'])
+            try:
+                scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
+            except KeyError as e:
+                logger.error('Unauthorized access attempt!', exc_info=e)
+                raise CCUnauthorizedException('Unauthorized access attempt!') from e
+
+            compact_scope = f'{compact}/{self.action}'
+            jurisdiction_scope = f'{jurisdiction}/{compact}.{self.action}'
+            if compact_scope not in scopes and jurisdiction_scope not in scopes:
+                logger.warning('Forbidden access attempt!')
+                raise CCAccessDeniedException('Forbidden access attempt!')
+
+            return fn(event, context)
+
+        return authorized
+
+
 class authorize_compact:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope
 
