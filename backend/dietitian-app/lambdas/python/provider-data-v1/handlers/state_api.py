@@ -120,6 +120,12 @@ def _create_flattened_privilege(
         'dateOfExpiration',
         'status',
         'administratorSetStatus',
+        # These live on both records, and the privilege value is the one that belongs on the
+        # flattened privilege. A license encumbrance stores 'encumbered' on the license and
+        # 'licenseEncumbered' on every associated privilege. Leaving the license key in place
+        # makes dict(**flattened, **license_copy) raise TypeError.
+        'encumberedStatus',
+        'investigationStatus',
     }
     for field in conflicting_fields:
         license_copy.pop(field, None)
