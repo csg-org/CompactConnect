@@ -22,7 +22,7 @@ import { State } from '@models/State/State.model';
 import { License } from '@models/License/License.model';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
-import { Application } from '@models/Application/Application.model';
+import { Application, ApplicationStatus } from '@models/Application/Application.model';
 import { Address } from '@models/Address/Address.model';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
@@ -251,7 +251,7 @@ describe('Use Store Mutations', () => {
         expect(state.model).to.equal(user);
         expect(state.model.licensee.applications).to.matchPattern([]);
     });
-    it('should successfully update user and not override applications on the incoming user', () => {
+    it('should successfully update user and use incoming applications instead of existing applications for the same user', () => {
         const incomingApplications = [new Application({ id: 'test-application-id-2' })];
         const state: any = {
             model: new LicenseeUser({
@@ -677,19 +677,23 @@ describe('Use Store Mutations', () => {
         expect(state.isLoadingApplications).to.equal(false);
         expect(state.error).to.equal(error);
     });
-    it('should successfully get application success (replaces existing application)', () => {
+    it('should successfully get application success (replaces existing application with same id)', () => {
         const otherApplication = new Application({ id: 'test-application-id-1' });
+        const existingApplication = new Application({
+            id: 'test-application-id-2',
+            status: ApplicationStatus.STARTED,
+        });
         const state: any = {
             model: new LicenseeUser({
                 licensee: new Licensee({
-                    applications: [
-                        otherApplication,
-                        new Application({ id: 'test-application-id-2' }),
-                    ],
+                    applications: [otherApplication, existingApplication],
                 }),
             }),
         };
-        const application = new Application({ id: 'test-application-id-2' });
+        const application = new Application({
+            id: 'test-application-id-2',
+            status: ApplicationStatus.SUBMITTED,
+        });
 
         mutations[MutationTypes.GET_APPLICATION_SUCCESS](state, application);
 
@@ -698,6 +702,8 @@ describe('Use Store Mutations', () => {
         expect(state.model.licensee.applications).to.have.length(2);
         expect(state.model.licensee.applications[0]).to.equal(otherApplication);
         expect(state.model.licensee.applications[1]).to.equal(application);
+        expect(state.model.licensee.applications[1]).to.not.equal(existingApplication);
+        expect(state.model.licensee.applications[1].status).to.equal(ApplicationStatus.SUBMITTED);
     });
     it('should successfully get application success (adds new application)', () => {
         const otherApplication = new Application({ id: 'test-application-id-1' });

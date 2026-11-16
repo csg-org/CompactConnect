@@ -357,12 +357,13 @@ export default {
         const licensee = state.model?.licensee;
 
         if (licensee && application) {
+            // Update or add the application to the licensee applications
             const applications = licensee.applications || [];
             const existingIndex = applications.findIndex((existing) => existing.id === application.id);
 
             licensee.applications = (existingIndex > -1)
-                ? applications.map((existing, index) => ((index === existingIndex) ? application : existing))
-                : [...applications, application];
+                ? applications.map((existing, index) => ((index === existingIndex) ? application : existing)) // Update
+                : [...applications, application]; // Add
         }
 
         state.isLoadingApplications = false;
