@@ -1464,8 +1464,9 @@ describe('User Store Actions', async () => {
     it('should successfully start applications request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id' }) };
 
-        const applications = await actions.getApplicationsRequestLicensee({ commit, dispatch });
+        const applications = await actions.getApplicationsRequestLicensee({ commit, dispatch, state });
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATIONS_REQUEST]);
@@ -1474,6 +1475,22 @@ describe('User Store Actions', async () => {
         expect(dispatch.firstCall.args[1]).to.equal(applications);
         expect(applications).to.be.an('array').that.is.not.empty;
         expect(applications.every((application) => application instanceof Application)).to.equal(true);
+    });
+    it('should successfully start applications request (user changed before response)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id-1' }) };
+
+        const request = actions.getApplicationsRequestLicensee({ commit, dispatch, state });
+
+        state.model = new LicenseeUser({ id: 'test-user-id-2' });
+
+        const applications = await request;
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATIONS_REQUEST]);
+        expect(dispatch.notCalled).to.equal(true);
+        expect(applications).to.equal(null);
     });
     it('should successfully start applications success', () => {
         const commit = sinon.spy();
@@ -1496,9 +1513,10 @@ describe('User Store Actions', async () => {
     it('should successfully start application request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id' }) };
         const applicationId = '1';
 
-        const application = await actions.getApplicationRequestLicensee({ commit, dispatch }, { applicationId });
+        const application = await actions.getApplicationRequestLicensee({ commit, dispatch, state }, { applicationId });
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_REQUEST]);
@@ -1508,17 +1526,55 @@ describe('User Store Actions', async () => {
         expect(application).to.be.an.instanceof(Application);
         expect(application.id).to.equal(applicationId);
     });
+    it('should successfully start application request (user changed before response)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id-1' }) };
+
+        const request = actions.getApplicationRequestLicensee({ commit, dispatch, state }, { applicationId: '1' });
+
+        state.model = new LicenseeUser({ id: 'test-user-id-2' });
+
+        const application = await request;
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_REQUEST]);
+        expect(dispatch.notCalled).to.equal(true);
+        expect(application).to.equal(null);
+    });
     it('should successfully start application request (not found)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id' }) };
 
-        await actions.getApplicationRequestLicensee({ commit, dispatch }, { applicationId: 'not-an-application-id' });
+        await actions.getApplicationRequestLicensee(
+            { commit, dispatch, state },
+            { applicationId: 'not-an-application-id' }
+        );
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_REQUEST]);
         expect(dispatch.calledOnce).to.equal(true);
         expect(dispatch.firstCall.args[0]).to.equal('getApplicationFailureLicensee');
         expect(dispatch.firstCall.args[1]).to.be.an('error').with.property('message', 'not found');
+    });
+    it('should successfully start application request (not found, user changed before response)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id-1' }) };
+
+        const request = actions.getApplicationRequestLicensee(
+            { commit, dispatch, state },
+            { applicationId: 'not-an-application-id' }
+        );
+
+        state.model = new LicenseeUser({ id: 'test-user-id-2' });
+
+        await request;
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_REQUEST]);
+        expect(dispatch.notCalled).to.equal(true);
     });
     it('should successfully start application success', () => {
         const commit = sinon.spy();
