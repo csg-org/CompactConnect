@@ -19,30 +19,35 @@ describe('apiUrls helpers', () => {
         expect(getApiBaseUrl(AppModes.JCC, 'license')).to.equal(envConfig.apiUrlLicense);
         expect(getApiBaseUrl(AppModes.JCC, 'search')).to.equal(envConfig.apiUrlSearch);
         expect(getApiBaseUrl(AppModes.JCC, 'user')).to.equal(envConfig.apiUrlUser);
+        expect(getApiBaseUrl(AppModes.JCC, 'application')).to.equal(undefined);
     });
     it('should successfully resolve cosmetology api base urls', () => {
         expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'state')).to.equal(envConfig.apiUrlStateCosmo);
         expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'license')).to.equal(envConfig.apiUrlLicenseCosmo);
         expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'search')).to.equal(envConfig.apiUrlSearchCosmo);
         expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'user')).to.equal(envConfig.apiUrlUserCosmo);
+        expect(getApiBaseUrl(AppModes.COSMETOLOGY, 'application')).to.equal(undefined);
     });
     it('should successfully resolve social work api base urls', () => {
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'state')).to.equal(envConfig.apiUrlStateSw);
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'license')).to.equal(envConfig.apiUrlLicenseSw);
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'search')).to.equal(envConfig.apiUrlSearchSw);
         expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'user')).to.equal(envConfig.apiUrlUserSw);
+        expect(getApiBaseUrl(AppModes.SOCIAL_WORK, 'application')).to.equal(undefined);
     });
     it('should successfully resolve psypact api base urls', () => {
         expect(getApiBaseUrl(AppModes.PSYPACT, 'state')).to.equal(envConfig.apiUrlStatePsypact);
         expect(getApiBaseUrl(AppModes.PSYPACT, 'license')).to.equal(envConfig.apiUrlLicensePsypact);
         expect(getApiBaseUrl(AppModes.PSYPACT, 'search')).to.equal(envConfig.apiUrlSearchPsypact);
         expect(getApiBaseUrl(AppModes.PSYPACT, 'user')).to.equal(envConfig.apiUrlUserPsypact);
+        expect(getApiBaseUrl(AppModes.PSYPACT, 'application')).to.equal(envConfig.apiUrlUserPsypact);
     });
     it('should successfully resolve dietitian api base urls', () => {
         expect(getApiBaseUrl(AppModes.DIETITIANS, 'state')).to.equal(envConfig.apiUrlStateDiet);
         expect(getApiBaseUrl(AppModes.DIETITIANS, 'license')).to.equal(envConfig.apiUrlLicenseDiet);
         expect(getApiBaseUrl(AppModes.DIETITIANS, 'search')).to.equal(envConfig.apiUrlSearchDiet);
         expect(getApiBaseUrl(AppModes.DIETITIANS, 'user')).to.equal(envConfig.apiUrlUserDiet);
+        expect(getApiBaseUrl(AppModes.DIETITIANS, 'application')).to.equal(undefined);
     });
     it('should successfully not resolve for an unknown or missing app mode', () => {
         expect(getApiBaseUrl(null, 'license')).to.equal(undefined);

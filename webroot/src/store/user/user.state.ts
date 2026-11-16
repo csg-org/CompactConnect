@@ -32,6 +32,7 @@ export interface State {
     isLoadingPrivilegeHistory: boolean;
     isLoadingCompactStates: boolean;
     isLoadingPrivilegePurchaseOptions: boolean;
+    isLoadingApplications: boolean;
     refreshTokenTimeoutId: number | null;
     isAutoLogoutWarning: boolean;
     autoLogoutTimeoutId: number | null;
@@ -49,6 +50,7 @@ export const state: State = {
     isLoadingPrivilegeHistory: false,
     isLoadingCompactStates: false,
     isLoadingPrivilegePurchaseOptions: false,
+    isLoadingApplications: false,
     refreshTokenTimeoutId: null,
     isAutoLogoutWarning: false,
     autoLogoutTimeoutId: null,

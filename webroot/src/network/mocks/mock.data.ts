@@ -2068,6 +2068,9 @@ export const getAttestation = (attestationId) => {
     const attestationObj = { ...attestation };
 
     switch (attestationId) {
+    //
+    // PRIVILEGE PURCHASE
+    //
     case 'personal-information-address-attestation':
         attestationObj.text = 'I hereby attest and affirm that the address information I have provided herein and is my current address. I further consent to accept service of process at this address. I will notify the Commission of a change in my Home State address or email address via updating personal information records in this system. I understand that I am only eligible for a Compact Privilege if I am a licensee in my Home State as defined by the Compact. If I mislead the Compact Commission about my Home State, the appropriate board may take action against my Compact Privilege, which may result in the revocation of other Compact Privileges I may hold. I will also be prohibited from obtaining any other Compact Privileges for a period of at least two (2) years.*';
         break;
@@ -2102,6 +2105,114 @@ export const getAttestation = (attestationId) => {
         attestationObj.text = `I hereby attest and affirm that I have reviewed, understand, and will abide by this state's scope of practice and all applicable laws and rules when practicing in the state. I understand that the issuance of a Compact Privilege authorizes me to legally practice in the member jurisdiction in accordance with the laws and rules governing practice of my profession in that jurisdiction.
 
         If I violate the practice act, the appropriate board may take action against my Compact Privilege, which may result in the revocation of other Compact Privileges or licenses I may hold. I will also be prohibited from obtaining any other Compact Privileges for a period of at least two (2) years.`;
+        break;
+    //
+    // APPLICATION FOR AUTHORIZATION
+    //
+    case 'education-institutional-verification':
+        attestationObj.text = `I certify this information is complete and accurate. When you submit your full application, we'll email your institutional contact to verify it.`;
+        break;
+    case 'rejected-or-denied-licensure-application':
+        attestationObj.text = `Has any jurisdiction (e.g., state, province, the District of Columbia, or US possession or territory) rejected or denied your application for licensure/certification/registration as a psychologist or any other profession?`;
+        break;
+    case 'disciplined-by-licensing-board':
+        attestationObj.text = `Have you ever been disciplined (i.e., revocation, suspension, reprimand, censure, or any other publicly reported disciplinary action) by a psychology licensing board?`;
+        break;
+    case 'jurisdiction-limited-practice':
+        attestationObj.text = `Has any jurisdiction limited your practice in any way or by any other action?`;
+        break;
+    case 'publicly-reported-non-disciplinary-action':
+        attestationObj.text = `Have you ever been issued a publicly reported non-disciplinary action on any professional license by any licensing board through an order, settlement, and/or agreement?`;
+        break;
+    case 'disciplined-while-holding-professional-license':
+        attestationObj.text = `Have you ever been disciplined while holding any other professional license/registration/certificate?`;
+        break;
+    case 'voluntarily-surrendered-or-restricted-professional-license':
+        attestationObj.text = `Have you ever voluntarily surrendered or restricted your professional license/registration/certificate in any jurisdiction?`;
+        break;
+    case 'disciplinary-action-as-professional':
+        attestationObj.text = `Have you ever been censured, reprimanded, dismissed, suspended, terminated, or asked to resign, or has any disciplinary action been taken against you during your education, training, or employment as a mental health professional?`;
+        break;
+    case 'refused-renewal-of-any-professional-license':
+        attestationObj.text = `Have you ever been refused renewal of any professional license/registration/certificate for any reason in any jurisdiction?`;
+        break;
+    case 'registered-sex-offender':
+        attestationObj.text = `Are you registered as a sex offender?`;
+        break;
+    case 'subject-of-current-proceeding-or-investigation':
+        attestationObj.text = `Are you the subject of a current proceeding or outstanding/unresolved complaint or investigation in relation to the profession of psychology or any other profession?`;
+        break;
+    case 'aided-or-abetted-another-individual-practicing-psychology':
+        attestationObj.text = `Have you ever aided or abetted another individual in practicing psychology without a license or an exemption in any jurisdiction?`;
+        break;
+    case 'practiced-psychology-without-license-or-exemption':
+        attestationObj.text = `Have you ever practiced psychology without a license or an exemption in any jurisdiction?`;
+        break;
+    case 'physically-or-mentally-incapable':
+        attestationObj.text = `Are you physically or mentally incapable to render psychological services with reasonable skill, safety, and competency at present?`;
+        break;
+    case 'drugs-or-alcohol-affecting-competency':
+        attestationObj.text = `Do you use drugs and/or alcohol to an extent that affects your professional competency?`;
+        break;
+    case 'malpractice-action-or-settlement':
+        attestationObj.text = `Have you ever been party to a malpractice action or had a malpractice action brought against you or entered into a malpractice settlement?`;
+        break;
+    case 'action-by-ethics-committee':
+        attestationObj.text = `Have you ever been the subject of an action by an ethics committee of any professional organization in any jurisdiction?`;
+        break;
+    case 'denied-revoked-suspended-restricted-staff-membership':
+        attestationObj.text = `Have you ever been denied staff membership or privileges in any hospital or health care facility or had such membership or privileges revoked, suspended, or subjected to restriction or have been requested to withdraw or resign?`;
+        break;
+    case 'status-as-provider-revoked-suspended-restricted-by-payor':
+        attestationObj.text = `Has any third party payor (including Medicare and Medicaid), terminated, suspended, restricted, or revoked your status as a provider for reasons related to your professional practice?`;
+        break;
+    case 'professional-liability-insurance-canceled':
+        attestationObj.text = `Have you ever had professional liability insurance canceled?`;
+        break;
+    case 'governmental-agency-substantiated-allegations':
+        attestationObj.text = `Has any governmental agency ever substantiated allegations made against you for physical, mental, emotional abuse or neglect, sexual abuse, or exploitation of (1) child, (2) resident of an adult care home, medical care facility, psychiatric hospital or state institution for intellectual disabilities, or (3) an adult?`;
+        break;
+    case 'information-true-and-complete':
+        attestationObj.text = `I attest that all information in this section is true and complete to the best of my knowledge.`;
+        break;
+    case 'comply-with-state-requirements':
+        attestationObj.text = `I acknowledge I must comply with this state's requirements and will update my home state within 30 days of any change.`;
+        break;
+    case 'home-state-is-psypact-state-with-active-license':
+        attestationObj.text = `I acknowledge and agree that my declared Home State is a PSYPACT participating jurisdiction in which I hold a current active license.`;
+        break;
+    case 'telepsychology-only-while-present-in-home-state':
+        attestationObj.text = `I acknowledge and agree that when practicing under the authority of PSYPACT, I will only provide telepsychology services while physically present and located in my declared PSYPACT Home State of license. This does not pertain to providing telepsychology services to clients located within my home state or any other state where I may hold a current active license to practice as a psychologist.`;
+        break;
+    case 'update-home-state-within-30-days':
+        attestationObj.text = `I acknowledge and agree to update my Home State within 30 days if my Home State changes. PSYPACT Policy 2.4`;
+        break;
+    case 'not-make-false-or-misleading-representations':
+        attestationObj.text = `I acknowledge and agree to only represent my participation in PSYPACT as defined by PSYPACT Policy 2.6 so as to not make any false or misleading representations about myself or PSYPACT. PSYPACT Policy 2.6`;
+        break;
+    case 'protect-health-and-safety-of-citizens':
+        attestationObj.text = `I acknowledge and agree to be aware of and abide by the Receiving PSYPACT State's laws to protect the health and safety of its citizens as defined in PSYPACT Rule 4.10. PSYPACT Rule 4.10`;
+        break;
+    case 'failure-to-abide-by-acknowledgements-will-result-in-revocation':
+        attestationObj.text = `I acknowledge and agree that failure to abide by the above acknowledgements will result in revocation of my PSYPACT authorization. `;
+        break;
+    case 'agree-to-report-complaint-or-discipline':
+        attestationObj.text = `I acknowledge and agree to report to the PSYPACT Commission any complaint and/or discipline taken against any psychology license I hold within thirty (30) days.`;
+        break;
+    case 'sign-and-submit':
+        attestationObj.text = `I understand failing to abide by the above acknowledgements may be grounds for revocation of any authorization granted to me based on this information. I understand that additional information may be requested.
+
+        I acknowledge and agree that submission of this application does not create any right to a legal review of any application decision, nor does such submission create any cause of action against the PSYPACT Commission or its Committee members, or any claim for damages if I am denied authorization status.
+
+        I acknowledge that I have not been promised or guaranteed that my qualifications will result in the granting of any authorization by the PSYPACT Commission.
+
+        By completing the electronic signature information below, you are signing this form electronically. You agree your electronic signature is the legal equivalent of your manual signature on this form.`;
+        break;
+    case 'information-presented-is-factual':
+        attestationObj.text = `I hereby attest that all information presented is factual to the best of my knowledge.`;
+        break;
+    case 'submission-does-not-guarantee-approval':
+        attestationObj.text = `I acknowledge this submission does not guarantee approval and that my application fee is non-refundable.`;
         break;
     default:
         break;
@@ -2675,13 +2786,1034 @@ export const mockPrivilegeHistoryResponses = [
     }
 ];
 
+// =========================================================================================
+// =                                   APPLICATIONS                                        =
+// =========================================================================================
+export const attestationResponsesEducation = [
+    {
+        attestationId: 'education-institutional-verification',
+        version: '1',
+    },
+];
+
+export const attestationResponsesConduct = [
+    {
+        attestationId: 'rejected-or-denied-licensure-application',
+        version: '1',
+    },
+    {
+        attestationId: 'disciplined-by-licensing-board',
+        version: '1',
+    },
+    {
+        attestationId: 'jurisdiction-limited-practice',
+        version: '1',
+    },
+    {
+        attestationId: 'publicly-reported-non-disciplinary-action',
+        version: '1',
+    },
+    {
+        attestationId: 'disciplined-while-holding-professional-license',
+        version: '1',
+    },
+    {
+        attestationId: 'voluntarily-surrendered-or-restricted-professional-license',
+        version: '1',
+    },
+    {
+        attestationId: 'disciplinary-action-as-professional',
+        version: '1',
+    },
+    {
+        attestationId: 'refused-renewal-of-any-professional-license',
+        version: '1',
+    },
+    {
+        attestationId: 'registered-sex-offender',
+        version: '1',
+    },
+    {
+        attestationId: 'subject-of-current-proceeding-or-investigation',
+        version: '1',
+    },
+    {
+        attestationId: 'aided-or-abetted-another-individual-practicing-psychology',
+        version: '1',
+    },
+    {
+        attestationId: 'practiced-psychology-without-license-or-exemption',
+        version: '1',
+    },
+    {
+        attestationId: 'physically-or-mentally-incapable',
+        version: '1',
+    },
+    {
+        attestationId: 'drugs-or-alcohol-affecting-competency',
+        version: '1',
+    },
+    {
+        attestationId: 'malpractice-action-or-settlement',
+        version: '1',
+    },
+    {
+        attestationId: 'action-by-ethics-committee',
+        version: '1',
+    },
+    {
+        attestationId: 'denied-revoked-suspended-restricted-staff-membership',
+        version: '1',
+    },
+    {
+        attestationId: 'status-as-provider-revoked-suspended-restricted-by-payor',
+        version: '1',
+    },
+    {
+        attestationId: 'professional-liability-insurance-canceled',
+        version: '1',
+    },
+    {
+        attestationId: 'governmental-agency-substantiated-allegations',
+        version: '1',
+    },
+    {
+        attestationId: 'information-true-and-complete',
+        version: '1',
+    },
+];
+
+export const attestationResponsesHomeState = [
+    {
+        attestationId: 'comply-with-state-requirements',
+        version: '1',
+    },
+];
+
+export const attestationResponsesAcknowledgements = [
+    {
+        attestationId: 'home-state-is-psypact-state-with-active-license',
+        version: '1',
+    },
+    {
+        attestationId: 'telepsychology-only-while-present-in-home-state',
+        version: '1',
+    },
+    {
+        attestationId: 'update-home-state-within-30-days',
+        version: '1',
+    },
+    {
+        attestationId: 'not-make-false-or-misleading-representations',
+        version: '1',
+    },
+    {
+        attestationId: 'protect-health-and-safety-of-citizens',
+        version: '1',
+    },
+    {
+        attestationId: 'failure-to-abide-by-acknowledgements-will-result-in-revocation',
+        version: '1',
+    },
+    {
+        attestationId: 'agree-to-report-complaint-or-discipline',
+        version: '1',
+    },
+    {
+        attestationId: 'sign-and-submit',
+        version: '1',
+    },
+    {
+        attestationId: 'information-presented-is-factual',
+        version: '1',
+    },
+];
+
+export const attestationResponsesSubmit = [
+    {
+        attestationId: 'submission-does-not-guarantee-approval',
+        version: '1',
+    },
+];
+
+export const applicantApplications = [
+    // ========================================================
+    // =              STARTED BUT BLANK (APIT)                =
+    // ========================================================
+    {
+        id: '1',
+        created: moment().subtract(2, 'weeks').format(serverDatetimeFormat),
+        submitted: null,
+        completed: null,
+        types: ['apit'],
+        isRenewal: false,
+        status: 'started',
+        reviews: [],
+        attestations: [],
+        paymentCompensated: [],
+        personalInformation: {
+            applicantStatus: 'incomplete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            firstName: null,
+            middleName: null,
+            lastName: null,
+            suffix: null,
+            phone: null,
+            altPhone: null,
+            dob: null,
+            ssnLastFour: null,
+            npi: null,
+            gender: null,
+            professionalName: null,
+            citizenship: null,
+            placeOfBirth: null,
+            languages: [],
+            mailingAddress1: null,
+            mailingAddress2: null,
+            mailingCity: null,
+            mailingState: null,
+            mailingZip: null,
+        },
+        licenseHistory: {
+            applicantStatus: 'incomplete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            ePassport: {
+                mobilityNumber: null,
+                issueDate: null,
+            },
+            ipc: {
+                mobilityNumber: null,
+                issueDate: null,
+            },
+            licenses: [],
+        },
+        education: {
+            applicantStatus: 'incomplete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            nameAtTime: null,
+            institution: null,
+            city: null,
+            state: null,
+            degreeType: null,
+            program: null,
+            department: null,
+            conferredDate: null,
+            isCompleted: false,
+            accreditingBody: null,
+            accreditingYear: null,
+            isAccreditedByAuthority: false,
+            isProgramEquivalent: false,
+            accreditingContact: null,
+            hasResidence: false,
+            transcripts: [],
+        },
+        conductHistory: {
+            applicantStatus: 'incomplete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            attestations: [],
+            convictions: [],
+            notes: null,
+            documents: [],
+        },
+        homeState: {
+            applicantStatus: 'incomplete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            applicationTypes: [],
+        },
+        acknowledgements: {
+            applicantStatus: 'incomplete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            attestations: [],
+            signatureName: null,
+        },
+    },
+    // ========================================================
+    // =         COMPLETED READY TO SUBMIT (APIT + TAP)       =
+    // ========================================================
+    {
+        id: '2',
+        created: moment().subtract(2, 'weeks').format(serverDatetimeFormat),
+        submitted: null,
+        completed: null,
+        types: ['apit', 'tap'],
+        isRenewal: false,
+        status: 'started',
+        reviews: [],
+        attestations: [],
+        paymentCompensated: [],
+        personalInformation: {
+            applicantStatus: 'complete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            firstName: 'Test',
+            middleName: null,
+            lastName: 'Applicant',
+            suffix: null,
+            phone: '+12223334444',
+            altPhone: null,
+            dob: moment().subtract(50, 'years').format(serverDateFormat),
+            ssnLastFour: '1111',
+            npi: '1111111111',
+            gender: 'male',
+            professionalName: 'Test Applicant, PhD.',
+            citizenship: 'us',
+            placeOfBirth: 'Springfield',
+            languages: ['en', 'es'],
+            mailingAddress1: '123 Fake St',
+            mailingAddress2: 'Apt 1',
+            mailingCity: 'Springfield',
+            mailingState: 'co',
+            mailingZip: '11111',
+        },
+        licenseHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            ePassport: {
+                mobilityNumber: '1111111',
+                issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+            },
+            ipc: {
+                mobilityNumber: '2222222',
+                issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+            },
+            licenses: [
+                {
+                    state: 'co',
+                    issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    licenseNumber: '1111111111',
+                    status: 'active',
+                },
+                {
+                    state: 'ky',
+                    issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    licenseNumber: '2222222222',
+                    status: 'active',
+                },
+            ],
+        },
+        education: {
+            applicantStatus: 'complete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            nameAtTime: 'Test Applicant',
+            institution: 'University of Psychology',
+            city: 'Springfield',
+            state: 'co',
+            degreeType: 'phd',
+            program: 'Family, friends, & family friends',
+            department: 'Psychology',
+            conferredDate: moment().subtract(7, 'months').format(serverDateFormat),
+            isCompleted: true,
+            accreditingBody: 'University of Psychology',
+            accreditingYear: moment().subtract(7, 'months').format('YYYY'),
+            isAccreditedByAuthority: true,
+            isProgramEquivalent: true,
+            accreditingContact: null,
+            hasResidence: true,
+            transcripts: [],
+        },
+        conductHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            attestations: attestationResponsesConduct.map((response) => ({ ...response })),
+            convictions: [],
+            notes: 'Adding some files just in case.',
+            documents: [
+                {
+                    filename: 'document_1.pdf',
+                    sizeBytes: 2500000,
+                    downloadUri: '/examples/military-document.pdf',
+                },
+            ],
+        },
+        homeState: {
+            applicantStatus: 'complete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            applicationTypes: [
+                {
+                    applicationType: 'apit',
+                    state: 'co',
+                    startDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    isActiveMilitary: false,
+                    militaryDocuments: [],
+                    attestations: attestationResponsesHomeState.map((response) => ({ ...response })),
+                },
+                {
+                    applicationType: 'tap',
+                    state: 'ky',
+                    startDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    isActiveMilitary: false,
+                    militaryDocuments: [],
+                    attestations: attestationResponsesHomeState.map((response) => ({ ...response })),
+                },
+            ],
+        },
+        acknowledgements: {
+            applicantStatus: 'complete',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [],
+            attestations: attestationResponsesAcknowledgements.map((response) => ({ ...response })),
+            signatureName: 'Test Applicant',
+        },
+    },
+    // ========================================================
+    // =         SUBMITTED IN REVIEW (APIT + TAP)             =
+    // ========================================================
+    {
+        id: '3',
+        created: moment().subtract(2, 'weeks').format(serverDatetimeFormat),
+        submitted: moment().subtract(1, 'day').format(serverDatetimeFormat),
+        completed: null,
+        types: ['apit', 'tap'],
+        isRenewal: false,
+        status: 'staff-review',
+        reviews: [],
+        attestations: attestationResponsesSubmit.map((response) => ({ ...response })),
+        paymentCompensated: [],
+        personalInformation: {
+            applicantStatus: 'complete',
+            reviewStatus: 'pending',
+            reviews: [],
+            firstName: 'Test',
+            middleName: null,
+            lastName: 'Applicant',
+            suffix: null,
+            phone: '+12223334444',
+            altPhone: null,
+            dob: moment().subtract(50, 'years').format(serverDateFormat),
+            ssnLastFour: '1111',
+            npi: '1111111111',
+            gender: 'male',
+            professionalName: 'Test Applicant, PhD.',
+            citizenship: 'us',
+            placeOfBirth: 'Springfield',
+            languages: ['en', 'es'],
+            mailingAddress1: '123 Fake St',
+            mailingAddress2: 'Apt 1',
+            mailingCity: 'Springfield',
+            mailingState: 'co',
+            mailingZip: '11111',
+        },
+        licenseHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'pending',
+            reviews: [],
+            ePassport: {
+                mobilityNumber: '1111111',
+                issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+            },
+            ipc: {
+                mobilityNumber: '2222222',
+                issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+            },
+            licenses: [
+                {
+                    state: 'co',
+                    issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    licenseNumber: '1111111111',
+                    status: 'active',
+                },
+                {
+                    state: 'ky',
+                    issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    licenseNumber: '2222222222',
+                    status: 'active',
+                },
+            ],
+        },
+        education: {
+            applicantStatus: 'complete',
+            reviewStatus: 'pending',
+            reviews: [],
+            nameAtTime: 'Test Applicant',
+            institution: 'University of Psychology',
+            city: 'Springfield',
+            state: 'co',
+            degreeType: 'phd',
+            program: 'Family, friends, & family friends',
+            department: 'Psychology',
+            conferredDate: moment().subtract(7, 'months').format(serverDateFormat),
+            isCompleted: true,
+            accreditingBody: 'University of Psychology',
+            accreditingYear: moment().subtract(7, 'months').format('YYYY'),
+            isAccreditedByAuthority: true,
+            isProgramEquivalent: true,
+            accreditingContact: {
+                name: 'Joe Accreditor',
+                email: 'joe@example.com',
+                city: 'Springfield',
+                state: 'co',
+                zip: '11111',
+                phone: '+12223334444',
+                attestations: attestationResponsesEducation.map((response) => ({ ...response })),
+            },
+            hasResidence: true,
+            transcripts: [],
+        },
+        conductHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'pending',
+            reviews: [],
+            attestations: attestationResponsesConduct.map((response) => ({ ...response })),
+            convictions: [
+                {
+                    charge: 'Looting',
+                    location: 'Los Angeles',
+                    date: moment().subtract(35, 'years').format(serverDateFormat),
+                    type: 'Misdemenor',
+                },
+            ],
+            notes: 'Added a doc explaining the conviction',
+            documents: [
+                {
+                    filename: 'document_1.pdf',
+                    sizeBytes: 2500000,
+                    downloadUri: '/examples/military-document.pdf',
+                },
+            ],
+        },
+        homeState: {
+            applicantStatus: 'complete',
+            reviewStatus: 'pending',
+            reviews: [],
+            applicationTypes: [
+                {
+                    applicationType: 'apit',
+                    state: 'co',
+                    startDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    isActiveMilitary: true,
+                    militaryDocuments: [
+                        {
+                            filename: 'military_1.pdf',
+                            sizeBytes: 1400000,
+                            downloadUri: '/examples/military-document.pdf',
+                        },
+                    ],
+                    attestations: attestationResponsesHomeState.map((response) => ({ ...response })),
+                },
+                {
+                    applicationType: 'tap',
+                    state: 'ky',
+                    startDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    isActiveMilitary: false,
+                    militaryDocuments: [],
+                    attestations: attestationResponsesHomeState.map((response) => ({ ...response })),
+                },
+            ],
+        },
+        acknowledgements: {
+            applicantStatus: 'complete',
+            reviewStatus: 'pending',
+            reviews: [],
+            attestations: attestationResponsesAcknowledgements.map((response) => ({ ...response })),
+            signatureName: 'Test Applicant',
+        },
+    },
+    // ========================================================
+    // =       SUBMITTED NEEDS ATTENTION (APIT + TAP)         =
+    // ========================================================
+    {
+        id: '4',
+        created: moment().subtract(2, 'weeks').format(serverDatetimeFormat),
+        submitted: moment().subtract(2, 'days').format(serverDatetimeFormat),
+        completed: null,
+        types: ['apit', 'tap'],
+        isRenewal: false,
+        status: 'awaiting-applicant',
+        reviews: [],
+        attestations: attestationResponsesSubmit.map((response) => ({ ...response })),
+        paymentCompensated: [],
+        personalInformation: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            firstName: 'Test',
+            middleName: null,
+            lastName: 'Applicant',
+            suffix: null,
+            phone: '+12223334444',
+            altPhone: null,
+            dob: moment().subtract(50, 'years').format(serverDateFormat),
+            ssnLastFour: '1111',
+            npi: '1111111111',
+            gender: 'male',
+            professionalName: 'Test Applicant, PhD.',
+            citizenship: 'us',
+            placeOfBirth: 'Springfield',
+            languages: ['en', 'es'],
+            mailingAddress1: '123 Fake St',
+            mailingAddress2: 'Apt 1',
+            mailingCity: 'Springfield',
+            mailingState: 'co',
+            mailingZip: '11111',
+        },
+        licenseHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            ePassport: {
+                mobilityNumber: '1111111',
+                issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+            },
+            ipc: {
+                mobilityNumber: '2222222',
+                issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+            },
+            licenses: [
+                {
+                    state: 'co',
+                    issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    licenseNumber: '1111111111',
+                    status: 'active',
+                },
+                {
+                    state: 'ky',
+                    issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    licenseNumber: '2222222222',
+                    status: 'active',
+                },
+            ],
+        },
+        education: {
+            applicantStatus: 'needs-attention',
+            reviewStatus: 'awaiting-applicant',
+            reviews: [
+                {
+                    reviewerStatus: 'awaiting-applicant',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: 'Could not confirm your accredidation. Please provide an accrediting contact.',
+                },
+            ],
+            nameAtTime: 'Test Applicant',
+            institution: 'University of Psychology',
+            city: 'Springfield',
+            state: 'co',
+            degreeType: 'phd',
+            program: 'Family, friends, & family friends',
+            department: 'Psychology',
+            conferredDate: moment().subtract(7, 'months').format(serverDateFormat),
+            isCompleted: true,
+            accreditingBody: 'University of Psychology',
+            accreditingYear: moment().subtract(7, 'months').format('YYYY'),
+            isAccreditedByAuthority: true,
+            isProgramEquivalent: true,
+            accreditingContact: null,
+            hasResidence: true,
+            transcripts: [],
+        },
+        conductHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            attestations: attestationResponsesConduct.map((response) => ({ ...response })),
+            convictions: [],
+            notes: null,
+            documents: [],
+        },
+        homeState: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            applicationTypes: [
+                {
+                    applicationType: 'apit',
+                    state: 'co',
+                    startDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    isActiveMilitary: false,
+                    militaryDocuments: [],
+                    attestations: attestationResponsesHomeState.map((response) => ({ ...response })),
+                },
+                {
+                    applicationType: 'tap',
+                    state: 'ky',
+                    startDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    isActiveMilitary: false,
+                    militaryDocuments: [],
+                    attestations: attestationResponsesHomeState.map((response) => ({ ...response })),
+                },
+            ],
+        },
+        acknowledgements: {
+            applicantStatus: 'complete',
+            reviewStatus: 'pending',
+            reviews: [],
+            attestations: attestationResponsesAcknowledgements.map((response) => ({ ...response })),
+            signatureName: 'Test Applicant',
+        },
+    },
+    // ========================================================
+    // =           SUBMITTED AND APPROVED (APIT)              =
+    // ========================================================
+    {
+        id: '5',
+        created: moment().subtract(2, 'weeks').format(serverDatetimeFormat),
+        submitted: moment().subtract(2, 'days').format(serverDatetimeFormat),
+        completed: moment().subtract(1, 'day').format(serverDatetimeFormat),
+        types: ['apit'],
+        isRenewal: false,
+        status: 'approved',
+        reviews: [
+            {
+                reviewerStatus: 'approved',
+                reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                notesForApplicant: null,
+            },
+        ],
+        attestations: attestationResponsesSubmit.map((response) => ({ ...response })),
+        paymentCompensated: [],
+        personalInformation: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            firstName: 'Test',
+            middleName: null,
+            lastName: 'Applicant',
+            suffix: null,
+            phone: '+12223334444',
+            altPhone: null,
+            dob: moment().subtract(50, 'years').format(serverDateFormat),
+            ssnLastFour: '1111',
+            npi: '1111111111',
+            gender: 'male',
+            professionalName: 'Test Applicant, PhD.',
+            citizenship: 'us',
+            placeOfBirth: 'Springfield',
+            languages: ['en', 'es'],
+            mailingAddress1: '123 Fake St',
+            mailingAddress2: 'Apt 1',
+            mailingCity: 'Springfield',
+            mailingState: 'co',
+            mailingZip: '11111',
+        },
+        licenseHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            ePassport: {
+                mobilityNumber: '1111111',
+                issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+            },
+            ipc: {
+                mobilityNumber: null,
+                issueDate: null,
+            },
+            licenses: [
+                {
+                    state: 'co',
+                    issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    licenseNumber: '1111111111',
+                    status: 'active',
+                },
+            ],
+        },
+        education: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            nameAtTime: 'Test Applicant',
+            institution: 'University of Psychology',
+            city: 'Springfield',
+            state: 'co',
+            degreeType: 'phd',
+            program: 'Family, friends, & family friends',
+            department: 'Psychology',
+            conferredDate: moment().subtract(7, 'months').format(serverDateFormat),
+            isCompleted: true,
+            accreditingBody: 'University of Psychology',
+            accreditingYear: moment().subtract(7, 'months').format('YYYY'),
+            isAccreditedByAuthority: true,
+            isProgramEquivalent: true,
+            accreditingContact: null,
+            hasResidence: true,
+            transcripts: [
+                {
+                    filename: 'transcript_1.pdf',
+                    sizeBytes: 2500000,
+                    downloadUri: '/examples/military-document.pdf',
+                },
+                {
+                    filename: 'transcript_2.pdf',
+                    sizeBytes: 1700000,
+                    downloadUri: '/examples/military-document.pdf',
+                },
+            ],
+        },
+        conductHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            attestations: attestationResponsesConduct.map((response) => ({ ...response })),
+            convictions: [],
+            notes: null,
+            documents: [],
+        },
+        homeState: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            applicationTypes: [
+                {
+                    applicationType: 'apit',
+                    state: 'co',
+                    startDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    isActiveMilitary: false,
+                    militaryDocuments: [],
+                    attestations: attestationResponsesHomeState.map((response) => ({ ...response })),
+                },
+            ],
+        },
+        acknowledgements: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            attestations: attestationResponsesAcknowledgements.map((response) => ({ ...response })),
+            signatureName: 'Test Applicant',
+        },
+    },
+    // ========================================================
+    // =           SUBMITTED AND REJECTED (TAP)               =
+    // ========================================================
+    {
+        id: '6',
+        created: moment().subtract(2, 'weeks').format(serverDatetimeFormat),
+        submitted: moment().subtract(2, 'days').format(serverDatetimeFormat),
+        completed: moment().subtract(1, 'day').format(serverDatetimeFormat),
+        types: ['tap'],
+        isRenewal: false,
+        status: 'rejected',
+        reviews: [
+            {
+                reviewerStatus: 'rejected',
+                reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                notesForApplicant: 'Unable to verify education and license information.',
+            },
+        ],
+        attestations: attestationResponsesSubmit.map((response) => ({ ...response })),
+        paymentCompensated: [],
+        personalInformation: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            firstName: 'Test',
+            middleName: null,
+            lastName: 'Applicant',
+            suffix: null,
+            phone: '+12223334444',
+            altPhone: null,
+            dob: moment().subtract(50, 'years').format(serverDateFormat),
+            ssnLastFour: '1111',
+            npi: '1111111111',
+            gender: 'male',
+            professionalName: 'Test Applicant, PhD.',
+            citizenship: 'us',
+            placeOfBirth: 'Springfield',
+            languages: ['en', 'es'],
+            mailingAddress1: '123 Fake St',
+            mailingAddress2: 'Apt 1',
+            mailingCity: 'Springfield',
+            mailingState: 'co',
+            mailingZip: '11111',
+        },
+        licenseHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'rejected',
+            reviews: [
+                {
+                    reviewerStatus: 'rejected',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: 'Unable to verify license history.',
+                },
+            ],
+            ePassport: {
+                mobilityNumber: null,
+                issueDate: null,
+            },
+            ipc: {
+                mobilityNumber: '2222222',
+                issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+            },
+            licenses: [
+                {
+                    state: 'co',
+                    issueDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    licenseNumber: '1111111111',
+                    status: 'active',
+                },
+            ],
+        },
+        education: {
+            applicantStatus: 'complete',
+            reviewStatus: 'rejected',
+            reviews: [
+                {
+                    reviewerStatus: 'rejected',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: 'Unable to verify transcripts.',
+                },
+            ],
+            nameAtTime: 'Test Applicant',
+            institution: 'University of Psychology',
+            city: 'Springfield',
+            state: 'co',
+            degreeType: 'phd',
+            program: 'Family, friends, & family friends',
+            department: 'Psychology',
+            conferredDate: moment().subtract(7, 'months').format(serverDateFormat),
+            isCompleted: true,
+            accreditingBody: 'University of Psychology',
+            accreditingYear: moment().subtract(7, 'months').format('YYYY'),
+            isAccreditedByAuthority: true,
+            isProgramEquivalent: true,
+            accreditingContact: null,
+            hasResidence: true,
+            transcripts: [],
+        },
+        conductHistory: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            attestations: attestationResponsesConduct.map((response) => ({ ...response })),
+            convictions: [],
+            notes: null,
+            documents: [],
+        },
+        homeState: {
+            applicantStatus: 'complete',
+            reviewStatus: 'approved',
+            reviews: [
+                {
+                    reviewerStatus: 'approved',
+                    reviewDate: moment().subtract(1, 'day').format(serverDatetimeFormat),
+                    notesForApplicant: null,
+                },
+            ],
+            applicationTypes: [
+                {
+                    applicationType: 'tap',
+                    state: 'co',
+                    startDate: moment().subtract(6, 'months').format(serverDateFormat),
+                    isActiveMilitary: false,
+                    militaryDocuments: [],
+                    attestations: attestationResponsesHomeState.map((response) => ({ ...response })),
+                },
+            ],
+        },
+        acknowledgements: {
+            applicantStatus: 'complete',
+            reviewStatus: 'pending',
+            reviews: [],
+            attestations: attestationResponsesAcknowledgements.map((response) => ({ ...response })),
+            signatureName: 'Test Applicant',
+        },
+    },
+];
+
+export const applicantAuthorizations = [
+    // This authorization is to allow the renewal workflow.
+    {
+        id: '1',
+        type: 'apit',
+        status: 'active',
+        issueDate: moment().subtract(11, 'months').format(serverDatetimeFormat),
+        renewalDate: null,
+        expireDate: moment().add(1, 'month').format(serverDatetimeFormat),
+    },
+    // If other authorizaion states are needed to test other workflows or to align with specific approved applications, add them below & comment out others as needed.
+];
+
+// =========================================================================================
+// =                            MOCK PROVIDER OVERLAY HELPERS                              =
+// =========================================================================================
 const MOCK_PROVIDER_NESTED_COLLECTIONS = ['licenses', 'privileges', 'militaryAffiliations'];
 
-// Compact-specific fields applied to the shared mock practitioner at read time.
+// Compact-specific fields and collections applied to the shared mock practitioner at read time.
 // Add values here as a compact's mock data needs to diverge (privilege IDs, etc).
 export interface MockProviderCompactOverlay {
     compact?: string;
     licenseType?: string;
+    applications?: Array<any>;
+    authorizations?: Array<any>;
 }
 
 export const mockProviderCompactOverlays: Record<CompactType, MockProviderCompactOverlay> = {
@@ -2708,6 +3840,8 @@ export const mockProviderCompactOverlays: Record<CompactType, MockProviderCompac
     [CompactType.PSYPACT]: {
         compact: CompactType.PSYPACT,
         licenseType: LicenseType.PSYCHOLOGIST,
+        applications: applicantApplications,
+        authorizations: applicantAuthorizations,
     },
     [CompactType.DIETITIANS]: {
         compact: CompactType.DIETITIANS,
@@ -2720,9 +3854,19 @@ export const applyProviderCompactOverlay = (provider: any, overlay?: MockProvide
         return provider;
     }
 
+    const { applications, authorizations, ...fieldOverlay } = overlay;
     const nextProvider = JSON.parse(JSON.stringify(provider));
 
-    Object.assign(nextProvider, overlay);
+    Object.assign(nextProvider, fieldOverlay);
+
+    // Copied so that mutations of a returned provider can't leak into the shared module-level mock arrays
+    if (applications) {
+        nextProvider.applications = JSON.parse(JSON.stringify(applications));
+    }
+
+    if (authorizations) {
+        nextProvider.authorizations = JSON.parse(JSON.stringify(authorizations));
+    }
 
     MOCK_PROVIDER_NESTED_COLLECTIONS.forEach((collectionKey) => {
         const collection = nextProvider[collectionKey];
@@ -2731,9 +3875,9 @@ export const applyProviderCompactOverlay = (provider: any, overlay?: MockProvide
             nextProvider[collectionKey] = collection.map((item) => {
                 const nextItem = { ...item };
 
-                Object.keys(overlay).forEach((field) => {
+                Object.keys(fieldOverlay).forEach((field) => {
                     if (Object.prototype.hasOwnProperty.call(item, field)) {
-                        nextItem[field] = overlay[field];
+                        nextItem[field] = fieldOverlay[field];
                     }
                 });
 
@@ -2748,6 +3892,9 @@ export const applyProviderCompactOverlay = (provider: any, overlay?: MockProvide
 export const getMockProviderForCompact = (provider: any, compactType?: string | null): any =>
     applyProviderCompactOverlay(provider, mockProviderCompactOverlays[compactType as CompactType]);
 
+// =========================================================================================
+// =                         EXAMPLE API MOCKS (KEEP THIS LAST)                            =
+// =========================================================================================
 export const pets = [
     {
         id: 1,

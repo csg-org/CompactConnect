@@ -27,6 +27,8 @@ import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { State } from '@models/State/State.model';
+import { Application, ApplicationType, ApplicationStatus } from '@models/Application/Application.model';
+import { Authorization, AuthorizationStatus } from '@models/Authorization/Authorization.model';
 import i18n from '@/i18n';
 import moment from 'moment';
 
@@ -74,6 +76,8 @@ describe('Licensee model', () => {
         expect(licensee.militaryStatusNote).to.equal(null);
         expect(licensee.lastUpdated).to.equal(null);
         expect(licensee.status).to.equal(LicenseeStatus.INACTIVE);
+        expect(licensee.applications).to.matchPattern([]);
+        expect(licensee.authorizations).to.matchPattern([]);
 
         // Test methods
         expect(licensee.nameDisplay()).to.equal('');
@@ -171,6 +175,8 @@ describe('Licensee model', () => {
             lastUpdated: '2020-01-01',
             status: LicenseeStatus.ACTIVE,
             eligibility: LicenseeEligibility.INELIGIBLE,
+            applications: [new Application()],
+            authorizations: [new Authorization()],
         };
         const licensee = new Licensee(data);
 
@@ -205,6 +211,10 @@ describe('Licensee model', () => {
         expect(licensee.militaryStatusNote).to.equal(data.militaryStatusNote);
         expect(licensee.lastUpdated).to.equal(data.lastUpdated);
         expect(licensee.status).to.equal(data.status);
+        expect(licensee.applications).to.be.an('array').with.length(1);
+        expect(licensee.applications[0]).to.be.an.instanceof(Application);
+        expect(licensee.authorizations).to.be.an('array').with.length(1);
+        expect(licensee.authorizations[0]).to.be.an.instanceof(Authorization);
 
         // Test methods
         expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
@@ -471,6 +481,23 @@ describe('Licensee model', () => {
                     liftingUser: '1',
                 },
             ],
+            applications: [
+                {
+                    id: 'test-application-id',
+                    types: [ApplicationType.APIT],
+                    status: ApplicationStatus.STARTED,
+                },
+            ],
+            authorizations: [
+                {
+                    id: 'test-authorization-id',
+                    type: ApplicationType.APIT,
+                    status: AuthorizationStatus.ACTIVE,
+                    issueDate: moment().subtract(11, 'months').format(serverDatetimeFormat),
+                    renewalDate: null,
+                    expireDate: moment().add(1, 'month').format(serverDatetimeFormat),
+                },
+            ],
         };
         const licensee = LicenseeSerializer.fromServer(data);
 
@@ -484,6 +511,12 @@ describe('Licensee model', () => {
         expect(licensee.compactConnectEmail).to.equal(data.compactConnectRegisteredEmailAddress);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.dob).to.equal(data.dateOfBirth);
+        expect(licensee.applications).to.be.an('array').with.length(1);
+        expect(licensee.applications[0]).to.be.an.instanceof(Application);
+        expect(licensee.applications[0].id).to.equal(data.applications[0].id);
+        expect(licensee.authorizations).to.be.an('array').with.length(1);
+        expect(licensee.authorizations[0]).to.be.an.instanceof(Authorization);
+        expect(licensee.authorizations[0].id).to.equal(data.authorizations[0].id);
         expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
         expect(licensee.cuid).to.equal(data.cuid);
         expect(licensee.licenseType).to.equal(data.licenseType);
