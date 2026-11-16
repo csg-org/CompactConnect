@@ -1476,7 +1476,7 @@ describe('User Store Actions', async () => {
         expect(applications).to.be.an('array').that.is.not.empty;
         expect(applications.every((application) => application instanceof Application)).to.equal(true);
     });
-    it('should successfully start applications request (user changed before response)', async () => {
+    it('should successfully start applications request (user changed before response should return null & not dispatch mutation)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const state = { model: new LicenseeUser({ id: 'test-user-id-1' }) };
@@ -1526,7 +1526,7 @@ describe('User Store Actions', async () => {
         expect(application).to.be.an.instanceof(Application);
         expect(application.id).to.equal(applicationId);
     });
-    it('should successfully start application request (user changed before response)', async () => {
+    it('should successfully start application request (user changed before response should return null & not dispatch mutation)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const state = { model: new LicenseeUser({ id: 'test-user-id-1' }) };
