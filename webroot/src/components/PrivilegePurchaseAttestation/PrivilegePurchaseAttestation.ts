@@ -87,7 +87,6 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             'not-under-investigation-attestation',
             'under-investigation-attestation',
             'discipline-no-current-encumbrance-attestation',
-            'discipline-no-prior-encumbrance-attestation',
             'provision-of-true-information-attestation',
             'military-affiliation-confirmation-attestation',
         ],
@@ -154,6 +153,13 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         return Boolean(this.$envConfig.isDevelopment);
     }
 
+    get showsPriorEncumbranceAttestation(): boolean {
+        const compact = this.currentCompactType || '';
+        const attestationIds: Array<string> = this.attestationIds[compact] || [];
+
+        return attestationIds.includes('discipline-no-prior-encumbrance-attestation');
+    }
+
     //
     // Methods
     //
@@ -175,13 +181,6 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
                 validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
                 value: false,
             }),
-            disciplinePrior: new FormInput({
-                id: 'discipline-prior',
-                name: 'discipline-prior',
-                label: this.getAttestation('discipline-no-prior-encumbrance-attestation')?.textDisplay() || '',
-                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
-                value: false,
-            }),
             trueInformation: new FormInput({
                 id: 'true-information',
                 name: 'true-information',
@@ -195,6 +194,16 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             }),
         });
 
+        if (this.showsPriorEncumbranceAttestation) {
+            this.formData.disciplinePrior = new FormInput({
+                id: 'discipline-prior',
+                name: 'discipline-prior',
+                label: this.getAttestation('discipline-no-prior-encumbrance-attestation')?.textDisplay() || '',
+                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
+                value: false,
+            });
+        }
+
         if (this.isMilitaryAffiliated) {
             this.formData.militaryAffiliation = new FormInput({
                 id: 'military-affiliation',
@@ -206,7 +215,6 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         }
 
         this.watchFormInputs(); // Important if you want automated form validation
-
         this.areFormInputsSet = true;
     }
 
@@ -300,9 +308,12 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         const checkboxAttestations = this.attestationRecords.filter((attestation) => {
             const checkboxAttestationIds: Array<string | null | undefined> = [
                 'discipline-no-current-encumbrance-attestation',
-                'discipline-no-prior-encumbrance-attestation',
                 'provision-of-true-information-attestation'
             ];
+
+            if (this.showsPriorEncumbranceAttestation) {
+                checkboxAttestationIds.push('discipline-no-prior-encumbrance-attestation');
+            }
 
             if (this.isMilitaryAffiliated) {
                 checkboxAttestationIds.push('military-affiliation-confirmation-attestation');
@@ -321,8 +332,11 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     async mockPopulate(): Promise<void> {
         this.formData.investigations.value = 'not-under-investigation-attestation';
         this.formData.disciplineCurrent.value = true;
-        this.formData.disciplinePrior.value = true;
         this.formData.trueInformation.value = true;
+
+        if (this.formData.disciplinePrior) {
+            this.formData.disciplinePrior.value = true;
+        }
 
         if (this.formData.militaryAffiliation) {
             this.formData.militaryAffiliation.value = true;
