@@ -817,6 +817,35 @@ describe('User Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error]);
     });
+    it('should successfully create licensee account request (psypact)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const payload = { data: {}};
+
+        await actions.createLicenseeAccountPsypactRequest({ commit, dispatch }, payload);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+        expect(dispatch.firstCall.args).to.matchPattern(['createLicenseeAccountPsypactSuccess']);
+    });
+    it('should successfully create licensee account success (psypact)', () => {
+        const commit = sinon.spy();
+
+        actions.createLicenseeAccountPsypactSuccess({ commit });
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_SUCCESS]);
+    });
+    it('should successfully create licensee account failure (psypact)', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.createLicenseeAccountPsypactFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error]);
+    });
     it('should successfully start staff account request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();

@@ -52,6 +52,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
+        path: '/Register/Psypact',
+        name: 'RegisterLicenseePsypact',
+        component: () => import(/* webpackChunkName: "register" */ '@pages/RegisterLicenseePsypact/RegisterLicenseePsypact.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
         path: '/MfaResetStart',
         name: 'MfaResetStartLicensee',
         component: () => import(/* webpackChunkName: "register" */ '@pages/MfaResetStartLicensee/MfaResetStartLicensee.vue'),

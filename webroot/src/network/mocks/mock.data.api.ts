@@ -15,7 +15,7 @@ import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
-import { CompactSerializer } from '@models/Compact/Compact.model';
+import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
 import { State, StateSerializer } from '@models/State/State.model';
 import { LicenseType } from '@models/License/License.model';
 import { ApplicationSerializer } from '@models/Application/Application.model';
@@ -175,6 +175,14 @@ export class DataApi {
     public createLicenseeAccount(compact: string, data: object) {
         return wait(500).then(() => ({
             compact,
+            ...data,
+        }));
+    }
+
+    // Create Licensee Account (PSYPACT).
+    public createLicenseeAccountPsypact(data: object) {
+        return wait(500).then(() => ({
+            compact: CompactType.PSYPACT,
             ...data,
         }));
     }

@@ -5,8 +5,9 @@
 //  Created by InspiringApps on 6/18/24.
 //
 
+import { AppModes } from '@/app.config';
 import { authStorage, tokens } from '@utils/auth';
-import { getAppModeForCompact } from '@utils/compactConfig';
+import { CompactType, getAppModeForCompact } from '@utils/compactConfig';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { getApiBaseUrl } from '@network/apiUrls';
 import {
@@ -198,6 +199,19 @@ export class LicenseDataApi implements DataApiInterface {
     public async createAccount(compact: string, data: object) {
         const requestData = { ...data, compact };
         const apiRoot = getApiBaseUrl(getAppModeForCompact(compact), 'license') || '';
+        const serverResponse = await this.api.post(`${apiRoot}/v1/provider-users/registration`, requestData);
+
+        return serverResponse;
+    }
+
+    /**
+     * POST Create Licensee Account (PSYPACT)
+     * @param  {object}        data The user request data.
+     * @return {Promise<any>}       The server response.
+     */
+    public async createAccountPsypact(data: object) {
+        const requestData = { ...data, compact: CompactType.PSYPACT };
+        const apiRoot = getApiBaseUrl(AppModes.PSYPACT, 'license') || '';
         const serverResponse = await this.api.post(`${apiRoot}/v1/provider-users/registration`, requestData);
 
         return serverResponse;

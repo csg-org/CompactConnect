@@ -115,6 +115,15 @@ export class DataApi {
     }
 
     /**
+     * POST Create Licensee Account (PSYPACT).
+     * @param  {object}       data The user request data.
+     * @return {Promise<any>}      The server response.
+     */
+    public createLicenseeAccountPsypact(data: object) {
+        return licenseDataApi.createAccountPsypact(data);
+    }
+
+    /**
      * GET Licensees.
      * @param  {object}         [params] The request query parameters config.
      * @return {Promise<Array>}          An array of users server response.

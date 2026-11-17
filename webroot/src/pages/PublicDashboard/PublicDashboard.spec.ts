@@ -322,6 +322,30 @@ describe('PublicDashboard page', async () => {
         expect(wrapper.find('.provider-login-card').exists()).to.equal(true);
         expect(wrapper.findAll('.login-link.staff').length).to.equal(1);
     });
+    it('should link the register prompt to licensee registration (jcc)', async () => {
+        const wrapper = await mountFull(PublicDashboard);
+        const component = wrapper.vm;
+
+        await component.selectCompact(CompactType.COUNSELING);
+        await nextTick();
+        await flushPromises();
+
+        expect(component.registerRouteName).to.equal('RegisterLicensee');
+        expect(wrapper.find('.register-link').attributes('href')).to.contain('/Register');
+        expect(wrapper.find('.register-link').attributes('href')).to.not.contain('/Register/Psypact');
+    });
+    it('should link the register prompt to psypact licensee registration (psypact)', async () => {
+        await store.dispatch('setAppMode', AppModes.PSYPACT);
+
+        const wrapper = await mountFull(PublicDashboard);
+        const component = wrapper.vm;
+
+        await nextTick();
+        await flushPromises();
+
+        expect(component.registerRouteName).to.equal('RegisterLicenseePsypact');
+        expect(wrapper.find('.register-link').attributes('href')).to.contain('/Register/Psypact');
+    });
     it('should get correct hosted login uri config for licensee (jcc)', async () => {
         const wrapper = await mountShallow(PublicDashboard);
         const component = wrapper.vm;

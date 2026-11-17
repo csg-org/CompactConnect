@@ -76,6 +76,25 @@ export default {
     createLicenseeAccountFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error);
     },
+    // CREATE LICENSEE ACCOUNT (PSYPACT)
+    createLicenseeAccountPsypactRequest: async ({ commit, dispatch }, { data }: any) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_REQUEST);
+        return dataApi.createLicenseeAccountPsypact(data).then((response) => {
+            dispatch('createLicenseeAccountPsypactSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('createLicenseeAccountPsypactFailure', error);
+
+            throw error;
+        });
+    },
+    createLicenseeAccountPsypactSuccess: ({ commit }) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_SUCCESS);
+    },
+    createLicenseeAccountPsypactFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error);
+    },
     // GET STAFF ACCOUNT
     getStaffAccountRequest: async ({ commit, dispatch }) => {
         commit(MutationTypes.GET_ACCOUNT_REQUEST);
