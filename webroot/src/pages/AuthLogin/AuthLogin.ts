@@ -452,6 +452,16 @@ class AuthLogin extends mixins(MixinForm) {
         }
 
         await this.focusStepTitle();
+        await this.focusMfaCodeInput();
+    }
+
+    async focusMfaCodeInput(): Promise<void> {
+        await nextTick();
+        const codeInput = document.getElementById('auth-mfa-code');
+
+        if (this.isMfaCodeStep && codeInput) {
+            codeInput.focus();
+        }
     }
 
     async focusStepTitle(): Promise<void> {
