@@ -358,6 +358,7 @@
         "newPassword": "Nueva contraseña",
         "confirmNewPassword": "Confirmar nueva contraseña",
         "confirmPassword": "Confirmar contraseña",
+        "opensInNewTab": "(se abre en una pestaña nueva)",
         "passwordCreationInstruction": "Para crear una nueva contraseña, debe cumplir todos los siguientes requisitos",
         "passwordRules": [
             "Mínimo 8 caracteres",
@@ -1084,6 +1085,7 @@
                 "key": "apit",
                 "compactKey": "psypact",
                 "abbrev": "APIT",
+                "fullName": "Autoridad para Ejercer la Telepsicología Interjurisdiccional",
                 "description": "Práctica a distancia en otro estado participante."
             },
             {
@@ -1091,6 +1093,7 @@
                 "key": "tap",
                 "compactKey": "psypact",
                 "abbrev": "TAP",
+                "fullName": "Autorización Temporal para Ejercer",
                 "description": "Práctica presencial a corto plazo en otro estado participante."
             },
             {
@@ -1196,7 +1199,27 @@
         "decision": "Decisión",
         "stepOfTotal": "Paso {step} de {total}",
         "needHelp": "¿Necesitar ayuda?",
-        "helpInstructions": "Si tiene preguntas sobre los requisitos o el proceso de solicitud, póngase en contacto con "
+        "helpInstructions": "Si tiene preguntas sobre los requisitos o el proceso de solicitud, póngase en contacto con ",
+        "applyTitle": "Solicitar una autorización de PSYPACT",
+        "applyIntro": "PSYPACT (el Pacto Interjurisdiccional de Psicología) permite a los psicólogos con licencia ejercer en otros estados mediante telepsicología o trabajo presencial a corto plazo, sin necesidad de una licencia separada en cada estado. Obtenga más información en",
+        "applyReviewInfo": "Una vez enviada, su solicitud será sometida a una revisión formal por parte del personal de PSYPACT. Si necesita ayuda, envíe un correo electrónico a",
+        "applyingForTitle": "¿Qué está solicitando?",
+        "applyTypeRequired": "Seleccione APIT, TAP o ambos",
+        "youWillNeedTitle": "Necesitará",
+        "requirementLicense": "Una licencia activa y sin restricciones en un estado participante de PSYPACT",
+        "eligibilityStateLabel": "Verifique su elegibilidad seleccionando dónde tiene una licencia activa y dónde estará físicamente presente.",
+        "notParticipating": "(No participa)",
+        "requirementDegree": "Un doctorado en psicología (PhD, PsyD o EdD)",
+        "requirementEPassport": "Un E.Passport emitido por ASPPB — ¿no tiene uno?",
+        "getEPassport": "Obtenga su E.Passport",
+        "requirementEPassportSubtext": "Solicite a ASPPB una carta de verificación que nos será enviada. Puede comenzar esta solicitud antes de que se verifique su E.Passport, pero no podrá enviarla hasta que recibamos y procesemos su carta de verificación.",
+        "requirementIpc": "Un IPC (Certificado de Práctica Interjurisdiccional) emitido por ASPPB — ¿no tiene uno?",
+        "getIpc": "Obtenga su IPC",
+        "requirementIpcSubtext": "Solicite a ASPPB una carta de verificación que nos será enviada. Puede comenzar esta solicitud antes de que se verifique su IPC, pero no podrá enviarla hasta que recibamos y procesemos su carta de verificación.",
+        "requirementFee": "Una tarjeta de crédito para una tarifa no reembolsable de {fee}",
+        "requirementTime": "Unos 30 minutos, pero puede guardar y continuar en cualquier momento",
+        "startApplication": "Iniciar solicitud",
+        "creatingApplication": "Creando solicitud..."
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

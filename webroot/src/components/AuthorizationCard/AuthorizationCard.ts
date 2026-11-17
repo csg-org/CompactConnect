@@ -74,7 +74,11 @@ class AuthorizationCard extends Vue {
     // Methods
     //
     applyForAuthorization(): void {
-        console.log('apply for authorization', this.authorizationType);
+        this.$router.push({
+            name: 'ApplicationStart',
+            params: { compact: this.$store.state.user.currentCompact?.type },
+            query: { types: this.authorizationType },
+        });
     }
 }
 

@@ -6,7 +6,7 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { FeatureGates } from '@/app.config';
+import { FeatureGates, serverDatetimeFormat } from '@/app.config';
 import { getImpliedCompactForAppMode } from '@utils/compactConfig';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
@@ -19,6 +19,7 @@ import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
 import { State, StateSerializer } from '@models/State/State.model';
 import { LicenseType } from '@models/License/License.model';
 import { ApplicationSerializer } from '@models/Application/Application.model';
+import { ApplicationConfigSerializer } from '@models/ApplicationConfig/ApplicationConfig.model';
 import {
     userData,
     staffAccount,
@@ -34,8 +35,10 @@ import {
     stateConfig,
     mockPrivilegeHistoryResponses,
     applicantApplications,
+    applicationConfig,
     getMockProviderForCompact
 } from '@network/mocks/mock.data';
+import moment from 'moment';
 
 let mockStore: any = null;
 
@@ -850,6 +853,32 @@ export class DataApi {
         }
 
         return wait(500).then(() => ApplicationSerializer.fromServer(JSON.parse(JSON.stringify(serverApplication))));
+    }
+
+    // Create Authenticated Licensee User application
+    public createAuthenticatedLicenseeApplication(data: any = {}) {
+        const { types } = data;
+
+        if (!Array.isArray(types) || !types.length) {
+            return wait(500).then(() => { throw new Error('failed application create'); });
+        }
+
+        const [ blankApplication ] = JSON.parse(JSON.stringify(applicantApplications));
+
+        return wait(500).then(() => ApplicationSerializer.fromServer({
+            ...blankApplication,
+            id: `mock-application-${Date.now()}`,
+            created: moment().format(serverDatetimeFormat),
+            types,
+        }));
+    }
+
+    // Get Application configuration for a compact
+    public getApplicationConfig(compact: string) {
+        return wait(500).then(() => ApplicationConfigSerializer.fromServer({
+            ...applicationConfig,
+            compact,
+        }));
     }
 
     // ========================================================================

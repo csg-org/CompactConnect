@@ -14,6 +14,7 @@ import {
 } from '@network/applicationsApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { ApplicationSerializer } from '@models/Application/Application.model';
+import { ApplicationConfigSerializer } from '@models/ApplicationConfig/ApplicationConfig.model';
 
 export interface DataApiInterface {
     api: AxiosInstance;
@@ -92,6 +93,30 @@ export class ApplicationsDataApi implements DataApiInterface {
     public async getAuthenticatedLicenseeApplication(applicationId: string) {
         const serverResponse: any = await this.api.get(`/v1/provider-users/me/applications/${applicationId}`);
         const response = ApplicationSerializer.fromServer(serverResponse);
+
+        return response;
+    }
+
+    /**
+     * POST Create Authenticated Licensee User application.
+     * @param  {object}               data The application request data.
+     * @return {Promise<Application>}      An Application model instance.
+     */
+    public async createAuthenticatedLicenseeApplication(data: object) {
+        const serverResponse: any = await this.api.post(`/v1/provider-users/me/applications`, data);
+        const response = ApplicationSerializer.fromServer(serverResponse);
+
+        return response;
+    }
+
+    /**
+     * GET Application configuration for a compact.
+     * @param  {string}                     compact A compact type.
+     * @return {Promise<ApplicationConfig>}         An ApplicationConfig model instance.
+     */
+    public async getApplicationConfig(compact: string) {
+        const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/application-configuration`);
+        const response = ApplicationConfigSerializer.fromServer(serverResponse);
 
         return response;
     }

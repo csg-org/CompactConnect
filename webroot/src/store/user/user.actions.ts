@@ -197,6 +197,42 @@ export default {
     getApplicationFailureLicensee: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_APPLICATION_FAILURE, error);
     },
+    // CREATE LICENSEE APPLICATION
+    createApplicationRequestLicensee: async ({ commit, dispatch }, { data }) => {
+        commit(MutationTypes.CREATE_APPLICATION_REQUEST);
+        return dataApi.createAuthenticatedLicenseeApplication(data).then((application) => {
+            dispatch('createApplicationSuccessLicensee', application);
+
+            return application;
+        }).catch((error) => {
+            dispatch('createApplicationFailureLicensee', error);
+
+            throw error;
+        });
+    },
+    createApplicationSuccessLicensee: ({ commit }, application) => {
+        commit(MutationTypes.CREATE_APPLICATION_SUCCESS, application);
+    },
+    createApplicationFailureLicensee: ({ commit }, error: Error) => {
+        commit(MutationTypes.CREATE_APPLICATION_FAILURE, error);
+    },
+    // GET APPLICATION CONFIG
+    getApplicationConfigRequest: async ({ commit, dispatch }, { compact }) => {
+        commit(MutationTypes.GET_APPLICATION_CONFIG_REQUEST);
+        return dataApi.getApplicationConfig(compact).then((applicationConfig) => {
+            dispatch('getApplicationConfigSuccess', applicationConfig);
+
+            return applicationConfig;
+        }).catch((error) => {
+            dispatch('getApplicationConfigFailure', error);
+        });
+    },
+    getApplicationConfigSuccess: ({ commit }, applicationConfig) => {
+        commit(MutationTypes.GET_APPLICATION_CONFIG_SUCCESS, applicationConfig);
+    },
+    getApplicationConfigFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_APPLICATION_CONFIG_FAILURE, error);
+    },
     // GET COMPACT STATES FOR USER
     getCompactStatesRequest: async ({ commit, dispatch, state }, { compact }) => {
         commit(MutationTypes.GET_COMPACT_STATES_REQUEST);

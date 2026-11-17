@@ -731,6 +731,24 @@ export class DataApi {
         return applicationsDataApi.getAuthenticatedLicenseeApplication(applicationId);
     }
 
+    /**
+     * POST Create Authenticated Licensee User application.
+     * @param  {object}               data The application request data.
+     * @return {Promise<Application>}      An Application model instance.
+     */
+    public createAuthenticatedLicenseeApplication(data: object) {
+        return applicationsDataApi.createAuthenticatedLicenseeApplication(data);
+    }
+
+    /**
+     * GET Application configuration for a compact.
+     * @param  {string}                     compact A compact type.
+     * @return {Promise<ApplicationConfig>}         An ApplicationConfig model instance.
+     */
+    public getApplicationConfig(compact: string) {
+        return applicationsDataApi.getApplicationConfig(compact);
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

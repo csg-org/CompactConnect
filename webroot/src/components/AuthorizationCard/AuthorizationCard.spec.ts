@@ -6,7 +6,10 @@
 //
 
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { mountShallow } from '@tests/helpers/setup';
+import store from '@store/index';
+import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
 import AuthorizationCard from '@components/AuthorizationCard/AuthorizationCard.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import { serverDateFormat } from '@/app.config';
@@ -95,5 +98,25 @@ describe('AuthorizationCard component', async () => {
         expect(component.isActive).to.equal(false);
         expect(component.isExpiredDateDisplayed).to.equal(false);
         expect(wrapper.findComponent(InputButton).exists()).to.equal(true);
+    });
+    it('should navigate to the application start page with the authorization type when applying', async () => {
+        await store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: CompactType.PSYPACT }));
+
+        const wrapper = await mountShallow(AuthorizationCard, {
+            props: {
+                authorizationType: ApplicationType.TAP,
+            },
+        });
+        const component = wrapper.vm;
+        const pushStub = sinon.stub(component.$router, 'push').resolves();
+
+        component.applyForAuthorization();
+
+        expect(pushStub.calledOnce).to.equal(true);
+        expect(pushStub.firstCall.args[0]).to.deep.equal({
+            name: 'ApplicationStart',
+            params: { compact: CompactType.PSYPACT },
+            query: { types: ApplicationType.TAP },
+        });
     });
 });

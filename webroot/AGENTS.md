@@ -93,6 +93,16 @@
 
 ---
 
+## Mobile layouts
+- Mobile-first: base styles target phone; layer larger layouts on with the min-width breakpoints in `src/styles.common/_sizes.less` (`@tabletWidth` 770px, `@desktopWidth` 1024px, `@largeDesktopWidth` 1600px). "Phone" = below `@tabletWidth`.
+- Don't use `@media (max-width: …)` queries; ask first if one seems necessary. (The `max-width` property is fine.)
+- Buttons are full width on phone, stacked with `flex-direction: column`.
+- From `@tabletWidth` up (unless the design says otherwise), buttons use their natural width and usually switch to `flex-direction: row`.
+- Button spacing comes from the design at implementation time. Without design guidance, fall back to 1rem vertical spacing between stacked buttons; ask first if that fallback could cause layout issues (e.g. conflicts with existing component margins).
+- `InputSubmit` / `InputButton` classes land on the wrapper div; size the actual button with `:deep(.input-submit)` / `:deep(.input-button)`.
+
+---
+
 ## Internationalization
 - No hardcoded user-facing strings; add keys to `src/locales/en.json` and reference via `$t` / `$tm`
 - Key names must match exactly across all locale files. When adding a key to `en.json`, add the same key to `es.json` (an untranslated English value is acceptable; a missing key is not) — see `src/locales/readme.txt`

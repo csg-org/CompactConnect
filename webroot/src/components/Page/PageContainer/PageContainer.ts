@@ -89,7 +89,8 @@ class PageContainer extends Vue {
             || this.userStore.isLoadingAccount
             || this.userStore.isLoadingCompactStates
             || this.userStore.isLoadingPrivilegePurchaseOptions
-            || this.userStore.isLoadingApplications;
+            || this.userStore.isLoadingApplications
+            || this.userStore.isLoadingApplicationConfig;
     }
 }
 

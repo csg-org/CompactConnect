@@ -16,6 +16,7 @@ import {
     AUTH_TYPE
 } from '@utils/auth';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
+import { ApplicationConfig } from '@models/ApplicationConfig/ApplicationConfig.model';
 
 export const getImpliedCompactForHost = (): Compact | null => {
     const impliedCompactType = getImpliedCompactForAppMode(getHostAppMode());
@@ -33,6 +34,9 @@ export interface State {
     isLoadingCompactStates: boolean;
     isLoadingPrivilegePurchaseOptions: boolean;
     isLoadingApplications: boolean;
+    isLoadingApplicationConfig: boolean;
+    isCreatingApplication: boolean;
+    applicationConfig: ApplicationConfig | null;
     refreshTokenTimeoutId: number | null;
     isAutoLogoutWarning: boolean;
     autoLogoutTimeoutId: number | null;
@@ -51,6 +55,9 @@ export const state: State = {
     isLoadingCompactStates: false,
     isLoadingPrivilegePurchaseOptions: false,
     isLoadingApplications: false,
+    isLoadingApplicationConfig: false,
+    isCreatingApplication: false,
+    applicationConfig: null,
     refreshTokenTimeoutId: null,
     isAutoLogoutWarning: false,
     autoLogoutTimeoutId: null,

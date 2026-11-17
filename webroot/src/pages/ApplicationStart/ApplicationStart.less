@@ -1,0 +1,190 @@
+//
+//  ApplicationStart.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/17/2026.
+//
+
+.application-start-container {
+    @iconSize: 1.8rem;
+    @iconGap: 1.2rem;
+
+    width: 100%;
+    max-width: 100rem;
+    margin: 4rem auto 0;
+    padding: 0 1.6rem 4rem;
+
+    @media @tabletWidth {
+        padding: 0 3rem 8rem;
+    }
+
+    .application-start-intro {
+        max-width: 68rem;
+        margin-bottom: 2.4rem;
+
+        .application-start-title {
+            margin-bottom: 1.2rem;
+            font-weight: @fontWeightMedium;
+            font-size: @h2FontSize;
+        }
+
+        .intro-text {
+            margin-bottom: 1.6rem;
+            color: @fontColorLight;
+        }
+
+        .intro-subtext {
+            color: @fontColorLight;
+            font-size: @fontSizeSmaller;
+        }
+    }
+
+    .text-link {
+        font-weight: @fontWeightBold;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .application-start-card {
+        width: 100%;
+        margin-bottom: 1.2rem;
+        padding: 2.4rem 2rem;
+        border-radius: @borderRadiusLarge;
+        background-color: @white;
+
+        @media @tabletWidth {
+            padding: 2.4rem 3rem;
+        }
+
+        .card-title {
+            margin-bottom: 1.2rem;
+            font-weight: @fontWeightMedium;
+            font-size: @h3FontSize;
+        }
+    }
+
+    .type-option {
+        margin-bottom: 1.2rem;
+
+        :deep(.checkbox-container) {
+            margin: 0;
+        }
+
+        .type-description {
+            padding-left: 2.4rem;
+            color: @fontColorLight;
+            font-size: @fontSizeSmaller;
+        }
+    }
+
+    .type-error {
+        display: block;
+        margin-top: 0.6rem;
+        color: @midRed;
+        font-weight: 500;
+    }
+
+    .requirement-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        .requirement-item {
+            display: flex;
+            padding: 1.6rem 0;
+            border-top: 1px solid @veryLightGrey;
+
+            &:first-child {
+                padding-top: 0;
+                border-top: none;
+            }
+
+            &:last-child {
+                padding-bottom: 0;
+            }
+        }
+
+        .requirement-icon {
+            flex-shrink: 0;
+            width: @iconSize;
+            height: @iconSize;
+            margin-top: 0.1rem;
+            margin-right: @iconGap;
+            color: @primaryColor;
+        }
+
+        .requirement-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .requirement-title {
+            font-weight: @fontWeightBold;
+            font-size: 1.5rem;
+        }
+
+        .requirement-subtext {
+            max-width: 50rem;
+            margin-top: 0.4rem;
+            color: @fontColorLight;
+            font-size: @fontSizeSmaller;
+        }
+    }
+
+    .external-link {
+        display: inline-flex;
+        align-items: center;
+
+        .external-link-icon {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-left: 0.4rem;
+
+            :deep(path) {
+                fill: currentColor;
+            }
+        }
+
+        .visually-hidden {
+            .visually-hidden();
+        }
+    }
+
+    .start-application-submit {
+        margin-top: 2.4rem;
+
+        :deep(.input-submit) {
+            width: 100%;
+
+            @media @tabletWidth {
+                width: auto;
+            }
+        }
+    }
+
+    .eligibility-box {
+        margin-top: 1.2rem;
+        padding: 1.2rem 1.6rem;
+        border-radius: @borderRadiusLarge;
+        background-color: @veryLightGrey;
+
+        .license-state-select {
+            margin-bottom: 0;
+
+            :deep(select) {
+                width: 100%;
+
+                @media @tabletWidth {
+                    max-width: 30rem;
+                }
+            }
+
+            :deep(.label-container) {
+                font-weight: @fontWeight;
+                font-size: @fontSizeSmaller;
+            }
+        }
+    }
+}
