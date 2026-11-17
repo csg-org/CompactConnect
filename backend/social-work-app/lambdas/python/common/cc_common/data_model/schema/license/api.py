@@ -5,7 +5,7 @@ Schema for API objects.
 
 from datetime import date
 
-from marshmallow import ValidationError, pre_load, validates_schema
+from marshmallow import EXCLUDE, ValidationError, pre_load, validates_schema
 from marshmallow.fields import Boolean, Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length, OneOf
 
@@ -100,6 +100,7 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema, ValidatesLicenseTy
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    altFamilyName = String(required=False, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     # These date values are determined by the license records uploaded by a state
     # they do not include a timestamp, so we use the Date field type
@@ -112,8 +113,10 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema, ValidatesLicenseTy
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    country = String(required=False, allow_none=False, validate=Length(1, 100))
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    militaryStatus = Boolean(required=False, allow_none=False)
 
     @validates_schema
     def validate_compact_eligibility(self, data, **_kwargs):
@@ -147,10 +150,13 @@ class LicenseReportResponseSchema(ForgivingSchema):
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    altFamilyName = String(required=False, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=False, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
+    country = String(required=False, allow_none=False, validate=Length(1, 100))
+    militaryStatus = Boolean(required=False, allow_none=False)
 
 
 LICENSE_HISTORY_UPDATE_TYPES = (
@@ -203,6 +209,7 @@ class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    altFamilyName = String(required=False, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=False, allow_none=False)
@@ -212,8 +219,10 @@ class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    country = String(required=False, allow_none=False, validate=Length(1, 100))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    militaryStatus = Boolean(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     history = List(Nested(LicenseHistoryEventSchema, required=False, allow_none=False))
@@ -245,6 +254,7 @@ class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSc
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    altFamilyName = String(required=False, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=False, allow_none=False)
@@ -254,8 +264,10 @@ class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSc
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    country = String(required=False, allow_none=False, validate=Length(1, 100))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    militaryStatus = Boolean(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     history = List(Nested(LicenseHistoryEventSchema, required=False, allow_none=False))
@@ -283,6 +295,14 @@ class LicenseOpenSearchDocumentSchema(LicenseGeneralResponseSchema):
     Python -> load() -> OpenSearch document
     """
 
+    class Meta:
+        # Restate this because a child Meta does not inherit ForgivingSchema's unknown handling.
+        unknown = EXCLUDE
+        # These license fields are returned by the API but must not be indexed. Leaving them on the
+        # document would let OpenSearch dynamic mapping make them searchable, and existing indices
+        # only receive their mapping when they are created.
+        exclude = ('country', 'altFamilyName', 'militaryStatus')
+
     dateOfBirth = Raw(required=False, allow_none=False)
     mostRecentLicenseForType = Boolean(required=False, allow_none=False, load_default=False)
 
@@ -304,5 +324,8 @@ class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+    country = String(required=False, allow_none=False, validate=Length(1, 100))
+    altFamilyName = String(required=False, allow_none=False, validate=Length(1, 100))
+    militaryStatus = Boolean(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionPublicResponseSchema, required=False, allow_none=False))
     history = List(Nested(LicenseHistoryEventPublicSchema, required=False, allow_none=False))

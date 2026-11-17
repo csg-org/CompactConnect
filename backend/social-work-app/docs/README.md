@@ -46,9 +46,11 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | dateOfIssuance* | Date when license was originally issued | YYYY-MM-DD | 2020-01-01 |
 | dateOfRenewal | Most recent license renewal date | YYYY-MM-DD | 2023-01-01 |
 | familyName* | Provider's family/last name | String (max 100 chars) | Smith |
+| altFamilyName | Provider's alternate family/last name (optional) | String (max 100 chars) | García |
 | givenName* | Provider's given/first name | String (max 100 chars) | John |
 | homeAddressCity* | City of provider's home address | String (max 100 chars) | Springfield |
 | homeAddressPostalCode* | Postal/ZIP code of provider's home address | String (5-7 chars) | 12345 |
+| country | Country of the provider's home address (optional) | String (max 100 chars) | United States |
 | homeAddressState* | State/province of provider's home address | String (max 100 chars) | IL |
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
 | licenseNumber* | License number | String (max 100 chars) | OT12345 |
@@ -57,6 +59,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
 | licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last upload still showed them as `active`.* | One of: `active`, `inactive` | active |
 | licenseStatusName | An optional more descriptive name of the license status. | String (max 100 chars) | SUSPENDED |
+| militaryStatus | Whether the provider has military status (optional). In a CSV, use `true` or `false`. | Boolean | true |
 | compactEligibility* | Whether this license makes the licensee eligible to participate in the compact based on the compact's requirements. Cannot be `eligible` if licenseStatus is `inactive`. *Note: licenses will automatically be displayed as `ineligible` after their date of expiration, even if the last upload still showed them as `eligible`.* | One of: `eligible`, `ineligible` | eligible |
 | emailAddress | Provider's email address (optional) | Email (max 100 chars) | john.smith@example.com |
 | homeAddressStreet2 | Second line of provider's street address (optional) | String (max 100 chars) | Suite 100 |
@@ -153,9 +156,11 @@ uploads for that license can omit it - see
 
 The following license fields are publicly visible through CompactConnect's public lookup endpoints:
 
-- Licensee name (given, middle, family, suffix).
+- Licensee name (given, middle, family, alternate family name, suffix).
 - The jurisdiction and compact their license is associated with.
 - License status and compact eligibility.
+- Country.
+- Military status.
 
 **Fields that are NOT publicly visible include:**
 - Social Security Numbers
