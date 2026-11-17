@@ -140,7 +140,11 @@ describe('AuthLogin page', async () => {
         wrapper.vm.isFormLoading = true;
         await nextTick();
 
-        expect(wrapper.find('h1.auth-title').exists()).to.equal(false);
+        const title = wrapper.find('h1.auth-title');
+
+        expect(title.exists()).to.equal(true);
+        expect(title.text()).to.equal(wrapper.vm.$t('auth.mfaCodeTitle'));
+        expect(title.classes()).to.include('is-visually-hidden');
         expect(wrapper.vm.submitLabel).to.equal(wrapper.vm.$t('auth.verifyingCode'));
     });
     it('should focus the MFA code input when that step opens', async () => {
