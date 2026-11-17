@@ -29,6 +29,7 @@
             </p>
         </div>
         <form class="application-start-form" @submit.prevent="handleSubmit">
+            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" class="application-start-mock" />
             <section class="application-start-card" aria-labelledby="applying-for-heading">
                 <h2 id="applying-for-heading" class="card-title">{{ $t('application.applyingForTitle') }}</h2>
                 <div class="type-option">

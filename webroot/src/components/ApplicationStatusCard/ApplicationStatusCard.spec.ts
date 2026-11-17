@@ -7,7 +7,10 @@
 
 import chaiMatchPattern from 'chai-match-pattern';
 import { use, expect } from 'chai';
+import sinon from 'sinon';
 import { mountShallow } from '@tests/helpers/setup';
+import store from '@store/index';
+import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
 import ApplicationStatusCard from '@components/ApplicationStatusCard/ApplicationStatusCard.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import { serverDatetimeFormat } from '@/app.config';
@@ -300,5 +303,27 @@ describe('ApplicationStatusCard component', async () => {
         });
 
         expect(wrapper.find('.fee-waived-pill').exists()).to.equal(false);
+    });
+    it('should navigate to the application checklist when updating the application', async () => {
+        await store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: CompactType.PSYPACT }));
+
+        const wrapper = await mountShallow(ApplicationStatusCard, {
+            props: {
+                application: new Application({ id: 'test-application-id' }),
+            },
+        });
+        const component = wrapper.vm;
+        const pushStub = sinon.stub(component.$router, 'push').resolves();
+
+        component.updateApplication();
+
+        expect(pushStub.calledOnce).to.equal(true);
+        expect(pushStub.firstCall.args[0]).to.matchPattern({
+            name: 'ApplicationChecklist',
+            params: {
+                compact: CompactType.PSYPACT,
+                applicationId: 'test-application-id',
+            },
+        });
     });
 });

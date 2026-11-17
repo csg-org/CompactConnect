@@ -207,6 +207,7 @@ describe('ApplicationStart page', async () => {
         const wrapper = await mountPage();
         const component = wrapper.vm;
         const dispatchSpy = sinon.spy(component.$store, 'dispatch');
+        const replaceStub = sinon.stub(component.$router, 'replace').resolves();
 
         component.formData.apit.value = true;
         component.formData.tap.value = true;
@@ -230,9 +231,31 @@ describe('ApplicationStart page', async () => {
                 licenseJurisdiction: 'co',
             },
         })).to.equal(true);
+        expect(replaceStub.calledOnce).to.equal(true);
+        expect(replaceStub.firstCall.args[0].name).to.equal('ApplicationChecklist');
+        expect(replaceStub.firstCall.args[0].params.compact).to.equal(CompactType.PSYPACT);
+        expect(replaceStub.firstCall.args[0].params.applicationId).to.match(/^mock-application-/);
         expect(component.isFormLoading).to.equal(false);
         expect(component.submitLabel).to.equal('Start application');
         expect(component.formData.submit.errorMessage).to.equal('');
+    });
+    it('should mock populate the form with both types and the first participating state', async () => {
+        await setPsypactCompact();
+
+        const wrapper = await mountPage(mountShallow);
+        const component = wrapper.vm;
+        const scrollSpy = sinon.spy();
+        const getElementStub = sinon.stub(document, 'getElementById').returns({
+            scrollIntoView: scrollSpy,
+        } as unknown as HTMLElement);
+
+        await component.mockPopulate();
+
+        expect(component.selectedTypes).to.matchPattern([ApplicationType.APIT, ApplicationType.TAP]);
+        expect(component.formData.licenseState.value).to.equal('al');
+        expect(component.isFormValid).to.equal(true);
+        expect(getElementStub.calledWith('submit-start-application')).to.equal(true);
+        expect(scrollSpy.calledOnceWith({ behavior: 'smooth', block: 'center' })).to.equal(true);
     });
     it('should show a create error above the button and re-enable it', async () => {
         await setPsypactCompact();

@@ -195,6 +195,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true, licenseeAccess: true, },
     },
     {
+        path: '/:compact/Application/:applicationId',
+        name: 'ApplicationChecklist',
+        component: () => import(/* webpackChunkName: "licenseeApplication" */ '@pages/ApplicationChecklist/ApplicationChecklist.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, },
+    },
+    {
         path: '/:compact/MilitaryStatus',
         name: 'MilitaryStatus',
         component: () => import(/* webpackChunkName: "militaryStatus" */ '@pages/MilitaryStatus/MilitaryStatus.vue'),

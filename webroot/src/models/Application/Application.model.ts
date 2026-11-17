@@ -36,6 +36,20 @@ export enum ApplicantSectionStatus {
     CONFIRM_DETAILS = 'confirm-details',
 }
 
+export enum ApplicationSection {
+    PERSONAL_INFORMATION = 'personalInformation',
+    LICENSE_HISTORY = 'licenseHistory',
+    EDUCATION = 'education',
+    CONDUCT_HISTORY = 'conductHistory',
+    HOME_STATE = 'homeState',
+    ACKNOWLEDGEMENTS = 'acknowledgements',
+}
+
+export interface ApplicationSectionSummary {
+    key: ApplicationSection;
+    applicantStatus?: ApplicantSectionStatus;
+}
+
 export enum ReviewSectionStatus {
     PENDING = 'pending',
     AWAITING_APPLICANT = 'awaiting-applicant',
@@ -373,15 +387,37 @@ export class Application implements InterfaceApplicationCreate {
         return this.getStatusDisplay(this.status || '');
     }
 
-    public sectionApplicantStatuses(): Array<ApplicantSectionStatus | undefined> {
+    public getSections(): Array<ApplicationSectionSummary> {
         return [
-            this.personalInformation?.applicantStatus,
-            this.licenseHistory?.applicantStatus,
-            this.education?.applicantStatus,
-            this.conductHistory?.applicantStatus,
-            this.homeState?.applicantStatus,
-            this.acknowledgements?.applicantStatus,
+            {
+                key: ApplicationSection.PERSONAL_INFORMATION,
+                applicantStatus: this.personalInformation?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.LICENSE_HISTORY,
+                applicantStatus: this.licenseHistory?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.EDUCATION,
+                applicantStatus: this.education?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.CONDUCT_HISTORY,
+                applicantStatus: this.conductHistory?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.HOME_STATE,
+                applicantStatus: this.homeState?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.ACKNOWLEDGEMENTS,
+                applicantStatus: this.acknowledgements?.applicantStatus,
+            },
         ];
+    }
+
+    public sectionApplicantStatuses(): Array<ApplicantSectionStatus | undefined> {
+        return this.getSections().map((section) => section.applicantStatus);
     }
 
     public areAllSectionsCompleteForApplicant(): boolean {
@@ -427,6 +463,10 @@ export class Application implements InterfaceApplicationCreate {
 
     public isDeactivated(): boolean {
         return this.status === ApplicationStatus.DEACTIVATED;
+    }
+
+    public isEditableByApplicant(): boolean {
+        return this.isStarted() || this.isNeedsAttention();
     }
 
     public isFeeWaived(): boolean {

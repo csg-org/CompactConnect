@@ -103,6 +103,18 @@
 
 ---
 
+## Mock populate
+- Forms that a developer fills in repeatedly during local testing should include a mock populate link: `<MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />` (`@components/Forms/MockPopulate`), placed at the top of the form.
+- Gate it with `get isMockPopulateEnabled() { return Boolean(this.$envConfig.isDevelopment); }`. Never show it outside local development.
+- `mockPopulate()` should:
+    - Fill every required input with valid values (e.g. `test@example.com`, `Test` / `User`; for selects, pick the first enabled non-placeholder option rather than hard-coding a value that may be disabled in mock data).
+    - Run `this.validateAll({ asTouched: true })` so the form is immediately submittable and any validation gaps are visible.
+    - `await nextTick()`, then smooth scroll to the submit button: `document.getElementById(this.formData.submit.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })`.
+- Only add a "Clear" link (`$t('common.clear')`, shown with the same `isMockPopulateEnabled` gate and calling a form reset) on longer forms where clearing by hand is tedious (see `RegisterLicenseePsypact`). Short forms (a few inputs) should not include it; ask if it's unclear which applies.
+- Test it: call `await component.mockPopulate()` and assert the form is valid. Stub `document.getElementById` to return a `{ scrollIntoView }` spy, since jsdom doesn't implement `scrollIntoView`.
+
+---
+
 ## Internationalization
 - No hardcoded user-facing strings; add keys to `src/locales/en.json` and reference via `$t` / `$tm`
 - Key names must match exactly across all locale files. When adding a key to `en.json`, add the same key to `es.json` (an untranslated English value is acceptable; a missing key is not) — see `src/locales/readme.txt`

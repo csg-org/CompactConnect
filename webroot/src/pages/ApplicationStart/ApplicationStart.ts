@@ -6,12 +6,18 @@
 //
 
 import { Component, mixins, toNative } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import {
+    reactive,
+    computed,
+    nextTick,
+    ComputedRef
+} from 'vue';
 import { stateList } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import RibbonIcon from '@components/Icons/RibbonIcon/RibbonIcon.vue';
 import GraduationCapIcon from '@components/Icons/GraduationCapIcon/GraduationCapIcon.vue';
 import ShieldCheckIcon from '@components/Icons/ShieldCheckIcon/ShieldCheckIcon.vue';
@@ -43,6 +49,7 @@ interface ApplicationTypeConfig {
         InputCheckbox,
         InputSelect,
         InputSubmit,
+        MockPopulate,
         RibbonIcon,
         GraduationCapIcon,
         ShieldCheckIcon,
@@ -145,6 +152,10 @@ class ApplicationStart extends mixins(MixinForm) {
             : this.$t('application.startApplication');
     }
 
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
+    }
+
     //
     // Methods
     //
@@ -213,6 +224,18 @@ class ApplicationStart extends mixins(MixinForm) {
         this.checkValidForAll();
     }
 
+    async mockPopulate(): Promise<void> {
+        const firstEnabledState = this.stateOptions.find((option) => option.value && !option.isDisabled);
+
+        this.formData.apit.value = true;
+        this.formData.tap.value = true;
+        this.formData.licenseState.value = firstEnabledState?.value || '';
+        this.validateAll({ asTouched: true });
+
+        await nextTick();
+        document.getElementById(this.formData.submit.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     prepRequestData(): object {
         return {
             types: this.selectedTypes,
@@ -229,7 +252,10 @@ class ApplicationStart extends mixins(MixinForm) {
             await this.$store.dispatch('user/createApplicationRequestLicensee', {
                 data: this.prepRequestData(),
             }).then((application) => {
-                console.log('application created', application);
+                this.$router.replace({
+                    name: 'ApplicationChecklist',
+                    params: { compact: this.compactType, applicationId: application?.id },
+                });
             }).catch((err) => {
                 this.setError(err?.message || this.$t('serverErrors.networkError'));
             });

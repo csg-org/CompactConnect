@@ -1,0 +1,273 @@
+//
+//  ApplicationChecklist.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/17/2026.
+//
+
+.application-checklist-container {
+    @iconSize: 1.8rem;
+    @iconGap: 1.2rem;
+
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+
+    .checklist-content,
+    .checklist-footer-content {
+        width: 100%;
+        max-width: 120rem;
+        margin: 0 auto;
+    }
+
+    .checklist-content {
+        padding: 2.4rem 1.6rem 3.2rem;
+
+        @media @tabletWidth {
+            padding: 4rem 3rem 4rem;
+        }
+    }
+
+    .section-button :deep(.input-button) {
+        min-width: 7.2rem;
+    }
+
+    .breadcrumbs {
+        display: flex;
+        margin-bottom: 1.2rem;
+        color: @fontColorLight;
+        font-size: @fontSizeSmaller;
+
+        .breadcrumb-link {
+            margin-right: 0.4rem;
+            color: @fontColorLight;
+        }
+    }
+
+    .checklist-title {
+        margin-bottom: 0.8rem;
+        font-weight: @fontWeightMedium;
+        font-size: @h2FontSize;
+    }
+
+    .checklist-intro {
+        margin-bottom: 2rem;
+        color: @fontColorLight;
+    }
+
+    .checklist-load-error {
+        padding: 2rem;
+        border-radius: @borderRadiusLarge;
+        background-color: @white;
+
+        .load-error-message {
+            margin-bottom: 1.2rem;
+            color: @midRed;
+        }
+
+        .text-link {
+            font-weight: @fontWeightBold;
+        }
+    }
+
+    .checklist-progress {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.6rem;
+
+        .checklist-progress-bar {
+            flex-grow: 1;
+            border-radius: @borderRadiusPillShape;
+            overflow: hidden;
+            background-color: @lightGrey;
+
+            :deep(.finished-portion),
+            :deep(.unifinished-portion) {
+                height: 0.6rem;
+            }
+
+            :deep(.finished-portion) {
+                border-radius: @borderRadiusPillShape;
+                animation: checklist-progress-fill 1s ease-in-out;
+
+                @media (prefers-reduced-motion: reduce) {
+                    animation: none;
+                }
+            }
+
+            :deep(.unifinished-portion) {
+                background-color: transparent;
+            }
+        }
+
+        .progress-display {
+            flex-shrink: 0;
+            margin-left: 1.2rem;
+            color: @fontColorLight;
+            font-size: @fontSizeSmaller;
+        }
+    }
+
+    .checklist-card {
+        width: 100%;
+        padding: 1.6rem 2rem 0.8rem;
+        border-radius: @borderRadiusLarge;
+        background-color: @white;
+
+        @media @tabletWidth {
+            padding: 2rem 2.4rem 1.2rem;
+        }
+    }
+
+    .checklist-header,
+    .section-row {
+        @media @tabletWidth {
+            display: grid;
+            grid-template-columns: 1fr 14rem 8rem;
+            align-items: center;
+            column-gap: 1.6rem;
+        }
+    }
+
+    .checklist-header {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid @veryLightGrey;
+        color: @fontColorLight;
+        font-weight: @fontWeightBold;
+        font-size: @fontSizeSmall;
+        letter-spacing: 0.1rem;
+        text-transform: uppercase;
+
+        .header-status {
+            display: none;
+
+            @media @tabletWidth {
+                display: block;
+            }
+        }
+    }
+
+    .section-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .section-row {
+        display: grid;
+        grid-template-areas:
+            "status status"
+            "info action";
+        grid-template-columns: 1fr auto;
+        gap: 0.8rem 1.6rem;
+        align-items: center;
+        padding: 1.4rem 0;
+        border-bottom: 1px solid @veryLightGrey;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        @media @tabletWidth {
+            grid-template-areas: "info status action";
+            padding: 1rem 0;
+        }
+    }
+
+    .section-status {
+        grid-area: status;
+    }
+
+    .status-pill {
+        display: inline-block;
+        min-width: 10rem;
+        padding: 0.3rem 1.2rem;
+        border-radius: @borderRadiusPillShape;
+        color: @veryDarkGrey;
+        font-weight: @fontWeightBold;
+        font-size: @fontSizeSmall;
+        letter-spacing: 0.08rem;
+        text-align: center;
+        text-transform: uppercase;
+        background-color: @veryLightGrey;
+
+        &.complete {
+            color: @darkGreen;
+            background-color: @veryLightGreen;
+        }
+
+        &.attention {
+            color: darken(@darkOrange, 15%);
+            background-color: darken(@lightOrange, 5%);
+        }
+
+        .visually-hidden {
+            .visually-hidden();
+        }
+    }
+
+    .section-info {
+        display: flex;
+        grid-area: info;
+        align-items: flex-start;
+        min-width: 0;
+    }
+
+    .section-icon {
+        flex-shrink: 0;
+        width: @iconSize;
+        height: @iconSize;
+        margin-top: 0.1rem;
+        margin-right: @iconGap;
+        color: @primaryColor;
+
+        &.icon-user {
+            fill: currentColor;
+        }
+    }
+
+    .section-name {
+        font-weight: @fontWeightBold;
+    }
+
+    .section-description {
+        color: @fontColorLight;
+        font-size: @fontSizeSmaller;
+    }
+
+    .section-action {
+        grid-area: action;
+        justify-self: end;
+    }
+
+    .checklist-footer {
+        width: 100%;
+        margin-top: auto;
+        padding: 1.6rem 0;
+        border-top: 1px solid @veryLightGrey;
+        background-color: @white;
+
+        .checklist-footer-content {
+            padding: 0 1.6rem;
+
+            @media @tabletWidth {
+                padding: 0 3rem;
+            }
+        }
+
+        .continue-button :deep(.input-button) {
+            width: 100%;
+
+            @media @tabletWidth {
+                width: auto;
+            }
+        }
+    }
+}
+
+@keyframes checklist-progress-fill {
+    from {
+        width: 0;
+    }
+}

@@ -1219,7 +1219,48 @@
         "requirementFee": "Una tarjeta de crédito para una tarifa no reembolsable de {fee}",
         "requirementTime": "Unos 30 minutos, pero puede guardar y continuar en cualquier momento",
         "startApplication": "Iniciar solicitud",
-        "creatingApplication": "Creando solicitud..."
+        "creatingApplication": "Creando solicitud...",
+        "checklistTitle": "Lista de verificación de la solicitud",
+        "checklistIntro": "Complete cada sección a continuación. Una vez terminadas todas las secciones, envíe su solicitud para revisión del personal.",
+        "checklistBreadcrumb": "Solicitud de autorización",
+        "checklistProgress": "{complete} de {total} completadas",
+        "checklistSectionHeader": "Sección",
+        "checklistLoadError": "No pudimos cargar esta solicitud. Inténtelo de nuevo más tarde.",
+        "startSection": "Comenzar",
+        "continueToPayment": "Continuar al pago",
+        "continueToSubmission": "Continuar al envío",
+        "applicationSections": [
+            {
+                "key": "personalInformation",
+                "name": "Información personal",
+                "description": "Nombre, contacto y datos demográficos"
+            },
+            {
+                "key": "licenseHistory",
+                "name": "Historial de licencias",
+                "description": "Licencias actuales y anteriores"
+            },
+            {
+                "key": "education",
+                "name": "Educación",
+                "description": "Detalles del doctorado y del programa"
+            },
+            {
+                "key": "conductHistory",
+                "name": "Historial de conducta",
+                "description": "Preguntas disciplinarias y de antecedentes"
+            },
+            {
+                "key": "homeState",
+                "name": "Declaración del estado de residencia",
+                "description": "Confirma su estado de residencia para la elegibilidad de autorización"
+            },
+            {
+                "key": "acknowledgements",
+                "name": "Reconocimientos y firma",
+                "description": "Revise y certifique los términos del programa"
+            }
+        ]
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

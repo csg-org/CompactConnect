@@ -13,6 +13,7 @@ import {
     ApplicationType,
     ApplicationStatus,
     ApplicantSectionStatus,
+    ApplicationSection,
     ReviewSectionStatus,
     ReviewerType,
     ApplicationLicenseStatus,
@@ -141,6 +142,14 @@ describe('Application model', () => {
         expect(application.typeDisplay()).to.equal('');
         expect(application.getStatusDisplay('')).to.equal('Unknown');
         expect(application.applicationStatusDisplay()).to.equal('Started');
+        expect(application.getSections()).to.matchPattern([
+            { key: ApplicationSection.PERSONAL_INFORMATION, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.LICENSE_HISTORY, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.EDUCATION, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.CONDUCT_HISTORY, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.HOME_STATE, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.ACKNOWLEDGEMENTS, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+        ]);
         expect(application.sectionApplicantStatuses()).to.matchPattern([
             ApplicantSectionStatus.INCOMPLETE,
             ApplicantSectionStatus.INCOMPLETE,
@@ -152,6 +161,7 @@ describe('Application model', () => {
         expect(application.areAllSectionsCompleteForApplicant()).to.equal(false);
         expect(application.sectionCount()).to.equal(6);
         expect(application.completedSectionCount()).to.equal(0);
+        expect(application.isEditableByApplicant()).to.equal(true);
         expect(application.isStarted()).to.equal(true);
         expect(application.isInReview()).to.equal(false);
         expect(application.isNeedsAttention()).to.equal(false);
@@ -330,6 +340,14 @@ describe('Application model', () => {
         expect(application.typeDisplay()).to.equal('APIT + TAP');
         expect(application.getStatusDisplay(ApplicantSectionStatus.NEEDS_ATTENTION)).to.equal('Needs attention');
         expect(application.applicationStatusDisplay()).to.equal('Awaiting applicant');
+        expect(application.getSections()).to.matchPattern([
+            { key: ApplicationSection.PERSONAL_INFORMATION, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.LICENSE_HISTORY, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.EDUCATION, applicantStatus: ApplicantSectionStatus.NEEDS_ATTENTION },
+            { key: ApplicationSection.CONDUCT_HISTORY, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.HOME_STATE, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.ACKNOWLEDGEMENTS, applicantStatus: ApplicantSectionStatus.COMPLETE },
+        ]);
         expect(application.sectionApplicantStatuses()).to.matchPattern([
             ApplicantSectionStatus.COMPLETE,
             ApplicantSectionStatus.COMPLETE,
@@ -341,6 +359,7 @@ describe('Application model', () => {
         expect(application.areAllSectionsCompleteForApplicant()).to.equal(false);
         expect(application.sectionCount()).to.equal(6);
         expect(application.completedSectionCount()).to.equal(5);
+        expect(application.isEditableByApplicant()).to.equal(true);
         expect(application.isStarted()).to.equal(false);
         expect(application.isInReview()).to.equal(false);
         expect(application.isNeedsAttention()).to.equal(true);
@@ -525,6 +544,14 @@ describe('Application model', () => {
         expect(application.typeDisplay()).to.equal('APIT + TAP');
         expect(application.getStatusDisplay(ReviewSectionStatus.PENDING)).to.equal('Pending');
         expect(application.applicationStatusDisplay()).to.equal('Approved');
+        expect(application.getSections()).to.matchPattern([
+            { key: ApplicationSection.PERSONAL_INFORMATION, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.LICENSE_HISTORY, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.EDUCATION, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.CONDUCT_HISTORY, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.HOME_STATE, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.ACKNOWLEDGEMENTS, applicantStatus: ApplicantSectionStatus.COMPLETE },
+        ]);
         expect(application.sectionApplicantStatuses()).to.matchPattern([
             ApplicantSectionStatus.COMPLETE,
             ApplicantSectionStatus.COMPLETE,
@@ -536,6 +563,7 @@ describe('Application model', () => {
         expect(application.areAllSectionsCompleteForApplicant()).to.equal(true);
         expect(application.sectionCount()).to.equal(6);
         expect(application.completedSectionCount()).to.equal(6);
+        expect(application.isEditableByApplicant()).to.equal(false);
         expect(application.isStarted()).to.equal(false);
         expect(application.isInReview()).to.equal(false);
         expect(application.isNeedsAttention()).to.equal(false);
@@ -659,6 +687,14 @@ describe('Application model', () => {
             false,
             false,
         ]);
+        expect(applications.map((application) => application.isEditableByApplicant())).to.matchPattern([
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+        ]);
     });
     it('should create an Application model with rejected status checks', () => {
         const application = new Application({
@@ -672,6 +708,7 @@ describe('Application model', () => {
         expect(application.isApproved()).to.equal(false);
         expect(application.isRejected()).to.equal(true);
         expect(application.isDeactivated()).to.equal(false);
+        expect(application.isEditableByApplicant()).to.equal(false);
     });
     it('should create an Application model with deactivated status checks', () => {
         const application = new Application({
@@ -685,6 +722,7 @@ describe('Application model', () => {
         expect(application.isApproved()).to.equal(false);
         expect(application.isRejected()).to.equal(false);
         expect(application.isDeactivated()).to.equal(true);
+        expect(application.isEditableByApplicant()).to.equal(false);
     });
     it('should create an Application model with fee waived when all types are payment compensated', () => {
         const application = new Application({

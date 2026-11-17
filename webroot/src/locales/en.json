@@ -1235,7 +1235,48 @@
         "requirementFee": "A credit card for a non-refundable fee of {fee}",
         "requirementTime": "About 30 minutes, but you can save and resume anytime",
         "startApplication": "Start application",
-        "creatingApplication": "Creating application..."
+        "creatingApplication": "Creating application...",
+        "checklistTitle": "Application checklist",
+        "checklistIntro": "Complete each section below. Once all sections are finished, submit your application for staff review.",
+        "checklistBreadcrumb": "Authorization application",
+        "checklistProgress": "{complete} of {total} complete",
+        "checklistSectionHeader": "Section",
+        "checklistLoadError": "We couldn't load this application. Please try again later.",
+        "startSection": "Start",
+        "continueToPayment": "Continue to payment",
+        "continueToSubmission": "Continue to submission",
+        "applicationSections": [
+            {
+                "key": "personalInformation",
+                "name": "Personal information",
+                "description": "Name, contact, and demographic details"
+            },
+            {
+                "key": "licenseHistory",
+                "name": "Licensure history",
+                "description": "Current and past licenses"
+            },
+            {
+                "key": "education",
+                "name": "Education",
+                "description": "Doctoral degree and program details"
+            },
+            {
+                "key": "conductHistory",
+                "name": "Conduct history",
+                "description": "Disciplinary and background questions"
+            },
+            {
+                "key": "homeState",
+                "name": "Home state declaration",
+                "description": "Confirms your home state for authorization eligibility"
+            },
+            {
+                "key": "acknowledgements",
+                "name": "Acknowledgements and signature",
+                "description": "Review and attest to program terms"
+            }
+        ]
     },
     "military": {
         "militaryStatusTitle": "Military status",

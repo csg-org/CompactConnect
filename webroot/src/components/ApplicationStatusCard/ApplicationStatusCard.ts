@@ -210,7 +210,13 @@ class ApplicationStatusCard extends Vue {
     // Methods
     //
     updateApplication(): void {
-        console.log('update application', this.application?.id);
+        this.$router.push({
+            name: 'ApplicationChecklist',
+            params: {
+                compact: this.$store.state.user.currentCompact?.type,
+                applicationId: this.application?.id,
+            },
+        });
     }
 }
 
