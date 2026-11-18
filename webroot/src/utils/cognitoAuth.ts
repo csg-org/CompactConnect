@@ -425,11 +425,16 @@ type PasswordRuleMessages = {
     password: Record<string, string>;
 };
 
+const noLeadingTrailingWhitespace: Joi.CustomValidator = (value, helpers) => ((value.trim() === value)
+    ? value
+    : helpers.error('password.noLeadingTrailingWhitespace'));
+
 export const passwordValidation = (messages: PasswordRuleMessages): Joi.Schema => joiPassword
     .string()
     .min(12)
     .minOfLowercase(1)
     .minOfNumeric(1)
+    .custom(noLeadingTrailingWhitespace, 'noLeadingTrailingWhitespace')
     .messages({
         ...messages.string,
         ...messages.password,

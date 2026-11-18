@@ -358,6 +358,8 @@
         "currentPassword": "Current password",
         "newPassword": "New password",
         "confirmNewPassword": "Confirm new password",
+        "confirmPassword": "Confirm password",
+        "opensInNewTab": "(opens in a new tab)",
         "passwordCreationInstruction": "To create a new password, you have to meet all of the following requirements",
         "passwordRules": [
             "Min 8 characters",
@@ -448,6 +450,7 @@
         "minOfNumeric": "Must have at least {min} numbers",
         "minOfSpecialCharacters": "Must have at least {min} special characters",
         "noWhiteSpaces": "Must not contain white spaces",
+        "noLeadingTrailingWhitespace": "Must not begin or end with a space",
         "onlyLatinCharacters": "Must only contain latin characters",
         "doesNotInclude": "Must not include your username or other common strings",
         "minItems": "Must contain at least {min}",
@@ -1099,6 +1102,7 @@
                 "key": "apit",
                 "compactKey": "psypact",
                 "abbrev": "APIT",
+                "fullName": "Authority to Practice Interjurisdictional Telepsychology",
                 "description": "Remote practice in another participating state."
             },
             {
@@ -1106,6 +1110,7 @@
                 "key": "tap",
                 "compactKey": "psypact",
                 "abbrev": "TAP",
+                "fullName": "Temporary Authorization to Practice",
                 "description": "Short-term, in-person practice in another participating state."
             },
             {
@@ -1194,7 +1199,86 @@
         "authorizationStatusOptions": {
             "active": "Active",
             "inactive": "Inactive"
-        }
+        },
+        "apply": "Apply",
+        "applyForAuthorization": "Apply for {type} authorization",
+        "applicationTitle": "Your {type} application",
+        "feeWaived": "Fee waived",
+        "sectionsComplete": "{complete} of {total} sections complete",
+        "submittedInReview": "Your application was submitted on {date}. It is now in review and you will be notified of a final decision.",
+        "approvedSummary": "Your application was approved.",
+        "rejectedSummary": "Your application was rejected.",
+        "deactivatedSummary": "Your application was deactivated.",
+        "issueWithApplication": "Issue with your application",
+        "reviewerNotes": "Reviewer notes",
+        "continueApplication": "Continue application",
+        "updateApplication": "Update application",
+        "decision": "Decision",
+        "stepOfTotal": "Step {step} of {total}",
+        "needHelp": "Need help?",
+        "helpInstructions": "For questions about eligibility or the application process, please contact ",
+        "applyTitle": "Apply for a PSYPACT authorization",
+        "applyIntro": "PSYPACT (the Psychology Interjurisdictional Compact) lets licensed psychologists practice across state lines through telepsychology or short-term in-person work, without needing a separate license in every state. Learn more at",
+        "applyReviewInfo": "Once submitted, your application will undergo a formal review by PSYPACT staff members. If you need assistance, please email",
+        "applyingForTitle": "What are you applying for?",
+        "applyTypeRequired": "Select APIT, TAP, or both",
+        "youWillNeedTitle": "You will need",
+        "requirementLicense": "An active, unrestricted license in a PSYPACT participating state",
+        "eligibilityStateLabel": "Check your eligibility by selecting where you hold an active license and where you will be physically present in.",
+        "notParticipating": "(Not participating)",
+        "requirementDegree": "A doctoral degree in psychology (PhD, PsyD, or EdD)",
+        "requirementEPassport": "An E.Passport issued by ASPPB — don't have one?",
+        "getEPassport": "Get your E.Passport",
+        "requirementEPassportSubtext": "Request a verification letter from ASPPB that will get sent to us. You can start this application before your E.Passport is verified, but you won't be able to submit until we receive and process your verification letter.",
+        "requirementIpc": "An IPC (Inter-jurisdictional Practice Certificate) issued by ASPPB — don't have one?",
+        "getIpc": "Get your IPC",
+        "requirementIpcSubtext": "Request a verification letter from ASPPB that will get sent to us. You can start this application before your IPC is verified, but you won't be able to submit until we receive and process your verification letter.",
+        "requirementFee": "A credit card for a non-refundable fee of {fee}",
+        "requirementFeeUnavailable": "A credit card for a non-refundable fee. The fee is currently unavailable, please try again later.",
+        "requirementTime": "About 30 minutes, but you can save and resume anytime",
+        "startApplication": "Start application",
+        "creatingApplication": "Creating application...",
+        "checklistTitle": "Application checklist",
+        "checklistIntro": "Complete each section below. Once all sections are finished, submit your application for staff review.",
+        "checklistBreadcrumb": "Authorization application",
+        "checklistProgress": "{complete} of {total} complete",
+        "checklistSectionHeader": "Section",
+        "checklistLoadError": "We couldn't load this application. Please try again later.",
+        "startSection": "Start",
+        "continueToPayment": "Continue to payment",
+        "continueToSubmission": "Continue to submission",
+        "applicationSections": [
+            {
+                "key": "personalInformation",
+                "name": "Personal information",
+                "description": "Name, contact, and demographic details"
+            },
+            {
+                "key": "licenseHistory",
+                "name": "Licensure history",
+                "description": "Current and past licenses"
+            },
+            {
+                "key": "education",
+                "name": "Education",
+                "description": "Doctoral degree and program details"
+            },
+            {
+                "key": "conductHistory",
+                "name": "Conduct history",
+                "description": "Disciplinary and background questions"
+            },
+            {
+                "key": "homeState",
+                "name": "Home state declaration",
+                "description": "Confirms your home state for authorization eligibility"
+            },
+            {
+                "key": "acknowledgements",
+                "name": "Acknowledgements and signature",
+                "description": "Review and attest to program terms"
+            }
+        ]
     },
     "military": {
         "militaryStatusTitle": "Military status",
@@ -1269,6 +1353,10 @@
     "account": {
         "requestAccount": "Request account",
         "requestAnAccount": "Request an account",
+        "createAccount": "Create account",
+        "createAnAccount": "Create an account",
+        "createAccountSuccessTitle": "Thanks for creating an account.",
+        "createAccountSuccessSubtext": "Check your email to verify your account.",
         "requestAccountSubtext": "The information you provide here must match <em>exactly</em> the information your home state has on file. If your information does not match, you will be unable to create an account.",
         "requestAccountHomeStateInfo": "Not all states are live and ready for licensee account creation or issuing privileges. Please check with the compact commission for details about your state.",
         "requestAccountEmailSubtext": "This email address is where we will send information regarding your account. It <em>does not need to match</em> the information provided by your state.",

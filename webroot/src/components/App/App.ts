@@ -163,6 +163,10 @@ class App extends Vue {
             await this.$store.dispatch('user/getStaffAccountRequest');
         } else if (authType === AuthTypes.LICENSEE) {
             await this.$store.dispatch('user/getLicenseeAccountRequest');
+
+            if (this.$isAppModePsyPact) {
+                this.$store.dispatch('user/getApplicationsRequestLicensee'); // Not awaiting so it doesn't block compact setup
+            }
         }
 
         this.updateAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps

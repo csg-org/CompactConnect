@@ -1,0 +1,216 @@
+//
+//  ApplicationStatusCard.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/10/2026.
+//
+
+.application-status-card-container {
+    @nodeSize: 3.2rem;
+    @iconSize: 1.6rem;
+    @connectorHeight: 0.2rem;
+    @attentionColor: darken(@midOrange, 25%);
+
+    width: 100%;
+    padding: 2.4rem 2rem;
+    border-left: 0.6rem solid @primaryColor;
+    border-radius: @borderRadiusLarge;
+    background-color: @white;
+
+    @media @tabletWidth {
+        padding: 2.4rem 3rem;
+    }
+
+    &.needs-attention {
+        border-left-color: @attentionColor;
+    }
+
+    &.rejected {
+        border-left-color: @midRed;
+    }
+
+    .application-heading-row {
+        display: flex;
+        flex-direction: column;
+
+        @media @tabletWidth {
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .application-title {
+            font-weight: @fontWeightMedium;
+            font-size: @h3FontSize;
+        }
+
+        .fee-waived-pill {
+            display: flex;
+            align-items: center;
+            align-self: flex-start;
+            margin-top: 0.8rem;
+            margin-bottom: 0.8rem;
+            padding: 0.3rem 1rem 0.3rem 0.6rem;
+            border-radius: @borderRadiusPillShape;
+            color: @darkGreen;
+            font-weight: @fontWeightBold;
+            font-size: @fontSizeSmaller;
+            background-color: @veryLightGreen;
+
+            @media @tabletWidth {
+                align-self: auto;
+                margin-top: 0;
+                margin-bottom: 0;
+                margin-left: auto;
+            }
+
+            .fee-waived-icon {
+                width: 1.4rem;
+                height: 1.4rem;
+                margin-right: 0.4rem;
+
+                :deep(path) {
+                    fill: @darkGreen;
+                }
+            }
+        }
+    }
+
+    .application-summary {
+        margin-top: 0.4rem;
+        color: @fontColorLight;
+    }
+
+    .status-track {
+        display: flex;
+        margin: 2rem 0 0;
+        padding: 0;
+        list-style: none;
+
+        .step-item {
+            display: flex;
+            flex: 1 1 0;
+
+            &:last-child {
+                flex: 0 0 auto;
+            }
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .step-node {
+            display: flex;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            width: @nodeSize;
+            height: @nodeSize;
+            border-radius: 50%;
+            color: @lightTextGrey;
+            font-weight: @fontWeightBold;
+            font-size: @fontSizeSmaller;
+            background-color: @veryLightGrey;
+
+            &.current {
+                color: @white;
+                background-color: @primaryColor;
+            }
+
+            &.complete {
+                background-color: @darkBlue;
+
+                .step-icon.check {
+                    stroke: @darkBlue;
+                }
+            }
+
+            &.approved {
+                background-color: @midGreen;
+
+                .step-icon.check {
+                    stroke: @midGreen;
+                }
+            }
+
+            &.attention {
+                background-color: @attentionColor;
+
+                .step-icon.alert {
+                    width: ~"calc(@{iconSize} + 0.4rem)";
+                    height: ~"calc(@{iconSize} + 0.4rem)";
+                    fill: @attentionColor;
+                    stroke: @white;
+                }
+            }
+
+            &.rejected {
+                background-color: @midRed;
+            }
+
+            .step-icon {
+                width: @iconSize;
+                height: @iconSize;
+                fill: @white;
+                stroke: @white;
+            }
+        }
+
+        .step-label {
+            max-width: 7.2rem;
+            margin-top: 0.6rem;
+            color: @fontColorLight;
+            font-size: 1.4rem;
+            white-space: break-spaces;
+            text-align: center;
+
+            .visually-hidden {
+                .visually-hidden();
+            }
+        }
+
+        .is-current .step-label {
+            color: @fontColor;
+            font-weight: @fontWeightBold;
+        }
+
+        .connector {
+            display: block;
+            flex: 1;
+            height: @connectorHeight;
+            margin: ((@nodeSize - @connectorHeight) / 2) 1.2rem 0;
+            background-color: @lightGrey;
+        }
+    }
+
+    .application-notes {
+        margin-top: 2rem;
+        padding: 1.2rem 1.6rem;
+        border-radius: @borderRadiusSmall;
+        background-color: @veryLightGrey;
+
+        .notes-title {
+            margin-bottom: 0.4rem;
+            color: @fontColorLight;
+            font-weight: @fontWeightBold;
+            font-size: @fontSizeSmaller;
+            letter-spacing: 0.1rem;
+            text-transform: uppercase;
+        }
+    }
+
+    .update-application-btn {
+        width: 100%;
+        margin-top: 2rem;
+
+        @media @tabletWidth {
+            width: fit-content;
+        }
+
+        &:deep(input) {
+            width: 100%;
+        }
+    }
+}

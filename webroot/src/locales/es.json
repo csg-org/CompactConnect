@@ -357,6 +357,8 @@
         "currentPassword": "Contraseña actual",
         "newPassword": "Nueva contraseña",
         "confirmNewPassword": "Confirmar nueva contraseña",
+        "confirmPassword": "Confirmar contraseña",
+        "opensInNewTab": "(se abre en una pestaña nueva)",
         "passwordCreationInstruction": "Para crear una nueva contraseña, debe cumplir todos los siguientes requisitos",
         "passwordRules": [
             "Mínimo 8 caracteres",
@@ -432,6 +434,7 @@
         "minOfNumeric": "Debe tener al menos {min} números",
         "minOfSpecialCharacters": "Debe tener al menos {min} caracteres especiales",
         "noWhiteSpaces": "No debe contener espacios en blanco.",
+        "noLeadingTrailingWhitespace": "No debe comenzar ni terminar con un espacio.",
         "onlyLatinCharacters": "Sólo debe contener caracteres latinos.",
         "doesNotInclude": "No debe incluir su nombre de usuario u otras cadenas comunes",
         "minItems": "Debe contener al menos {min}",
@@ -1083,6 +1086,7 @@
                 "key": "apit",
                 "compactKey": "psypact",
                 "abbrev": "APIT",
+                "fullName": "Autoridad para Ejercer la Telepsicología Interjurisdiccional",
                 "description": "Práctica a distancia en otro estado participante."
             },
             {
@@ -1090,6 +1094,7 @@
                 "key": "tap",
                 "compactKey": "psypact",
                 "abbrev": "TAP",
+                "fullName": "Autorización Temporal para Ejercer",
                 "description": "Práctica presencial a corto plazo en otro estado participante."
             },
             {
@@ -1178,7 +1183,86 @@
         "authorizationStatusOptions": {
             "active": "Activo",
             "inactive": "Inactivo"
-        }
+        },
+        "apply": "Solicitar",
+        "applyForAuthorization": "Solicitar autorización {type}",
+        "applicationTitle": "Su solicitud de {type}",
+        "feeWaived": "Tarifa exenta",
+        "sectionsComplete": "{complete} de {total} secciones completadas",
+        "submittedInReview": "Su solicitud fue enviada el {date}. Ahora está en revisión y se le notificará la decisión final.",
+        "approvedSummary": "Su solicitud fue aprobada.",
+        "rejectedSummary": "Su solicitud fue rechazada.",
+        "deactivatedSummary": "Su solicitud fue desactivada.",
+        "issueWithApplication": "Problema con su solicitud",
+        "reviewerNotes": "Notas del revisor",
+        "continueApplication": "Continuar solicitud",
+        "updateApplication": "Actualizar solicitud",
+        "decision": "Decisión",
+        "stepOfTotal": "Paso {step} de {total}",
+        "needHelp": "¿Necesitar ayuda?",
+        "helpInstructions": "Si tiene preguntas sobre los requisitos o el proceso de solicitud, póngase en contacto con ",
+        "applyTitle": "Solicitar una autorización de PSYPACT",
+        "applyIntro": "PSYPACT (el Pacto Interjurisdiccional de Psicología) permite a los psicólogos con licencia ejercer en otros estados mediante telepsicología o trabajo presencial a corto plazo, sin necesidad de una licencia separada en cada estado. Obtenga más información en",
+        "applyReviewInfo": "Una vez enviada, su solicitud será sometida a una revisión formal por parte del personal de PSYPACT. Si necesita ayuda, envíe un correo electrónico a",
+        "applyingForTitle": "¿Qué está solicitando?",
+        "applyTypeRequired": "Seleccione APIT, TAP o ambos",
+        "youWillNeedTitle": "Necesitará",
+        "requirementLicense": "Una licencia activa y sin restricciones en un estado participante de PSYPACT",
+        "eligibilityStateLabel": "Verifique su elegibilidad seleccionando dónde tiene una licencia activa y dónde estará físicamente presente.",
+        "notParticipating": "(No participa)",
+        "requirementDegree": "Un doctorado en psicología (PhD, PsyD o EdD)",
+        "requirementEPassport": "Un E.Passport emitido por ASPPB — ¿no tiene uno?",
+        "getEPassport": "Obtenga su E.Passport",
+        "requirementEPassportSubtext": "Solicite a ASPPB una carta de verificación que nos será enviada. Puede comenzar esta solicitud antes de que se verifique su E.Passport, pero no podrá enviarla hasta que recibamos y procesemos su carta de verificación.",
+        "requirementIpc": "Un IPC (Certificado de Práctica Interjurisdiccional) emitido por ASPPB — ¿no tiene uno?",
+        "getIpc": "Obtenga su IPC",
+        "requirementIpcSubtext": "Solicite a ASPPB una carta de verificación que nos será enviada. Puede comenzar esta solicitud antes de que se verifique su IPC, pero no podrá enviarla hasta que recibamos y procesemos su carta de verificación.",
+        "requirementFee": "Una tarjeta de crédito para una tarifa no reembolsable de {fee}",
+        "requirementFeeUnavailable": "Una tarjeta de crédito para una tarifa no reembolsable. La tarifa no está disponible en este momento; inténtelo de nuevo más tarde.",
+        "requirementTime": "Unos 30 minutos, pero puede guardar y continuar en cualquier momento",
+        "startApplication": "Iniciar solicitud",
+        "creatingApplication": "Creando solicitud...",
+        "checklistTitle": "Lista de verificación de la solicitud",
+        "checklistIntro": "Complete cada sección a continuación. Una vez terminadas todas las secciones, envíe su solicitud para revisión del personal.",
+        "checklistBreadcrumb": "Solicitud de autorización",
+        "checklistProgress": "{complete} de {total} completadas",
+        "checklistSectionHeader": "Sección",
+        "checklistLoadError": "No pudimos cargar esta solicitud. Inténtelo de nuevo más tarde.",
+        "startSection": "Comenzar",
+        "continueToPayment": "Continuar al pago",
+        "continueToSubmission": "Continuar al envío",
+        "applicationSections": [
+            {
+                "key": "personalInformation",
+                "name": "Información personal",
+                "description": "Nombre, contacto y datos demográficos"
+            },
+            {
+                "key": "licenseHistory",
+                "name": "Historial de licencias",
+                "description": "Licencias actuales y anteriores"
+            },
+            {
+                "key": "education",
+                "name": "Educación",
+                "description": "Detalles del doctorado y del programa"
+            },
+            {
+                "key": "conductHistory",
+                "name": "Historial de conducta",
+                "description": "Preguntas disciplinarias y de antecedentes"
+            },
+            {
+                "key": "homeState",
+                "name": "Declaración del estado de residencia",
+                "description": "Confirma su estado de residencia para la elegibilidad de autorización"
+            },
+            {
+                "key": "acknowledgements",
+                "name": "Reconocimientos y firma",
+                "description": "Revise y certifique los términos del programa"
+            }
+        ]
     },
     "military": {
         "militaryStatusTitle": "Estado militar",
@@ -1253,6 +1337,10 @@
     "account": {
         "requestAccount": "Solicitar cuenta",
         "requestAnAccount": "Solicitar una cuenta",
+        "createAccount": "Crear cuenta",
+        "createAnAccount": "Crear una cuenta",
+        "createAccountSuccessTitle": "Gracias por crear una cuenta.",
+        "createAccountSuccessSubtext": "Revise su correo electrónico para verificar su cuenta.",
         "requestAccountSubtext": "La información que proporcione aquí debe coincidir <em>exactamente</em> con la que su estado de residencia tiene registrada. Si no coincide, no podrá crear una cuenta.",
         "requestAccountHomeStateInfo": "No todos los estados están activos y listos para la creación de cuentas de licenciatarios o la emisión de privilegios. Consulte con la comisión del pacto para obtener más información sobre su estado.",
         "requestAccountEmailSubtext": "Esta dirección de correo electrónico es donde le enviaremos información sobre su cuenta. <em>No es necesario que coincida</em> con la información proporcionada por su estado.",

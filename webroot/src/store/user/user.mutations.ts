@@ -10,6 +10,7 @@ import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 import { Application } from '@models/Application/Application.model';
+import { ApplicationConfig } from '@models/ApplicationConfig/ApplicationConfig.model';
 import { AuthTypes } from '@utils/auth';
 import { getImpliedCompactForHost } from './user.state';
 
@@ -74,6 +75,12 @@ export enum MutationTypes {
     GET_APPLICATION_REQUEST = '[User] Get Application Request',
     GET_APPLICATION_FAILURE = '[User] Get Application Failure',
     GET_APPLICATION_SUCCESS = '[User] Get Application Success',
+    CREATE_APPLICATION_REQUEST = '[User] Create Application Request',
+    CREATE_APPLICATION_FAILURE = '[User] Create Application Failure',
+    CREATE_APPLICATION_SUCCESS = '[User] Create Application Success',
+    GET_APPLICATION_CONFIG_REQUEST = '[User] Get Application Config Request',
+    GET_APPLICATION_CONFIG_FAILURE = '[User] Get Application Config Failure',
+    GET_APPLICATION_CONFIG_SUCCESS = '[User] Get Application Config Success',
 }
 
 export default {
@@ -186,6 +193,9 @@ export default {
         state.isLoggedInAsStaff = false;
         state.isLoadingAccount = false;
         state.isLoadingApplications = false;
+        state.isLoadingApplicationConfig = false;
+        state.isCreatingApplication = false;
+        state.applicationConfig = null;
         state.refreshTokenTimeoutId = null;
         state.autoLogoutTimeoutId = null;
         state.isAutoLogoutWarning = false;
@@ -367,6 +377,37 @@ export default {
         }
 
         state.isLoadingApplications = false;
+        state.error = null;
+    },
+    [MutationTypes.CREATE_APPLICATION_REQUEST]: (state: any) => {
+        state.isCreatingApplication = true;
+        state.error = null;
+    },
+    [MutationTypes.CREATE_APPLICATION_FAILURE]: (state: any, error: Error) => {
+        state.isCreatingApplication = false;
+        state.error = error;
+    },
+    [MutationTypes.CREATE_APPLICATION_SUCCESS]: (state: any, application: Application) => {
+        const licensee = state.model?.licensee;
+
+        if (licensee && application) {
+            licensee.applications = [...(licensee.applications || []), application];
+        }
+
+        state.isCreatingApplication = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_APPLICATION_CONFIG_REQUEST]: (state: any) => {
+        state.isLoadingApplicationConfig = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_APPLICATION_CONFIG_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingApplicationConfig = false;
+        state.error = error;
+    },
+    [MutationTypes.GET_APPLICATION_CONFIG_SUCCESS]: (state: any, applicationConfig: ApplicationConfig) => {
+        state.applicationConfig = applicationConfig;
+        state.isLoadingApplicationConfig = false;
         state.error = null;
     },
 };

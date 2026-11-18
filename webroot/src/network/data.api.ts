@@ -115,6 +115,15 @@ export class DataApi {
     }
 
     /**
+     * POST Create Licensee Account (PSYPACT).
+     * @param  {object}       data The user request data.
+     * @return {Promise<any>}      The server response.
+     */
+    public createLicenseeAccountPsypact(data: object) {
+        return licenseDataApi.createAccountPsypact(data);
+    }
+
+    /**
      * GET Licensees.
      * @param  {object}         [params] The request query parameters config.
      * @return {Promise<Array>}          An array of users server response.
@@ -720,6 +729,24 @@ export class DataApi {
      */
     public getAuthenticatedLicenseeApplication(applicationId: string) {
         return applicationsDataApi.getAuthenticatedLicenseeApplication(applicationId);
+    }
+
+    /**
+     * POST Create Authenticated Licensee User application.
+     * @param  {object}               data The application request data.
+     * @return {Promise<Application>}      An Application model instance.
+     */
+    public createAuthenticatedLicenseeApplication(data: object) {
+        return applicationsDataApi.createAuthenticatedLicenseeApplication(data);
+    }
+
+    /**
+     * GET Application configuration for a compact.
+     * @param  {string}                     compact A compact type.
+     * @return {Promise<ApplicationConfig>}         An ApplicationConfig model instance.
+     */
+    public getApplicationConfig(compact: string) {
+        return applicationsDataApi.getApplicationConfig(compact);
     }
 
     // ========================================================================

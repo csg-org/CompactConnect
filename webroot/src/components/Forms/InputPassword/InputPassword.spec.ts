@@ -12,6 +12,7 @@ import InputPassword from '@components/Forms/InputPassword/InputPassword.vue';
 import ShowPasswordEye from '@components/Icons/ShowPasswordEye/ShowPasswordEye.vue';
 import HidePasswordEye from '@components/Icons/HidePasswordEye/HidePasswordEye.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
+import { passwordValidation } from '@utils/cognitoAuth';
 import Joi from 'joi';
 import { joiPasswordExtendCore } from 'joi-password';
 
@@ -90,5 +91,25 @@ describe('InputPassword component', async () => {
         expect(pwRequirements[4].classes('is-valid')).to.equal(false);
         expect(pwRequirements[5].text()).to.equal('Must not include your username or other common strings');
         expect(pwRequirements[5].classes('is-valid')).to.equal(false);
+    });
+    it('should list the no leading or trailing whitespace requirement', async () => {
+        const { joiMessages } = (await mountShallow(MixinForm)).vm;
+        const getWhitespaceRequirement = async (value: string) => {
+            const wrapper = await mountFull(InputPassword, {
+                props: {
+                    formInput: new FormInput({ validation: passwordValidation(joiMessages), value }),
+                    joiMessages,
+                },
+            });
+
+            return wrapper.findAll('.password-requirement')
+                .find((requirement) => requirement.text() === 'Must not begin or end with a space');
+        };
+        const invalidRequirement = await getWhitespaceRequirement('validpassword1 ');
+        const validRequirement = await getWhitespaceRequirement('validpassword1');
+
+        expect(invalidRequirement?.exists()).to.equal(true);
+        expect(invalidRequirement?.classes('is-valid')).to.equal(false);
+        expect(validRequirement?.classes('is-valid')).to.equal(true);
     });
 });

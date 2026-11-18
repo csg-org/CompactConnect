@@ -37,6 +37,7 @@
 - Prefer to never use `any`
     - Rare exceptions include working with _some_ 3rd party libraries and globals, where typing would require extra bloat for minimal gain.
 - Our approach to TypeScript is to use it as much as practical, but not at the expense of bloated or difficult-to-read code. Follow existing typing conventions.
+- Component / page `.ts` files from `node blueprint create` include section comment blocks (`// PROPS`, `// Data`, `// Lifecycle`, `// Computed`, `// Methods`). Remove any section that ends up empty; a component with no logic should have an empty class body, matching the existing icons (e.g. `ExternalLinkIcon.ts`).
 
 ### Code Style: Less
 - Reuse variables and mixins from `src/styles.common/*` rather than hardcoding colors, spacing, or breakpoints
@@ -90,6 +91,28 @@
 - Targeted tests: `yarn test:unit <path-under-webroot>` (file or directory).
 - A change is not done until `yarn lint --no-fix`, `yarn test:unit:all`, and `yarn build` all pass — these are the three steps in `.github/workflows/check-webroot.yml`.
 - Do not silence lint failures with inline `eslint-disable`; prompt first.
+
+---
+
+## Mobile layouts
+- Mobile-first: base styles target phone; layer larger layouts on with the min-width breakpoints in `src/styles.common/_sizes.less` (`@tabletWidth` 770px, `@desktopWidth` 1024px, `@largeDesktopWidth` 1600px). "Phone" = below `@tabletWidth`.
+- Don't use `@media (max-width: …)` queries; ask first if one seems necessary. (The `max-width` property is fine.)
+- Buttons are full width on phone, stacked with `flex-direction: column`.
+- From `@tabletWidth` up (unless the design says otherwise), buttons use their natural width and usually switch to `flex-direction: row`.
+- Button spacing comes from the design at implementation time. Without design guidance, fall back to 1rem vertical spacing between stacked buttons; ask first if that fallback could cause layout issues (e.g. conflicts with existing component margins).
+- `InputSubmit` / `InputButton` classes land on the wrapper div; size the actual button with `:deep(.input-submit)` / `:deep(.input-button)`.
+
+---
+
+## Mock populate
+- Forms that a developer fills in repeatedly during local testing should include a mock populate link: `<MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />` (`@components/Forms/MockPopulate`), placed at the top of the form.
+- Gate it with `get isMockPopulateEnabled() { return Boolean(this.$envConfig.isDevelopment); }`. Never show it outside local development.
+- `mockPopulate()` should:
+    - Fill every required input with valid values (e.g. `test@example.com`, `Test` / `User`; for selects, pick the first enabled non-placeholder option rather than hard-coding a value that may be disabled in mock data).
+    - Run `this.validateAll({ asTouched: true })` so the form is immediately submittable and any validation gaps are visible.
+    - `await nextTick()`, then smooth scroll to the submit button: `document.getElementById(this.formData.submit.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })`.
+- Only add a "Clear" link (`$t('common.clear')`, shown with the same `isMockPopulateEnabled` gate and calling a form reset) on longer forms where clearing by hand is tedious (see `RegisterLicenseePsypact`). Short forms (a few inputs) should not include it; ask if it's unclear which applies.
+- Test it: call `await component.mockPopulate()` and assert the form is valid. Stub `document.getElementById` to return a `{ scrollIntoView }` spy, since jsdom doesn't implement `scrollIntoView`.
 
 ---
 

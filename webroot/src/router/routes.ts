@@ -52,6 +52,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
+        path: '/Register/Psypact',
+        name: 'RegisterLicenseePsypact',
+        component: () => import(/* webpackChunkName: "register" */ '@pages/RegisterLicenseePsypact/RegisterLicenseePsypact.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
         path: '/MfaResetStart',
         name: 'MfaResetStartLicensee',
         component: () => import(/* webpackChunkName: "register" */ '@pages/MfaResetStartLicensee/MfaResetStartLicensee.vue'),
@@ -180,6 +186,18 @@ const routes: Array<RouteConfig> = [
         path: '/:compact/LicenseeDashboard',
         name: 'LicenseeDashboard',
         component: () => import(/* webpackChunkName: "licenseeDashboard" */ '@pages/LicenseeDashboard/LicenseeDashboard.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, },
+    },
+    {
+        path: '/:compact/Application/Start',
+        name: 'ApplicationStart',
+        component: () => import(/* webpackChunkName: "licenseeApplication" */ '@pages/ApplicationStart/ApplicationStart.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, },
+    },
+    {
+        path: '/:compact/Application/:applicationId',
+        name: 'ApplicationChecklist',
+        component: () => import(/* webpackChunkName: "licenseeApplication" */ '@pages/ApplicationChecklist/ApplicationChecklist.vue'),
         meta: { requiresAuth: true, licenseeAccess: true, },
     },
     {

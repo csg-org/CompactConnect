@@ -6,7 +6,7 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { FeatureGates } from '@/app.config';
+import { FeatureGates, serverDatetimeFormat } from '@/app.config';
 import { getImpliedCompactForAppMode } from '@utils/compactConfig';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
@@ -15,10 +15,11 @@ import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
-import { CompactSerializer } from '@models/Compact/Compact.model';
+import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
 import { State, StateSerializer } from '@models/State/State.model';
 import { LicenseType } from '@models/License/License.model';
 import { ApplicationSerializer } from '@models/Application/Application.model';
+import { ApplicationConfigSerializer } from '@models/ApplicationConfig/ApplicationConfig.model';
 import {
     userData,
     staffAccount,
@@ -34,10 +35,16 @@ import {
     stateConfig,
     mockPrivilegeHistoryResponses,
     applicantApplications,
+    applicationConfig,
     getMockProviderForCompact
 } from '@network/mocks/mock.data';
+import { v4 as uuidv4 } from 'uuid';
+import moment from 'moment';
 
 let mockStore: any = null;
+
+// Applications created during the mock session (lost on page refresh)
+const createdApplications: Array<any> = [];
 
 const initMockStore = (store) => {
     if (store && !mockStore) {
@@ -175,6 +182,14 @@ export class DataApi {
     public createLicenseeAccount(compact: string, data: object) {
         return wait(500).then(() => ({
             compact,
+            ...data,
+        }));
+    }
+
+    // Create Licensee Account (PSYPACT).
+    public createLicenseeAccountPsypact(data: object) {
+        return wait(500).then(() => ({
+            compact: CompactType.PSYPACT,
             ...data,
         }));
     }
@@ -828,20 +843,57 @@ export class DataApi {
         return wait(500).then(() => ({
             prevLastKey: null,
             lastKey: null,
-            applications: JSON.parse(JSON.stringify(applicantApplications))
+            applications: JSON.parse(JSON.stringify([...applicantApplications, ...createdApplications]))
                 .map((serverItem) => ApplicationSerializer.fromServer(serverItem)),
         }));
     }
 
     // Get Authenticated Licensee User application by ID
     public getAuthenticatedLicenseeApplication(applicationId: string) {
-        const serverApplication = applicantApplications.find((application) => application.id === applicationId);
+        const serverApplication = [...applicantApplications, ...createdApplications]
+            .find((application) => application.id === applicationId);
 
         if (!serverApplication) {
             return wait(500).then(() => { throw new Error('not found'); });
         }
 
         return wait(500).then(() => ApplicationSerializer.fromServer(JSON.parse(JSON.stringify(serverApplication))));
+    }
+
+    // Create Authenticated Licensee User application
+    public createAuthenticatedLicenseeApplication(data: any = {}) {
+        const { types } = data;
+
+        if (!Array.isArray(types) || !types.length) {
+            return wait(500).then(() => { throw new Error('failed application create'); });
+        }
+
+        const [ blankApplication ] = JSON.parse(JSON.stringify(applicantApplications));
+        const serverApplication = {
+            ...blankApplication,
+            id: uuidv4(),
+            created: moment().format(serverDatetimeFormat),
+            types,
+        };
+
+        return wait(500).then(() => {
+            createdApplications.push(serverApplication);
+
+            return ApplicationSerializer.fromServer(JSON.parse(JSON.stringify(serverApplication)));
+        });
+    }
+
+    // Clear applications created during the mock session
+    public resetCreatedApplications() {
+        createdApplications.length = 0;
+    }
+
+    // Get Application configuration for a compact
+    public getApplicationConfig(compact: string) {
+        return wait(500).then(() => ApplicationConfigSerializer.fromServer({
+            ...applicationConfig,
+            compact,
+        }));
     }
 
     // ========================================================================

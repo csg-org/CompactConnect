@@ -70,13 +70,19 @@ class RegisterLicensee extends mixins(MixinForm) {
     // Lifecycle
     //
     async created() {
-        this.initFormInputs();
-        await this.getCompactStates();
+        if (this.$isAppModePsyPact) {
+            this.$router.replace({ name: 'RegisterLicenseePsypact' });
+        } else {
+            this.initFormInputs();
+            await this.getCompactStates();
+        }
     }
 
     mounted() {
-        this.initExtraFields();
-        this.initRecaptcha();
+        if (!this.$isAppModePsyPact) {
+            this.initExtraFields();
+            this.initRecaptcha();
+        }
     }
 
     //
