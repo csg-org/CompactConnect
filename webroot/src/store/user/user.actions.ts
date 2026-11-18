@@ -198,16 +198,26 @@ export default {
         commit(MutationTypes.GET_APPLICATION_FAILURE, error);
     },
     // CREATE LICENSEE APPLICATION
-    createApplicationRequestLicensee: async ({ commit, dispatch }, { data }) => {
+    createApplicationRequestLicensee: async ({ commit, dispatch, state }, { data }) => {
+        const requestUserId = state.model?.id;
+
         commit(MutationTypes.CREATE_APPLICATION_REQUEST);
         return dataApi.createAuthenticatedLicenseeApplication(data).then((application) => {
-            dispatch('createApplicationSuccessLicensee', application);
+            const isRequestUserCurrent = state.model?.id === requestUserId;
 
-            return application;
+            if (isRequestUserCurrent) {
+                dispatch('createApplicationSuccessLicensee', application);
+            }
+
+            return (isRequestUserCurrent) ? application : null;
         }).catch((error) => {
-            dispatch('createApplicationFailureLicensee', error);
+            if (state.model?.id === requestUserId) {
+                dispatch('createApplicationFailureLicensee', error);
 
-            throw error;
+                throw error;
+            }
+
+            return null;
         });
     },
     createApplicationSuccessLicensee: ({ commit }, application) => {

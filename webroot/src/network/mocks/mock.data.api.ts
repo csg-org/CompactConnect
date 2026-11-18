@@ -42,6 +42,9 @@ import moment from 'moment';
 
 let mockStore: any = null;
 
+// Applications created during the mock session (lost on page refresh)
+const createdApplications: Array<any> = [];
+
 const initMockStore = (store) => {
     if (store && !mockStore) {
         mockStore = store;
@@ -839,14 +842,15 @@ export class DataApi {
         return wait(500).then(() => ({
             prevLastKey: null,
             lastKey: null,
-            applications: JSON.parse(JSON.stringify(applicantApplications))
+            applications: JSON.parse(JSON.stringify([...applicantApplications, ...createdApplications]))
                 .map((serverItem) => ApplicationSerializer.fromServer(serverItem)),
         }));
     }
 
     // Get Authenticated Licensee User application by ID
     public getAuthenticatedLicenseeApplication(applicationId: string) {
-        const serverApplication = applicantApplications.find((application) => application.id === applicationId);
+        const serverApplication = [...applicantApplications, ...createdApplications]
+            .find((application) => application.id === applicationId);
 
         if (!serverApplication) {
             return wait(500).then(() => { throw new Error('not found'); });
@@ -864,13 +868,23 @@ export class DataApi {
         }
 
         const [ blankApplication ] = JSON.parse(JSON.stringify(applicantApplications));
-
-        return wait(500).then(() => ApplicationSerializer.fromServer({
+        const serverApplication = {
             ...blankApplication,
             id: `mock-application-${Date.now()}`,
             created: moment().format(serverDatetimeFormat),
             types,
-        }));
+        };
+
+        return wait(500).then(() => {
+            createdApplications.push(serverApplication);
+
+            return ApplicationSerializer.fromServer(JSON.parse(JSON.stringify(serverApplication)));
+        });
+    }
+
+    // Clear applications created during the mock session
+    public resetCreatedApplications() {
+        createdApplications.length = 0;
     }
 
     // Get Application configuration for a compact

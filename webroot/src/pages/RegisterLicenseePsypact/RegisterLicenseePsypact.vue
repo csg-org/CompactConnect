@@ -31,6 +31,16 @@
                         class="register-licensee-psypact-form"
                         id="register-licensee-psypact-form"
                     >
+                        <label ref="password">
+                            {{ $t('common.password') }}
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                tabindex="-1"
+                                autocomplete="off"
+                            />
+                        </label>
                         <div v-if="!isConfirmationScreen" class="register-licensee-psypact-form-container">
                             <h1 class="register-licensee-psypact-title">
                                 {{ $t('account.createAnAccount') }}
@@ -59,19 +69,9 @@
                                 @input="validatePasswordMatch"
                                 @blur="validatePasswordMatch"
                             />
-                            <label ref="password">
-                                {{ $t('common.password') }}
-                                <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    tabindex="-1"
-                                    autocomplete="off"
-                                />
-                            </label>
                             <InputSubmit
                                 :formInput="formData.handleSubmitInitial"
-                                @click="handleProceedToConfirmation"
+                                @click.prevent="handleProceedToConfirmation"
                                 class="action-button continue-button register-licensee-psypact-continue-to-confirmation"
                                 :label="(isFormLoading)
                                     ? $t('common.loading')

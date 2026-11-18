@@ -49,33 +49,37 @@ class InputPassword extends mixins(MixinInput) {
 
             if (Array.isArray(rules)) {
                 (rules as any).forEach((rule) => {
-                    const { name, args } = rule;
-                    const { limit = 0, min = 0 } = args || {};
+                    const { args } = rule;
+                    const { limit = 0, min = 0, description = '' } = args || {};
+                    // Custom rules use their description as the message key, e.g. .custom(fn, 'noLeadingTrailingWhitespace')
+                    const name = (rule.name === 'custom') ? description : rule.name;
                     let ruleDesc = this.joiMessages.string[`string.${name}`] || this.joiMessages.password[`password.${name}`];
                     let ruleEval = false;
 
-                    ruleDesc = ruleDesc
-                        .replace(/{#limit}/g, limit)
-                        .replace(/{#min}/g, min);
-
-                    if (inputValue) {
-                        const matchValidationError = validationErrors.find((error) => error.message === ruleDesc);
-
-                        if (!matchValidationError) {
-                            ruleEval = true;
-                        }
-                    }
-
-                    if (limit === 1 || min === 1) {
+                    if (ruleDesc) {
                         ruleDesc = ruleDesc
-                            .replace(/characters$/, 'character')
-                            .replace(/numbers$/, 'number');
-                    }
+                            .replace(/{#limit}/g, limit)
+                            .replace(/{#min}/g, min);
 
-                    requirements.push({
-                        description: ruleDesc,
-                        isValid: ruleEval,
-                    });
+                        if (inputValue) {
+                            const matchValidationError = validationErrors.find((error) => error.message === ruleDesc);
+
+                            if (!matchValidationError) {
+                                ruleEval = true;
+                            }
+                        }
+
+                        if (limit === 1 || min === 1) {
+                            ruleDesc = ruleDesc
+                                .replace(/characters$/, 'character')
+                                .replace(/numbers$/, 'number');
+                        }
+
+                        requirements.push({
+                            description: ruleDesc,
+                            isValid: ruleEval,
+                        });
+                    }
                 });
             }
         }

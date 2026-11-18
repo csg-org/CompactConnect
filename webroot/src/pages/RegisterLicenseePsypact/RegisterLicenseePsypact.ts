@@ -318,14 +318,6 @@ class RegisterLicenseePsypact extends mixins(MixinForm) {
             this.handleBackToForm();
         }
     }
-
-    @Watch('isConfirmationScreen') onConfirmationScreenChange(newValue: boolean): void {
-        if (!newValue) { // Back to form
-            this.$nextTick(() => {
-                this.initExtraFields();
-            });
-        }
-    }
 }
 
 export default toNative(RegisterLicenseePsypact);

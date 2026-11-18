@@ -148,14 +148,31 @@ describe('ApplicationStart page', async () => {
         expect(component.totalFeeDisplay).to.equal('$150.00');
         expect(wrapper.find('.requirement-item.fee').text()).to.contain('$150.00');
     });
-    it('should fall back to no fee when the application config is missing', async () => {
-        const wrapper = await mountPage(mountShallow);
+    it('should show the fee as unavailable and block submission when the application config is missing', async () => {
+        await setPsypactCompact();
+
+        const wrapper = await mountPage();
         const component = wrapper.vm;
+        const dispatchSpy = sinon.spy(component.$store, 'dispatch');
 
         await store.dispatch('user/getApplicationConfigSuccess', null);
-        component.formData.apit.value = true;
+        await nextTick();
 
-        expect(component.totalFee).to.equal(0);
+        expect(component.isFeeUnavailable).to.equal(false);
+        expect(wrapper.find('.requirement-item.fee').text()).to.contain('$0.00');
+
+        component.formData.apit.value = true;
+        component.formData.licenseState.value = 'co';
+        await nextTick();
+
+        expect(component.isFeeUnavailable).to.equal(true);
+        expect(wrapper.find('.fee-unavailable').attributes('role')).to.equal('alert');
+        expect(wrapper.find('.requirement-item.fee').text()).to.not.contain('$');
+        expect(wrapper.find('#submit-start-application').attributes('disabled')).to.not.equal(undefined);
+
+        await component.handleSubmit();
+
+        expect(dispatchSpy.calledWith('user/createApplicationRequestLicensee')).to.equal(false);
     });
     it('should list all states with non-participating states disabled', async () => {
         await setPsypactCompact();

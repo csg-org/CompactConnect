@@ -92,6 +92,7 @@ class MixinForm extends Vue {
                 'password.minOfNumeric': this.$t('inputErrors.minOfNumeric', { min: '{#min}' }),
                 'password.minOfSpecialCharacters': this.$t('inputErrors.minOfSpecialCharacters', { min: '{#min}' }),
                 'password.noWhiteSpaces': this.$t('inputErrors.noWhiteSpaces'),
+                'password.noLeadingTrailingWhitespace': this.$t('inputErrors.noLeadingTrailingWhitespace'),
                 'password.onlyLatinCharacters': this.$t('inputErrors.onlyLatinCharacters'),
                 'password.doesNotInclude': this.$t('inputErrors.doesNotInclude'),
             },

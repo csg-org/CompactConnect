@@ -81,6 +81,16 @@ describe('cognitoAuth utils', () => {
         expect(schema.validate('lowercaseonly').error?.message).to.equal('needs number');
         expect(schema.validate('lowercase1234').error).to.equal(undefined);
     });
+    it('should reject a password that begins or ends with a space', () => {
+        const schema = passwordValidation({
+            string: {},
+            password: { 'password.noLeadingTrailingWhitespace': 'no outer spaces' },
+        });
+
+        expect(schema.validate('abcdefghij1 ').error?.message).to.equal('no outer spaces');
+        expect(schema.validate(' abcdefghij12').error?.message).to.equal('no outer spaces');
+        expect(schema.validate('abcdef ghij12').error).to.equal(undefined);
+    });
     it('should use the PsyPact issuer only for that app mode', () => {
         expect(getTotpIssuer(AppModes.PSYPACT)).to.equal('PSYPACT');
         expect(getTotpIssuer(AppModes.JCC)).to.equal('CompactConnect');

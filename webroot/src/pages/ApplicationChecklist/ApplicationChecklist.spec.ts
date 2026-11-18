@@ -11,7 +11,11 @@ import sinon from 'sinon';
 import { mountFull, mountShallow } from '@tests/helpers/setup';
 import ApplicationChecklist from '@pages/ApplicationChecklist/ApplicationChecklist.vue';
 import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
-import { ApplicantSectionStatus, ApplicationSection } from '@models/Application/Application.model';
+import {
+    Application,
+    ApplicantSectionStatus,
+    ApplicationSection
+} from '@models/Application/Application.model';
 import store from '@store/index';
 import { nextTick } from 'vue';
 import { flushPromises } from '@vue/test-utils';
@@ -131,6 +135,48 @@ describe('ApplicationChecklist page', async () => {
         expect(wrapper.find('.checklist-load-error .text-link').text()).to.equal('Back to dashboard');
         expect(wrapper.find('.checklist-card').exists()).to.equal(false);
         expect(wrapper.find('.checklist-footer').exists()).to.equal(false);
+    });
+    it('should reset and refetch when the application ID changes', async () => {
+        const wrapper = await mountChecklist('2', mountShallow);
+        const component = wrapper.vm;
+
+        expect(component.application?.id).to.equal('2');
+
+        await component.$router.push({
+            name: 'ApplicationChecklist',
+            params: { compact: CompactType.PSYPACT, applicationId: 'not-a-real-application' },
+        });
+        await nextTick();
+
+        expect(component.hasFetched).to.equal(false);
+        expect(component.fetchedApplication).to.equal(null);
+
+        await component.fetchApplication();
+
+        expect(component.fetchedApplication).to.equal(null);
+        expect(component.application).to.equal(null);
+        expect(component.isLoadError).to.equal(true);
+    });
+    it('should ignore a fetch result for an application ID that is no longer current', async () => {
+        const wrapper = await mountChecklist('1', mountShallow);
+        const component = wrapper.vm;
+        let resolveStaleFetch;
+        const dispatchStub = sinon.stub(component.$store, 'dispatch').returns(new Promise((resolve) => {
+            resolveStaleFetch = resolve;
+        }));
+        const staleRequest = component.fetchApplication();
+
+        dispatchStub.restore();
+        await component.$router.push({
+            name: 'ApplicationChecklist',
+            params: { compact: CompactType.PSYPACT, applicationId: '2' },
+        });
+        await component.fetchApplication();
+        resolveStaleFetch(new Application({ id: '1' }));
+        await staleRequest;
+
+        expect(component.applicationId).to.equal('2');
+        expect(component.fetchedApplication?.id).to.equal('2');
     });
     it('should map applicant section statuses to status classes', async () => {
         const wrapper = await mountShallow(ApplicationChecklist);

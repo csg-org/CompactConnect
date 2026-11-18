@@ -54,6 +54,19 @@ describe('RegisterLicenseePsypact page', async () => {
         expect(component.formData.confirmPassword.isValid).to.equal(false);
         expect(component.formData.confirmPassword.errorMessage).to.equal('Passwords must match');
     });
+    it('should not proceed to confirmation when the password ends with a space', async () => {
+        const wrapper = await mountShallow(RegisterLicenseePsypact);
+        const component = wrapper.vm;
+
+        populateValidForm(component);
+        component.formData.newPassword.value = 'abcdefghij1 ';
+        component.formData.confirmPassword.value = 'abcdefghij1 ';
+        await component.handleProceedToConfirmation();
+
+        expect(component.isConfirmationScreen).to.equal(false);
+        expect(component.formData.newPassword.isValid).to.equal(false);
+        expect(component.formData.newPassword.errorMessage).to.equal('Must not begin or end with a space');
+    });
     it('should not proceed to confirmation when the form is invalid', async () => {
         const wrapper = await mountShallow(RegisterLicenseePsypact);
         const component = wrapper.vm;
@@ -136,6 +149,42 @@ describe('RegisterLicenseePsypact page', async () => {
 
         expect(component.isFinalError).to.equal(true);
         expect(component.isFormSuccessful).to.equal(false);
+        expect(dispatchSpy.calledWith('user/createLicenseeAccountPsypactRequest')).to.equal(false);
+    });
+    it('should keep the extra field through confirmation and reject a filled value on confirm', async () => {
+        const wrapper = await mountFull(RegisterLicenseePsypact);
+        const component = wrapper.vm;
+        const dispatchSpy = sinon.spy(component.$store, 'dispatch');
+
+        sinon.stub(component, 'scrollIntoView');
+        document.body.appendChild(wrapper.element);
+        (wrapper.find('input#password').element as HTMLInputElement).value = 'bot';
+        populateValidForm(component);
+        await component.handleProceedToConfirmation();
+        await nextTick();
+
+        expect(component.isConfirmationScreen).to.equal(true);
+        expect(wrapper.find('input#password').exists()).to.equal(true);
+
+        await component.handleSubmit();
+
+        expect(component.isFinalError).to.equal(true);
+        expect(dispatchSpy.calledWith('user/createLicenseeAccountPsypactRequest')).to.equal(false);
+    });
+    it('should not submit the registration request from the initial create account button', async () => {
+        const wrapper = await mountFull(RegisterLicenseePsypact);
+        const component = wrapper.vm;
+        const dispatchSpy = sinon.spy(component.$store, 'dispatch');
+
+        sinon.stub(component, 'scrollIntoView');
+        document.body.appendChild(wrapper.element);
+        populateValidForm(component);
+        await nextTick();
+        await wrapper.find('#submit-initial').trigger('click');
+        await nextTick();
+        await flushPromises();
+
+        expect(component.isConfirmationScreen).to.equal(true);
         expect(dispatchSpy.calledWith('user/createLicenseeAccountPsypactRequest')).to.equal(false);
     });
     it('should keep the form editable on a 400 error response', async () => {

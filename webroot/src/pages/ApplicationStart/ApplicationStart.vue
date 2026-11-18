@@ -109,7 +109,10 @@
                     <li class="requirement-item fee">
                         <CreditCardIcon class="requirement-icon" />
                         <div class="requirement-content">
-                            <div class="requirement-title">
+                            <div v-if="isFeeUnavailable" class="requirement-title fee-unavailable" role="alert">
+                                {{ $t('application.requirementFeeUnavailable') }}
+                            </div>
+                            <div v-else class="requirement-title">
                                 {{ $t('application.requirementFee', { fee: totalFeeDisplay }) }}
                             </div>
                         </div>
@@ -125,7 +128,7 @@
             <InputSubmit
                 :formInput="formData.submit"
                 :label="submitLabel"
-                :isEnabled="!isFormLoading"
+                :isEnabled="!isFormLoading && !isFeeUnavailable"
                 :isTransparent="false"
                 class="start-application-submit"
             />

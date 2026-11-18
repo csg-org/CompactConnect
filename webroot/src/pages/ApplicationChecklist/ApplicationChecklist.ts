@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 11/17/2026.
 //
 
-import { Component, Vue, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    Vue,
+    Watch,
+    toNative
+} from 'vue-facing-decorator';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import UserIcon from '@components/Icons/User/User.vue';
@@ -161,12 +166,13 @@ class ApplicationChecklist extends Vue {
     // Methods
     //
     async fetchApplication(): Promise<void> {
-        const application = await this.$store.dispatch('user/getApplicationRequestLicensee', {
-            applicationId: this.applicationId,
-        });
+        const { applicationId } = this;
+        const application = await this.$store.dispatch('user/getApplicationRequestLicensee', { applicationId });
 
-        this.fetchedApplication = application || null;
-        this.hasFetched = true;
+        if (applicationId === this.applicationId) {
+            this.fetchedApplication = application || null;
+            this.hasFetched = true;
+        }
     }
 
     getSectionIcon(key: ApplicationSection): string {
@@ -203,6 +209,15 @@ class ApplicationChecklist extends Vue {
 
     continueApplication(): void {
         console.log('continue application', this.applicationId);
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('applicationId') async onApplicationIdChange(): Promise<void> {
+        this.fetchedApplication = null;
+        this.hasFetched = false;
+        await this.fetchApplication();
     }
 }
 

@@ -123,6 +123,10 @@ class ApplicationStart extends mixins(MixinForm) {
         return this.applicationConfig?.totalFeeForTypes(this.selectedTypes) || 0;
     }
 
+    get isFeeUnavailable(): boolean {
+        return !this.applicationConfig && this.selectedTypes.length > 0;
+    }
+
     get totalFeeDisplay(): string {
         return `$${this.totalFee.toFixed(2)}`;
     }
@@ -246,16 +250,18 @@ class ApplicationStart extends mixins(MixinForm) {
     async handleSubmit(): Promise<void> {
         this.validateAll({ asTouched: true });
 
-        if (this.isFormValid) {
+        if (this.isFormValid && !this.isFeeUnavailable) {
             this.startFormLoading();
 
             await this.$store.dispatch('user/createApplicationRequestLicensee', {
                 data: this.prepRequestData(),
             }).then((application) => {
-                this.$router.replace({
-                    name: 'ApplicationChecklist',
-                    params: { compact: this.compactType, applicationId: application?.id },
-                });
+                if (application) {
+                    this.$router.replace({
+                        name: 'ApplicationChecklist',
+                        params: { compact: this.compactType, applicationId: application.id },
+                    });
+                }
             }).catch((err) => {
                 this.setError(err?.message || this.$t('serverErrors.networkError'));
             });
