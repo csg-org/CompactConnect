@@ -37,6 +37,7 @@
 - Prefer to never use `any`
     - Rare exceptions include working with _some_ 3rd party libraries and globals, where typing would require extra bloat for minimal gain.
 - Our approach to TypeScript is to use it as much as practical, but not at the expense of bloated or difficult-to-read code. Follow existing typing conventions.
+- Component / page `.ts` files from `node blueprint create` include section comment blocks (`// PROPS`, `// Data`, `// Lifecycle`, `// Computed`, `// Methods`). Remove any section that ends up empty; a component with no logic should have an empty class body, matching the existing icons (e.g. `ExternalLinkIcon.ts`).
 
 ### Code Style: Less
 - Reuse variables and mixins from `src/styles.common/*` rather than hardcoding colors, spacing, or breakpoints
