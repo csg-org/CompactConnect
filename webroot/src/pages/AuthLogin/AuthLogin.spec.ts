@@ -138,8 +138,33 @@ describe('AuthLogin page', async () => {
         wrapper.vm.step = CognitoAuthStep.MFA_CODE;
         wrapper.vm.initFormInputs();
         wrapper.vm.isFormLoading = true;
+        await nextTick();
 
+        const title = wrapper.find('h1.auth-title');
+
+        expect(title.exists()).to.equal(true);
+        expect(title.text()).to.equal(wrapper.vm.$t('auth.mfaCodeTitle'));
+        expect(title.classes()).to.include('is-visually-hidden');
         expect(wrapper.vm.submitLabel).to.equal(wrapper.vm.$t('auth.verifyingCode'));
+    });
+    it('should focus the MFA code input when that step opens', async () => {
+        envConfig.cognitoClientIdStaff = 'staff-client';
+        envConfig.cognitoAuthDomainStaff = 'https://staff.example.com';
+
+        const wrapper = await mountShallow(AuthLogin);
+        let focusCount = 0;
+
+        await wrapper.vm.$router.push('/auth/login/staff/jcc');
+        wrapper.vm.applyRoute();
+        await flushPromises();
+        sinon.stub(document, 'getElementById').callsFake(() => ({
+            focus() {
+                focusCount += 1;
+            },
+        }));
+        await wrapper.vm.setStep(CognitoAuthStep.MFA_CODE);
+
+        expect(focusCount).to.equal(1);
     });
     it('should open forgot password from the query parameter step', async () => {
         envConfig.cognitoClientIdStaff = 'staff-client';
