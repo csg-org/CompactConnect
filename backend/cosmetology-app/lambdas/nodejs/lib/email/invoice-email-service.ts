@@ -23,6 +23,8 @@ const CSV_HEADERS = [
     'Home State',
     'License Number',
     'Category',
+    'Upload Date',
+    'Renewal Date',
     'Fee',
 ];
 
@@ -92,6 +94,8 @@ export class InvoiceEmailService extends BaseEmailService {
             item.homeState,
             item.licenseNumber,
             item.category === 'new' ? 'New' : 'Renewal',
+            item.uploadDate ?? '',
+            item.renewalDate ?? '',
             formatCurrency(item.fee),
         ];
     }

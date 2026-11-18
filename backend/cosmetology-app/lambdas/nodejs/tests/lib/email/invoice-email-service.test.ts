@@ -34,6 +34,7 @@ const cosmetologistReport = (): InvoiceReport => ({
                     licenseNumber: 'COS-12345',
                     licenseType: 'cosmetologist',
                     category: 'new',
+                    uploadDate: '2024-09-10',
                     fee: 25,
                 },
                 {
@@ -43,6 +44,7 @@ const cosmetologistReport = (): InvoiceReport => ({
                     licenseNumber: 'COS-67890',
                     licenseType: 'cosmetologist',
                     category: 'renewal',
+                    renewalDate: '2024-09-15',
                     fee: 25,
                 },
             ],
@@ -59,6 +61,7 @@ const cosmetologistReport = (): InvoiceReport => ({
                     licenseNumber: 'COS-22222',
                     licenseType: 'cosmetologist',
                     category: 'new',
+                    uploadDate: '2024-09-03',
                     fee: 25,
                 },
             ],
@@ -123,9 +126,11 @@ describe('InvoiceEmailService', () => {
             const report = cosmetologistReport();
             const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
 
-            expect(csv).toContain('Jurisdiction,First Name,Last Name,Home State,License Number,Category,Fee');
-            expect(csv).toContain('Ohio,Jane,Smith,OH,COS-12345,New,$25.00');
-            expect(csv).toContain('Ohio,John,Doe,OH,COS-67890,Renewal,$25.00');
+            expect(csv).toContain(
+                'Jurisdiction,First Name,Last Name,Home State,License Number,Category,Upload Date,Renewal Date,Fee'
+            );
+            expect(csv).toContain('Ohio,Jane,Smith,OH,COS-12345,New,2024-09-10,,$25.00');
+            expect(csv).toContain('Ohio,John,Doe,OH,COS-67890,Renewal,,2024-09-15,$25.00');
             expect(csv).not.toContain('COS-22222');
         });
 
@@ -158,7 +163,7 @@ describe('InvoiceEmailService', () => {
 
             const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
 
-            expect(csv).toContain('Ohio,Jane,"Smith, ""Jr.""",OH,COS-12345,New,$25.00');
+            expect(csv).toContain('Ohio,Jane,"Smith, ""Jr.""",OH,COS-12345,New,2024-09-10,,$25.00');
         });
 
         it('should encode formula-leading licensee cells as spreadsheet text', () => {
@@ -172,7 +177,7 @@ describe('InvoiceEmailService', () => {
 
             const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
 
-            expect(csv).toContain('Ohio,\'=Jane,\'+Smith,\'-OH,\'@COS-12345,New,$25.00');
+            expect(csv).toContain('Ohio,\'=Jane,\'+Smith,\'-OH,\'@COS-12345,New,2024-09-10,,$25.00');
         });
 
         it('should escape formula-leading cells that contain commas or quotes', () => {
@@ -184,7 +189,7 @@ describe('InvoiceEmailService', () => {
 
             const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
 
-            expect(csv).toContain('Ohio,Jane,"\'=Smith, ""Jr.""",OH,"\'=1+2"";=1+2",New,$25.00');
+            expect(csv).toContain('Ohio,Jane,"\'=Smith, ""Jr.""",OH,"\'=1+2"";=1+2",New,2024-09-10,,$25.00');
         });
 
         it('should encode tab, carriage return, newline, and fullwidth formula prefixes as text', () => {
@@ -198,7 +203,7 @@ describe('InvoiceEmailService', () => {
 
             const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
 
-            expect(csv).toContain('Ohio,\'\tJane,"\'\rSmith","\'\nOH",\'＝COS-12345,New,$25.00');
+            expect(csv).toContain('Ohio,\'\tJane,"\'\rSmith","\'\nOH",\'＝COS-12345,New,2024-09-10,,$25.00');
         });
     });
 
@@ -244,10 +249,10 @@ describe('InvoiceEmailService', () => {
                     contentType: 'text/csv',
                 }),
             ]);
-            expect(mail.attachments[0].content).toContain('Ohio,Jane,Smith,OH,COS-12345,New,$25.00');
+            expect(mail.attachments[0].content).toContain('Ohio,Jane,Smith,OH,COS-12345,New,2024-09-10,,$25.00');
             expect(mail.attachments[0].content).toContain('Total Uploaded,3');
             expect(mail.attachments[0].content).toContain('Total Owed,$50.00');
-            expect(mail.attachments[1].content).toContain('Kentucky,Sam,Taylor,KY,COS-22222,New,$25.00');
+            expect(mail.attachments[1].content).toContain('Kentucky,Sam,Taylor,KY,COS-22222,New,2024-09-03,,$25.00');
             expect(mail.attachments[1].content).not.toContain('COS-12345');
         });
 

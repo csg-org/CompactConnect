@@ -30,6 +30,8 @@ interface LicenseRecord {
     /** What the jurisdiction reported. The calculated compactEligibility field is not stored. */
     jurisdictionUploadedCompactEligibility?: string;
     firstUploadDate?: string;
+    /** Shown on renewal rows. Not used to decide whether the license is billed. */
+    dateOfRenewal?: string;
 }
 
 type LicenseKey = Record<string, AttributeValue>;
@@ -252,8 +254,31 @@ export class InvoiceClient {
             licenseNumber: record.licenseNumber,
             licenseType: record.licenseType,
             category,
+            uploadDate: category === 'new' ? this.calendarDate(record.firstUploadDate) : undefined,
+            renewalDate: category === 'renewal' ? this.calendarDate(record.dateOfRenewal) : undefined,
             fee: environmentVariables.getFeePerLicense(),
         };
+    }
+
+    /** Date-only values are already YYYY-MM-DD. Timestamps use the UTC calendar date. */
+    private calendarDate(value: string | undefined): string | undefined {
+        if (!value) {
+            return undefined;
+        }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return value;
+        }
+
+        const parsed = new Date(value);
+
+        if (Number.isNaN(parsed.getTime())) {
+            return undefined;
+        }
+
+        const month = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getUTCDate()).padStart(2, '0');
+
+        return `${parsed.getUTCFullYear()}-${month}-${day}`;
     }
 
     private categoryForBillingMonth(

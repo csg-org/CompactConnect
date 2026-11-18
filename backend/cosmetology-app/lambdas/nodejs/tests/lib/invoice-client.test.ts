@@ -191,9 +191,11 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
                 licenseNumber: 'COS-12345',
                 licenseType: 'cosmetologist',
                 category: 'new',
+                uploadDate: '2024-09-10',
                 fee: 25,
             }),
         ]);
+        expect(result.lineItems[0].renewalDate).toBeUndefined();
     });
 
     it('should categorize a license as a renewal when a renewal was uploaded during the billing month', async () => {
@@ -228,9 +230,11 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
             expect.objectContaining({
                 licenseNumber: 'COS-67890',
                 category: 'renewal',
+                renewalDate: '2024-07-15',
                 fee: 25,
             }),
         ]);
+        expect(result.lineItems[0].uploadDate).toBeUndefined();
     });
 
     it('should bill a renewal uploaded this month when the license has no dateOfRenewal', async () => {
@@ -248,6 +252,8 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
                 fee: 25,
             }),
         ]);
+        expect(result.lineItems[0].renewalDate).toBeUndefined();
+        expect(result.lineItems[0].uploadDate).toBeUndefined();
     });
 
     it('should not bill a license whose dateOfRenewal is in the billing month when no renewal was uploaded', async () => {
