@@ -11,7 +11,7 @@ import sinon from 'sinon';
 import { mountFull, mountShallow } from '@tests/helpers/setup';
 import ApplicationStart from '@pages/ApplicationStart/ApplicationStart.vue';
 import { CompactSerializer, CompactType } from '@models/Compact/Compact.model';
-import { ApplicationType } from '@models/Application/Application.model';
+import { Application, ApplicationType } from '@models/Application/Application.model';
 import store from '@store/index';
 import { nextTick } from 'vue';
 import { flushPromises } from '@vue/test-utils';
@@ -251,10 +251,34 @@ describe('ApplicationStart page', async () => {
         expect(replaceStub.calledOnce).to.equal(true);
         expect(replaceStub.firstCall.args[0].name).to.equal('ApplicationChecklist');
         expect(replaceStub.firstCall.args[0].params.compact).to.equal(CompactType.PSYPACT);
-        expect(replaceStub.firstCall.args[0].params.applicationId).to.match(/^mock-application-/);
+        expect(replaceStub.firstCall.args[0].params.applicationId).to.match(/^[0-9a-f-]{36}$/);
         expect(component.isFormLoading).to.equal(false);
         expect(component.submitLabel).to.equal('Start application');
         expect(component.formData.submit.errorMessage).to.equal('');
+    });
+    it('should not redirect to the checklist if the page unmounts while creation is pending', async () => {
+        await setPsypactCompact();
+
+        const wrapper = await mountPage(mountShallow);
+        const component = wrapper.vm;
+        const replaceStub = sinon.stub(component.$router, 'replace').resolves();
+        let resolveCreate;
+
+        sinon.stub(component.$store, 'dispatch').returns(new Promise((resolve) => {
+            resolveCreate = resolve;
+        }));
+        component.formData.apit.value = true;
+        component.formData.licenseState.value = 'co';
+        await nextTick();
+
+        const submitRequest = component.handleSubmit();
+
+        wrapper.unmount();
+        resolveCreate(new Application({ id: 'created-application' }));
+        await submitRequest;
+
+        expect(component.isPageActive).to.equal(false);
+        expect(replaceStub.notCalled).to.equal(true);
     });
     it('should mock populate the form with both types and the first participating state', async () => {
         await setPsypactCompact();

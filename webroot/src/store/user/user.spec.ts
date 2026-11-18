@@ -1746,6 +1746,21 @@ describe('User Store Actions', async () => {
         expect(fetched).to.not.equal(created);
         expect(applications.some((application) => application.id === created.id)).to.equal(true);
     });
+    it('should give mock applications created in the same millisecond unique retrievable IDs', async () => {
+        const nowStub = sinon.stub(Date, 'now').returns(1700000000000);
+        const [ first, second ] = await Promise.all([
+            mockDataApi.createAuthenticatedLicenseeApplication({ types: [ApplicationType.APIT] }),
+            mockDataApi.createAuthenticatedLicenseeApplication({ types: [ApplicationType.TAP] }),
+        ]);
+        const fetchedSecond = await mockDataApi.getAuthenticatedLicenseeApplication(second.id);
+
+        nowStub.restore();
+        mockDataApi.resetCreatedApplications();
+
+        expect(first.id).to.not.equal(second.id);
+        expect(fetchedSecond.id).to.equal(second.id);
+        expect(fetchedSecond.types).to.matchPattern([ApplicationType.TAP]);
+    });
     it('should successfully start create application request (intentional error)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();

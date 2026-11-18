@@ -38,6 +38,7 @@ import {
     applicationConfig,
     getMockProviderForCompact
 } from '@network/mocks/mock.data';
+import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
 
 let mockStore: any = null;
@@ -870,7 +871,7 @@ export class DataApi {
         const [ blankApplication ] = JSON.parse(JSON.stringify(applicantApplications));
         const serverApplication = {
             ...blankApplication,
-            id: `mock-application-${Date.now()}`,
+            id: uuidv4(),
             created: moment().format(serverDatetimeFormat),
             types,
         };

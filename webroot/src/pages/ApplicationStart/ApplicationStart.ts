@@ -64,6 +64,7 @@ class ApplicationStart extends mixins(MixinForm) {
     //
     ePassportUrl = 'https://example.com';
     ipcUrl = 'https://example.com';
+    isPageActive = true;
 
     //
     // Lifecycle
@@ -72,6 +73,10 @@ class ApplicationStart extends mixins(MixinForm) {
         this.initFormInputs();
         await this.fetchConfigData();
         this.formData.licenseState.valueOptions = this.stateOptions;
+    }
+
+    beforeUnmount() {
+        this.isPageActive = false;
     }
 
     //
@@ -256,7 +261,7 @@ class ApplicationStart extends mixins(MixinForm) {
             await this.$store.dispatch('user/createApplicationRequestLicensee', {
                 data: this.prepRequestData(),
             }).then((application) => {
-                if (application) {
+                if (application && this.isPageActive) {
                     this.$router.replace({
                         name: 'ApplicationChecklist',
                         params: { compact: this.compactType, applicationId: application.id },
