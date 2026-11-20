@@ -193,7 +193,12 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     compact/{compact}/reports/invoices/license-type/{licenseType}/{YYYY}/{MM}/
     {licenseType}-{YYYY-MM}-invoice-run-{YYYY-MM-DDTHHMMSSZ}.zip
     and {state}-{licenseType}-invoice-{YYYY-MM}-run-{YYYY-MM-DDTHHMMSSZ}.csv.
-    Rows present only in the emailed CSVs were billed for data this rollback removed.
+    To find licenses billed for rolled-back data, compare the two runs by stable identity
+    (jurisdiction, license number, license type, and fee) rather than row equality — fields
+    such as provider name can change between runs for unrelated reasons. Cross-reference any
+    differences with the rollback results JSON at
+    licenseUploadRollbacks/{executionName}/results.json to confirm a missing license was
+    actually removed by this rollback rather than changed for another reason.
 
     Input event structure:
     {

@@ -8,6 +8,7 @@ attach that zip. It does not send mail itself.
 from __future__ import annotations
 
 import re
+import time
 from datetime import UTC, datetime
 
 import boto3
@@ -30,6 +31,11 @@ from invoice_report import (
 
 EMAIL_PATTERN = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 BATCH_GET_LIMIT = 100
+# UnprocessedKeys is retried with capped exponential backoff. Past this budget the run fails
+# so a partial license fetch is never stored or emailed.
+MAX_UNPROCESSED_RETRIES = 3
+UNPROCESSED_BASE_SLEEP_SECONDS = 0.5
+UNPROCESSED_MAX_SLEEP_SECONDS = 5
 
 
 def generate_invoice_reports(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001 unused-argument
@@ -211,8 +217,21 @@ def _batch_get_licenses(keys: list[dict]) -> list[dict]:
     records = []
     for offset in range(0, len(keys), BATCH_GET_LIMIT):
         pending = keys[offset : offset + BATCH_GET_LIMIT]
+        attempt = 0
         while pending:
+            if attempt:
+                time.sleep(min(UNPROCESSED_BASE_SLEEP_SECONDS * (2 ** (attempt - 1)), UNPROCESSED_MAX_SLEEP_SECONDS))
             response = dynamodb.batch_get_item(RequestItems={table_name: {'Keys': pending}})
             records.extend(response.get('Responses', {}).get(table_name, []))
             pending = response.get('UnprocessedKeys', {}).get(table_name, {}).get('Keys', [])
+            if not pending:
+                break
+            attempt += 1
+            if attempt > MAX_UNPROCESSED_RETRIES:
+                logger.error(
+                    'License batch get left keys unprocessed',
+                    unprocessed_key_count=len(pending),
+                    retries=MAX_UNPROCESSED_RETRIES,
+                )
+                raise CCInternalException('Failed to load all licenses for the invoice after retrying unprocessed keys')
     return records

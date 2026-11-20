@@ -12,7 +12,9 @@ Rollback does not change an invoice that was already emailed. To find the billin
 
 `{state}-{licenseType}-invoice-{YYYY-MM}-run-{YYYY-MM-DDTHHMMSSZ}.csv`
 
-A row that is only in the emailed CSVs was billed for data the rollback removed. The billing month and the run time are both in the name, so a September invoice generated in November is distinct from one generated in December, and from the cosmetologist invoice generated in the same run.
+The billing month and the run time are both in the name, so a September invoice generated in November is distinct from one generated in December, and from the cosmetologist invoice generated in the same run.
+
+To identify licenses that were billed for rolled-back data, compare the two runs by stable identity: jurisdiction, license number, license type, and fee. Do not rely on row equality alone — fields such as provider name can change between runs for reasons unrelated to rollback. Cross-reference any differences with the rollback results JSON (stored at `licenseUploadRollbacks/{executionName}/results.json`) to confirm whether a missing license was actually removed by the rollback rather than changed in some other way.
 
 ## Step-by-Step Execution Guide
 
