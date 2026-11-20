@@ -1319,7 +1319,7 @@ describe('EmailNotificationServiceLambda', () => {
             mockDynamoDBClient.on(GetItemCommand).resolves({
                 Item: {
                     ...SAMPLE_COMPACT_CONFIGURATION,
-                    compactOperationsTeamEmails: { L: [] },
+                    compactOperationsTeamEmails: { L: []},
                 },
             });
             const { invoiceLambda } = invoiceLambdaWithZip();
