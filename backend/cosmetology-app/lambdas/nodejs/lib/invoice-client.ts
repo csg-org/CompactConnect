@@ -30,6 +30,8 @@ interface LicenseRecord {
     /** What the jurisdiction reported. The calculated compactEligibility field is not stored. */
     jurisdictionUploadedCompactEligibility?: string;
     firstUploadDate?: string;
+    /** Shown on every billable row. Not used to decide whether the license is billed. */
+    dateOfIssuance?: string;
     /** Shown on renewal rows. Not used to decide whether the license is billed. */
     dateOfRenewal?: string;
 }
@@ -254,7 +256,8 @@ export class InvoiceClient {
             licenseNumber: record.licenseNumber,
             licenseType: record.licenseType,
             category,
-            uploadDate: category === 'new' ? this.calendarDate(record.firstUploadDate) : undefined,
+            uploadDate: this.calendarDate(record.firstUploadDate),
+            issuanceDate: this.calendarDate(record.dateOfIssuance),
             renewalDate: category === 'renewal' ? this.calendarDate(record.dateOfRenewal) : undefined,
             fee: environmentVariables.getFeePerLicense(),
         };

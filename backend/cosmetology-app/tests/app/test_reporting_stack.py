@@ -5,6 +5,7 @@ from aws_cdk.assertions import Template
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_iam import CfnPolicy
 from aws_cdk.aws_lambda import CfnEventInvokeConfig, CfnFunction
+from aws_cdk.aws_s3 import CfnBucket
 
 from tests.app.base import TstAppABC
 
@@ -31,7 +32,7 @@ class TestReportingStack(TstAppABC, TestCase):
         matches = {
             logical_id: resource
             for logical_id, resource in functions.items()
-            if resource['Properties'].get('Handler') == 'index.generateInvoice'
+            if resource['Properties'].get('Handler') == 'handlers.invoice_reporting.generate_invoice_reports'
         }
         self.assertEqual(1, len(matches), 'Expected exactly one invoice reporter lambda')
         return next(iter(matches.items()))
@@ -58,10 +59,12 @@ class TestReportingStack(TstAppABC, TestCase):
         _logical_id, resource = self._invoice_reporter_function()
         env_vars = resource['Properties']['Environment']['Variables']
 
-        self.assertEqual('index.generateInvoice', resource['Properties']['Handler'])
+        self.assertEqual('handlers.invoice_reporting.generate_invoice_reports', resource['Properties']['Handler'])
         self.assertIn('PROVIDER_TABLE_NAME', env_vars)
         self.assertEqual('licenseUploadDateInvoiceGSI', env_vars['LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME'])
         self.assertIn('COMPACT_CONFIGURATION_TABLE_NAME', env_vars)
+        self.assertIn('INVOICE_REPORTS_BUCKET_NAME', env_vars)
+        self.assertIn('EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME', env_vars)
         self.assertEqual('25', env_vars['FEE_PER_LICENSE'])
 
     def test_invoice_reporter_does_not_retry_failed_invocations(self):
@@ -118,12 +121,18 @@ class TestReportingStack(TstAppABC, TestCase):
             'Expected read access to the compact configuration table',
         )
 
-    def test_invoice_reporter_has_ses_send_permissions(self):
+    def test_invoice_reporter_can_store_the_zip_and_invoke_email(self):
         statements = self._invoice_reporter_policy_statements()
-        ses_statements = [
-            statement
-            for statement in statements
-            if {'ses:SendEmail', 'ses:SendRawEmail'}.issubset(self._actions_of(statement))
-        ]
+        actions = {action for statement in statements for action in self._actions_of(statement)}
 
-        self.assertEqual(1, len(ses_statements), 'Expected SES send permissions for the invoice reporter')
+        self.assertIn('s3:PutObject', actions)
+        self.assertIn('s3:GetObject*', actions)
+        self.assertIn('lambda:InvokeFunction', actions)
+
+    def test_invoice_reports_bucket_is_versioned(self):
+        persistent_stack = self.app.sandbox_backend_stage.persistent_stack
+        template = Template.from_stack(persistent_stack)
+        logical_id = persistent_stack.get_logical_id(persistent_stack.invoice_reports_bucket.node.default_child)
+        bucket = template.find_resources(CfnBucket.CFN_RESOURCE_TYPE_NAME)[logical_id]
+
+        self.assertEqual('Enabled', bucket['Properties']['VersioningConfiguration']['Status'])

@@ -27,6 +27,7 @@ from stacks.persistent_stack.compact_configuration_table import CompactConfigura
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
 from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
+from stacks.persistent_stack.invoice_reports_bucket import InvoiceReportsBucket
 from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.rate_limiting_table import RateLimitingTable
 from stacks.persistent_stack.ssn_table import SSNTable
@@ -282,6 +283,15 @@ class PersistentStack(AppStack):
             environment_context=self.environment_context,
         )
 
+        self.invoice_reports_bucket = InvoiceReportsBucket(
+            self,
+            'InvoiceReportsBucket',
+            access_logs_bucket=self.access_logs_bucket,
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
+            auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
+        )
+
     def _create_email_notification_service(self) -> None:
         """This lambda is intended to be a general purpose email notification service.
 
@@ -307,6 +317,7 @@ class PersistentStack(AppStack):
                 'FROM_ADDRESS': from_address,
                 'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
                 'UI_BASE_PATH_URL': self.get_ui_base_path_url(),
+                'INVOICE_REPORTS_BUCKET_NAME': self.invoice_reports_bucket.bucket_name,
                 **self.common_env_vars,
             },
         )
@@ -320,8 +331,9 @@ class PersistentStack(AppStack):
         )
         self.email_notification_service_failure_alarm.add_alarm_action(SnsAction(self.alarm_topic))
 
-        # Grant permissions to read compact configurations
+        # Grant permissions to read compact configurations and the stored invoice zips
         self.compact_configuration_table.grant_read_data(self.email_notification_service_lambda)
+        self.invoice_reports_bucket.grant_read(self.email_notification_service_lambda)
         # if there is no domain name, we can't set up SES permissions
         # in this case the lambda will perform a no-op when invoked.
         if self.hosted_zone:
@@ -335,7 +347,7 @@ class PersistentStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                               This policy contains wild-carded actions and resources but they are scoped to the
-                              specific actions, Table, and Email Identity that this lambda
+                              specific actions, table, invoice bucket, and email identity that this lambda
                               specifically needs access to.
                               """,
                 },

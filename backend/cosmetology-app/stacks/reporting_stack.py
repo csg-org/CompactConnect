@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
@@ -8,6 +10,7 @@ from aws_cdk.aws_events_targets import LambdaFunction
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.nodejs_function import NodejsFunction
+from common_constructs.python_function import PythonFunction
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -128,35 +131,37 @@ class ReportingStack(AppStack):
         )
 
     def _add_invoice_reporting(self, persistent_stack: ps.PersistentStack):
-        from_address = f'noreply@{persistent_stack.user_email_notifications.email_identity.email_identity_name}'
-        ui_base_path_url = self._get_ui_base_path_url()
-
-        invoice_reporter = NodejsFunction(
+        # Python writes the zip. The Node email service reads it and sends the message.
+        invoice_reporter = PythonFunction(
             self,
             'InvoiceReporter',
             description='Monthly compact invoice reporter',
-            lambda_dir='invoice-reporter',
-            handler='generateInvoice',
+            lambda_dir='reporting',
+            index=os.path.join('handlers', 'invoice_reporting.py'),
+            handler='generate_invoice_reports',
             timeout=Duration.minutes(15),
             # This lambda sends email notifications, so we do not want it to retry in the event of a failure
             # we will instead trigger an alert for support to investigate and address as needed.
             retry_attempts=0,
             memory_size=2048,
             environment={
-                'FROM_ADDRESS': from_address,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME': (
                     persistent_stack.provider_table.license_upload_date_invoice_gsi_name
                 ),
                 'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
-                'UI_BASE_PATH_URL': ui_base_path_url,
+                'INVOICE_REPORTS_BUCKET_NAME': persistent_stack.invoice_reports_bucket.bucket_name,
+                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': (
+                    persistent_stack.email_notification_service_lambda.function_name
+                ),
                 'FEE_PER_LICENSE': '25',
                 **self.common_env_vars,
             },
         )
         persistent_stack.provider_table.grant_read_data(invoice_reporter)
         persistent_stack.compact_configuration_table.grant_read_data(invoice_reporter)
-        persistent_stack.setup_ses_permissions_for_lambda(invoice_reporter)
+        persistent_stack.invoice_reports_bucket.grant_read_write(invoice_reporter)
+        persistent_stack.email_notification_service_lambda.grant_invoke(invoice_reporter)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
@@ -166,7 +171,7 @@ class ReportingStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                     This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key, Table, and Email Identity that this lambda specifically needs access to.
+                    specific actions, KMS key, invoice bucket, and tables that this lambda needs access to.
                     """,
                 },
             ],

@@ -11,6 +11,7 @@ export class EnvironmentVariablesService {
     private readonly providerTableNameVariable = 'PROVIDER_TABLE_NAME';
     private readonly licenseUploadDateInvoiceIndexNameVariable = 'LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME';
     private readonly feePerLicenseVariable = 'FEE_PER_LICENSE';
+    private readonly invoiceReportsBucketNameVariable = 'INVOICE_REPORTS_BUCKET_NAME';
 
     public getEnvVar(name: string): string {
         return process.env[name]?.trim() || '';
@@ -64,6 +65,16 @@ export class EnvironmentVariablesService {
         }
 
         return indexName;
+    }
+
+    public getInvoiceReportsBucketName() {
+        const bucketName = this.getEnvVar(this.invoiceReportsBucketNameVariable);
+
+        if (!bucketName) {
+            throw new Error('INVOICE_REPORTS_BUCKET_NAME is required');
+        }
+
+        return bucketName;
     }
 
     public getFeePerLicense() {

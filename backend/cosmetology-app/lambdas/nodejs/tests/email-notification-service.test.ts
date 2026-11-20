@@ -1,6 +1,7 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { Lambda } from '../email-notification-service/lambda';
 import { EmailNotificationEvent } from '../lib/models/email-notification-service-event';
@@ -52,6 +53,9 @@ const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;
+
+const asS3Client = (mock: ReturnType<typeof mockClient>) =>
+    mock as unknown as S3Client;
 
 describe('EmailNotificationServiceLambda', () => {
     let lambda: Lambda;
@@ -1166,6 +1170,42 @@ describe('EmailNotificationServiceLambda', () => {
             await expect(lambda.handler(eventWithMissingVariables, {} as any))
                 .rejects
                 .toThrow('Missing required template variables for home jurisdiction change notification template.');
+        });
+    });
+
+    describe('Compact invoice reporting', () => {
+        it('should download the stored zip and attach it', async () => {
+            process.env.INVOICE_REPORTS_BUCKET_NAME = 'invoice-reports';
+            const mockS3Client = mockClient(S3Client);
+
+            mockS3Client.on(GetObjectCommand).resolves({
+                Body: { transformToByteArray: async () => Buffer.from('zip-bytes') } as any,
+            });
+            const invoiceLambda = new Lambda({
+                dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+                sesClient: asSESClient(mockSESClient),
+                s3Client: asS3Client(mockS3Client),
+            });
+
+            const response = await invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'COMPACT_OPERATIONS_TEAM',
+                compact: 'cosm',
+                templateVariables: {
+                    reportS3Path: 'compact/cosm/reports/invoices/license-type/esthetician/2026/09/esthetician-2026-09-invoice.zip',
+                    licenseType: 'esthetician',
+                    billingMonth: '2026-09',
+                    totalBillable: 2,
+                    totalOwed: 50,
+                },
+            }, {} as any);
+
+            expect(response).toEqual({ message: 'Email message sent' });
+            expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
+                Bucket: 'invoice-reports',
+                Key: 'compact/cosm/reports/invoices/license-type/esthetician/2026/09/esthetician-2026-09-invoice.zip',
+            });
+            expect(mockSESClient).toHaveReceivedCommand(SendEmailCommand);
         });
     });
 });

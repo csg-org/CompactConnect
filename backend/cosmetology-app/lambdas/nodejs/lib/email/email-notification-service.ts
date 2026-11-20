@@ -1,6 +1,9 @@
+import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { BaseEmailService } from './base-email-service';
 import { EnvironmentVariablesService } from '../environment-variables-service';
 import { RecipientType } from '../models/email-notification-service-event';
+import { invoiceBody, invoiceSubject } from './invoice-email-service';
+import { InvoiceReport } from '../models/invoice';
 
 const environmentVariableService = new EnvironmentVariablesService();
 
@@ -8,6 +11,12 @@ const environmentVariableService = new EnvironmentVariablesService();
  * Email service for handling email notifications
  */
 export class EmailNotificationService extends BaseEmailService {
+    public readonly s3Client: S3Client;
+
+    public constructor(props: ConstructorParameters<typeof BaseEmailService>[0] & { s3Client?: S3Client }) {
+        super(props);
+        this.s3Client = props.s3Client ?? new S3Client({});
+    }
 
     private async getJurisdictionRecipients(
         compact: string,
@@ -76,5 +85,92 @@ export class EmailNotificationService extends BaseEmailService {
         const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send home jurisdiction change state notification email' });
+    }
+
+    /**
+     * Attach the invoice zip that the Python reporter stored. This service does not build the CSVs.
+     */
+    public async sendCompactInvoiceEmail(
+        compact: string,
+        reportS3Path: string,
+        licenseType: string,
+        billingMonth: string,
+        totalBillable: number,
+        totalOwed: number,
+        recipientType: RecipientType,
+        specificEmails?: string[]
+    ): Promise<void> {
+        this.logger.info('Sending compact invoice email', {
+            compact,
+            licenseType,
+            billingMonth,
+            reportS3Path,
+        });
+
+        const recipients = await this.invoiceRecipients(compact, recipientType, specificEmails);
+        const reportZipResponse = await this.s3Client.send(new GetObjectCommand({
+            Bucket: environmentVariableService.getInvoiceReportsBucketName(),
+            Key: reportS3Path,
+        }));
+
+        if (!reportZipResponse.Body) {
+            throw new Error(`Failed to retrieve invoice report from S3: ${reportS3Path}`);
+        }
+
+        const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+        const report: InvoiceReport = {
+            compactName: compactConfig.compactName,
+            licenseType,
+            billingMonth,
+            stateSections: [],
+            totalUploaded: 0,
+            totalBillable,
+            totalOwed,
+        };
+        const subject = invoiceSubject(report);
+        const template = this.getNewEmailTemplate();
+
+        this.insertHeader(template, subject);
+        this.insertBody(template, invoiceBody(report), 'left');
+        this.insertFooter(template);
+
+        await this.sendEmailWithAttachments({
+            htmlContent: this.renderTemplate(template),
+            subject,
+            recipients,
+            errorMessage: 'Unable to send compact invoice email',
+            attachments: [
+                {
+                    filename: `${licenseType}-${billingMonth}-invoice.zip`,
+                    content: reportZipBuffer,
+                    contentType: 'application/zip',
+                },
+            ],
+        });
+    }
+
+    private async invoiceRecipients(
+        compact: string,
+        recipientType: RecipientType,
+        specificEmails?: string[]
+    ): Promise<string[]> {
+        if (recipientType === 'SPECIFIC') {
+            if (specificEmails && specificEmails.length > 0) {
+                return specificEmails;
+            }
+            throw new Error('SPECIFIC recipientType requested but no specific email addresses provided');
+        }
+        if (recipientType !== 'COMPACT_OPERATIONS_TEAM') {
+            throw new Error(`Unsupported recipient type for compact invoice: ${recipientType}`);
+        }
+
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+
+        if (!compactConfig.compactOperationsTeamEmails.length) {
+            throw new Error(`No operations recipients found for compact ${compact}`);
+        }
+
+        return compactConfig.compactOperationsTeamEmails;
     }
 }

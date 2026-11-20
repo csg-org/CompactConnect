@@ -259,6 +259,18 @@ class _Config:
         return os.environ['LICENSE_UPLOAD_DATE_INDEX_NAME']
 
     @property
+    def license_upload_date_invoice_index_name(self):
+        return os.environ['LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME']
+
+    @property
+    def invoice_reports_bucket_name(self):
+        return os.environ['INVOICE_REPORTS_BUCKET_NAME']
+
+    @property
+    def fee_per_license(self):
+        return os.environ.get('FEE_PER_LICENSE', '25')
+
+    @property
     def expiration_resolution_timezone(self):
         return timezone(offset=timedelta(hours=-4))
 
