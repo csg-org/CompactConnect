@@ -1,5 +1,6 @@
 import sys
 import unittest
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -46,10 +47,11 @@ class TestInvoiceReport(unittest.TestCase):
             '2024-09',
             renewal_uploaded=True,
             fee=25,
+            renewal_uploaded_at='2024-09-18T15:00:00Z',
         )
 
         self.assertEqual('renewal', item['category'])
-        self.assertEqual('2022-01-10', item['uploadDate'])
+        self.assertEqual('2024-09-18', item['uploadDate'])
         self.assertEqual('2022-01-01', item['issuanceDate'])
         self.assertEqual('2024-07-15', item['renewalDate'])
 
@@ -66,9 +68,11 @@ class TestInvoiceReport(unittest.TestCase):
             '2024-09',
             renewal_uploaded=True,
             fee=25,
+            renewal_uploaded_at='2024-09-18T15:00:00Z',
         )
 
         self.assertEqual('renewal', item['category'])
+        self.assertEqual('2024-09-18', item['uploadDate'])
         self.assertIsNone(item['renewalDate'])
 
     def test_a_renewal_date_in_the_month_is_not_enough_without_a_renewal_upload(self):
@@ -123,7 +127,50 @@ class TestInvoiceReport(unittest.TestCase):
 
         self.assertEqual(1, len(indexed))
         self.assertTrue(indexed[0]['renewalUploaded'])
+        self.assertEqual(datetime.fromtimestamp(2, UTC), indexed[0]['renewalUploadedAt'])
         self.assertEqual('cosm#PROVIDER#license/oh/esth#', indexed[0]['key']['sk'])
+
+    def test_several_renewal_uploads_keep_the_earliest(self):
+        later = int(datetime(2024, 9, 20, 12, tzinfo=UTC).timestamp())
+        earlier = int(datetime(2024, 9, 4, 8, tzinfo=UTC).timestamp())
+        indexed = invoice_report.indexed_licenses(
+            'cosm',
+            'oh',
+            [
+                {'licenseUploadDateGSISK': f'TIME#{later}#LT#cos#PID#provider-1', 'updateType': 'renewal'},
+                {'licenseUploadDateGSISK': f'TIME#{earlier}#LT#cos#PID#provider-1', 'updateType': 'renewal'},
+                {'licenseUploadDateGSISK': f'TIME#{later}#LT#cos#PID#provider-1', 'updateType': 'deactivation'},
+            ],
+        )
+
+        self.assertEqual(datetime.fromtimestamp(earlier, UTC), indexed[0]['renewalUploadedAt'])
+
+    def test_upload_date_is_the_upload_that_caused_the_charge(self):
+        record = {
+            'pk': 'cosm#PROVIDER#provider-1',
+            'sk': 'cosm#PROVIDER#license/oh/cos#',
+            'jurisdictionUploadedCompactEligibility': 'eligible',
+            'licenseType': 'cosmetologist',
+            'licenseNumber': 'COS-9',
+            'firstUploadDate': '2022-01-10T00:00:00Z',
+            'dateOfIssuance': '2022-01-01',
+        }
+        later = int(datetime(2024, 9, 20, 12, tzinfo=UTC).timestamp())
+        earlier = int(datetime(2024, 9, 4, 8, tzinfo=UTC).timestamp())
+        by_type, _uploaded = invoice_report.jurisdiction_invoice(
+            'cosm',
+            'oh',
+            '2024-09',
+            [
+                {'licenseUploadDateGSISK': f'TIME#{later}#LT#cos#PID#provider-1', 'updateType': 'renewal'},
+                {'licenseUploadDateGSISK': f'TIME#{earlier}#LT#cos#PID#provider-1', 'updateType': 'renewal'},
+            ],
+            {f'{record["pk"]}|{record["sk"]}': record},
+            25,
+        )
+
+        self.assertEqual('2024-09-04', by_type['cosmetologist'][0]['uploadDate'])
+        self.assertEqual('renewal', by_type['cosmetologist'][0]['category'])
 
     def test_zip_contains_one_csv_per_state_for_that_license_type(self):
         alabama = invoice_report.state_invoice_csv(

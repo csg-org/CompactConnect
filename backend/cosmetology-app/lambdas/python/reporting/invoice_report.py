@@ -2,7 +2,9 @@
 
 Billing matches the previous Node invoice client. A license is new when its firstUploadDate
 falls in the billing month. It is a renewal when a renewal upload was processed in that month
-and it was not first uploaded then. dateOfRenewal is display-only.
+and it was not first uploaded then. dateOfRenewal is display-only. Upload Date is the upload
+that caused the charge: firstUploadDate for a new license, otherwise the earliest renewal
+upload in the billing month.
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ CSV_HEADERS = [
 SPREADSHEET_FORMULA_START = re.compile(r'^[-+=@\t\r\n\uFF1D\uFF0B\uFF0D\uFF20]')
 DATE_ONLY = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 BILLING_MONTH = re.compile(r'^\d{4}-(0[1-9]|1[0-2])$')
+SORT_KEY_TIME = re.compile(r'^TIME#(\d+)#')
 SORT_KEY_LICENSE_TYPE = re.compile(r'#LT#([^#]+)#PID#')
 SORT_KEY_PROVIDER = re.compile(r'#PID#(.+)$')
 
@@ -110,12 +113,24 @@ def _category(record: dict, billing_month: str, renewal_uploaded: bool) -> str |
     return None
 
 
-def line_item(record: dict, jurisdiction: str, billing_month: str, renewal_uploaded: bool, fee: int) -> dict | None:
+def line_item(
+    record: dict,
+    jurisdiction: str,
+    billing_month: str,
+    renewal_uploaded: bool,
+    fee: int,
+    renewal_uploaded_at: object = None,
+) -> dict | None:
     if record.get('jurisdictionUploadedCompactEligibility') != 'eligible':
         return None
     category = _category(record, billing_month, renewal_uploaded)
     if not category or not record.get('licenseType') or not record.get('licenseNumber'):
         return None
+    # A first upload in the month is the charge. A later renewal in that month does not replace it.
+    if category == 'new':
+        upload_date = calendar_date(record.get('firstUploadDate'))
+    else:
+        upload_date = calendar_date(renewal_uploaded_at)
     return {
         'givenName': record.get('givenName') or '',
         'familyName': record.get('familyName') or '',
@@ -123,7 +138,7 @@ def line_item(record: dict, jurisdiction: str, billing_month: str, renewal_uploa
         'licenseNumber': record['licenseNumber'],
         'licenseType': record['licenseType'],
         'category': category,
-        'uploadDate': calendar_date(record.get('firstUploadDate')),
+        'uploadDate': upload_date,
         'issuanceDate': calendar_date(record.get('dateOfIssuance')),
         'renewalDate': calendar_date(record.get('dateOfRenewal')) if category == 'renewal' else None,
         'fee': fee,
@@ -131,7 +146,11 @@ def line_item(record: dict, jurisdiction: str, billing_month: str, renewal_uploa
 
 
 def indexed_licenses(compact: str, jurisdiction: str, gsi_items: list[dict]) -> list[dict]:
-    """Collapse index hits to one license. A renewal upload on any hit marks the license renewed."""
+    """Collapse index hits to one license.
+
+    A renewal upload on any hit marks the license renewed. renewalUploadedAt is the earliest
+    renewal upload in the month, taken from the index sort key the query already returned.
+    """
     indexed: dict[str, dict] = {}
     for item in gsi_items:
         sort_key = item.get('licenseUploadDateGSISK') or ''
@@ -145,11 +164,17 @@ def indexed_licenses(compact: str, jurisdiction: str, gsi_items: list[dict]) -> 
         }
         key_id = f'{key["pk"]}|{key["sk"]}'
         renewal_uploaded = item.get('updateType') == 'renewal'
+        renewal_uploaded_at = _upload_time_from_sort_key(sort_key) if renewal_uploaded else None
         existing = indexed.get(key_id)
         if existing:
             existing['renewalUploaded'] = existing['renewalUploaded'] or renewal_uploaded
+            existing['renewalUploadedAt'] = _earliest(existing.get('renewalUploadedAt'), renewal_uploaded_at)
             continue
-        indexed[key_id] = {'key': key, 'renewalUploaded': renewal_uploaded}
+        indexed[key_id] = {
+            'key': key,
+            'renewalUploaded': renewal_uploaded,
+            'renewalUploadedAt': renewal_uploaded_at,
+        }
     return list(indexed.values())
 
 
@@ -170,7 +195,18 @@ def jurisdiction_invoice(
         if record and record.get('licenseType'):
             license_type = record['licenseType']
             uploaded_by_license_type[license_type] = uploaded_by_license_type.get(license_type, 0) + 1
-        item = line_item(record, jurisdiction, billing_month, indexed['renewalUploaded'], fee) if record else None
+        item = (
+            line_item(
+                record,
+                jurisdiction,
+                billing_month,
+                indexed['renewalUploaded'],
+                fee,
+                indexed.get('renewalUploadedAt'),
+            )
+            if record
+            else None
+        )
         if not item:
             continue
         by_license_type.setdefault(item['licenseType'], []).append(item)
@@ -219,6 +255,22 @@ def invoice_zip(entries: list[tuple[str, str]]) -> bytes:
         for filename, content in entries:
             archive.writestr(filename, content.encode('utf-8'))
     return buffer.getvalue()
+
+
+def _upload_time_from_sort_key(sort_key: str) -> datetime | None:
+    """The TIME# epoch on an index hit is the upload that placed the row in this billing month."""
+    match = SORT_KEY_TIME.match(sort_key)
+    if not match:
+        return None
+    return datetime.fromtimestamp(int(match.group(1)), UTC)
+
+
+def _earliest(current: datetime | None, candidate: datetime | None) -> datetime | None:
+    if candidate is None:
+        return current
+    if current is None or candidate < current:
+        return candidate
+    return current
 
 
 def _license_type_abbr_from_sort_key(sort_key: str) -> str | None:
