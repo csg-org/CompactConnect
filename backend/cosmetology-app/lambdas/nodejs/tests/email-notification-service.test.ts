@@ -1174,18 +1174,40 @@ describe('EmailNotificationServiceLambda', () => {
     });
 
     describe('Compact invoice reporting', () => {
-        it('should download the stored zip and attach it', async () => {
+        const invoiceTemplateVariables = () => ({
+            reportS3Path: 'compact/cosm/reports/invoices/license-type/esthetician/2026/09/esthetician-2026-09-invoice.zip',
+            licenseType: 'esthetician',
+            billingMonth: '2026-09',
+            totalBillable: 2,
+            totalOwed: 50,
+        });
+
+        const invoiceLambdaWithZip = () => {
             process.env.INVOICE_REPORTS_BUCKET_NAME = 'invoice-reports';
             const mockS3Client = mockClient(S3Client);
 
             mockS3Client.on(GetObjectCommand).resolves({
                 Body: { transformToByteArray: async () => Buffer.from('zip-bytes') } as any,
             });
-            const invoiceLambda = new Lambda({
-                dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
-                sesClient: asSESClient(mockSESClient),
-                s3Client: asS3Client(mockS3Client),
-            });
+
+            return {
+                mockS3Client,
+                invoiceLambda: new Lambda({
+                    dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+                    sesClient: asSESClient(mockSESClient),
+                    s3Client: asS3Client(mockS3Client),
+                }),
+            };
+        };
+
+        const sentRawEmail = () => {
+            const raw = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Content?.Raw?.Data;
+
+            return Buffer.from(raw as Uint8Array).toString('utf8');
+        };
+
+        it('should download the stored zip and attach it', async () => {
+            const { mockS3Client, invoiceLambda } = invoiceLambdaWithZip();
 
             const response = await invoiceLambda.handler({
                 template: 'CompactInvoiceReporting',
@@ -1206,6 +1228,119 @@ describe('EmailNotificationServiceLambda', () => {
                 Key: 'compact/cosm/reports/invoices/license-type/esthetician/2026/09/esthetician-2026-09-invoice.zip',
             });
             expect(mockSESClient).toHaveReceivedCommand(SendEmailCommand);
+            expect(sentRawEmail()).toContain('esthetician-2026-09-invoice.zip');
+        });
+
+        it('should send a manual invoice to the specific addresses', async () => {
+            const { invoiceLambda } = invoiceLambdaWithZip();
+
+            const response = await invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'SPECIFIC',
+                compact: 'cosm',
+                specificEmails: ['finance@example.com'],
+                templateVariables: invoiceTemplateVariables(),
+            }, {} as any);
+
+            expect(response).toEqual({ message: 'Email message sent' });
+            expect(sentRawEmail()).toContain('finance@example.com');
+        });
+
+        it('should use a fallback attachment name when the stored key has no file name', async () => {
+            const { invoiceLambda } = invoiceLambdaWithZip();
+
+            await invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'COMPACT_OPERATIONS_TEAM',
+                compact: 'cosm',
+                templateVariables: {
+                    ...invoiceTemplateVariables(),
+                    reportS3Path: 'compact/cosm/reports/invoices/',
+                },
+            }, {} as any);
+
+            expect(sentRawEmail()).toContain('esthetician-2026-09-invoice.zip');
+        });
+
+        it('should throw when the stored invoice object has no body', async () => {
+            process.env.INVOICE_REPORTS_BUCKET_NAME = 'invoice-reports';
+            const mockS3Client = mockClient(S3Client);
+
+            mockS3Client.on(GetObjectCommand).resolves({});
+            const invoiceLambda = new Lambda({
+                dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+                sesClient: asSESClient(mockSESClient),
+                s3Client: asS3Client(mockS3Client),
+            });
+
+            await expect(invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'COMPACT_OPERATIONS_TEAM',
+                compact: 'cosm',
+                templateVariables: invoiceTemplateVariables(),
+            }, {} as any)).rejects.toThrow('Failed to retrieve invoice report from S3');
+        });
+
+        it('should throw when a specific recipient was requested without addresses', async () => {
+            const { invoiceLambda } = invoiceLambdaWithZip();
+
+            await expect(invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'SPECIFIC',
+                compact: 'cosm',
+                templateVariables: invoiceTemplateVariables(),
+            }, {} as any)).rejects.toThrow('SPECIFIC recipientType requested but no specific email addresses provided');
+        });
+
+        it('should throw when a specific recipient list is empty', async () => {
+            const { invoiceLambda } = invoiceLambdaWithZip();
+
+            await expect(invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'SPECIFIC',
+                compact: 'cosm',
+                specificEmails: [],
+                templateVariables: invoiceTemplateVariables(),
+            }, {} as any)).rejects.toThrow('SPECIFIC recipientType requested but no specific email addresses provided');
+        });
+
+        it('should throw when the invoice recipient type is not supported', async () => {
+            const { invoiceLambda } = invoiceLambdaWithZip();
+
+            await expect(invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'JURISDICTION_OPERATIONS_TEAM',
+                compact: 'cosm',
+                templateVariables: invoiceTemplateVariables(),
+            }, {} as any)).rejects.toThrow('Unsupported recipient type for compact invoice: JURISDICTION_OPERATIONS_TEAM');
+        });
+
+        it('should throw when the compact has no operations recipients', async () => {
+            mockDynamoDBClient.on(GetItemCommand).resolves({
+                Item: {
+                    ...SAMPLE_COMPACT_CONFIGURATION,
+                    compactOperationsTeamEmails: { L: [] },
+                },
+            });
+            const { invoiceLambda } = invoiceLambdaWithZip();
+
+            await expect(invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'COMPACT_OPERATIONS_TEAM',
+                compact: 'cosm',
+                templateVariables: invoiceTemplateVariables(),
+            }, {} as any)).rejects.toThrow('No operations recipients found for compact cosm');
+        });
+
+        it('should throw when required invoice template variables are missing', async () => {
+            const { invoiceLambda } = invoiceLambdaWithZip();
+
+            await expect(invoiceLambda.handler({
+                template: 'CompactInvoiceReporting',
+                recipientType: 'COMPACT_OPERATIONS_TEAM',
+                compact: 'cosm',
+                templateVariables: {},
+            }, {} as any)).rejects.toThrow('Missing required template variables for CompactInvoiceReporting template');
         });
     });
 });

@@ -196,6 +196,28 @@ describe('InvoiceEmailService', () => {
             expect(csv).toContain('Ohio,Jane,"\'=Smith, ""Jr.""",OH,"\'=1+2"";=1+2",New,2024-09-10,2024-09-05,,$25.00');
         });
 
+        it('should leave upload and issuance dates blank when the license has none', () => {
+            const report = cosmetologistReport();
+            const item = report.stateSections[0].lineItems[0];
+
+            item.uploadDate = undefined;
+            item.issuanceDate = undefined;
+
+            const csv = emailService.generateStateInvoiceCsv(report.stateSections[0]);
+
+            expect(csv).toContain('Ohio,Jane,Smith,OH,COS-12345,New,,,,$25.00');
+        });
+
+        it('should name a csv from the postal abbreviation when the jurisdiction name has no letters', () => {
+            const report = cosmetologistReport();
+
+            report.stateSections[0].jurisdictionName = '---';
+
+            const csv = emailService.invoiceAttachments(report);
+
+            expect(csv[0].filename).toEqual('oh-cosmetologist-invoice-2024-09.csv');
+        });
+
         it('should encode tab, carriage return, newline, and fullwidth formula prefixes as text', () => {
             const report = cosmetologistReport();
             const item = report.stateSections[0].lineItems[0];
