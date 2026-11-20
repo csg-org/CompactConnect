@@ -23,6 +23,9 @@ const CSV_HEADERS = [
     'Home State',
     'License Number',
     'Category',
+    'Upload Date',
+    'Issuance Date',
+    'Renewal Date',
     'Fee',
 ];
 
@@ -37,7 +40,6 @@ export class InvoiceEmailService extends BaseEmailService {
         const owed = section.lineItems.reduce((sum, item) => sum + item.fee, 0);
 
         rows.push([]);
-        rows.push(['Total Uploaded', String(section.totalUploaded)]);
         rows.push(['Total Billable', String(section.lineItems.length)]);
         rows.push(['Total Owed', formatCurrency(owed)]);
 
@@ -92,6 +94,9 @@ export class InvoiceEmailService extends BaseEmailService {
             item.homeState,
             item.licenseNumber,
             item.category === 'new' ? 'New' : 'Renewal',
+            item.uploadDate ?? '',
+            item.issuanceDate ?? '',
+            item.renewalDate ?? '',
             formatCurrency(item.fee),
         ];
     }
@@ -118,7 +123,7 @@ export function invoiceBody(report: InvoiceReport): string {
     const monthLabel = formatBillingMonth(report.billingMonth);
 
     return `Please find attached the monthly ${licenseLabel} invoices for the ${report.compactName} Compact for ${monthLabel}. `
-        + `Uploaded licenses: ${report.totalUploaded}. Billable licenses: ${report.totalBillable}. `
+        + `Billable licenses: ${report.totalBillable}. `
         + `Total owed: ${formatCurrency(report.totalOwed)}.`;
 }
 

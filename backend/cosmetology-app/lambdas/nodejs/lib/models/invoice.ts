@@ -7,6 +7,12 @@ export interface InvoiceLineItem {
     licenseNumber: string;
     licenseType: string;
     category: InvoiceCategory;
+    /** firstUploadDate as YYYY-MM-DD. Present for new and renewal rows. */
+    uploadDate?: string;
+    /** Jurisdiction dateOfIssuance as YYYY-MM-DD. Present for new and renewal rows. */
+    issuanceDate?: string;
+    /** Jurisdiction dateOfRenewal for a renewal, as YYYY-MM-DD. Blank for new licenses. */
+    renewalDate?: string;
     fee: number;
 }
 

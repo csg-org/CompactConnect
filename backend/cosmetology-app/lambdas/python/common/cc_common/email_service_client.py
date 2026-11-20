@@ -412,3 +412,35 @@ class EmailServiceClient:
             },
         }
         return self._invoke_lambda(payload)
+
+    def send_compact_invoice_email(
+        self,
+        *,
+        compact: str,
+        report_s3_path: str,
+        license_type: str,
+        billing_month: str,
+        total_billable: int,
+        total_owed: int,
+        recipient_email: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Ask the email service to attach the invoice zip stored at report_s3_path.
+
+        A manual run passes one recipient. A scheduled run uses the compact operations team.
+        """
+        payload = {
+            'compact': compact,
+            'template': 'CompactInvoiceReporting',
+            'recipientType': 'SPECIFIC' if recipient_email else 'COMPACT_OPERATIONS_TEAM',
+            'templateVariables': {
+                'reportS3Path': report_s3_path,
+                'licenseType': license_type,
+                'billingMonth': billing_month,
+                'totalBillable': total_billable,
+                'totalOwed': total_owed,
+            },
+        }
+        if recipient_email:
+            payload['specificEmails'] = [recipient_email]
+        return self._invoke_lambda(payload)

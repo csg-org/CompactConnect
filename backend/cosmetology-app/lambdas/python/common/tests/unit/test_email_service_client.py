@@ -66,3 +66,40 @@ class TestEmailServiceClient(TstLambdas):
                 }
             ),
         )
+
+    def test_send_compact_invoice_email_passes_the_stored_zip_path(self):
+        mock_lambda_client = MagicMock()
+        test_model = self._generate_test_model(mock_lambda_client)
+
+        test_model.send_compact_invoice_email(
+            compact=TEST_COMPACT,
+            report_s3_path='compact/cosm/reports/invoices/license-type/esthetician/2026/09/esthetician-2026-09-invoice.zip',
+            license_type='esthetician',
+            billing_month='2026-09',
+            total_billable=2,
+            total_owed=50,
+            recipient_email='dana@example.com',
+        )
+
+        mock_lambda_client.invoke.assert_called_once_with(
+            FunctionName='test-lambda-name',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(
+                {
+                    'compact': TEST_COMPACT,
+                    'template': 'CompactInvoiceReporting',
+                    'recipientType': 'SPECIFIC',
+                    'templateVariables': {
+                        'reportS3Path': (
+                            'compact/cosm/reports/invoices/license-type/esthetician/2026/09/'
+                            'esthetician-2026-09-invoice.zip'
+                        ),
+                        'licenseType': 'esthetician',
+                        'billingMonth': '2026-09',
+                        'totalBillable': 2,
+                        'totalOwed': 50,
+                    },
+                    'specificEmails': ['dana@example.com'],
+                }
+            ),
+        )

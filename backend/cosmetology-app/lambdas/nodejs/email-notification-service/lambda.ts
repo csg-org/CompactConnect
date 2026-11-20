@@ -1,6 +1,7 @@
 import type { LambdaInterface } from '@aws-lambda-powertools/commons/types';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { S3Client } from '@aws-sdk/client-s3';
 import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { Context } from 'aws-lambda';
 
@@ -16,6 +17,7 @@ const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
     sesClient: SESv2Client;
+    s3Client?: S3Client;
 }
 
 export class Lambda implements LambdaInterface {
@@ -45,7 +47,8 @@ export class Lambda implements LambdaInterface {
             logger: logger,
             sesClient: props.sesClient,
             compactConfigurationClient: compactConfigurationClient,
-            jurisdictionClient: jurisdictionClient
+            jurisdictionClient: jurisdictionClient,
+            s3Client: props.s3Client,
         });
 
         this.investigationService = new InvestigationNotificationService({
@@ -325,6 +328,25 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.providerId,
                 event.templateVariables.investigationJurisdiction,
                 event.templateVariables.licenseType
+            );
+            break;
+        case 'CompactInvoiceReporting':
+            if (!event.templateVariables?.reportS3Path
+                || !event.templateVariables?.licenseType
+                || !event.templateVariables?.billingMonth
+                || event.templateVariables.totalBillable === undefined
+                || event.templateVariables.totalOwed === undefined) {
+                throw new Error('Missing required template variables for CompactInvoiceReporting template');
+            }
+            await this.emailService.sendCompactInvoiceEmail(
+                event.compact,
+                event.templateVariables.reportS3Path,
+                event.templateVariables.licenseType,
+                event.templateVariables.billingMonth,
+                event.templateVariables.totalBillable,
+                event.templateVariables.totalOwed,
+                event.recipientType,
+                event.specificEmails
             );
             break;
         case 'homeJurisdictionChangeNotification':

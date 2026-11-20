@@ -2,7 +2,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { BatchGetItemCommand, DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeAll, beforeEach, describe, it, jest } from '@jest/globals';
 
 import { InvoiceClient } from '../../lib/invoice-client';
 import {
@@ -30,6 +30,7 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
     beforeAll(() => {
         process.env.DEBUG = 'true';
         process.env.PROVIDER_TABLE_NAME = 'provider-table';
+        process.env.LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME = 'licenseUploadDateInvoiceGSI';
         process.env.FEE_PER_LICENSE = '25';
     });
 
@@ -65,7 +66,7 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
 
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(QueryCommand, {
             TableName: 'provider-table',
-            IndexName: 'licenseUploadDateGSI',
+            IndexName: 'licenseUploadDateInvoiceGSI',
             KeyConditionExpression: 'licenseUploadDateGSIPK = :pk',
             ExpressionAttributeValues: {
                 ':pk': { S: GSI_PK },
@@ -190,12 +191,15 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
                 licenseNumber: 'COS-12345',
                 licenseType: 'cosmetologist',
                 category: 'new',
+                uploadDate: '2024-09-10',
+                issuanceDate: '2024-09-05',
                 fee: 25,
             }),
         ]);
+        expect(result.lineItems[0].renewalDate).toBeUndefined();
     });
 
-    it('should categorize a license as a renewal when it was renewed during the billing month', async () => {
+    it('should categorize a license as a renewal when a renewal was uploaded during the billing month', async () => {
         queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD_RENEWAL]);
         batchGet([SAMPLE_LICENSE_RECORD_RENEWAL]);
 
@@ -209,6 +213,117 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
                 licenseNumber: 'COS-67890',
                 licenseType: 'cosmetologist',
                 category: 'renewal',
+                fee: 25,
+            }),
+        ]);
+    });
+
+    it('should bill a renewal uploaded this month when dateOfRenewal is in an earlier month', async () => {
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD_RENEWAL]);
+        batchGet([{
+            ...SAMPLE_LICENSE_RECORD_RENEWAL,
+            dateOfRenewal: { S: '2024-07-15' },
+        }]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([
+            expect.objectContaining({
+                licenseNumber: 'COS-67890',
+                category: 'renewal',
+                uploadDate: '2022-01-10',
+                issuanceDate: '2022-01-01',
+                renewalDate: '2024-07-15',
+                fee: 25,
+            }),
+        ]);
+    });
+
+    it('should bill a renewal uploaded this month when the license has no dateOfRenewal', async () => {
+        const { dateOfRenewal: _dateOfRenewal, ...licenseWithoutRenewalDate } = SAMPLE_LICENSE_RECORD_RENEWAL;
+
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD_RENEWAL]);
+        batchGet([licenseWithoutRenewalDate]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([
+            expect.objectContaining({
+                licenseNumber: 'COS-67890',
+                category: 'renewal',
+                fee: 25,
+            }),
+        ]);
+        expect(result.lineItems[0].renewalDate).toBeUndefined();
+        expect(result.lineItems[0].uploadDate).toEqual('2022-01-10');
+        expect(result.lineItems[0].issuanceDate).toEqual('2022-01-01');
+    });
+
+    it('should not bill a license whose dateOfRenewal is in the billing month when no renewal was uploaded', async () => {
+        const { updateType: _updateType, ...indexItem } = SAMPLE_GSI_LICENSE_UPLOAD_RECORD_RENEWAL;
+
+        queryGsi([indexItem]);
+        batchGet([SAMPLE_LICENSE_RECORD_RENEWAL]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([]);
+        expect(result.totalUploaded).toEqual(1);
+        expect(result.uploadedByLicenseType).toEqual({ cosmetologist: 1 });
+    });
+
+    it('should not bill a non-renewal upload whose dateOfRenewal is in the billing month', async () => {
+        queryGsi([{
+            ...SAMPLE_GSI_LICENSE_UPLOAD_RECORD_CORRECTION,
+            updateType: { S: 'deactivation' },
+        }]);
+        batchGet([{
+            ...SAMPLE_LICENSE_RECORD_CORRECTION,
+            dateOfRenewal: { S: '2024-09-15' },
+        }]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([]);
+        expect(result.totalUploaded).toEqual(1);
+    });
+
+    it('should bill a renewal once when the index also lists another upload for that license', async () => {
+        queryGsi([
+            {
+                ...SAMPLE_GSI_LICENSE_UPLOAD_RECORD_RENEWAL,
+                updateType: { S: 'other' },
+            },
+            SAMPLE_GSI_LICENSE_UPLOAD_RECORD_RENEWAL,
+        ]);
+        batchGet([SAMPLE_LICENSE_RECORD_RENEWAL]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.totalUploaded).toEqual(2);
+        expect(result.uploadedByLicenseType).toEqual({ cosmetologist: 1 });
+        expect(result.lineItems).toEqual([
+            expect.objectContaining({
+                licenseNumber: 'COS-67890',
+                category: 'renewal',
+                fee: 25,
+            }),
+        ]);
+    });
+
+    it('should still categorize a first upload as new when its issuance date is in an earlier month', async () => {
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([{
+            ...SAMPLE_LICENSE_RECORD_NEW,
+            dateOfIssuance: { S: '2024-07-01' },
+        }]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([
+            expect.objectContaining({
+                licenseNumber: 'COS-12345',
+                category: 'new',
                 fee: 25,
             }),
         ]);
@@ -297,6 +412,49 @@ describe('InvoiceClient — getLicenseUploadsForMonth', () => {
         const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
 
         expect(result.lineItems.map((item) => item.licenseNumber)).toEqual(['COS-12345']);
+    });
+
+    it('should bill a license whose first upload date is a calendar date in the billing month', async () => {
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([{
+            ...SAMPLE_LICENSE_RECORD_NEW,
+            firstUploadDate: { S: '2024-09-10' },
+        }]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([
+            expect.objectContaining({
+                licenseNumber: 'COS-12345',
+                category: 'new',
+                uploadDate: '2024-09-10',
+            }),
+        ]);
+    });
+
+    it('should leave the issuance date blank when it cannot be parsed', async () => {
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([{
+            ...SAMPLE_LICENSE_RECORD_NEW,
+            dateOfIssuance: { S: 'not-a-date' },
+        }]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems[0].issuanceDate).toBeUndefined();
+        expect(result.lineItems[0].category).toEqual('new');
+    });
+
+    it('should omit a license that has no first upload date', async () => {
+        const { firstUploadDate: _firstUploadDate, ...license } = SAMPLE_LICENSE_RECORD_NEW;
+
+        queryGsi([SAMPLE_GSI_LICENSE_UPLOAD_RECORD]);
+        batchGet([license]);
+
+        const result = await client().getLicenseUploadsForMonth('cosm', 'oh', BILLING_MONTH);
+
+        expect(result.lineItems).toEqual([]);
+        expect(result.totalUploaded).toEqual(1);
     });
 
     it('should omit a license whose upload dates are missing or unparseable', async () => {

@@ -62,6 +62,7 @@ describe('Invoice reporter', () => {
         process.env.DEBUG = 'true';
         process.env.COMPACTS = '["cosm"]';
         process.env.PROVIDER_TABLE_NAME = 'provider-table';
+        process.env.LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME = 'licenseUploadDateInvoiceGSI';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.FEE_PER_LICENSE = '25';
         process.env.FROM_ADDRESS = 'noreply@example.org';
@@ -86,7 +87,7 @@ describe('Invoice reporter', () => {
     });
 
     const gsiQueries = () => mockDynamoDBClient.commandCalls(QueryCommand).filter(
-        (call) => call.args[0].input.IndexName === 'licenseUploadDateGSI'
+        (call) => call.args[0].input.IndexName === 'licenseUploadDateInvoiceGSI'
     );
 
     const mockCompactAndJurisdictions = (
@@ -99,7 +100,7 @@ describe('Invoice reporter', () => {
             if (input.TableName === 'compact-table') {
                 return Promise.resolve({ Items: jurisdictions });
             }
-            if (input.TableName === 'provider-table' && input.IndexName === 'licenseUploadDateGSI') {
+            if (input.TableName === 'provider-table' && input.IndexName === 'licenseUploadDateInvoiceGSI') {
                 const partitionKey = input.ExpressionAttributeValues?.[':pk']?.S;
 
                 if (partitionKey === 'C#cosm#J#oh#D#2024-09') {
@@ -218,7 +219,7 @@ describe('Invoice reporter', () => {
                 if (input.TableName === 'compact-table') {
                     return Promise.resolve({ Items: [SAMPLE_JURISDICTION_CONFIGURATION]});
                 }
-                if (input.TableName === 'provider-table' && input.IndexName === 'licenseUploadDateGSI') {
+                if (input.TableName === 'provider-table' && input.IndexName === 'licenseUploadDateInvoiceGSI') {
                     return Promise.resolve({
                         Items: [SAMPLE_GSI_LICENSE_UPLOAD_RECORD, SAMPLE_GSI_LICENSE_UPLOAD_RECORD_INELIGIBLE],
                     });
