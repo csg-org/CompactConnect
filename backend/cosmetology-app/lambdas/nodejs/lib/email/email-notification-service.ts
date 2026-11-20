@@ -142,7 +142,7 @@ export class EmailNotificationService extends BaseEmailService {
             errorMessage: 'Unable to send compact invoice email',
             attachments: [
                 {
-                    filename: `${licenseType}-${billingMonth}-invoice.zip`,
+                    filename: reportS3Path.split('/').pop() || `${licenseType}-${billingMonth}-invoice.zip`,
                     content: reportZipBuffer,
                     contentType: 'application/zip',
                 },

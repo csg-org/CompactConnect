@@ -24,6 +24,7 @@ from invoice_report import (
     invoice_zip,
     jurisdiction_invoice,
     previous_billing_month,
+    run_stamp,
     state_invoice_csv,
 )
 
@@ -34,6 +35,7 @@ BATCH_GET_LIMIT = 100
 def generate_invoice_reports(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001 unused-argument
     billing_month = _resolve_billing_month(event)
     recipient_email = _resolve_manual_recipient(event)
+    generated_at = run_stamp(datetime.now(tz=UTC))
     sent = []
 
     for compact in config.compacts:
@@ -81,12 +83,14 @@ def generate_invoice_reports(event: dict, context: LambdaContext) -> dict:  # no
                         billing_month,
                         section['jurisdictionName'],
                         section['postalAbbreviation'],
+                        generated_at,
                     ),
                     state_invoice_csv(section['jurisdictionName'], section['lineItems']),
                 )
                 for section in sections
             ]
-            object_key = invoice_object_key(compact.lower(), license_type, billing_month)
+            object_key = invoice_object_key(compact.lower(), license_type, billing_month, generated_at)
+            # generated_at is in the key, so this run does not replace an earlier zip.
             config.s3_client.put_object(
                 Bucket=config.invoice_reports_bucket_name,
                 Key=object_key,

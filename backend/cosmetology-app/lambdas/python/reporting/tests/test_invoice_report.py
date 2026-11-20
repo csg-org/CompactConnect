@@ -143,25 +143,22 @@ class TestInvoiceReport(unittest.TestCase):
             ],
         )
         ohio = invoice_report.state_invoice_csv('Ohio', [])
-        payload = invoice_report.invoice_zip(
-            [
-                ('alabama-esthetician-invoice-2026-09.csv', alabama),
-                ('ohio-esthetician-invoice-2026-09.csv', ohio),
-            ]
-        )
+        generated_at = '2026-11-20T151130Z'
+        alabama_name = invoice_report.invoice_filename('esthetician', '2026-09', 'Alabama', 'al', generated_at)
+        ohio_name = invoice_report.invoice_filename('esthetician', '2026-09', 'Ohio', 'oh', generated_at)
+        payload = invoice_report.invoice_zip([(alabama_name, alabama), (ohio_name, ohio)])
         entries = invoice_report.read_zip_entries(payload)
 
-        self.assertEqual(
-            ['alabama-esthetician-invoice-2026-09.csv', 'ohio-esthetician-invoice-2026-09.csv'],
-            list(entries),
-        )
-        alabama_csv = entries['alabama-esthetician-invoice-2026-09.csv']
+        self.assertEqual([alabama_name, ohio_name], list(entries))
+        self.assertEqual('alabama-esthetician-invoice-2026-09-run-2026-11-20T151130Z.csv', alabama_name)
+        alabama_csv = entries[alabama_name]
         self.assertIn('Ann,Lee,AL,A-1,New,2026-09-02,2026-09-01,,$25.00', alabama_csv)
-        self.assertIn('Total Billable,0', entries['ohio-esthetician-invoice-2026-09.csv'])
+        self.assertIn('Total Billable,0', entries[ohio_name])
         self.assertNotIn('Total Uploaded', alabama)
         self.assertEqual(
-            'compact/cosm/reports/invoices/license-type/esthetician/2026/09/esthetician-2026-09-invoice.zip',
-            invoice_report.invoice_object_key('cosm', 'esthetician', '2026-09'),
+            'compact/cosm/reports/invoices/license-type/esthetician/2026/09/'
+            'esthetician-2026-09-invoice-run-2026-11-20T151130Z.zip',
+            invoice_report.invoice_object_key('cosm', 'esthetician', '2026-09', generated_at),
         )
 
 

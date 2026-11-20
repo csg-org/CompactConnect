@@ -186,6 +186,15 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     rollback eligibility, reverts records to their pre-upload state, and publishes events.
     Results are written to S3 to avoid state management in the step function.
 
+    Rollback does not change an invoice that was already emailed. To see what that invoice
+    should have billed, run the invoice reporter again for the same billing month and compare
+    the new zip to the one that was emailed. Each run has its own key. The run time is in the
+    zip name and in each state CSV:
+    compact/{compact}/reports/invoices/license-type/{licenseType}/{YYYY}/{MM}/
+    {licenseType}-{YYYY-MM}-invoice-run-{YYYY-MM-DDTHHMMSSZ}.zip
+    and {state}-{licenseType}-invoice-{YYYY-MM}-run-{YYYY-MM-DDTHHMMSSZ}.csv.
+    Rows present only in the emailed CSVs were billed for data this rollback removed.
+
     Input event structure:
     {
         'compact': 'cosm',

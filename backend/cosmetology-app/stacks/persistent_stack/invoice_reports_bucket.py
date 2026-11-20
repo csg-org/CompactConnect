@@ -9,7 +9,11 @@ from constructs import Construct
 
 
 class InvoiceReportsBucket(Bucket):
-    """S3 bucket for the monthly invoice zip that the email service attaches."""
+    """S3 bucket for the monthly invoice zip that the email service attaches.
+
+    Each run is stored under its own key, with the run time in the file name.
+    See the license-upload rollback guide for comparing a later run with the zip that was emailed.
+    """
 
     def __init__(
         self,

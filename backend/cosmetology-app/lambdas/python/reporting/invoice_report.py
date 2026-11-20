@@ -66,9 +66,20 @@ def is_in_billing_month(value: object, billing_month: str) -> bool:
     return bool(rendered and rendered.startswith(billing_month))
 
 
-def invoice_object_key(compact: str, license_type: str, billing_month: str) -> str:
+def run_stamp(now: datetime) -> str:
+    """UTC date and time this report was generated, safe to put in a file name."""
+    return now.astimezone(UTC).strftime('%Y-%m-%dT%H%M%SZ')
+
+
+def invoice_object_key(compact: str, license_type: str, billing_month: str, generated_at: str) -> str:
+    """One object per license type, billing month, and run.
+
+    generated_at is the UTC stamp from run_stamp. A later run of the same month writes a new
+    key, so the zip that was emailed is left in place. After a license-upload rollback, run
+    the invoice again and diff that new zip with the one that was emailed.
+    """
     year, month = billing_month.split('-')
-    filename = f'{license_type}-{billing_month}-invoice.zip'
+    filename = f'{license_type}-{billing_month}-invoice-run-{generated_at}.zip'
     return (
         f'compact/{compact}/reports/invoices/license-type/{license_type}/{year}/{month}/{filename}'
     )
@@ -79,8 +90,16 @@ def state_slug(jurisdiction_name: str, postal_abbreviation: str) -> str:
     return slug or postal_abbreviation.lower()
 
 
-def invoice_filename(license_type: str, billing_month: str, jurisdiction_name: str, postal_abbreviation: str) -> str:
-    return f'{state_slug(jurisdiction_name, postal_abbreviation)}-{license_type}-invoice-{billing_month}.csv'
+def invoice_filename(
+    license_type: str,
+    billing_month: str,
+    jurisdiction_name: str,
+    postal_abbreviation: str,
+    generated_at: str,
+) -> str:
+    """State CSV name. The billing month and the run stamp are both in the name."""
+    slug = state_slug(jurisdiction_name, postal_abbreviation)
+    return f'{slug}-{license_type}-invoice-{billing_month}-run-{generated_at}.csv'
 
 
 def _category(record: dict, billing_month: str, renewal_uploaded: bool) -> str | None:

@@ -6,6 +6,14 @@ The License Upload Rollback system allows AWS account administrators to automati
 
 The system will automatically determine which providers had their license records modified as a result of uploads during the time window, and confirm which license updates can be safely rolled back. A provider is eligible for automatic rollback if only license upload-related changes happened since the window. If any other updates have occurred since the start of the time window, the provider will be skipped and manual review will be required to determine which action should be taken for that individual. The rollback process will generate a full JSON report showing which providers had their licenses rolled back and which were skipped and require manual review.
 
+Rollback does not change an invoice that was already emailed. To find the billing difference, run the invoice reporter again for that billing month and compare the new zip with the one that was emailed. Each run is a separate object. The UTC time of the run is in the zip name and in each state CSV:
+
+`compact/{compact}/reports/invoices/license-type/{licenseType}/{YYYY}/{MM}/{licenseType}-{YYYY-MM}-invoice-run-{YYYY-MM-DDTHHMMSSZ}.zip`
+
+`{state}-{licenseType}-invoice-{YYYY-MM}-run-{YYYY-MM-DDTHHMMSSZ}.csv`
+
+A row that is only in the emailed CSVs was billed for data the rollback removed. The billing month and the run time are both in the name, so a September invoice generated in November is distinct from one generated in December, and from the cosmetologist invoice generated in the same run.
+
 ## Step-by-Step Execution Guide
 
 ### Prerequisites
