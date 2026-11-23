@@ -80,8 +80,8 @@ The Compact Connect system uses role-based permissions that can be granted at ei
 - Manage other users within their respective Compact or State scope
 - Define privilege fee rates
 - Configure system notification recipients
-- **Compact Admins**: Can deactivate privileges
-- **State Admins**: Can set encumbrances on licenses and privileges
+- **Compact Admins**: Can deactivate privileges in any jurisdiction in the compact
+- **State Admins**: Can deactivate privileges in their own jurisdiction, and can set encumbrances on licenses and privileges
 - Includes both Read Private and Read SSN permissions
 
 ##### Write (State-level only)
@@ -376,9 +376,9 @@ State IT departments can set up automated license data uploads to CompactConnect
 ## Privilege and License Management
 
 ### Deactivating Privileges
-**This feature is only available to Compact Administrators (i.e., users with the 'admin' role on a compact).**
+**This feature is available to Compact Administrators (users with the 'admin' role on a compact) and to State Administrators for privileges in their own jurisdiction (users with the 'admin' role on that jurisdiction).**
 
-Privileges may be deactivated by Compact Administrators. This may be needed in cases where the practitioner does not want to have an active privilege in a particular jurisdiction for whatever reason (for example, they accidentally purchased a privilege they didn't intend to).
+Privileges may be deactivated by Compact Administrators, or by State Administrators when the privilege is in their own jurisdiction. This may be needed in cases where the practitioner does not want to have an active privilege in a particular jurisdiction for whatever reason (for example, they accidentally purchased a privilege they didn't intend to).
 
 #### Steps to Deactivate a Privilege
 1. Navigate to the practitioner's detail page (see [Practitioner Details](#practitioner-details-page))
