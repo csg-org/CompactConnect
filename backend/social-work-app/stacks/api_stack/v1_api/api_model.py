@@ -947,6 +947,7 @@ class ApiModel:
             'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'altFamilyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'dateOfBirth': JsonSchema(
                 type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
             ),
@@ -955,6 +956,7 @@ class ApiModel:
             'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
+            'country': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'dateOfIssuance': JsonSchema(
                 type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
             ),
@@ -967,6 +969,7 @@ class ApiModel:
             'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'militaryStatus': JsonSchema(type=JsonSchemaType.BOOLEAN),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
             'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.PHONE_NUMBER_FORMAT),
@@ -1557,6 +1560,9 @@ class ApiModel:
                     type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
                 ),
                 'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'country': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'altFamilyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'militaryStatus': JsonSchema(type=JsonSchemaType.BOOLEAN),
                 'adverseActions': self._public_adverse_action_schema,
             },
         )

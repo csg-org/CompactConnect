@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow.fields import Date, Email, String
+from marshmallow.fields import Boolean, Date, Email, String
 from marshmallow.validate import Length
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -27,6 +27,7 @@ class LicenseCommonSchema(ForgivingSchema, ValidatesLicenseTypeMixin):
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    altFamilyName = String(required=False, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     # These date values are determined by the license records uploaded by a state
     # they do not include a timestamp, so we use the Date field type
@@ -39,7 +40,9 @@ class LicenseCommonSchema(ForgivingSchema, ValidatesLicenseTypeMixin):
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    country = String(required=False, allow_none=False, validate=Length(1, 100))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    militaryStatus = Boolean(required=False, allow_none=False)

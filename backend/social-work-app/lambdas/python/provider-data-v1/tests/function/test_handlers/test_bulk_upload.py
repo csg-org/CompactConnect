@@ -196,6 +196,58 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('active', message_data['licenseStatus'])
         self.assertEqual('eligible', message_data['compactEligibility'])
 
+    def test_bulk_upload_accepts_optional_non_searchable_fields(self):
+        """country, altFamilyName, and militaryStatus are optional columns on a license upload."""
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        csv_content = (
+            'ssn,licenseNumber,givenName,familyName,altFamilyName,dateOfBirth,dateOfIssuance'
+            ',dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
+            ',homeAddressCity,homeAddressState,homeAddressPostalCode,country'
+            ',licenseType,licenseScope,militaryStatus\n'
+            '123-45-6789,'
+            'LICENSE123,'
+            'John,'
+            'Doe,'
+            '  García  ,'
+            '1990-01-01,'
+            '2020-01-01,'
+            '2023-01-01,'
+            'active,'
+            'eligible,'
+            '123 Main St,'
+            'Columbus,'
+            'OH,'
+            '43215,'
+            '  United States  ,'
+            'licensed clinical social worker,'
+            'single-state,'
+            'false'
+        )
+
+        object_key = f'socw/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content)
+
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        parse_bulk_upload_file(event, self.mock_context)
+
+        messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(1, len(messages))
+
+        message_data = json.loads(messages[0].body)
+        self.assertEqual('García', message_data['altFamilyName'])
+        self.assertEqual('United States', message_data['country'])
+        self.assertIs(False, message_data['militaryStatus'])
+
     @patch(
         'cc_common.config._Config.current_standard_datetime',
         datetime.fromisoformat(VALIDATION_ERROR_EVENT_TIME),

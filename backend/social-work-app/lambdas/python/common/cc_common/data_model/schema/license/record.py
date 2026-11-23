@@ -3,7 +3,7 @@ from datetime import date
 from urllib.parse import quote
 
 from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, AwareDateTime, Date, Email, List, Nested, String
+from marshmallow.fields import UUID, AwareDateTime, Boolean, Date, Email, List, Nested, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
@@ -201,6 +201,7 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    altFamilyName = String(required=False, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfUpdate = AwareDateTime(required=True, allow_none=False)
     # These date values are determined by the license records uploaded by a state
@@ -214,9 +215,11 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    country = String(required=False, allow_none=False, validate=Length(1, 100))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    militaryStatus = Boolean(required=False, allow_none=False)
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
     encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)

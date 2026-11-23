@@ -61,6 +61,10 @@ class LicenseData(CCDataClass):
         return self._data['familyName']
 
     @property
+    def altFamilyName(self) -> str | None:
+        return self._data.get('altFamilyName')
+
+    @property
     def suffix(self) -> str | None:
         return self._data.get('suffix')
 
@@ -101,6 +105,10 @@ class LicenseData(CCDataClass):
         return self._data['homeAddressPostalCode']
 
     @property
+    def country(self) -> str | None:
+        return self._data.get('country')
+
+    @property
     def emailAddress(self) -> str | None:
         return self._data.get('emailAddress')
 
@@ -119,6 +127,10 @@ class LicenseData(CCDataClass):
     @property
     def licenseStatusName(self) -> str | None:
         return self._data.get('licenseStatusName')
+
+    @property
+    def militaryStatus(self) -> bool | None:
+        return self._data.get('militaryStatus')
 
     @property
     def jurisdictionUploadedLicenseStatus(self) -> str:
