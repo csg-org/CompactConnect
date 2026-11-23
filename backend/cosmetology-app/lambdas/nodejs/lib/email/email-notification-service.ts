@@ -123,8 +123,6 @@ export class EmailNotificationService extends BaseEmailService {
             compactName: compactConfig.compactName,
             licenseType,
             billingMonth,
-            stateSections: [],
-            totalUploaded: 0,
             totalBillable,
             totalOwed,
         };

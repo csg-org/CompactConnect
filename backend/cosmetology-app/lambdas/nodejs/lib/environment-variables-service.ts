@@ -8,9 +8,6 @@ export class EnvironmentVariablesService {
     private readonly transactionReportsBucketNameVariable = 'TRANSACTION_REPORTS_BUCKET_NAME';
     private readonly userPoolTypeVariable = 'USER_POOL_TYPE';
     private readonly environmentNameVariable = 'ENVIRONMENT_NAME';
-    private readonly providerTableNameVariable = 'PROVIDER_TABLE_NAME';
-    private readonly licenseUploadDateInvoiceIndexNameVariable = 'LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME';
-    private readonly feePerLicenseVariable = 'FEE_PER_LICENSE';
     private readonly invoiceReportsBucketNameVariable = 'INVOICE_REPORTS_BUCKET_NAME';
 
     public getEnvVar(name: string): string {
@@ -53,20 +50,6 @@ export class EnvironmentVariablesService {
         return this.getEnvVar(this.environmentNameVariable);
     }
 
-    public getProviderTableName() {
-        return this.getEnvVar(this.providerTableNameVariable);
-    }
-
-    public getLicenseUploadDateInvoiceIndexName() {
-        const indexName = this.getEnvVar(this.licenseUploadDateInvoiceIndexNameVariable);
-
-        if (!indexName) {
-            throw new Error('LICENSE_UPLOAD_DATE_INVOICE_INDEX_NAME is required');
-        }
-
-        return indexName;
-    }
-
     public getInvoiceReportsBucketName() {
         const bucketName = this.getEnvVar(this.invoiceReportsBucketNameVariable);
 
@@ -75,16 +58,5 @@ export class EnvironmentVariablesService {
         }
 
         return bucketName;
-    }
-
-    public getFeePerLicense() {
-        const raw = this.getEnvVar(this.feePerLicenseVariable) || '25';
-        const fee = Number(raw);
-
-        if (!Number.isFinite(fee)) {
-            throw new Error(`Invalid FEE_PER_LICENSE: ${raw}`);
-        }
-
-        return fee;
     }
 }
