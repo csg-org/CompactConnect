@@ -79,7 +79,39 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
 
     except ClientError as e:
         if e.response['Error']['Code'] == 'UsernameExistsException':
-            logger.info(f"Staff user, '{email}', already exists in Cognito. Getting user data.")
+            logger.info(f"Staff user, '{email}', already exists in Cognito. Ensuring password.")
+            try:
+                config.cognito_client.admin_set_user_password(
+                    UserPoolId=config.cognito_staff_user_pool_id,
+                    Username=email,
+                    Password=_TEST_STAFF_USER_PASSWORD,
+                    Permanent=True,
+                )
+            except ClientError as password_error:
+                # History rejection does not mean the current password is already the smoke-test one —
+                # Cognito also rejects reuse when that password appears earlier in the history.
+                if password_error.response['Error']['Code'] != 'PasswordHistoryPolicyViolationException':
+                    raise
+                try:
+                    get_user_tokens(email, _TEST_STAFF_USER_PASSWORD, is_staff=True)
+                    logger.info(f"Staff user, '{email}', already authenticates with the smoke-test password.")
+                except ClientError:
+                    logger.info(
+                        f"Staff user, '{email}', cannot authenticate with the smoke-test password; "
+                        'rotating through a temporary password so it can be set again.'
+                    )
+                    config.cognito_client.admin_set_user_password(
+                        UserPoolId=config.cognito_staff_user_pool_id,
+                        Username=email,
+                        Password=_TEMP_STAFF_PASSWORD,
+                        Permanent=True,
+                    )
+                    config.cognito_client.admin_set_user_password(
+                        UserPoolId=config.cognito_staff_user_pool_id,
+                        Username=email,
+                        Password=_TEST_STAFF_USER_PASSWORD,
+                        Permanent=True,
+                    )
             user_data = config.cognito_client.admin_get_user(
                 UserPoolId=config.cognito_staff_user_pool_id, Username=email
             )
@@ -162,6 +194,13 @@ def get_user_tokens(email, password=_TEST_STAFF_USER_PASSWORD, is_staff=False):
             AuthFlow='ADMIN_USER_PASSWORD_AUTH',
             AuthParameters={'USERNAME': email, 'PASSWORD': password},
         )
+
+        if 'AuthenticationResult' not in response:
+            raise SmokeTestFailureException(
+                f'Cognito auth for {email} did not return tokens. '
+                f'Challenge={response.get("ChallengeName")}. '
+                'Staff pool MFA must be OPTIONAL (security_profile VULNERABLE) for smoke tests.'
+            )
 
         return response['AuthenticationResult']
 
