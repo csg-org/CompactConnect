@@ -44,3 +44,32 @@ describe('Environment variables service without debug', () => {
         expect(logger.getLevelName()).toBe('INFO');
     });
 });
+
+describe('Invoice and reporting environment variables', () => {
+    const environmentVariables = new EnvironmentVariablesService();
+
+    afterEach(() => {
+        delete process.env.TRANSACTION_REPORTS_BUCKET_NAME;
+        delete process.env.USER_POOL_TYPE;
+        delete process.env.INVOICE_REPORTS_BUCKET_NAME;
+    });
+
+    it('should read the transaction reports bucket and user pool type', () => {
+        process.env.TRANSACTION_REPORTS_BUCKET_NAME = 'transaction-reports';
+        process.env.USER_POOL_TYPE = 'staff';
+
+        expect(environmentVariables.getTransactionReportsBucketName()).toBe('transaction-reports');
+        expect(environmentVariables.getUserPoolType()).toBe('staff');
+    });
+
+    it('should read the invoice reports bucket', () => {
+        process.env.INVOICE_REPORTS_BUCKET_NAME = 'invoice-reports';
+
+        expect(environmentVariables.getInvoiceReportsBucketName()).toBe('invoice-reports');
+    });
+
+    it('should reject a missing invoice reports bucket', () => {
+        expect(() => environmentVariables.getInvoiceReportsBucketName())
+            .toThrow('INVOICE_REPORTS_BUCKET_NAME is required');
+    });
+});
