@@ -188,7 +188,7 @@ describe('ApplicationStart page', async () => {
         expect(valueOptions[0].isDisabled).to.equal(true);
         expect(coloradoOption).to.matchPattern({ value: 'co', name: 'Colorado', isDisabled: false });
         expect(floridaOption).to.matchPattern({ value: 'fl', name: 'Florida (Not participating)', isDisabled: true });
-        expect(guamOption.isDisabled).to.equal(true);
+        expect(guamOption).to.matchPattern({ value: 'gu', name: 'Guam (Not participating)', isDisabled: true });
     });
     it('should require at least one application type and a license state on submit', async () => {
         const wrapper = await mountPage();

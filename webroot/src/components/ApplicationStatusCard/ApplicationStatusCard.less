@@ -108,18 +108,21 @@
             justify-content: center;
             width: @nodeSize;
             height: @nodeSize;
+            border: 0.1rem solid @lightTextGrey;
             border-radius: 50%;
             color: @lightTextGrey;
             font-weight: @fontWeightBold;
             font-size: @fontSizeSmaller;
-            background-color: @veryLightGrey;
+            background-color: lighten(@veryLightGrey, 4%);
 
             &.current {
+                border-color: transparent;
                 color: @white;
                 background-color: @primaryColor;
             }
 
             &.complete {
+                border-color: transparent;
                 background-color: @darkBlue;
 
                 .step-icon.check {
@@ -128,6 +131,7 @@
             }
 
             &.approved {
+                border-color: transparent;
                 background-color: @midGreen;
 
                 .step-icon.check {
@@ -136,6 +140,7 @@
             }
 
             &.attention {
+                border-color: transparent;
                 background-color: @attentionColor;
 
                 .step-icon.alert {
@@ -147,6 +152,7 @@
             }
 
             &.rejected {
+                border-color: transparent;
                 background-color: @midRed;
             }
 
