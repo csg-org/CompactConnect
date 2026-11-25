@@ -257,6 +257,10 @@ describe('ApplicationStart page', async () => {
         expect(component.formData.submit.errorMessage).to.equal('');
     });
     it('should not redirect to the checklist if the page unmounts while creation is pending', async () => {
+        // When the application finishes creating it can redirect the user to the new checklist page for that application.
+        // But if the user decides to move on to something else after creating the application we don't want the redirect
+        // to happen in the middle of some other action. So we have logic that the component has to still be mounted to go
+        // ahead with the eventual redirect. This test checks that.
         await setPsypactCompact();
 
         const wrapper = await mountPage(mountShallow);
