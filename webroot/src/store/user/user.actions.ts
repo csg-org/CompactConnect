@@ -76,6 +76,25 @@ export default {
     createLicenseeAccountFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error);
     },
+    // CREATE LICENSEE ACCOUNT (PSYPACT)
+    createLicenseeAccountPsypactRequest: async ({ commit, dispatch }, { data }: any) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_REQUEST);
+        return dataApi.createLicenseeAccountPsypact(data).then((response) => {
+            dispatch('createLicenseeAccountPsypactSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('createLicenseeAccountPsypactFailure', error);
+
+            throw error;
+        });
+    },
+    createLicenseeAccountPsypactSuccess: ({ commit }) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_SUCCESS);
+    },
+    createLicenseeAccountPsypactFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error);
+    },
     // GET STAFF ACCOUNT
     getStaffAccountRequest: async ({ commit, dispatch }) => {
         commit(MutationTypes.GET_ACCOUNT_REQUEST);
@@ -177,6 +196,52 @@ export default {
     },
     getApplicationFailureLicensee: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_APPLICATION_FAILURE, error);
+    },
+    // CREATE LICENSEE APPLICATION
+    createApplicationRequestLicensee: async ({ commit, dispatch, state }, { data }) => {
+        const requestUserId = state.model?.id;
+
+        commit(MutationTypes.CREATE_APPLICATION_REQUEST);
+        return dataApi.createAuthenticatedLicenseeApplication(data).then((application) => {
+            const isRequestUserCurrent = state.model?.id === requestUserId;
+
+            if (isRequestUserCurrent) {
+                dispatch('createApplicationSuccessLicensee', application);
+            }
+
+            return (isRequestUserCurrent) ? application : null;
+        }).catch((error) => {
+            if (state.model?.id === requestUserId) {
+                dispatch('createApplicationFailureLicensee', error);
+
+                throw error;
+            }
+
+            return null;
+        });
+    },
+    createApplicationSuccessLicensee: ({ commit }, application) => {
+        commit(MutationTypes.CREATE_APPLICATION_SUCCESS, application);
+    },
+    createApplicationFailureLicensee: ({ commit }, error: Error) => {
+        commit(MutationTypes.CREATE_APPLICATION_FAILURE, error);
+    },
+    // GET APPLICATION CONFIG
+    getApplicationConfigRequest: async ({ commit, dispatch }, { compact }) => {
+        commit(MutationTypes.GET_APPLICATION_CONFIG_REQUEST);
+        return dataApi.getApplicationConfig(compact).then((applicationConfig) => {
+            dispatch('getApplicationConfigSuccess', applicationConfig);
+
+            return applicationConfig;
+        }).catch((error) => {
+            dispatch('getApplicationConfigFailure', error);
+        });
+    },
+    getApplicationConfigSuccess: ({ commit }, applicationConfig) => {
+        commit(MutationTypes.GET_APPLICATION_CONFIG_SUCCESS, applicationConfig);
+    },
+    getApplicationConfigFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_APPLICATION_CONFIG_FAILURE, error);
     },
     // GET COMPACT STATES FOR USER
     getCompactStatesRequest: async ({ commit, dispatch, state }, { compact }) => {

@@ -7,10 +7,7 @@
 
 <template>
     <Section class="register-licensee-section-container">
-        <template v-if="$isAppModePsyPact">
-            <h1 style="width: 60rem">TODO: PSYPACT Registration Form</h1>
-        </template>
-        <template v-else>
+        <template v-if="!$isAppModePsyPact">
             <div class="register-licensee-logo-container">
                 <img
                     src="@assets/logos/compact-connect-logo.png"

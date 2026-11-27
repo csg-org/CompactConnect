@@ -36,6 +36,20 @@ export enum ApplicantSectionStatus {
     CONFIRM_DETAILS = 'confirm-details',
 }
 
+export enum ApplicationSection {
+    PERSONAL_INFORMATION = 'personalInformation',
+    LICENSE_HISTORY = 'licenseHistory',
+    EDUCATION = 'education',
+    CONDUCT_HISTORY = 'conductHistory',
+    HOME_STATE = 'homeState',
+    ACKNOWLEDGEMENTS = 'acknowledgements',
+}
+
+export interface ApplicationSectionSummary {
+    key: ApplicationSection;
+    applicantStatus?: ApplicantSectionStatus;
+}
+
 export enum ReviewSectionStatus {
     PENDING = 'pending',
     AWAITING_APPLICANT = 'awaiting-applicant',
@@ -373,17 +387,122 @@ export class Application implements InterfaceApplicationCreate {
         return this.getStatusDisplay(this.status || '');
     }
 
+    public getSections(): Array<ApplicationSectionSummary> {
+        return [
+            {
+                key: ApplicationSection.PERSONAL_INFORMATION,
+                applicantStatus: this.personalInformation?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.LICENSE_HISTORY,
+                applicantStatus: this.licenseHistory?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.EDUCATION,
+                applicantStatus: this.education?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.CONDUCT_HISTORY,
+                applicantStatus: this.conductHistory?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.HOME_STATE,
+                applicantStatus: this.homeState?.applicantStatus,
+            },
+            {
+                key: ApplicationSection.ACKNOWLEDGEMENTS,
+                applicantStatus: this.acknowledgements?.applicantStatus,
+            },
+        ];
+    }
+
+    public sectionApplicantStatuses(): Array<ApplicantSectionStatus | undefined> {
+        return this.getSections().map((section) => section.applicantStatus);
+    }
+
     public areAllSectionsCompleteForApplicant(): boolean {
-        const sectionStatuses = [
-            this.personalInformation?.applicantStatus,
-            this.licenseHistory?.applicantStatus,
-            this.education?.applicantStatus,
-            this.conductHistory?.applicantStatus,
-            this.homeState?.applicantStatus,
-            this.acknowledgements?.applicantStatus,
+        return this.sectionApplicantStatuses().every((status) => status === ApplicantSectionStatus.COMPLETE);
+    }
+
+    public sectionCount(): number {
+        return this.sectionApplicantStatuses().length;
+    }
+
+    public completedSectionCount(): number {
+        return this.sectionApplicantStatuses().filter((status) => status === ApplicantSectionStatus.COMPLETE).length;
+    }
+
+    public isStarted(): boolean {
+        return this.status === ApplicationStatus.STARTED;
+    }
+
+    public isInReview(): boolean {
+        const inReviewStatuses = [
+            ApplicationStatus.SUBMITTED,
+            ApplicationStatus.STAFF_REVIEW,
+            ApplicationStatus.FIRST_REVIEW,
+            ApplicationStatus.SECOND_REVIEW,
+            ApplicationStatus.FINAL_REVIEW,
+            ApplicationStatus.COMMITTEE_REVIEW,
         ];
 
-        return sectionStatuses.every((status) => status === ApplicantSectionStatus.COMPLETE);
+        return inReviewStatuses.some((status) => status === this.status);
+    }
+
+    public isNeedsAttention(): boolean {
+        return this.status === ApplicationStatus.AWAITING_APPLICANT;
+    }
+
+    public isApproved(): boolean {
+        return this.status === ApplicationStatus.APPROVED;
+    }
+
+    public isRejected(): boolean {
+        return this.status === ApplicationStatus.REJECTED;
+    }
+
+    public isDeactivated(): boolean {
+        return this.status === ApplicationStatus.DEACTIVATED;
+    }
+
+    public isEditableByApplicant(): boolean {
+        return this.isStarted() || this.isNeedsAttention();
+    }
+
+    public isFeeWaived(): boolean {
+        const types: Array<ApplicationType> = this.types || [];
+        const paymentCompensated: Array<ApplicationType> = this.paymentCompensated || [];
+
+        return types.length > 0 && types.every((type) => paymentCompensated.includes(type));
+    }
+
+    public applicantNotes(): Array<string> {
+        const sectionReviews: Array<Array<ApplicationReview> | undefined> = [
+            this.personalInformation?.reviews,
+            this.licenseHistory?.reviews,
+            this.education?.reviews,
+            this.conductHistory?.reviews,
+            this.homeState?.reviews,
+            this.acknowledgements?.reviews,
+        ];
+        const applicationNotes: Array<string> = [];
+        const sectionNotes: Array<string> = [];
+
+        this.reviews?.forEach((review: ApplicationReview) => {
+            if (review.notesForApplicant) {
+                applicationNotes.push(review.notesForApplicant);
+            }
+        });
+
+        sectionReviews.forEach((reviews) => {
+            reviews?.forEach((review) => {
+                if (review.notesForApplicant) {
+                    sectionNotes.push(review.notesForApplicant);
+                }
+            });
+        });
+
+        return (applicationNotes.length) ? applicationNotes : sectionNotes;
     }
 }
 

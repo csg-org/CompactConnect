@@ -10,6 +10,8 @@ import { reactive } from 'vue';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
+import AuthorizationCard from '@components/AuthorizationCard/AuthorizationCard.vue';
+import ApplicationStatusCard from '@components/ApplicationStatusCard/ApplicationStatusCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import PracticeStates from '@/components/Licensee/PracticeStates/PracticeStates.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
@@ -22,13 +24,22 @@ import { License, LicenseStatus } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
+import { Authorization } from '@models/Authorization/Authorization.model';
+import { Application, ApplicationType } from '@models/Application/Application.model';
 import InfoCircle from '@/components/Icons/InfoCircle/InfoCircle.vue';
+
+export interface AuthorizationSlot {
+    type: ApplicationType;
+    authorization: Authorization | null;
+}
 
 @Component({
     name: 'LicenseeDashboard',
     components: {
         HomeStateBlock,
         LicenseCard,
+        AuthorizationCard,
+        ApplicationStatusCard,
         PrivilegeCard,
         PracticeStates,
         InputButton,
@@ -123,6 +134,30 @@ export default class LicenseeDashboard extends Vue {
 
     get licenseePrivileges(): Array<License> {
         return this.licensee.privileges || [];
+    }
+
+    get licenseeAuthorizations(): Array<Authorization> {
+        return this.licensee.authorizations || [];
+    }
+
+    get authorizationSlots(): Array<AuthorizationSlot> {
+        const authorizationTypes = [ApplicationType.APIT, ApplicationType.TAP];
+
+        return authorizationTypes.map((type) => {
+            const typeAuthorizations = this.licenseeAuthorizations
+                .filter((authorization: Authorization) => authorization.type === type)
+                .sort((authorization1: Authorization, authorization2: Authorization) =>
+                    (authorization2.expireDate || '').localeCompare(authorization1.expireDate || ''));
+
+            return {
+                type,
+                authorization: typeAuthorizations[0] || null,
+            };
+        });
+    }
+
+    get licenseeApplications(): Array<Application> {
+        return this.licensee.applications || [];
     }
 
     get licenseePrivilegesTitle(): string {

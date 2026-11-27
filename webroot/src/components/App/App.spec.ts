@@ -77,6 +77,39 @@ describe('App component', async () => {
 
         expect(authType).to.equal(AuthTypes.PUBLIC);
     });
+    it('should successfully get the licensee account and applications (psypact)', async () => {
+        const wrapper = await mountShallow(App);
+        const instance: any = wrapper.vm;
+
+        await flushPromises();
+        await store.dispatch('setAppMode', AppModes.PSYPACT);
+        await store.dispatch('setAuthType', AuthTypes.LICENSEE);
+
+        const dispatchStub = sinon.stub(store, 'dispatch').resolves();
+
+        await instance.getAccount();
+
+        expect(dispatchStub.getCalls().map((call) => call.args[0])).to.matchPattern([
+            'user/getLicenseeAccountRequest',
+            'user/getApplicationsRequestLicensee',
+        ]);
+    });
+    it('should successfully get the licensee account without applications (jcc)', async () => {
+        const wrapper = await mountShallow(App);
+        const instance: any = wrapper.vm;
+
+        await flushPromises();
+        await store.dispatch('setAppMode', AppModes.JCC);
+        await store.dispatch('setAuthType', AuthTypes.LICENSEE);
+
+        const dispatchStub = sinon.stub(store, 'dispatch').resolves();
+
+        await instance.getAccount();
+
+        expect(dispatchStub.getCalls().map((call) => call.args[0])).to.matchPattern([
+            'user/getLicenseeAccountRequest',
+        ]);
+    });
     it('should successfully clear the search stores when the app mode changes', async () => {
         const wrapper = await mountShallow(App);
 

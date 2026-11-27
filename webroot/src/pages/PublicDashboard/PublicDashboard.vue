@@ -232,7 +232,7 @@
                             <p class="register-prompt">
                                 {{ $t('navigation.registerAsProviderSubtext') }}
                                 <router-link
-                                    :to="{ name: 'RegisterLicensee' }"
+                                    :to="{ name: registerRouteName }"
                                     class="register-link"
                                 >
                                     {{ $t('navigation.registerAsProvider') }}

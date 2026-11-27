@@ -1,0 +1,91 @@
+//
+//  AuthorizationCard.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/10/2026.
+//
+
+.authorization-card-container {
+    display: flex;
+    flex-direction: column;
+    width: 36rem;
+    max-width: 100%;
+    padding: 2rem 2rem 1.6rem 2rem;
+    border-radius: 2rem;
+
+    &.active {
+        background-color: @lightBlue;
+    }
+
+    &.apply {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed @lightGrey;
+        text-align: center;
+        background-color: transparent;
+    }
+
+    .authorization-heading-row {
+        display: flex;
+        flex-direction: row;
+        margin-bottom: 0.6rem;
+
+        .authorization-status {
+            max-height: 2.4rem;
+            margin-left: auto;
+            padding: 0.2rem 1rem;
+            border-radius: @borderRadiusPillShape;
+            font-weight: @fontWeightBold;
+            background-color: rgba(@white, 0.5);
+        }
+    }
+
+    .authorization-title {
+        font-weight: @fontWeightBold;
+        font-size: @fontSizeLarge;
+    }
+
+    .apply-title {
+        font-weight: @fontWeightBold;
+        font-size: @fontSizeLarge;
+    }
+
+    .authorization-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin-top: auto;
+        column-gap: 4rem;
+        row-gap: 1.6rem;
+
+        .info-item-container {
+            .info-item-title {
+                font-weight: @fontWeightBold;
+                font-size: 1.4rem;
+                line-height: 2.1rem;
+            }
+
+            .info-item {
+                font-size: 1.4rem;
+                line-height: 2.1rem;
+            }
+        }
+    }
+
+    .apply-plus {
+        color: darken(@darkGrey, 4%);
+        font-size: @fontSizeLarge;
+        line-height: 1;
+    }
+
+    .authorization-description {
+        margin-top: 0.4rem;
+        color: @fontColorLight;
+        font-size: 1.4rem;
+    }
+
+    .apply-btn {
+        margin-top: 1.2rem;
+    }
+}

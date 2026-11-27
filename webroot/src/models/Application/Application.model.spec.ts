@@ -13,6 +13,7 @@ import {
     ApplicationType,
     ApplicationStatus,
     ApplicantSectionStatus,
+    ApplicationSection,
     ReviewSectionStatus,
     ReviewerType,
     ApplicationLicenseStatus,
@@ -141,7 +142,34 @@ describe('Application model', () => {
         expect(application.typeDisplay()).to.equal('');
         expect(application.getStatusDisplay('')).to.equal('Unknown');
         expect(application.applicationStatusDisplay()).to.equal('Started');
+        expect(application.getSections()).to.matchPattern([
+            { key: ApplicationSection.PERSONAL_INFORMATION, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.LICENSE_HISTORY, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.EDUCATION, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.CONDUCT_HISTORY, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.HOME_STATE, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+            { key: ApplicationSection.ACKNOWLEDGEMENTS, applicantStatus: ApplicantSectionStatus.INCOMPLETE },
+        ]);
+        expect(application.sectionApplicantStatuses()).to.matchPattern([
+            ApplicantSectionStatus.INCOMPLETE,
+            ApplicantSectionStatus.INCOMPLETE,
+            ApplicantSectionStatus.INCOMPLETE,
+            ApplicantSectionStatus.INCOMPLETE,
+            ApplicantSectionStatus.INCOMPLETE,
+            ApplicantSectionStatus.INCOMPLETE,
+        ]);
         expect(application.areAllSectionsCompleteForApplicant()).to.equal(false);
+        expect(application.sectionCount()).to.equal(6);
+        expect(application.completedSectionCount()).to.equal(0);
+        expect(application.isEditableByApplicant()).to.equal(true);
+        expect(application.isStarted()).to.equal(true);
+        expect(application.isInReview()).to.equal(false);
+        expect(application.isNeedsAttention()).to.equal(false);
+        expect(application.isApproved()).to.equal(false);
+        expect(application.isRejected()).to.equal(false);
+        expect(application.isDeactivated()).to.equal(false);
+        expect(application.isFeeWaived()).to.equal(false);
+        expect(application.applicantNotes()).to.matchPattern([]);
     });
     it('should create an Application model with specific values', () => {
         const review = {
@@ -312,7 +340,34 @@ describe('Application model', () => {
         expect(application.typeDisplay()).to.equal('APIT + TAP');
         expect(application.getStatusDisplay(ApplicantSectionStatus.NEEDS_ATTENTION)).to.equal('Needs attention');
         expect(application.applicationStatusDisplay()).to.equal('Awaiting applicant');
+        expect(application.getSections()).to.matchPattern([
+            { key: ApplicationSection.PERSONAL_INFORMATION, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.LICENSE_HISTORY, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.EDUCATION, applicantStatus: ApplicantSectionStatus.NEEDS_ATTENTION },
+            { key: ApplicationSection.CONDUCT_HISTORY, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.HOME_STATE, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.ACKNOWLEDGEMENTS, applicantStatus: ApplicantSectionStatus.COMPLETE },
+        ]);
+        expect(application.sectionApplicantStatuses()).to.matchPattern([
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.NEEDS_ATTENTION,
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.COMPLETE,
+        ]);
         expect(application.areAllSectionsCompleteForApplicant()).to.equal(false);
+        expect(application.sectionCount()).to.equal(6);
+        expect(application.completedSectionCount()).to.equal(5);
+        expect(application.isEditableByApplicant()).to.equal(true);
+        expect(application.isStarted()).to.equal(false);
+        expect(application.isInReview()).to.equal(false);
+        expect(application.isNeedsAttention()).to.equal(true);
+        expect(application.isApproved()).to.equal(false);
+        expect(application.isRejected()).to.equal(false);
+        expect(application.isDeactivated()).to.equal(false);
+        expect(application.isFeeWaived()).to.equal(false);
+        expect(application.applicantNotes()).to.matchPattern([review.notesForApplicant]);
     });
     it('should create an Application model with specific values through serializer', () => {
         const review = {
@@ -489,7 +544,34 @@ describe('Application model', () => {
         expect(application.typeDisplay()).to.equal('APIT + TAP');
         expect(application.getStatusDisplay(ReviewSectionStatus.PENDING)).to.equal('Pending');
         expect(application.applicationStatusDisplay()).to.equal('Approved');
+        expect(application.getSections()).to.matchPattern([
+            { key: ApplicationSection.PERSONAL_INFORMATION, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.LICENSE_HISTORY, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.EDUCATION, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.CONDUCT_HISTORY, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.HOME_STATE, applicantStatus: ApplicantSectionStatus.COMPLETE },
+            { key: ApplicationSection.ACKNOWLEDGEMENTS, applicantStatus: ApplicantSectionStatus.COMPLETE },
+        ]);
+        expect(application.sectionApplicantStatuses()).to.matchPattern([
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.COMPLETE,
+            ApplicantSectionStatus.COMPLETE,
+        ]);
         expect(application.areAllSectionsCompleteForApplicant()).to.equal(true);
+        expect(application.sectionCount()).to.equal(6);
+        expect(application.completedSectionCount()).to.equal(6);
+        expect(application.isEditableByApplicant()).to.equal(false);
+        expect(application.isStarted()).to.equal(false);
+        expect(application.isInReview()).to.equal(false);
+        expect(application.isNeedsAttention()).to.equal(false);
+        expect(application.isApproved()).to.equal(true);
+        expect(application.isRejected()).to.equal(false);
+        expect(application.isDeactivated()).to.equal(false);
+        expect(application.isFeeWaived()).to.equal(false);
+        expect(application.applicantNotes()).to.matchPattern([review.notesForApplicant]);
     });
     it('should create an Application model with section defaults through serializer when server values are missing', () => {
         const application = ApplicationSerializer.fromServer({});
@@ -540,6 +622,148 @@ describe('Application model', () => {
 
         // Test methods
         expect(application.typeDisplay()).to.equal('UKWN');
+    });
+    it('should create an Application model without Vue i18n helpers', () => {
+        const previousVue = (window as any).Vue;
+
+        (window as any).Vue = undefined;
+
+        const application = new Application();
+
+        (window as any).Vue = previousVue;
+
+        // Test field values
+        expect(application).to.be.an.instanceof(Application);
+        expect(application.$tm).to.equal(undefined);
+        expect(application.$features).to.equal(undefined);
+    });
+    it('should fall back when translation helpers and fields return empty values', () => {
+        const application = new Application();
+
+        application.$tm = () => null;
+        application.types = undefined;
+        application.status = undefined;
+        application.paymentCompensated = undefined;
+
+        // Test methods
+        expect(application.typeDisplay()).to.equal('');
+        expect(application.getStatusDisplay(ApplicationStatus.APPROVED)).to.equal('');
+        expect(application.applicationStatusDisplay()).to.equal('');
+        expect(application.isFeeWaived()).to.equal(false);
+    });
+    it('should create an Application model with in review status checks', () => {
+        const inReviewStatuses = [
+            ApplicationStatus.SUBMITTED,
+            ApplicationStatus.STAFF_REVIEW,
+            ApplicationStatus.FIRST_REVIEW,
+            ApplicationStatus.SECOND_REVIEW,
+            ApplicationStatus.FINAL_REVIEW,
+            ApplicationStatus.COMMITTEE_REVIEW,
+        ];
+        const applications = inReviewStatuses.map((status) => new Application({ status }));
+
+        // Test methods
+        expect(applications.map((application) => application.isInReview())).to.matchPattern([
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+        ]);
+        expect(applications.map((application) => application.isStarted())).to.matchPattern([
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+        ]);
+        expect(applications.map((application) => application.isNeedsAttention())).to.matchPattern([
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+        ]);
+        expect(applications.map((application) => application.isEditableByApplicant())).to.matchPattern([
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+        ]);
+    });
+    it('should create an Application model with rejected status checks', () => {
+        const application = new Application({
+            status: ApplicationStatus.REJECTED,
+        });
+
+        // Test methods
+        expect(application.isStarted()).to.equal(false);
+        expect(application.isInReview()).to.equal(false);
+        expect(application.isNeedsAttention()).to.equal(false);
+        expect(application.isApproved()).to.equal(false);
+        expect(application.isRejected()).to.equal(true);
+        expect(application.isDeactivated()).to.equal(false);
+        expect(application.isEditableByApplicant()).to.equal(false);
+    });
+    it('should create an Application model with deactivated status checks', () => {
+        const application = new Application({
+            status: ApplicationStatus.DEACTIVATED,
+        });
+
+        // Test methods
+        expect(application.isStarted()).to.equal(false);
+        expect(application.isInReview()).to.equal(false);
+        expect(application.isNeedsAttention()).to.equal(false);
+        expect(application.isApproved()).to.equal(false);
+        expect(application.isRejected()).to.equal(false);
+        expect(application.isDeactivated()).to.equal(true);
+        expect(application.isEditableByApplicant()).to.equal(false);
+    });
+    it('should create an Application model with fee waived when all types are payment compensated', () => {
+        const application = new Application({
+            types: [ApplicationType.APIT, ApplicationType.TAP],
+            paymentCompensated: [ApplicationType.TAP, ApplicationType.APIT],
+        });
+
+        // Test methods
+        expect(application.isFeeWaived()).to.equal(true);
+    });
+    it('should create an Application model without fee waived when there are no types', () => {
+        const application = new Application({
+            types: [],
+            paymentCompensated: [ApplicationType.APIT],
+        });
+
+        // Test methods
+        expect(application.isFeeWaived()).to.equal(false);
+    });
+    it('should create an Application model with section applicant notes when there are no application notes', () => {
+        const application = new Application({
+            reviews: [{ notesForApplicant: null }],
+            personalInformation: {
+                applicantStatus: ApplicantSectionStatus.COMPLETE,
+                reviews: [{ notesForApplicant: null }],
+            },
+            education: {
+                applicantStatus: ApplicantSectionStatus.NEEDS_ATTENTION,
+                reviews: [{ notesForApplicant: 'test-education-notesForApplicant' }],
+            },
+            conductHistory: {
+                applicantStatus: ApplicantSectionStatus.NEEDS_ATTENTION,
+                reviews: [{ notesForApplicant: 'test-conductHistory-notesForApplicant' }],
+            },
+        });
+
+        // Test methods
+        expect(application.applicantNotes()).to.matchPattern([
+            'test-education-notesForApplicant',
+            'test-conductHistory-notesForApplicant',
+        ]);
     });
     it('should serialize an Application for transmission to server', () => {
         const application = new Application({

@@ -3046,7 +3046,7 @@ export const applicantApplications = [
         status: 'started',
         reviews: [],
         attestations: [],
-        paymentCompensated: [],
+        paymentCompensated: ['apit', 'tap'],
         personalInformation: {
             applicantStatus: 'complete',
             reviewStatus: 'awaiting-applicant',
@@ -3801,6 +3801,20 @@ export const applicantAuthorizations = [
     },
     // If other authorizaion states are needed to test other workflows or to align with specific approved applications, add them below & comment out others as needed.
 ];
+
+export const applicationConfig = {
+    compact: 'psypact',
+    applicationFees: [
+        {
+            applicationType: 'apit',
+            amount: 100,
+        },
+        {
+            applicationType: 'tap',
+            amount: 50,
+        },
+    ],
+};
 
 // =========================================================================================
 // =                            MOCK PROVIDER OVERLAY HELPERS                              =

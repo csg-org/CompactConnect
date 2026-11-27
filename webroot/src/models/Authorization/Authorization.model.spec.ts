@@ -129,4 +129,39 @@ describe('Authorization model', () => {
         expect(authorization.statusDisplay()).to.equal('Inactive');
         expect(authorization.isActive()).to.equal(false);
     });
+    it('should create an Authorization model without Vue i18n helpers', () => {
+        const previousVue = (window as any).Vue;
+
+        (window as any).Vue = undefined;
+
+        const authorization = new Authorization();
+
+        (window as any).Vue = previousVue;
+
+        // Test field values
+        expect(authorization).to.be.an.instanceof(Authorization);
+        expect(authorization.$tm).to.equal(undefined);
+        expect(authorization.$features).to.equal(undefined);
+    });
+    it('should fall back when translation helpers return empty values', () => {
+        const authorization = new Authorization({
+            type: ApplicationType.APIT,
+            status: AuthorizationStatus.ACTIVE,
+        });
+
+        authorization.$tm = () => null;
+
+        // Test methods
+        expect(authorization.typeDisplay()).to.equal('');
+        expect(authorization.typeAbbreviation()).to.equal('');
+        expect(authorization.statusDisplay()).to.equal('');
+    });
+    it('should create an Authorization model with an inactive status display fallback', () => {
+        const authorization = new Authorization();
+
+        authorization.status = undefined;
+
+        // Test methods
+        expect(authorization.statusDisplay()).to.equal('Inactive');
+    });
 });

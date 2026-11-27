@@ -155,6 +155,10 @@ export default class DashboardPublic extends Vue {
         return Boolean(this.selectedCompact?.hasLicenseeLogin);
     }
 
+    get registerRouteName(): string {
+        return (this.$isAppModePsyPact) ? 'RegisterLicenseePsypact' : 'RegisterLicensee';
+    }
+
     //
     // Methods
     //

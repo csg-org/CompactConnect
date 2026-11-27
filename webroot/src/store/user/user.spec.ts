@@ -22,8 +22,10 @@ import { State } from '@models/State/State.model';
 import { License } from '@models/License/License.model';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
-import { Application, ApplicationStatus } from '@models/Application/Application.model';
+import { Application, ApplicationStatus, ApplicationType } from '@models/Application/Application.model';
+import { ApplicationConfig } from '@models/ApplicationConfig/ApplicationConfig.model';
 import { Address } from '@models/Address/Address.model';
+import { dataApi as mockDataApi } from '@network/mocks/mock.data.api';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
 import getters from './user.getters';
@@ -732,6 +734,90 @@ describe('Use Store Mutations', () => {
         expect(state.error).to.equal(null);
         expect(state.model).to.equal(null);
     });
+    it('should successfully create application request', () => {
+        const state: any = {};
+
+        mutations[MutationTypes.CREATE_APPLICATION_REQUEST](state);
+
+        expect(state.isCreatingApplication).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully create application failure', () => {
+        const state: any = {};
+        const error = new Error();
+
+        mutations[MutationTypes.CREATE_APPLICATION_FAILURE](state, error);
+
+        expect(state.isCreatingApplication).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully create application success (adds new application)', () => {
+        const otherApplication = new Application({ id: 'test-application-id-1' });
+        const state: any = {
+            model: new LicenseeUser({
+                licensee: new Licensee({ applications: [otherApplication] }),
+            }),
+        };
+        const application = new Application({ id: 'test-application-id-2' });
+
+        mutations[MutationTypes.CREATE_APPLICATION_SUCCESS](state, application);
+
+        expect(state.isCreatingApplication).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model.licensee.applications).to.have.length(2);
+        expect(state.model.licensee.applications[0]).to.equal(otherApplication);
+        expect(state.model.licensee.applications[1]).to.equal(application);
+    });
+    it('should successfully create application success (no existing applications)', () => {
+        const licensee = new Licensee();
+        const state: any = {
+            model: new LicenseeUser({ licensee }),
+        };
+        const application = new Application({ id: 'test-application-id' });
+
+        licensee.applications = undefined;
+        mutations[MutationTypes.CREATE_APPLICATION_SUCCESS](state, application);
+
+        expect(state.model.licensee.applications).to.have.length(1);
+        expect(state.model.licensee.applications[0]).to.equal(application);
+    });
+    it('should successfully create application success (no user model)', () => {
+        const state: any = { model: null };
+        const application = new Application({ id: 'test-application-id' });
+
+        mutations[MutationTypes.CREATE_APPLICATION_SUCCESS](state, application);
+
+        expect(state.isCreatingApplication).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model).to.equal(null);
+    });
+    it('should successfully get application config request', () => {
+        const state: any = {};
+
+        mutations[MutationTypes.GET_APPLICATION_CONFIG_REQUEST](state);
+
+        expect(state.isLoadingApplicationConfig).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get application config failure', () => {
+        const state: any = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_APPLICATION_CONFIG_FAILURE](state, error);
+
+        expect(state.isLoadingApplicationConfig).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get application config success', () => {
+        const state: any = {};
+        const applicationConfig = new ApplicationConfig({ compactType: 'psypact' });
+
+        mutations[MutationTypes.GET_APPLICATION_CONFIG_SUCCESS](state, applicationConfig);
+
+        expect(state.isLoadingApplicationConfig).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.applicationConfig).to.equal(applicationConfig);
+    });
 });
 describe('User Store Actions', async () => {
     it('should successfully start login request', () => {
@@ -813,6 +899,35 @@ describe('User Store Actions', async () => {
         const error = new Error();
 
         actions.createLicenseeAccountFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error]);
+    });
+    it('should successfully create licensee account request (psypact)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const payload = { data: {}};
+
+        await actions.createLicenseeAccountPsypactRequest({ commit, dispatch }, payload);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+        expect(dispatch.firstCall.args).to.matchPattern(['createLicenseeAccountPsypactSuccess']);
+    });
+    it('should successfully create licensee account success (psypact)', () => {
+        const commit = sinon.spy();
+
+        actions.createLicenseeAccountPsypactSuccess({ commit });
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_SUCCESS]);
+    });
+    it('should successfully create licensee account failure (psypact)', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.createLicenseeAccountPsypactFailure({ commit }, error);
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error]);
@@ -1593,6 +1708,165 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_FAILURE, error]);
+    });
+    it('should successfully start create application request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const data = { types: [ApplicationType.APIT], licenseJurisdiction: 'co' };
+        const state = { model: new LicenseeUser({ id: 'test-user-id' }) };
+
+        const application = await actions.createApplicationRequestLicensee({ commit, dispatch, state }, { data });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_APPLICATION_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('createApplicationSuccessLicensee');
+        expect(application).to.be.an.instanceof(Application);
+        expect(application.types).to.matchPattern([ApplicationType.APIT]);
+        expect(application.status).to.equal(ApplicationStatus.STARTED);
+    });
+    it('should retain a created application in the mock API for later reads', async () => {
+        const state = { model: new LicenseeUser({ id: 'test-user-id' }) };
+        const data = { types: [ApplicationType.TAP], licenseJurisdiction: 'co' };
+
+        const created = await actions.createApplicationRequestLicensee(
+            { commit: sinon.spy(), dispatch: sinon.spy(), state },
+            { data }
+        );
+        const fetched = await actions.getApplicationRequestLicensee(
+            { commit: sinon.spy(), dispatch: sinon.spy(), state },
+            { applicationId: created.id }
+        );
+        const { applications } = await mockDataApi.getAuthenticatedLicenseeApplications();
+
+        mockDataApi.resetCreatedApplications();
+
+        expect(fetched).to.be.an.instanceof(Application);
+        expect(fetched.id).to.equal(created.id);
+        expect(fetched).to.not.equal(created);
+        expect(applications.some((application) => application.id === created.id)).to.equal(true);
+    });
+    it('should give mock applications created in the same millisecond unique retrievable IDs', async () => {
+        const nowStub = sinon.stub(Date, 'now').returns(1700000000000);
+        const [ first, second ] = await Promise.all([
+            mockDataApi.createAuthenticatedLicenseeApplication({ types: [ApplicationType.APIT] }),
+            mockDataApi.createAuthenticatedLicenseeApplication({ types: [ApplicationType.TAP] }),
+        ]);
+        const fetchedSecond = await mockDataApi.getAuthenticatedLicenseeApplication(second.id);
+
+        nowStub.restore();
+        mockDataApi.resetCreatedApplications();
+
+        expect(first.id).to.not.equal(second.id);
+        expect(fetchedSecond.id).to.equal(second.id);
+        expect(fetchedSecond.types).to.matchPattern([ApplicationType.TAP]);
+    });
+    it('should successfully start create application request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id' }) };
+        let thrownError;
+
+        await actions.createApplicationRequestLicensee(
+            { commit, dispatch, state },
+            { data: { types: [] }}
+        ).catch((err) => {
+            thrownError = err;
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_APPLICATION_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('createApplicationFailureLicensee');
+        expect(thrownError).to.be.an('error').with.property('message', 'failed application create');
+    });
+    it('should successfully start create application request (user changed before response should return null & not dispatch mutation)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id-1' }) };
+        const data = { types: [ApplicationType.APIT], licenseJurisdiction: 'co' };
+
+        const request = actions.createApplicationRequestLicensee({ commit, dispatch, state }, { data });
+
+        state.model = new LicenseeUser({ id: 'test-user-id-2' });
+
+        const application = await request;
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_APPLICATION_REQUEST]);
+        expect(dispatch.notCalled).to.equal(true);
+        expect(application).to.equal(null);
+    });
+    it('should successfully start create application request (user changed before error should return null & not dispatch mutation)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { model: new LicenseeUser({ id: 'test-user-id-1' }) };
+
+        const request = actions.createApplicationRequestLicensee({ commit, dispatch, state }, { data: { types: [] }});
+
+        state.model = new LicenseeUser({ id: 'test-user-id-2' });
+
+        const application = await request;
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(dispatch.notCalled).to.equal(true);
+        expect(application).to.equal(null);
+    });
+    it('should successfully start create application success', () => {
+        const commit = sinon.spy();
+        const application = new Application();
+
+        actions.createApplicationSuccessLicensee({ commit }, application);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_APPLICATION_SUCCESS, application]);
+    });
+    it('should successfully start create application failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.createApplicationFailureLicensee({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_APPLICATION_FAILURE, error]);
+    });
+    it('should successfully start application config request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        const applicationConfig = await actions.getApplicationConfigRequest(
+            { commit, dispatch },
+            { compact: CompactType.PSYPACT }
+        );
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_CONFIG_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('getApplicationConfigSuccess');
+        expect(applicationConfig).to.be.an.instanceof(ApplicationConfig);
+        expect(applicationConfig.compactType).to.equal(CompactType.PSYPACT);
+        expect(applicationConfig.totalFeeForTypes([ApplicationType.APIT, ApplicationType.TAP])).to.equal(150);
+    });
+    it('should successfully start application config success', () => {
+        const commit = sinon.spy();
+        const applicationConfig = new ApplicationConfig();
+
+        actions.getApplicationConfigSuccess({ commit }, applicationConfig);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([
+            MutationTypes.GET_APPLICATION_CONFIG_SUCCESS,
+            applicationConfig,
+        ]);
+    });
+    it('should successfully start application config failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.getApplicationConfigFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_APPLICATION_CONFIG_FAILURE, error]);
     });
 });
 describe('User Store Getters', async () => {

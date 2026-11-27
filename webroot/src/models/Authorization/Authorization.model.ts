@@ -36,7 +36,7 @@ export class Authorization implements InterfaceAuthorizationCreate {
     public $tm?: any = () => [];
     public $features?: StatsigClient | null = null;
     public id? = null;
-    public type? = null;
+    public type?: ApplicationType | null = null;
     public status? = AuthorizationStatus.INACTIVE;
     public issueDate? = null;
     public renewalDate? = null;
